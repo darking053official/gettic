@@ -10,15 +10,15 @@ const io = new Server(server, {
 });
 
 app.get("/", (req, res) => {
-  res.send("GT Chat backend çalışıyor");
+  res.send("gettic backend çalışıyor");
 });
 
 io.on("connection", (socket) => {
   console.log("Bağlandı:", socket.id);
 
-  socket.on("chat message", (msg) => {
-    io.emit("chat message", msg);
-  });
+  socket.on("chat message", (data) => {
+  io.emit("chat message", data);
+});
 
   socket.on("disconnect", () => {
     console.log("Ayrıldı:", socket.id);
