@@ -10,14 +10,12 @@ const io = new Server(server, {
   cors: { origin: "*" }
 });
 
-// =====================
-// MONGO
-// =====================
+// ================= MONGO =================
 mongoose.connect(process.env.MONGO_URL)
   .then(() => console.log("MongoDB bağlı"))
-  .catch(err => console.log(err));
+  .catch(err => console.log("MongoDB hata:", err));
 
-// Message model
+// Message schema
 const Message = mongoose.model("Message", {
   user: String,
   text: String,
@@ -25,14 +23,10 @@ const Message = mongoose.model("Message", {
   time: { type: Date, default: Date.now }
 });
 
-// =====================
-// ONLINE USERS
-// =====================
+// ================= ONLINE USERS =================
 let onlineUsers = {};
 
-// =====================
-// ROUTES
-// =====================
+// ================= ROUTES =================
 app.get("/", (req, res) => {
   res.send("GETTIC LIVE 🚀");
 });
@@ -45,24 +39,19 @@ app.get("/messages/:room", async (req, res) => {
   res.json(msgs);
 });
 
-// =====================
-// SOCKET
-// =====================
+// ================= SOCKET =================
 io.on("connection", (socket) => {
   console.log("Bağlandı:", socket.id);
 
-  // user login
   socket.on("login", (username) => {
     onlineUsers[socket.id] = username;
     io.emit("online users", Object.values(onlineUsers));
   });
 
-  // join room
   socket.on("join room", (room) => {
     socket.join(room);
   });
 
-  // message
   socket.on("chat message", async (data) => {
     if (!data) return;
 
@@ -78,6 +67,6 @@ io.on("connection", (socket) => {
   });
 });
 
-// =====================
+// ================= START =================
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => console.log("Server aktif:", PORT));
