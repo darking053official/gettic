@@ -19,7 +19,6 @@ app.use(express.json());
 
 // ================ MODELS ================
 
-// User Schema
 const userSchema = new mongoose.Schema({
     username: { type: String, required: true, unique: true, trim: true, minlength: 3, maxlength: 20 },
     email: { type: String, required: true, unique: true, lowercase: true },
@@ -50,7 +49,6 @@ userSchema.methods.toJSON = function() {
 
 const User = mongoose.model('User', userSchema);
 
-// Message Schema
 const messageSchema = new mongoose.Schema({
     content: { type: String, required: true, maxlength: 2000 },
     sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
@@ -64,7 +62,6 @@ const messageSchema = new mongoose.Schema({
 
 const Message = mongoose.model('Message', messageSchema);
 
-// Room Schema
 const roomSchema = new mongoose.Schema({
     name: { type: String, required: true, trim: true },
     description: { type: String, default: '' },
@@ -90,7 +87,7 @@ const authMiddleware = async (req, res, next) => {
         const token = req.header('Authorization')?.replace('Bearer ', '');
         if (!token) return res.status(401).json({ error: 'Token gerekli' });
 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'yedeksecret');
         const user = await User.findById(decoded.userId);
         if (!user) return res.status(401).json({ error: 'Kullanıcı bulunamadı' });
 
@@ -104,7 +101,6 @@ const authMiddleware = async (req, res, next) => {
 
 // ================ AUTH ROUTES ================
 
-// Kayıt Ol
 app.post('/api/auth/register', async (req, res) => {
     try {
         const { username, email, password } = req.body;
@@ -117,7 +113,7 @@ app.post('/api/auth/register', async (req, res) => {
         const user = new User({ username, email, password });
         await user.save();
 
-        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '30d' });
+        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || 'yedeksecret', { expiresIn: '30d' });
 
         res.status(201).json({ user, token });
     } catch (error) {
@@ -125,7 +121,6 @@ app.post('/api/auth/register', async (req, res) => {
     }
 });
 
-// Giriş Yap
 app.post('/api/auth/login', async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -136,7 +131,7 @@ app.post('/api/auth/login', async (req, res) => {
         const isMatch = await user.comparePassword(password);
         if (!isMatch) return res.status(400).json({ error: 'Email veya şifre hatalı' });
 
-        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '30d' });
+        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || 'yedeksecret', { expiresIn: '30d' });
 
         res.json({ user, token });
     } catch (error) {
@@ -144,12 +139,10 @@ app.post('/api/auth/login', async (req, res) => {
     }
 });
 
-// Profil
 app.get('/api/auth/me', authMiddleware, async (req, res) => {
     res.json(req.user);
 });
 
-// Kullanıcı ara
 app.get('/api/users/search', authMiddleware, async (req, res) => {
     try {
         const { q } = req.query;
@@ -164,7 +157,6 @@ app.get('/api/users/search', authMiddleware, async (req, res) => {
 
 // ================ ROOM ROUTES ================
 
-// Oda oluştur
 app.post('/api/rooms', authMiddleware, async (req, res) => {
     try {
         const { name, description, isPrivate, password } = req.body;
@@ -185,7 +177,6 @@ app.post('/api/rooms', authMiddleware, async (req, res) => {
     }
 });
 
-// Tüm odaları listele
 app.get('/api/rooms', authMiddleware, async (req, res) => {
     try {
         const rooms = await Room.find({ isPrivate: false })
@@ -197,7 +188,6 @@ app.get('/api/rooms', authMiddleware, async (req, res) => {
     }
 });
 
-// Odaya katıl
 app.post('/api/rooms/:id/join', authMiddleware, async (req, res) => {
     try {
         const room = await Room.findById(req.params.id);
@@ -222,7 +212,6 @@ app.post('/api/rooms/:id/join', authMiddleware, async (req, res) => {
     }
 });
 
-// Oda mesajlarını getir
 app.get('/api/rooms/:id/messages', authMiddleware, async (req, res) => {
     try {
         const messages = await Message.find({ room: req.params.id })
@@ -237,7 +226,6 @@ app.get('/api/rooms/:id/messages', authMiddleware, async (req, res) => {
 
 // ================ MESSAGE ROUTES ================
 
-// Mesaj düzenle
 app.put('/api/messages/:id', authMiddleware, async (req, res) => {
     try {
         const message = await Message.findById(req.params.id);
@@ -256,7 +244,6 @@ app.put('/api/messages/:id', authMiddleware, async (req, res) => {
     }
 });
 
-// Mesaj sil
 app.delete('/api/messages/:id', authMiddleware, async (req, res) => {
     try {
         const message = await Message.findById(req.params.id);
@@ -274,7 +261,6 @@ app.delete('/api/messages/:id', authMiddleware, async (req, res) => {
 
 // ================ FRIEND ROUTES ================
 
-// Arkadaş ekle
 app.post('/api/friends/add', authMiddleware, async (req, res) => {
     try {
         const { friendId } = req.body;
@@ -297,7 +283,6 @@ app.post('/api/friends/add', authMiddleware, async (req, res) => {
     }
 });
 
-// Arkadaş listesi
 app.get('/api/friends', authMiddleware, async (req, res) => {
     try {
         const user = await User.findById(req.user._id).populate('friends', 'username avatar status customStatus');
@@ -312,7 +297,7 @@ app.get('/api/friends', authMiddleware, async (req, res) => {
 const onlineUsers = new Map();
 
 io.on('connection', (socket) => {
-    console.log('👤 Bağlandı:', socket.id);
+    console.log('👤 Kullanıcı bağlandı:', socket.id);
 
     socket.on('user-online', (userId) => {
         onlineUsers.set(userId, socket.id);
@@ -375,11 +360,29 @@ io.on('connection', (socket) => {
 
 // ================ SERVER START ================
 
-mongoose.connect(process.env.MONGODB_URI)
-    .then(() => console.log('✅ MongoDB bağlandı'))
-    .catch(err => console.error('❌ MongoDB hatası:', err));
+const MONGODB_URI = process.env.MONGODB_URI;
+
+console.log('🚀 Gettic Sunucu Başlatılıyor...');
+console.log('📦 MONGODB_URI:', MONGODB_URI ? '✅ Yüklendi' : '❌ Yüklenemedi!');
+
+if (!MONGODB_URI) {
+    console.error('❌ HATA: MONGODB_URI bulunamadı!');
+    console.error('📌 Render Environment Variables kısmına MONGODB_URI eklemelisin!');
+    console.error('📌 Key: MONGODB_URI');
+    console.error('📌 Value: mongodb+srv://getticUser:darking05322122012@gettic.b0khszl.mongodb.net/gettic');
+} else {
+    console.log('🔗 MongoDB bağlanıyor...');
+}
+
+mongoose.connect(MONGODB_URI || 'mongodb://localhost:27017/gettic')
+    .then(() => console.log('✅ MongoDB bağlandı! Veritabanı hazır.'))
+    .catch(err => {
+        console.error('❌ MongoDB bağlantı hatası:', err.message);
+        console.error('⚠️ Veritabanı olmadan çalışacak, mesajlar kaydedilmeyecek!');
+    });
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log(`✅ Server ${PORT} portunda çalışıyor`);
+    console.log(`✅ Gettic Sunucu ${PORT} portunda çalışıyor`);
+    console.log(`🌐 https://gettic.onrender.com`);
 });
