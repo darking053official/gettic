@@ -2,320 +2,544 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Gettic - Modern sohbet platformu. Takıl, konuş, paylaş.">
-    <meta name="theme-color" content="#1a1a2e">
-    <title>Gettic - Sohbet Platformu</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#1e1f22">
+    <title>Gettic</title>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+        :root {
+            --bg: #1e1f22; --bg2: #2b2d31; --bg3: #1a1b1e; --hover: #35373c; --active: #404249;
+            --accent: #5865f2; --green: #23a55a; --yellow: #f0b232; --red: #f23f42;
+            --text: #dbdee1; --text2: #949ba4; --text3: #6d6f78; --border: #3f4147;
+            --radius: 8px; --font: 'Inter', 'Segoe UI', system-ui, sans-serif;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:var(--font); background:var(--bg); color:var(--text); height:100vh; height:100dvh; overflow:hidden; -webkit-font-smoothing:antialiased; }
+        .screen { display:none; width:100%; height:100%; }
+        .screen.active { display:flex; }
+
+        /* AUTH */
+        #auth-screen { justify-content:center; align-items:center; background:var(--bg); padding:20px; }
+        .auth-box { background:var(--bg2); padding:40px 32px; border-radius:16px; width:440px; max-width:100%; box-shadow:0 8px 40px rgba(0,0,0,0.5); border:1px solid var(--border); }
+        .auth-box .logo { text-align:center; margin-bottom:28px; }
+        .auth-box .logo h1 { font-size:2em; font-weight:800; }
+        .auth-box .logo p { color:var(--text2); font-size:13px; margin-top:4px; }
+        .tabs { display:flex; background:var(--bg); border-radius:8px; padding:3px; margin-bottom:22px; gap:3px; }
+        .tabs button { flex:1; padding:11px; border:none; background:transparent; color:var(--text2); border-radius:6px; cursor:pointer; font-weight:600; font-size:14px; transition:0.2s; }
+        .tabs button.active { background:var(--accent); color:#fff; }
+        .fg { display:none; flex-direction:column; gap:14px; }
+        .fg.active { display:flex; }
+        .if { display:flex; flex-direction:column; gap:5px; }
+        .if label { font-size:11px; font-weight:700; color:var(--text2); text-transform:uppercase; letter-spacing:0.5px; }
+        .iw { display:flex; background:var(--bg3); border:1px solid var(--border); border-radius:6px; transition:0.2s; }
+        .iw:focus-within { border-color:var(--accent); }
+        .iw input { flex:1; padding:12px 14px; background:transparent; border:none; color:var(--text); font-size:14px; outline:none; min-width:0; }
+        .iw input::placeholder { color:var(--text3); }
+        .iw .eye { background:none; border:none; padding:0 12px; cursor:pointer; color:var(--text3); font-size:16px; }
+        .btn { padding:13px; border:none; border-radius:6px; cursor:pointer; font-weight:700; font-size:14px; transition:0.2s; }
+        .btn-primary { background:var(--accent); color:#fff; }
+        .btn-primary:hover { background:#4752c4; }
+        .btn-danger { background:var(--red); color:#fff; }
+        .btn-green { background:var(--green); color:#fff; }
+        .btn-sm { padding:6px 12px; font-size:12px; border-radius:4px; }
+        .link-text { text-align:center; font-size:12px; color:var(--text3); margin-top:4px; }
+        .link-text span { color:var(--accent); cursor:pointer; font-weight:600; }
+
+        /* MAIN */
+        #main-screen { flex-direction:row; }
+        .server-list { width:64px; background:var(--bg3); display:flex; flex-direction:column; align-items:center; padding:12px 0; gap:6px; border-right:1px solid var(--border); flex-shrink:0; overflow-y:auto; }
+        .server-icon { width:46px; height:46px; border-radius:50%; background:var(--bg2); display:flex; align-items:center; justify-content:center; cursor:pointer; font-weight:700; font-size:15px; color:var(--text2); transition:0.2s; position:relative; flex-shrink:0; }
+        .server-icon:hover, .server-icon.active { border-radius:14px; background:var(--accent); color:#fff; }
+        .server-icon.add { color:var(--green); font-size:22px; }
+        .server-icon.add:hover { background:var(--green); color:#fff; }
+        .server-sep { width:30px; height:2px; background:var(--border); border-radius:1px; margin:4px 0; }
+        .server-tip { display:none; position:absolute; left:56px; background:#000; color:#fff; padding:6px 10px; border-radius:4px; font-size:11px; white-space:nowrap; z-index:999; pointer-events:none; font-weight:500; }
+        .server-icon:hover .server-tip { display:block; }
+
+        .sidebar { width:250px; background:var(--bg2); display:flex; flex-direction:column; border-right:1px solid var(--border); flex-shrink:0; }
+        .sidebar-header { padding:14px 16px; border-bottom:1px solid var(--border); font-weight:700; font-size:14px; display:flex; justify-content:space-between; align-items:center; }
+        .sidebar-header button { background:none; border:none; color:var(--text3); cursor:pointer; font-size:18px; padding:4px 8px; border-radius:4px; }
+        .sidebar-header button:hover { background:var(--hover); color:var(--text); }
+        .section-title { padding:16px 16px 4px; font-size:11px; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:0.5px; display:flex; align-items:center; gap:4px; cursor:pointer; }
+        .voice-list { padding:4px 8px; }
+        .voice-item { padding:8px 12px; border-radius:6px; cursor:pointer; display:flex; align-items:center; gap:8px; color:var(--text2); font-size:13px; transition:0.15s; justify-content:space-between; }
+        .voice-item:hover { background:var(--hover); color:var(--text); }
+        .voice-item.active { background:var(--active); color:#fff; }
+        .voice-item .v-left { display:flex; align-items:center; gap:8px; }
+        .voice-item .v-icon { color:var(--text3); font-size:15px; }
+        .voice-item .v-count { font-size:10px; color:var(--text3); background:var(--bg3); padding:2px 6px; border-radius:10px; }
+        .room-list { flex:1; overflow-y:auto; padding:4px 8px; }
+        .room-item { padding:8px 12px; border-radius:6px; cursor:pointer; display:flex; align-items:center; gap:8px; color:var(--text2); font-size:13px; transition:0.15s; }
+        .room-item:hover { background:var(--hover); color:var(--text); }
+        .room-item.active { background:var(--active); color:#fff; }
+        .room-item .hash { color:var(--text3); font-weight:700; font-size:15px; }
+        .sidebar-footer { padding:8px 12px; background:#232428; display:flex; align-items:center; justify-content:space-between; border-top:1px solid var(--border); }
+        .sidebar-footer .user-row { display:flex; align-items:center; gap:8px; cursor:pointer; padding:4px; border-radius:4px; flex:1; }
+        .sidebar-footer .user-row:hover { background:var(--hover); }
+        .sidebar-footer .avatar { width:32px; height:32px; border-radius:50%; background:var(--accent); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; color:#fff; flex-shrink:0; }
+        .sidebar-footer .user-meta { display:flex; flex-direction:column; min-width:0; }
+        .sidebar-footer .user-meta .uname { font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .sidebar-footer .user-meta .ustatus { font-size:10px; color:var(--text3); }
+        .sidebar-footer .btns { display:flex; gap:2px; }
+        .sidebar-footer .btns button { background:none; border:none; color:var(--text3); cursor:pointer; padding:6px; border-radius:4px; font-size:14px; }
+        .sidebar-footer .btns button:hover { background:var(--hover); }
+
+        .chat-wrap { flex:1; display:flex; flex-direction:column; min-width:0; background:var(--bg); }
+        .voice-bar { display:none; padding:8px 16px; background:#1a3320; border-bottom:1px solid var(--green); align-items:center; gap:10px; flex-shrink:0; }
+        .voice-bar.open { display:flex; }
+        .voice-bar .v-info { flex:1; font-size:12px; color:var(--green); font-weight:600; }
+        .voice-bar .v-btns { display:flex; gap:6px; }
+        .voice-bar .v-btn { width:34px; height:34px; border-radius:50%; border:none; cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center; transition:0.2s; background:var(--bg3); color:var(--text); }
+        .voice-bar .v-btn:hover { background:var(--hover); }
+        .voice-bar .v-btn.muted { background:var(--red); color:#fff; }
+        .voice-bar .v-btn.deaf { background:var(--yellow); color:#000; }
+        .chat-top { padding:10px 20px; background:var(--bg); border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; flex-shrink:0; min-height:48px; }
+        .chat-top .title { font-weight:700; font-size:14px; }
+        .chat-top .title .hash { color:var(--text3); margin-right:4px; }
+        .chat-top .actions { display:flex; align-items:center; gap:10px; font-size:12px; color:var(--text3); }
+        .chat-top .actions .dot { width:7px; height:7px; border-radius:50%; background:var(--green); }
+        .chat-top .actions button { background:none; border:none; color:var(--text3); cursor:pointer; font-size:16px; padding:4px; }
+        .msg-area { flex:1; overflow-y:auto; padding:16px 20px; display:flex; flex-direction:column; gap:2px; }
+        .welcome { text-align:center; padding:40px 20px; color:var(--text3); margin:auto; }
+        .welcome h2 { color:var(--text); font-size:1.3em; margin-bottom:4px; }
+        .msg { padding:5px 12px; border-radius:6px; transition:background 0.15s; }
+        .msg:hover { background:var(--hover); }
+        .msg .mhdr { display:flex; align-items:center; gap:8px; }
+        .msg .mava { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; color:#fff; flex-shrink:0; position:relative; }
+        .msg .mava .role-badge { position:absolute; bottom:-2px; right:-2px; font-size:9px; background:var(--bg2); border-radius:50%; padding:2px; }
+        .msg .muser { font-weight:700; font-size:13px; }
+        .msg .mtime { font-size:10px; color:var(--text3); }
+        .msg .mbody { margin-left:44px; font-size:13px; color:var(--text); line-height:1.5; word-break:break-word; }
+        .msg .mreply { margin-left:44px; font-size:11px; color:var(--text3); border-left:2px solid var(--accent); padding-left:8px; margin-bottom:3px; }
+        .msg .mbtns { display:none; gap:3px; margin-left:44px; margin-top:3px; }
+        .msg:hover .mbtns { display:flex; }
+        .mbtns button { background:var(--bg3); border:none; color:var(--text3); cursor:pointer; font-size:10px; padding:3px 8px; border-radius:3px; }
+        .mbtns button:hover { background:var(--hover); color:var(--text); }
+        .typing { padding:2px 20px; font-size:11px; color:var(--text3); min-height:20px; flex-shrink:0; }
+        .input-zone { padding:0 16px 20px; flex-shrink:0; }
+        .reply-tag { background:var(--bg2); padding:8px 14px; border-radius:6px 6px 0 0; display:none; align-items:center; justify-content:space-between; font-size:11px; color:var(--text3); border-left:3px solid var(--accent); }
+        .reply-tag button { background:none; border:none; color:var(--text3); cursor:pointer; font-size:16px; }
+        .input-row { display:flex; gap:10px; background:var(--bg2); padding:8px 14px; border-radius:6px; align-items:flex-end; border:1px solid transparent; transition:0.2s; }
+        .input-row:focus-within { border-color:var(--accent); }
+        .input-row textarea { flex:1; background:transparent; border:none; color:var(--text); font-size:13px; resize:none; outline:none; max-height:130px; font-family:inherit; line-height:1.4; padding:4px 0; }
+        .input-row textarea::placeholder { color:var(--text3); }
+        .input-row .send { background:var(--accent); color:#fff; border:none; padding:8px 16px; border-radius:4px; cursor:pointer; font-weight:600; font-size:13px; flex-shrink:0; }
+        .member-panel { width:240px; background:var(--bg2); border-left:1px solid var(--border); display:none; flex-direction:column; flex-shrink:0; }
+        .member-panel.open { display:flex; }
+        .member-panel h3 { padding:14px 16px; font-size:12px; color:var(--text3); text-transform:uppercase; border-bottom:1px solid var(--border); }
+        .member-list { flex:1; overflow-y:auto; padding:8px; }
+        .mem-item { display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:4px; cursor:pointer; font-size:12px; color:var(--text2); }
+        .mem-item:hover { background:var(--hover); }
+        .mem-ava { width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:11px; color:#fff; }
+        .mem-role { font-size:9px; padding:2px 5px; border-radius:3px; margin-left:auto; }
+        .mem-role.owner { background:#f0b23233; color:var(--yellow); }
+        .mem-role.admin { background:#5865f233; color:var(--accent); }
+        .mem-role.mod { background:#23a55a33; color:var(--green); }
+
+        .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:500; justify-content:center; align-items:center; padding:20px; }
+        .modal.open { display:flex; }
+        .modal-bg { position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); }
+        .modal-box { background:var(--bg2); border-radius:12px; padding:24px; width:420px; max-width:100%; z-index:1; border:1px solid var(--border); position:relative; max-height:80vh; overflow-y:auto; }
+        .modal-box h3 { font-size:16px; margin-bottom:16px; }
+        .modal-close { position:absolute; top:12px; right:14px; background:none; border:none; color:var(--text3); cursor:pointer; font-size:20px; }
+        .modal-box input, .modal-box select { width:100%; padding:11px; margin:5px 0 10px; background:var(--bg3); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:13px; outline:none; }
+        .modal-box input:focus, .modal-box select:focus { border-color:var(--accent); }
+        .modal-box .btn { width:100%; margin-top:6px; }
+        .check-row { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--text2); margin:6px 0; }
+        .check-row input { width:auto; margin:0; accent-color:var(--accent); }
+        .status-opt { display:flex; align-items:center; gap:10px; padding:10px; border-radius:6px; cursor:pointer; font-size:13px; transition:0.15s; }
+        .status-opt:hover { background:var(--hover); }
+        .sdot { width:10px; height:10px; border-radius:50%; }
+        .sdot.on { background:var(--green); }
+        .sdot.idle { background:var(--yellow); }
+        .sdot.dnd { background:var(--red); }
+        .sdot.off { background:var(--text3); }
+        .voice-users { display:flex; flex-wrap:wrap; gap:8px; padding:8px 0; }
+        .v-user { display:flex; flex-direction:column; align-items:center; gap:4px; padding:8px; border-radius:8px; background:var(--bg3); min-width:60px; cursor:pointer; }
+        .v-user .v-ava { width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:16px; color:#fff; position:relative; }
+        .v-user .v-ava .v-dot { position:absolute; bottom:2px; right:2px; width:12px; height:12px; border-radius:50%; border:2px solid var(--bg3); }
+        .v-user .v-ava .v-dot.speaking { background:var(--green); }
+        .v-user .v-ava .v-dot.muted { background:var(--yellow); }
+        .v-user .v-name { font-size:10px; color:var(--text2); max-width:60px; text-align:center; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        #toast { position:fixed; bottom:30px; left:50%; transform:translateX(-50%); padding:12px 26px; border-radius:20px; color:#fff; font-weight:600; z-index:9999; font-size:12px; display:none; box-shadow:0 8px 30px rgba(0,0,0,0.5); pointer-events:none; }
+        ::-webkit-scrollbar { width:4px; } ::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+        @media (max-width:700px) { .sidebar { width:60px; } .sidebar-header span, .room-item span:not(.hash), .voice-item span:not(.v-icon), .sidebar-footer .user-meta, .section-title { display:none; } .sidebar-footer { justify-content:center; } .member-panel { width:180px; } .chat-top { padding:10px 12px; } .msg-area { padding:12px; } .input-zone { padding:0 10px 14px; } }
+    </style>
 </head>
 <body>
-    <!-- Yükleme Ekranı -->
-    <div id="loading-screen" class="screen active">
-        <div class="loading-container">
-            <div class="loading-logo">🎧</div>
-            <h1>Gettic</h1>
-            <div class="loading-bar">
-                <div class="loading-progress"></div>
-            </div>
-            <p>Yükleniyor...</p>
+
+<div id="auth-screen" class="screen active">
+    <div class="auth-box">
+        <div class="logo"><h1>Gettic</h1><p>Takıl, konuş, paylaş</p></div>
+        <div class="tabs">
+            <button id="tab-login" class="active" onclick="switchTab('login')">Giriş</button>
+            <button id="tab-register" onclick="switchTab('register')">Kayıt</button>
+        </div>
+        <div id="form-login" class="fg active">
+            <div class="if"><label>Kullanıcı Adı</label><div class="iw"><input type="text" id="login-user" placeholder="Kullanıcı adınız" autocomplete="off"></div></div>
+            <div class="if"><label>Şifre</label><div class="iw"><input type="password" id="login-pass" placeholder="Şifreniz"><button class="eye" onclick="togglePass('login-pass',this)">👁</button></div></div>
+            <button class="btn btn-primary" onclick="doLogin()">Giriş Yap</button>
+            <p class="link-text">Hesabın yok mu? <span onclick="switchTab('register')">Kayıt Ol</span></p>
+        </div>
+        <div id="form-register" class="fg">
+            <div class="if"><label>Kullanıcı Adı</label><div class="iw"><input type="text" id="reg-user" placeholder="Kullanıcı adı seç" autocomplete="off" minlength="3" maxlength="20"></div></div>
+            <div class="if"><label>Şifre</label><div class="iw"><input type="password" id="reg-pass" placeholder="En az 6 karakter" minlength="6"><button class="eye" onclick="togglePass('reg-pass',this)">👁</button></div></div>
+            <button class="btn btn-primary" onclick="doRegister()">Kayıt Ol</button>
+            <p class="link-text">Hesabın var mı? <span onclick="switchTab('login')">Giriş Yap</span></p>
         </div>
     </div>
+</div>
 
-    <!-- Giriş / Kayıt Ekranı -->
-    <div id="auth-screen" class="screen">
-        <div class="auth-container">
-            <div class="auth-header">
-                <div class="auth-logo">🎧</div>
-                <h1>Gettic</h1>
-                <p class="auth-slogan">Takıl, konuş, paylaş</p>
+<div id="main-screen" class="screen">
+    <div class="server-list" id="server-list">
+        <div class="server-icon active" onclick="selectServer('main')">G<span class="server-tip">Ana Sunucu</span></div>
+        <div class="server-sep"></div>
+        <div class="server-icon add" onclick="showServerModal()">+<span class="server-tip">Sunucu Ekle</span></div>
+    </div>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header"><span id="server-name">Gettic</span><button onclick="showServerSettings()">⚙</button></div>
+        <div class="section-title">🔊 SESLİ KANALLAR</div>
+        <div class="voice-list" id="voice-list">
+            <div class="voice-item" id="voice-genel" onclick="joinVoice('genel')"><div class="v-left"><span class="v-icon">🔊</span> <span>Genel Sesli</span></div><span class="v-count" id="voice-genel-count">0</span></div>
+        </div>
+        <div class="section-title">💬 YAZILI KANALLAR</div>
+        <div class="room-list" id="room-list">
+            <div class="room-item active" onclick="joinRoom('genel','genel','Genel sohbet')"><span class="hash">#</span> <span>genel</span></div>
+        </div>
+        <div class="sidebar-footer">
+            <div class="user-row" onclick="showStatusModal()">
+                <div class="avatar" id="my-avatar">?</div>
+                <div class="user-meta"><span class="uname" id="my-name">Misafir</span><span class="ustatus" id="my-status">Çevrimiçi</span></div>
             </div>
-            
-            <div class="auth-tabs">
-                <button class="tab-btn active" onclick="switchTab('login')">
-                    <span>🔑</span> Giriş Yap
-                </button>
-                <button class="tab-btn" onclick="switchTab('register')">
-                    <span>✨</span> Kayıt Ol
-                </button>
-            </div>
-
-            <!-- Giriş Formu -->
-            <form id="login-form" class="auth-form active" onsubmit="login(event)" autocomplete="off">
-                <div class="input-group">
-                    <label for="login-username">Kullanıcı Adı</label>
-                    <div class="input-icon-wrapper">
-                        <span class="input-icon">👤</span>
-                        <input type="text" id="login-username" placeholder="Kullanıcı adınızı girin" required minlength="3" maxlength="20">
-                    </div>
-                </div>
-                <div class="input-group">
-                    <label for="login-password">Şifre</label>
-                    <div class="input-icon-wrapper">
-                        <span class="input-icon">🔒</span>
-                        <input type="password" id="login-password" placeholder="Şifrenizi girin" required>
-                        <button type="button" class="toggle-password" onclick="togglePassword('login-password')">👁</button>
-                    </div>
-                </div>
-                <div class="form-options">
-                    <label class="remember-me">
-                        <input type="checkbox" id="remember-me"> Beni Hatırla
-                    </label>
-                </div>
-                <button type="submit" class="auth-submit-btn">
-                    <span>Giriş Yap</span>
-                    <span class="btn-arrow">→</span>
-                </button>
-                <p class="auth-switch-text">Hesabın yok mu? <a href="#" onclick="switchTab('register')">Kayıt Ol</a></p>
-            </form>
-
-            <!-- Kayıt Formu -->
-            <form id="register-form" class="auth-form" onsubmit="register(event)" autocomplete="off">
-                <div class="input-group">
-                    <label for="register-username">Kullanıcı Adı</label>
-                    <div class="input-icon-wrapper">
-                        <span class="input-icon">👤</span>
-                        <input type="text" id="register-username" placeholder="Bir kullanıcı adı seçin" required minlength="3" maxlength="20">
-                    </div>
-                    <small class="input-hint">3-20 karakter arası, harf ve rakam içerebilir</small>
-                </div>
-                <div class="input-group">
-                    <label for="register-password">Şifre</label>
-                    <div class="input-icon-wrapper">
-                        <span class="input-icon">🔒</span>
-                        <input type="password" id="register-password" placeholder="Güçlü bir şifre oluşturun" required minlength="6">
-                        <button type="button" class="toggle-password" onclick="togglePassword('register-password')">👁</button>
-                    </div>
-                    <small class="input-hint">En az 6 karakter</small>
-                </div>
-                <button type="submit" class="auth-submit-btn">
-                    <span>Kayıt Ol</span>
-                    <span class="btn-arrow">→</span>
-                </button>
-                <p class="auth-switch-text">Zaten hesabın var mı? <a href="#" onclick="switchTab('login')">Giriş Yap</a></p>
-            </form>
+            <div class="btns"><button onclick="showStatusModal()">⚙</button><button onclick="doLogout()">🚪</button></div>
         </div>
     </div>
-
-    <!-- Ana Uygulama Ekranı -->
-    <div id="main-screen" class="screen">
-        <!-- Sol Kenar Çubuğu - Sunucular -->
-        <div class="server-sidebar">
-            <div class="server-list" id="server-list">
-                <div class="server-icon active" onclick="joinRoom('genel')" title="Genel Sohbet">
-                    <span>#</span>
-                    <div class="server-tooltip">Genel Sohbet</div>
-                </div>
-            </div>
-            <div class="server-separator"></div>
-            <div class="server-add" onclick="showCreateRoom()" title="Yeni Oda Oluştur">
-                <span>+</span>
-                <div class="server-tooltip">Oda Ekle</div>
-            </div>
-            <div class="server-discover" onclick="loadPublicRooms()" title="Odaları Keşfet">
-                <span>🔍</span>
-                <div class="server-tooltip">Keşfet</div>
-            </div>
-        </div>
-
-        <!-- Oda Listesi Sidebar -->
-        <div class="room-sidebar">
-            <div class="room-header">
-                <h3>Gettic</h3>
-                <div class="room-header-actions">
-                    <button class="icon-btn" onclick="toggleSettings()" title="Ayarlar">⚙️</button>
-                </div>
-            </div>
-            <div class="room-search">
-                <input type="text" id="room-search" placeholder="Oda bul..." oninput="filterRooms()">
-            </div>
-            <div class="room-categories">
-                <div class="category-header" onclick="toggleCategory('text-rooms')">
-                    <span class="category-arrow">▾</span> METİN ODALARI
-                </div>
-                <div class="category-rooms" id="text-rooms">
-                    <div class="room-list" id="room-list">
-                        <div class="room-item active" onclick="joinRoom('genel')" data-room-id="genel">
-                            <span class="room-icon">#</span>
-                            <span class="room-name">genel</span>
-                            <span class="room-badge">●</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="user-panel">
-                <div class="user-info">
-                    <div class="user-avatar" id="user-avatar"></div>
-                    <div class="user-details">
-                        <span class="user-display-name" id="user-name">Misafir</span>
-                        <span class="user-status-text" id="user-status-text">Çevrimiçi</span>
-                    </div>
-                </div>
-                <div class="user-panel-actions">
-                    <button class="icon-btn" onclick="toggleSettings()" title="Kullanıcı Ayarları">⚙️</button>
-                    <button class="icon-btn logout-btn" onclick="logout()" title="Çıkış Yap">🚪</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Ana Sohbet Alanı -->
-        <div class="chat-area">
-            <div class="chat-header">
-                <div class="chat-room-info">
-                    <span class="room-icon">#</span>
-                    <span id="current-room-name">genel</span>
-                    <span class="room-divider"></span>
-                    <span id="room-description">Genel sohbet odası</span>
-                </div>
-                <div class="chat-header-actions">
-                    <div class="online-indicator">
-                        <span class="online-dot"></span>
-                        <span id="online-count">0</span>
-                    </div>
-                    <button class="icon-btn" onclick="toggleMemberSidebar()" title="Üye Listesi">👥</button>
-                    <button class="icon-btn" onclick="loadPinnedMessages()" title="Sabitlenmiş Mesajlar">📌</button>
-                    <div class="chat-search">
-                        <input type="text" id="chat-search" placeholder="Mesajlarda ara...">
-                    </div>
-                </div>
-            </div>
-
-            <!-- Mesajlar Alanı -->
-            <div class="messages-area" id="messages">
-                <div class="welcome-message">
-                    <div class="welcome-icon">🎧</div>
-                    <h2>Gettic'e Hoş Geldin!</h2>
-                    <p>Burası <strong>#genel</strong> odasının başlangıcı.</p>
-                    <p>Sohbete başlamak için bir mesaj yaz!</p>
-                    <div class="welcome-tips">
-                        <div class="tip-item">💬 <strong>Mesajlaş:</strong> Anlık sohbetin keyfini çıkar</div>
-                        <div class="tip-item">🏠 <strong>Odalar:</strong> Farklı konular için odalar oluştur</div>
-                        <div class="tip-item">👥 <strong>Arkadaşlar:</strong> Ekiple takıl, konuş</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Yazıyor Göstergesi -->
-            <div class="typing-indicator" id="typing-indicator"></div>
-
-            <!-- Mesaj Gönderme Alanı -->
-            <div class="input-area">
-                <div class="reply-preview" id="reply-preview" style="display:none;">
-                    <div class="reply-content">
-                        <span class="reply-label">↪ Yanıtlanıyor:</span>
-                        <span id="reply-text"></span>
-                    </div>
-                    <button class="reply-cancel" onclick="cancelReply()" title="İptal">✕</button>
-                </div>
-                <div class="input-wrapper">
-                    <button class="input-action-btn" onclick="toggleEmojiPicker()" title="Emoji">😀</button>
-                    <textarea id="message-input" placeholder="#genel odasına mesaj yaz..." rows="1" onkeydown="handleInput(event)" maxlength="2000"></textarea>
-                    <span class="char-count" id="char-count">0/2000</span>
-                    <button class="send-btn" onclick="sendMessage()" title="Mesaj Gönder">
-                        <span>📤</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Sağ Panel - Üye Listesi -->
-        <div class="member-sidebar" id="member-sidebar">
-            <div class="member-header">
-                <h3>Üyeler - <span id="member-count">0</span></h3>
-                <button class="icon-btn" onclick="toggleMemberSidebar()">✕</button>
-            </div>
-            <div class="member-search">
-                <input type="text" placeholder="Üye ara..." oninput="filterMembers()">
-            </div>
-            <div class="member-list" id="member-list"></div>
+    <div class="chat-wrap">
+        <div class="voice-bar" id="voice-bar"><div class="v-info" id="v-info">🔊 Bağlanıyor...</div><div class="v-btns"><button class="v-btn" id="btn-mute" onclick="toggleMute()">🎤</button><button class="v-btn" id="btn-deafen" onclick="toggleDeafen()">🔊</button><button class="v-btn" style="background:var(--red);color:#fff;" onclick="leaveVoice()">📞</button></div></div>
+        <div class="chat-top"><div class="title"><span class="hash">#</span><span id="room-name">genel</span></div><div class="actions"><span class="dot"></span> <span id="online-count">0 çevrimiçi</span><button onclick="toggleMembers()">👥</button></div></div>
+        <div class="msg-area" id="messages"><div class="welcome"><h2>Gettic'e Hoş Geldin!</h2><p>Sohbete başla!</p></div></div>
+        <div class="typing" id="typing"></div>
+        <div class="input-zone">
+            <div class="reply-tag" id="reply-tag"><span>Yanıt: <span id="reply-txt"></span></span><button onclick="cancelReply()">✕</button></div>
+            <div class="input-row"><textarea id="msg-input" placeholder="#genel e mesaj yaz..." rows="1" maxlength="2000" onkeydown="handleInput(event)" oninput="autoGrow(this)"></textarea><button class="send" onclick="sendMsg()">Gönder</button></div>
         </div>
     </div>
+    <div class="member-panel" id="member-panel"><h3>Üyeler</h3><div class="member-list" id="member-list"></div></div>
+</div>
 
-    <!-- Oda Oluşturma Modal -->
-    <div id="create-room-modal" class="modal">
-        <div class="modal-backdrop" onclick="closeCreateRoom()"></div>
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>✨ Yeni Oda Oluştur</h3>
-                <button class="modal-close" onclick="closeCreateRoom()">✕</button>
-            </div>
-            <form onsubmit="createRoom(event)">
-                <div class="modal-body">
-                    <div class="input-group">
-                        <label for="room-name">Oda Adı <span class="required">*</span></label>
-                        <input type="text" id="room-name" placeholder="örn: oyun-sohbet" required minlength="2" maxlength="30">
-                        <small class="input-hint">Harfler, rakamlar ve tire kullanabilirsin</small>
-                    </div>
-                    <div class="input-group">
-                        <label for="room-description">Açıklama</label>
-                        <input type="text" id="room-description" placeholder="Odanın konusu nedir?">
-                    </div>
-                    <div class="input-group">
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="room-private" onchange="toggleRoomPassword()">
-                            <span>Özel Oda (şifreli)</span>
-                        </label>
-                    </div>
-                    <div class="input-group" id="room-password-group" style="display:none;">
-                        <label for="room-password">Oda Şifresi</label>
-                        <input type="password" id="room-password" placeholder="Odaya giriş şifresi" minlength="4">
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn-secondary" onclick="closeCreateRoom()">İptal</button>
-                    <button type="submit" class="btn-primary">Oluştur</button>
-                </div>
-            </form>
-        </div>
+<div id="room-modal" class="modal">
+    <div class="modal-bg" onclick="closeRoomModal()"></div>
+    <div class="modal-box">
+        <button class="modal-close" onclick="closeRoomModal()">✕</button>
+        <h3>Kanal Oluştur</h3>
+        <select id="new-room-type"><option value="text">Yazılı Kanal</option><option value="voice">Sesli Kanal</option></select>
+        <input type="text" id="new-room-name" placeholder="Kanal adı">
+        <input type="text" id="new-room-desc" placeholder="Açıklama">
+        <div class="check-row"><input type="checkbox" id="new-room-private" onchange="document.getElementById('rpw').style.display=this.checked?'block':'none'"><label>Özel</label></div>
+        <div id="rpw" style="display:none;"><input type="password" id="new-room-pass" placeholder="Şifre"></div>
+        <button class="btn btn-primary" onclick="createRoom()">Oluştur</button>
     </div>
+</div>
 
-    <!-- Ayarlar Modal -->
-    <div id="settings-modal" class="modal">
-        <div class="modal-backdrop" onclick="toggleSettings()"></div>
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>⚙️ Kullanıcı Ayarları</h3>
-                <button class="modal-close" onclick="toggleSettings()">✕</button>
-            </div>
-            <div class="modal-body">
-                <div class="setting-section">
-                    <h4>Durum</h4>
-                    <div class="status-options">
-                        <div class="status-option online" onclick="setStatus('online')">
-                            <span class="status-dot"></span> Çevrimiçi
-                        </div>
-                        <div class="status-option idle" onclick="setStatus('idle')">
-                            <span class="status-dot"></span> Boşta
-                        </div>
-                        <div class="status-option dnd" onclick="setStatus('dnd')">
-                            <span class="status-dot"></span> Rahatsız Etme
-                        </div>
-                        <div class="status-option offline" onclick="setStatus('offline')">
-                            <span class="status-dot"></span> Görünmez
-                        </div>
-                    </div>
-                </div>
-                <div class="setting-section">
-                    <h4>Özel Durum Mesajı</h4>
-                    <input type="text" id="custom-status-input" placeholder="Ne düşünüyorsun?" maxlength="50">
-                    <button onclick="updateCustomStatus()" class="btn-primary btn-sm">Kaydet</button>
-                </div>
-            </div>
-        </div>
+<div id="server-modal" class="modal">
+    <div class="modal-bg" onclick="closeServerModal()"></div>
+    <div class="modal-box">
+        <button class="modal-close" onclick="closeServerModal()">✕</button>
+        <h3>Sunucu Oluştur</h3>
+        <input type="text" id="new-server-name" placeholder="Sunucu adı">
+        <button class="btn btn-primary" onclick="createServer()">Oluştur</button>
     </div>
+</div>
 
-    <!-- Profil Modal -->
-    <div id="profile-modal" class="modal">
-        <div class="modal-backdrop" onclick="closeProfile()"></div>
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>👤 Kullanıcı Profili</h3>
-                <button class="modal-close" onclick="closeProfile()">✕</button>
-            </div>
-            <div class="modal-body profile-body" id="profile-content"></div>
-        </div>
+<div id="server-settings-modal" class="modal">
+    <div class="modal-bg" onclick="closeServerSettings()"></div>
+    <div class="modal-box">
+        <button class="modal-close" onclick="closeServerSettings()">✕</button>
+        <h3>⚙ Sunucu Ayarları</h3>
+        <input type="text" id="settings-server-name" placeholder="Sunucu adı">
+        <h4 style="margin-top:12px;color:var(--text3);font-size:11px;">ROLLER</h4>
+        <div id="roles-list" style="margin:8px 0;"></div>
+        <div style="display:flex;gap:6px;"><input type="text" id="new-role-name" placeholder="Rol adı"><select id="new-role-color"><option value="#5865f2">Mavi</option><option value="#23a55a">Yeşil</option><option value="#f0b232">Sarı</option><option value="#f23f42">Kırmızı</option><option value="#eb459e">Pembe</option></select><button class="btn btn-sm btn-primary" onclick="addRole()">+</button></div>
+        <button class="btn btn-primary" style="margin-top:12px;" onclick="saveServerSettings()">Kaydet</button>
     </div>
+</div>
 
-    <script src="script.js"></script>
+<div id="status-modal" class="modal">
+    <div class="modal-bg" onclick="closeStatusModal()"></div>
+    <div class="modal-box" style="width:320px;">
+        <button class="modal-close" onclick="closeStatusModal()">✕</button>
+        <h3>Durum</h3>
+        <div class="status-opt" onclick="setStatus('online')"><span class="sdot on"></span> Çevrimiçi</div>
+        <div class="status-opt" onclick="setStatus('idle')"><span class="sdot idle"></span> Boşta</div>
+        <div class="status-opt" onclick="setStatus('dnd')"><span class="sdot dnd"></span> Rahatsız Etme</div>
+        <div class="status-opt" onclick="setStatus('offline')"><span class="sdot off"></span> Görünmez</div>
+    </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+(function(){
+var API = window.location.origin;
+var socket = null;
+var me = null;
+var token = null;
+var cRoom = 'genel';
+var reply = null;
+var rooms = [];
+var voiceRooms = [{id:'genel',name:'Genel Sesli',users:[]}];
+var inVoice = null;
+var micMuted = false;
+var deafened = false;
+var serverRoles = [];
+var serverName = 'Gettic';
+
+(function(){ var t=localStorage.getItem('gt_token'); var u=localStorage.getItem('gt_user'); if(t&&u){ try{ token=t; me=JSON.parse(u); openApp(); }catch(e){ localStorage.clear(); } } })();
+
+window.switchTab = function(t){
+    document.getElementById('tab-login').classList.toggle('active',t==='login');
+    document.getElementById('tab-register').classList.toggle('active',t==='register');
+    document.getElementById('form-login').classList.toggle('active',t==='login');
+    document.getElementById('form-register').classList.toggle('active',t==='register');
+};
+window.togglePass = function(id,btn){ var i=document.getElementById(id); i.type=i.type==='password'?'text':'password'; btn.textContent=i.type==='password'?'👁':'🙈'; };
+window.doLogin = function(){
+    var u=document.getElementById('login-user').value.trim();
+    var p=document.getElementById('login-pass').value;
+    if(!u||!p) return toast('Tüm alanları doldur','error');
+    fetch(API+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})})
+    .then(r=>r.json()).then(d=>{ if(d.error) return toast(d.error,'error'); me=d.user; token=d.token; localStorage.setItem('gt_token',token); localStorage.setItem('gt_user',JSON.stringify(me)); openApp(); }).catch(function(){ toast('Bağlantı hatası','error'); });
+};
+window.doRegister = function(){
+    var u=document.getElementById('reg-user').value.trim();
+    var p=document.getElementById('reg-pass').value;
+    if(!u||!p) return toast('Tüm alanları doldur','error');
+    if(u.length<3) return toast('En az 3 karakter','error');
+    if(p.length<6) return toast('En az 6 karakter','error');
+    fetch(API+'/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})})
+    .then(r=>r.json()).then(d=>{ if(d.error) return toast(d.error,'error'); me=d.user; token=d.token; localStorage.setItem('gt_token',token); localStorage.setItem('gt_user',JSON.stringify(me)); toast('Hoş geldin '+me.username+'!','success'); openApp(); }).catch(function(){ toast('Bağlantı hatası','error'); });
+};
+window.doLogout = function(){
+    if(!confirm('Çıkış yap?')) return;
+    leaveVoice(); localStorage.clear(); me=null; token=null;
+    if(socket){ socket.disconnect(); socket=null; }
+    document.getElementById('main-screen').classList.remove('active');
+    document.getElementById('auth-screen').classList.add('active');
+};
+
+function openApp(){
+    document.getElementById('auth-screen').classList.remove('active');
+    document.getElementById('main-screen').classList.add('active');
+    document.getElementById('my-name').textContent = me.username;
+    document.getElementById('my-avatar').textContent = me.username.charAt(0).toUpperCase();
+    connectSocket(); loadRooms(); joinRoom('genel','genel','Genel sohbet');
+}
+function connectSocket(){
+    if(socket) return;
+    socket = io(API);
+    socket.on('connect',function(){ if(me) socket.emit('user-online',me._id); });
+    socket.on('receive-message',function(m){ showMsg(m); });
+    socket.on('user-typing',function(d){ document.getElementById('typing').textContent=(d.isTyping&&d.userId!==me._id)?d.userName+' yazıyor...':''; });
+    socket.on('room-user-count',function(c){ document.getElementById('online-count').textContent=c+' çevrimiçi'; });
+    socket.on('message-error',function(e){ toast(e,'error'); });
+    socket.on('voice-join',function(data){ addVoiceUser(data); });
+    socket.on('voice-leave',function(data){ removeVoiceUser(data); });
+    socket.on('voice-users',function(users){ updateVoiceUsersList(users); });
+}
+
+function loadRooms(){
+    fetch(API+'/api/rooms').then(r=>r.json()).then(d=>{ if(Array.isArray(d)){ rooms=d; renderRooms(); } }).catch(function(){});
+    renderRooms();
+}
+function renderRooms(){
+    var l=document.getElementById('room-list'); l.innerHTML='';
+    rooms.forEach(function(r){
+        if(r.type==='voice') return;
+        var d=document.createElement('div'); d.className='room-item';
+        d.innerHTML='<span class="hash">#</span> <span>'+esc(r.name)+'</span>';
+        d.onclick=function(){ joinRoom(r._id||r.name,r.name,r.description||''); };
+        if(r._id===cRoom||r.name===cRoom) d.classList.add('active');
+        l.appendChild(d);
+    });
+    var vl=document.getElementById('voice-list'); vl.innerHTML='';
+    voiceRooms.forEach(function(vr){
+        var d=document.createElement('div'); d.className='voice-item'; d.id='voice-'+vr.id;
+        if(inVoice===vr.id) d.classList.add('active');
+        d.innerHTML='<div class="v-left"><span class="v-icon">🔊</span> <span>'+esc(vr.name)+'</span></div><span class="v-count" id="voice-'+vr.id+'-count">'+(vr.users?vr.users.length:0)+'</span>';
+        d.onclick=function(){ joinVoice(vr.id); };
+        vl.appendChild(d);
+    });
+}
+window.joinRoom = function(id,name,desc){
+    if(cRoom&&socket) socket.emit('leave-room',cRoom);
+    cRoom=id; if(socket) socket.emit('join-room',id);
+    document.querySelectorAll('.room-item').forEach(e=>e.classList.remove('active'));
+    document.getElementById('room-name').textContent=name;
+    document.getElementById('msg-input').placeholder='#'+name+' e mesaj yaz...';
+    document.getElementById('messages').innerHTML='<div class="welcome"><h2>#'+esc(name)+'</h2><p>'+esc(desc||'Sohbete başla!')+'</p></div>';
+    loadMsgs(id);
+};
+function loadMsgs(rid){
+    fetch(API+'/api/rooms/'+rid+'/messages').then(r=>r.json()).then(d=>{ if(!Array.isArray(d)) return; document.getElementById('messages').innerHTML=''; d.forEach(m=>showMsg(m)); }).catch(function(){});
+}
+window.showRoomModal = function(){ document.getElementById('room-modal').classList.add('open'); };
+window.closeRoomModal = function(){ document.getElementById('room-modal').classList.remove('open'); };
+window.createRoom = function(){
+    var type=document.getElementById('new-room-type').value;
+    var n=document.getElementById('new-room-name').value.trim();
+    var d=document.getElementById('new-room-desc').value.trim();
+    var p=document.getElementById('new-room-private').checked;
+    var pw=document.getElementById('new-room-pass').value;
+    if(!n) return toast('Ad gerekli','error');
+    if(type==='voice'){ voiceRooms.push({id:'voice-'+Date.now(),name:n,users:[]}); renderRooms(); toast('Sesli kanal oluşturuldu!','success'); closeRoomModal(); return; }
+    fetch(API+'/api/rooms',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:n,description:d,isPrivate:p,password:pw})})
+    .then(r=>r.json()).then(data=>{ if(data.error) return toast(data.error,'error'); closeRoomModal(); loadRooms(); toast('Kanal oluşturuldu!','success'); }).catch(function(){ toast('Hata','error'); });
+};
+
+// SERVER
+window.showServerModal = function(){ document.getElementById('server-modal').classList.add('open'); };
+window.closeServerModal = function(){ document.getElementById('server-modal').classList.remove('open'); };
+window.createServer = function(){
+    var n=document.getElementById('new-server-name').value.trim();
+    if(!n) return toast('Sunucu adı gerekli','error');
+    serverName=n; document.getElementById('server-name').textContent=n;
+    toast('Sunucu oluşturuldu!','success'); closeServerModal();
+};
+window.showServerSettings = function(){
+    document.getElementById('server-settings-modal').classList.add('open');
+    document.getElementById('settings-server-name').value=serverName;
+    renderRolesList();
+};
+window.closeServerSettings = function(){ document.getElementById('server-settings-modal').classList.remove('open'); };
+window.addRole = function(){
+    var n=document.getElementById('new-role-name').value.trim();
+    var c=document.getElementById('new-role-color').value;
+    if(!n) return;
+    serverRoles.push({name:n,color:c});
+    document.getElementById('new-role-name').value='';
+    renderRolesList();
+};
+function renderRolesList(){
+    var l=document.getElementById('roles-list'); l.innerHTML='';
+    serverRoles.forEach(function(r,i){
+        l.innerHTML+='<div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:13px;"><span style="width:12px;height:12px;border-radius:50%;background:'+r.color+';"></span>'+esc(r.name)+'<button onclick="serverRoles.splice('+i+',1);renderRolesList();" style="margin-left:auto;background:none;border:none;color:var(--red);cursor:pointer;">✕</button></div>';
+    });
+}
+window.saveServerSettings = function(){
+    var n=document.getElementById('settings-server-name').value.trim();
+    if(n) serverName=n;
+    document.getElementById('server-name').textContent=serverName;
+    toast('Ayarlar kaydedildi!','success'); closeServerSettings();
+};
+window.selectServer = function(id){
+    document.querySelectorAll('.server-icon').forEach(e=>e.classList.remove('active'));
+    document.querySelector('.server-icon').classList.add('active');
+};
+
+// VOICE
+window.joinVoice = async function(vid){
+    if(inVoice===vid) return;
+    if(inVoice) leaveVoice();
+    try {
+        await navigator.mediaDevices.getUserMedia({audio:true});
+    } catch(e) {
+        return toast('Mikrofon izni gerekli! Tarayıcı ayarlarından izin verin.','error');
+    }
+    inVoice=vid; micMuted=false; deafened=false;
+    document.getElementById('voice-bar').classList.add('open');
+    document.getElementById('v-info').textContent='🔊 Bağlandın';
+    document.getElementById('btn-mute').classList.remove('muted'); document.getElementById('btn-mute').textContent='🎤';
+    document.getElementById('btn-deafen').classList.remove('deaf'); document.getElementById('btn-deafen').textContent='🔊';
+    var vr=voiceRooms.find(v=>v.id===vid);
+    if(vr&&!vr.users.find(u=>u.id===me._id)){ vr.users.push({id:me._id,name:me.username,muted:false}); }
+    if(socket){ socket.emit('voice-join',{roomId:vid,user:{id:me._id,name:me.username}}); }
+    renderRooms(); updateVoiceUsersDisplay();
+};
+window.leaveVoice = function(){
+    if(inVoice&&socket) socket.emit('voice-leave',{roomId:inVoice,userId:me._id});
+    var vr=voiceRooms.find(v=>v.id===inVoice);
+    if(vr) vr.users=vr.users.filter(u=>u.id!==me._id);
+    inVoice=null; document.getElementById('voice-bar').classList.remove('open'); renderRooms(); updateVoiceUsersDisplay();
+};
+window.toggleMute = function(){
+    micMuted=!micMuted;
+    document.getElementById('btn-mute').classList.toggle('muted',micMuted);
+    document.getElementById('btn-mute').textContent=micMuted?'🔇':'🎤';
+    var vr=voiceRooms.find(v=>v.id===inVoice);
+    if(vr){ var u=vr.users.find(u=>u.id===me._id); if(u) u.muted=micMuted; }
+    renderRooms(); updateVoiceUsersDisplay();
+};
+window.toggleDeafen = function(){
+    deafened=!deafened;
+    document.getElementById('btn-deafen').classList.toggle('deaf',deafened);
+    document.getElementById('btn-deafen').textContent=deafened?'🔇':'🔊';
+    updateVoiceUsersDisplay();
+};
+function addVoiceUser(data){ var vr=voiceRooms.find(v=>v.id===data.roomId); if(vr&&!vr.users.find(u=>u.id===data.user.id)){ vr.users.push(data.user); } renderRooms(); updateVoiceUsersDisplay(); }
+function removeVoiceUser(data){ var vr=voiceRooms.find(v=>v.id===data.roomId); if(vr) vr.users=vr.users.filter(u=>u.id!==data.userId); renderRooms(); updateVoiceUsersDisplay(); }
+function updateVoiceUsersList(users){}
+function updateVoiceUsersDisplay(){
+    var existing=document.getElementById('voice-users-display'); if(existing) existing.remove();
+    if(!inVoice) return;
+    var vr=voiceRooms.find(v=>v.id===inVoice); if(!vr||!vr.users.length) return;
+    var div=document.createElement('div'); div.id='voice-users-display';
+    div.style.cssText='padding:10px 16px;display:flex;flex-wrap:wrap;gap:8px;border-bottom:1px solid var(--border);flex-shrink:0;';
+    vr.users.forEach(function(u){ var col=strColor(u.name);
+        div.innerHTML+='<div class="v-user"><div class="v-ava" style="background:'+col+'">'+u.name.charAt(0).toUpperCase()+'<div class="v-dot '+(u.muted?'muted':'speaking')+'"></div></div><div class="v-name">'+esc(u.name)+'</div></div>';
+    });
+    var msgArea=document.getElementById('messages'); msgArea.parentNode.insertBefore(div,msgArea);
+}
+
+// MESSAGES
+window.sendMsg = function(){
+    var i=document.getElementById('msg-input'); var t=i.value.trim();
+    if(!t||!socket||!me) return;
+    socket.emit('send-message',{content:t,senderId:me._id,senderName:me.username,roomId:cRoom,type:'text',replyTo:reply?reply._id:null});
+    i.value=''; i.style.height='auto'; cancelReply();
+};
+function showMsg(m){
+    var a=document.getElementById('messages'); var ti=new Date(m.timestamp).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});
+    var letr=(m.senderName||'?').charAt(0).toUpperCase(); var col=strColor(m.senderName||'?');
+    var isMe=(m.sender&&m.sender._id===me._id)||(m.sender===me._id);
+    var rh=''; if(m.replyTo&&m.replyTo.content) rh='<div class="mreply">↪ '+esc(m.replyTo.content.substring(0,50))+'</div>';
+    var d=document.createElement('div'); d.className='msg'; d.id='msg-'+m._id;
+    d.innerHTML='<div class="mhdr"><div class="mava" style="background:'+col+'">'+letr+'</div><span class="muser" style="color:'+col+'">'+esc(m.senderName)+'</span><span class="mtime">'+ti+'</span>'+(m.edited?'<span style="font-size:9px;color:var(--text3);margin-left:3px;">düzenlendi</span>':'')+'</div>'+rh+'<div class="mbody">'+esc(m.content)+'</div><div class="mbtns"><button onclick="replyMsg(\''+m._id+'\')">Yanıtla</button>'+(isMe?'<button onclick="editMsg(\''+m._id+'\')">Düzenle</button><button onclick="delMsg(\''+m._id+'\')">Sil</button>':'')+'</div>';
+    a.appendChild(d); a.scrollTop=a.scrollHeight;
+}
+window.replyMsg=function(id){ var e=document.getElementById('msg-'+id); if(!e) return; reply={_id:id,content:e.querySelector('.mbody').textContent}; document.getElementById('reply-tag').style.display='flex'; document.getElementById('reply-txt').textContent=reply.content.substring(0,50); document.getElementById('msg-input').focus(); };
+window.cancelReply=function(){ reply=null; document.getElementById('reply-tag').style.display='none'; };
+window.editMsg=function(id){
+    var n=prompt('Düzenle:'); if(!n||!n.trim()) return;
+    fetch(API+'/api/messages/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:n.trim()})})
+    .then(function(){ var e=document.getElementById('msg-'+id); if(e){ e.querySelector('.mbody').textContent=n.trim(); if(!e.querySelector('.mhdr').querySelector('[style]')) e.querySelector('.mhdr').insertAdjacentHTML('beforeend','<span style="font-size:9px;color:var(--text3);margin-left:3px;">düzenlendi</span>'); } }).catch(function(){ toast('Hata','error'); });
+};
+window.delMsg=function(id){ if(!confirm('Silinsin mi?')) return; fetch(API+'/api/messages/'+id,{method:'DELETE'}).then(function(){ var e=document.getElementById('msg-'+id); if(e) e.remove(); }).catch(function(){ toast('Hata','error'); }); };
+window.handleInput=function(e){ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); sendMsg(); } if(cRoom&&me&&socket) socket.emit('typing',{roomId:cRoom,userId:me._id,userName:me.username,isTyping:e.target.value.length>0}); };
+window.autoGrow=function(e){ e.style.height='auto'; e.style.height=Math.min(e.scrollHeight,130)+'px'; };
+
+// MEMBERS
+window.toggleMembers=function(){ var p=document.getElementById('member-panel'); p.classList.toggle('open'); if(p.classList.contains('open')) loadMembers(); };
+function loadMembers(){
+    fetch(API+'/api/rooms/'+cRoom+'/messages').then(r=>r.json()).then(d=>{
+        if(!Array.isArray(d)) return; var users={};
+        d.forEach(function(m){ if(m.senderName&&!users[m.senderName]) users[m.senderName]=m.sender||m.senderName; });
+        var l=document.getElementById('member-list'); l.innerHTML='';
+        for(var n in users){ var c=strColor(n); l.innerHTML+='<div class="mem-item"><div class="mem-ava" style="background:'+c+'">'+n.charAt(0).toUpperCase()+'</div>'+esc(n)+'</div>'; }
+    }).catch(function(){});
+}
+
+// STATUS
+window.showStatusModal=function(){ document.getElementById('status-modal').classList.add('open'); };
+window.closeStatusModal=function(){ document.getElementById('status-modal').classList.remove('open'); };
+window.setStatus=function(s){ var t={online:'Çevrimiçi',idle:'Boşta',dnd:'Rahatsız Etme',offline:'Görünmez'}[s]; document.getElementById('my-status').textContent=t; closeStatusModal(); toast('Durum güncellendi','success'); };
+
+// HELPERS
+function esc(t){ var d=document.createElement('div'); d.textContent=t||''; return d.innerHTML; }
+function strColor(s){ var h=0; for(var i=0;i<(s||'?').length;i++) h=s.charCodeAt(i)+((h<<5)-h); var c=['#e94560','#4ecca3','#faa81a','#60a5fa','#a78bfa','#f472b6','#38bdf8']; return c[Math.abs(h)%c.length]; }
+window.toast=function(m,type){ var e=document.getElementById('toast'); e.textContent=m; e.style.background=type==='error'?'#f23f42':type==='success'?'#23a55a':'#5865f2'; e.style.display='block'; clearTimeout(e._t); e._t=setTimeout(function(){ e.style.display='none'; },3000); };
+document.addEventListener('click',function(e){ if(e.target.classList.contains('modal-bg')) e.target.parentElement.classList.remove('open'); });
+document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ document.querySelectorAll('.modal.open').forEach(m=>m.classList.remove('open')); cancelReply(); } });
+})();
+</script>
 </body>
     </html>
