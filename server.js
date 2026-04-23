@@ -15,7 +15,6 @@ mongoose.connect(process.env.MONGO_URL)
   .then(() => console.log("MongoDB bağlı"))
   .catch(err => console.log("MongoDB hata:", err));
 
-// Message schema
 const Message = mongoose.model("Message", {
   user: String,
   text: String,
@@ -32,16 +31,21 @@ app.get("/", (req, res) => {
 });
 
 app.get("/messages/:room", async (req, res) => {
-  const msgs = await Message.find({ room: req.params.room })
-    .sort({ time: 1 })
-    .limit(100);
+  try {
+    const msgs = await Message.find({ room: req.params.room })
+      .sort({ time: 1 })
+      .limit(100);
 
-  res.json(msgs);
+    res.json(msgs);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // ================= SOCKET =================
 io.on("connection", (socket) => {
-  console.log("Bağlandı:", socket.id);
+
+  console.log("SOCKET CONNECT:", socket.id);
 
   socket.on("login", (username) => {
     onlineUsers[socket.id] = username;
@@ -50,10 +54,13 @@ io.on("connection", (socket) => {
 
   socket.on("join room", (room) => {
     socket.join(room);
+    console.log("JOIN ROOM:", room);
   });
 
   socket.on("chat message", async (data) => {
-    if (!data) return;
+    if (!data || !data.room) return;
+
+    console.log("MSG:", data);
 
     const msg = new Message(data);
     await msg.save();
