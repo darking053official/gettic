@@ -3,122 +3,229 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Gettic - Modern sohbet platformu. Takıl, konuş, paylaş.">
+    <meta name="theme-color" content="#1a1a2e">
     <title>Gettic - Sohbet Platformu</title>
-    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="style.css">
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 </head>
 <body>
-    <!-- Giriş Ekranı -->
-    <div id="auth-screen" class="screen active">
+    <!-- Yükleme Ekranı -->
+    <div id="loading-screen" class="screen active">
+        <div class="loading-container">
+            <div class="loading-logo">🎧</div>
+            <h1>Gettic</h1>
+            <div class="loading-bar">
+                <div class="loading-progress"></div>
+            </div>
+            <p>Yükleniyor...</p>
+        </div>
+    </div>
+
+    <!-- Giriş / Kayıt Ekranı -->
+    <div id="auth-screen" class="screen">
         <div class="auth-container">
             <div class="auth-header">
-                <h1>🎧 Gettic</h1>
-                <p>Takıl, konuş, paylaş</p>
+                <div class="auth-logo">🎧</div>
+                <h1>Gettic</h1>
+                <p class="auth-slogan">Takıl, konuş, paylaş</p>
             </div>
             
             <div class="auth-tabs">
-                <button class="tab-btn active" onclick="switchTab('login')">Giriş Yap</button>
-                <button class="tab-btn" onclick="switchTab('register')">Kayıt Ol</button>
+                <button class="tab-btn active" onclick="switchTab('login')">
+                    <span>🔑</span> Giriş Yap
+                </button>
+                <button class="tab-btn" onclick="switchTab('register')">
+                    <span>✨</span> Kayıt Ol
+                </button>
             </div>
 
-            <form id="login-form" class="auth-form active" onsubmit="login(event)">
-                <input type="email" id="login-email" placeholder="Email" required>
-                <input type="password" id="login-password" placeholder="Şifre" required>
-                <button type="submit">Giriş Yap</button>
+            <!-- Giriş Formu -->
+            <form id="login-form" class="auth-form active" onsubmit="login(event)" autocomplete="off">
+                <div class="input-group">
+                    <label for="login-username">Kullanıcı Adı</label>
+                    <div class="input-icon-wrapper">
+                        <span class="input-icon">👤</span>
+                        <input type="text" id="login-username" placeholder="Kullanıcı adınızı girin" required minlength="3" maxlength="20">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label for="login-password">Şifre</label>
+                    <div class="input-icon-wrapper">
+                        <span class="input-icon">🔒</span>
+                        <input type="password" id="login-password" placeholder="Şifrenizi girin" required>
+                        <button type="button" class="toggle-password" onclick="togglePassword('login-password')">👁</button>
+                    </div>
+                </div>
+                <div class="form-options">
+                    <label class="remember-me">
+                        <input type="checkbox" id="remember-me"> Beni Hatırla
+                    </label>
+                </div>
+                <button type="submit" class="auth-submit-btn">
+                    <span>Giriş Yap</span>
+                    <span class="btn-arrow">→</span>
+                </button>
+                <p class="auth-switch-text">Hesabın yok mu? <a href="#" onclick="switchTab('register')">Kayıt Ol</a></p>
             </form>
 
-            <form id="register-form" class="auth-form" onsubmit="register(event)">
-                <input type="text" id="register-username" placeholder="Kullanıcı Adı" required minlength="3">
-                <input type="email" id="register-email" placeholder="Email" required>
-                <input type="password" id="register-password" placeholder="Şifre" required minlength="6">
-                <button type="submit">Kayıt Ol</button>
+            <!-- Kayıt Formu -->
+            <form id="register-form" class="auth-form" onsubmit="register(event)" autocomplete="off">
+                <div class="input-group">
+                    <label for="register-username">Kullanıcı Adı</label>
+                    <div class="input-icon-wrapper">
+                        <span class="input-icon">👤</span>
+                        <input type="text" id="register-username" placeholder="Bir kullanıcı adı seçin" required minlength="3" maxlength="20">
+                    </div>
+                    <small class="input-hint">3-20 karakter arası, harf ve rakam içerebilir</small>
+                </div>
+                <div class="input-group">
+                    <label for="register-password">Şifre</label>
+                    <div class="input-icon-wrapper">
+                        <span class="input-icon">🔒</span>
+                        <input type="password" id="register-password" placeholder="Güçlü bir şifre oluşturun" required minlength="6">
+                        <button type="button" class="toggle-password" onclick="togglePassword('register-password')">👁</button>
+                    </div>
+                    <small class="input-hint">En az 6 karakter</small>
+                </div>
+                <button type="submit" class="auth-submit-btn">
+                    <span>Kayıt Ol</span>
+                    <span class="btn-arrow">→</span>
+                </button>
+                <p class="auth-switch-text">Zaten hesabın var mı? <a href="#" onclick="switchTab('login')">Giriş Yap</a></p>
             </form>
         </div>
     </div>
 
-    <!-- Ana Ekran -->
+    <!-- Ana Uygulama Ekranı -->
     <div id="main-screen" class="screen">
-        <!-- Sol Sidebar - Sunucular -->
+        <!-- Sol Kenar Çubuğu - Sunucular -->
         <div class="server-sidebar">
             <div class="server-list" id="server-list">
-                <div class="server-icon active" onclick="selectRoom('genel')" title="Genel">
+                <div class="server-icon active" onclick="joinRoom('genel')" title="Genel Sohbet">
                     <span>#</span>
+                    <div class="server-tooltip">Genel Sohbet</div>
                 </div>
             </div>
-            <div class="server-add" onclick="showCreateRoom()" title="Oda Oluştur">+</div>
+            <div class="server-separator"></div>
+            <div class="server-add" onclick="showCreateRoom()" title="Yeni Oda Oluştur">
+                <span>+</span>
+                <div class="server-tooltip">Oda Ekle</div>
+            </div>
+            <div class="server-discover" onclick="loadPublicRooms()" title="Odaları Keşfet">
+                <span>🔍</span>
+                <div class="server-tooltip">Keşfet</div>
+            </div>
         </div>
 
-        <!-- Sol Panel - Odalar -->
+        <!-- Oda Listesi Sidebar -->
         <div class="room-sidebar">
             <div class="room-header">
                 <h3>Gettic</h3>
-                <button class="settings-btn" onclick="toggleSettings()">⚙️</button>
+                <div class="room-header-actions">
+                    <button class="icon-btn" onclick="toggleSettings()" title="Ayarlar">⚙️</button>
+                </div>
             </div>
             <div class="room-search">
-                <input type="text" id="room-search" placeholder="Oda ara..." oninput="filterRooms()">
+                <input type="text" id="room-search" placeholder="Oda bul..." oninput="filterRooms()">
             </div>
-            <div class="room-list" id="room-list">
-                <div class="room-item active" onclick="joinRoom('genel')">
-                    <span class="room-icon">#</span>
-                    <span>genel</span>
+            <div class="room-categories">
+                <div class="category-header" onclick="toggleCategory('text-rooms')">
+                    <span class="category-arrow">▾</span> METİN ODALARI
+                </div>
+                <div class="category-rooms" id="text-rooms">
+                    <div class="room-list" id="room-list">
+                        <div class="room-item active" onclick="joinRoom('genel')" data-room-id="genel">
+                            <span class="room-icon">#</span>
+                            <span class="room-name">genel</span>
+                            <span class="room-badge">●</span>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="user-panel">
                 <div class="user-info">
                     <div class="user-avatar" id="user-avatar"></div>
                     <div class="user-details">
-                        <span id="user-name"></span>
-                        <span class="user-status" id="user-status">🟢 Çevrimiçi</span>
+                        <span class="user-display-name" id="user-name">Misafir</span>
+                        <span class="user-status-text" id="user-status-text">Çevrimiçi</span>
                     </div>
                 </div>
-                <button class="logout-btn" onclick="logout()" title="Çıkış Yap">🚪</button>
+                <div class="user-panel-actions">
+                    <button class="icon-btn" onclick="toggleSettings()" title="Kullanıcı Ayarları">⚙️</button>
+                    <button class="icon-btn logout-btn" onclick="logout()" title="Çıkış Yap">🚪</button>
+                </div>
             </div>
         </div>
 
-        <!-- Sohbet Alanı -->
+        <!-- Ana Sohbet Alanı -->
         <div class="chat-area">
             <div class="chat-header">
                 <div class="chat-room-info">
                     <span class="room-icon">#</span>
                     <span id="current-room-name">genel</span>
-                    <span class="room-divider">|</span>
+                    <span class="room-divider"></span>
                     <span id="room-description">Genel sohbet odası</span>
                 </div>
-                <div class="chat-actions">
-                    <span id="online-count">0 çevrimiçi</span>
-                    <button onclick="showRoomMembers()" title="Üyeler">👥</button>
+                <div class="chat-header-actions">
+                    <div class="online-indicator">
+                        <span class="online-dot"></span>
+                        <span id="online-count">0</span>
+                    </div>
+                    <button class="icon-btn" onclick="toggleMemberSidebar()" title="Üye Listesi">👥</button>
+                    <button class="icon-btn" onclick="loadPinnedMessages()" title="Sabitlenmiş Mesajlar">📌</button>
+                    <div class="chat-search">
+                        <input type="text" id="chat-search" placeholder="Mesajlarda ara...">
+                    </div>
                 </div>
             </div>
 
+            <!-- Mesajlar Alanı -->
             <div class="messages-area" id="messages">
                 <div class="welcome-message">
-                    <h2>🎧 Gettic'e Hoş Geldin!</h2>
-                    <p>Burası #genel odasının başlangıcı. Sohbete başla!</p>
+                    <div class="welcome-icon">🎧</div>
+                    <h2>Gettic'e Hoş Geldin!</h2>
+                    <p>Burası <strong>#genel</strong> odasının başlangıcı.</p>
+                    <p>Sohbete başlamak için bir mesaj yaz!</p>
+                    <div class="welcome-tips">
+                        <div class="tip-item">💬 <strong>Mesajlaş:</strong> Anlık sohbetin keyfini çıkar</div>
+                        <div class="tip-item">🏠 <strong>Odalar:</strong> Farklı konular için odalar oluştur</div>
+                        <div class="tip-item">👥 <strong>Arkadaşlar:</strong> Ekiple takıl, konuş</div>
+                    </div>
                 </div>
             </div>
 
+            <!-- Yazıyor Göstergesi -->
             <div class="typing-indicator" id="typing-indicator"></div>
 
+            <!-- Mesaj Gönderme Alanı -->
             <div class="input-area">
                 <div class="reply-preview" id="reply-preview" style="display:none;">
                     <div class="reply-content">
-                        <strong>Yanıtlanıyor:</strong>
+                        <span class="reply-label">↪ Yanıtlanıyor:</span>
                         <span id="reply-text"></span>
                     </div>
-                    <button onclick="cancelReply()">✕</button>
+                    <button class="reply-cancel" onclick="cancelReply()" title="İptal">✕</button>
                 </div>
                 <div class="input-wrapper">
-                    <textarea id="message-input" placeholder="Mesaj yaz..." rows="1" onkeydown="handleInput(event)"></textarea>
-                    <button onclick="sendMessage()" title="Gönder">📤</button>
+                    <button class="input-action-btn" onclick="toggleEmojiPicker()" title="Emoji">😀</button>
+                    <textarea id="message-input" placeholder="#genel odasına mesaj yaz..." rows="1" onkeydown="handleInput(event)" maxlength="2000"></textarea>
+                    <span class="char-count" id="char-count">0/2000</span>
+                    <button class="send-btn" onclick="sendMessage()" title="Mesaj Gönder">
+                        <span>📤</span>
+                    </button>
                 </div>
             </div>
         </div>
 
-        <!-- Sağ Panel - Kullanıcılar -->
+        <!-- Sağ Panel - Üye Listesi -->
         <div class="member-sidebar" id="member-sidebar">
             <div class="member-header">
-                <h3>Kullanıcılar</h3>
-                <button onclick="toggleMemberSidebar()">✕</button>
+                <h3>Üyeler - <span id="member-count">0</span></h3>
+                <button class="icon-btn" onclick="toggleMemberSidebar()">✕</button>
+            </div>
+            <div class="member-search">
+                <input type="text" placeholder="Üye ara..." oninput="filterMembers()">
             </div>
             <div class="member-list" id="member-list"></div>
         </div>
@@ -126,50 +233,89 @@
 
     <!-- Oda Oluşturma Modal -->
     <div id="create-room-modal" class="modal">
+        <div class="modal-backdrop" onclick="closeCreateRoom()"></div>
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Oda Oluştur</h3>
-                <button onclick="closeCreateRoom()">✕</button>
+                <h3>✨ Yeni Oda Oluştur</h3>
+                <button class="modal-close" onclick="closeCreateRoom()">✕</button>
             </div>
             <form onsubmit="createRoom(event)">
-                <input type="text" id="room-name" placeholder="Oda adı" required>
-                <input type="text" id="room-description" placeholder="Açıklama (opsiyonel)">
-                <div class="checkbox-wrapper">
-                    <input type="checkbox" id="room-private" onchange="toggleRoomPassword()">
-                    <label for="room-private">Özel oda</label>
+                <div class="modal-body">
+                    <div class="input-group">
+                        <label for="room-name">Oda Adı <span class="required">*</span></label>
+                        <input type="text" id="room-name" placeholder="örn: oyun-sohbet" required minlength="2" maxlength="30">
+                        <small class="input-hint">Harfler, rakamlar ve tire kullanabilirsin</small>
+                    </div>
+                    <div class="input-group">
+                        <label for="room-description">Açıklama</label>
+                        <input type="text" id="room-description" placeholder="Odanın konusu nedir?">
+                    </div>
+                    <div class="input-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="room-private" onchange="toggleRoomPassword()">
+                            <span>Özel Oda (şifreli)</span>
+                        </label>
+                    </div>
+                    <div class="input-group" id="room-password-group" style="display:none;">
+                        <label for="room-password">Oda Şifresi</label>
+                        <input type="password" id="room-password" placeholder="Odaya giriş şifresi" minlength="4">
+                    </div>
                 </div>
-                <input type="password" id="room-password" placeholder="Oda şifresi" style="display:none;">
-                <button type="submit">Oluştur</button>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="closeCreateRoom()">İptal</button>
+                    <button type="submit" class="btn-primary">Oluştur</button>
+                </div>
             </form>
         </div>
     </div>
 
     <!-- Ayarlar Modal -->
     <div id="settings-modal" class="modal">
+        <div class="modal-backdrop" onclick="toggleSettings()"></div>
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Ayarlar</h3>
-                <button onclick="toggleSettings()">✕</button>
+                <h3>⚙️ Kullanıcı Ayarları</h3>
+                <button class="modal-close" onclick="toggleSettings()">✕</button>
             </div>
-            <div class="settings-body">
-                <div class="setting-item">
-                    <label>Durum</label>
-                    <select id="status-select" onchange="updateStatus()">
-                        <option value="online">🟢 Çevrimiçi</option>
-                        <option value="idle">🌙 Boşta</option>
-                        <option value="dnd">⛔ Rahatsız Etme</option>
-                        <option value="offline">⚫ Görünmez</option>
-                    </select>
+            <div class="modal-body">
+                <div class="setting-section">
+                    <h4>Durum</h4>
+                    <div class="status-options">
+                        <div class="status-option online" onclick="setStatus('online')">
+                            <span class="status-dot"></span> Çevrimiçi
+                        </div>
+                        <div class="status-option idle" onclick="setStatus('idle')">
+                            <span class="status-dot"></span> Boşta
+                        </div>
+                        <div class="status-option dnd" onclick="setStatus('dnd')">
+                            <span class="status-dot"></span> Rahatsız Etme
+                        </div>
+                        <div class="status-option offline" onclick="setStatus('offline')">
+                            <span class="status-dot"></span> Görünmez
+                        </div>
+                    </div>
                 </div>
-                <div class="setting-item">
-                    <label>Özel Durum Mesajı</label>
-                    <input type="text" id="custom-status" placeholder="Ne düşünüyorsun?" maxlength="50">
-                    <button onclick="updateCustomStatus()">Kaydet</button>
+                <div class="setting-section">
+                    <h4>Özel Durum Mesajı</h4>
+                    <input type="text" id="custom-status-input" placeholder="Ne düşünüyorsun?" maxlength="50">
+                    <button onclick="updateCustomStatus()" class="btn-primary btn-sm">Kaydet</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="/script.js"></script>
+    <!-- Profil Modal -->
+    <div id="profile-modal" class="modal">
+        <div class="modal-backdrop" onclick="closeProfile()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>👤 Kullanıcı Profili</h3>
+                <button class="modal-close" onclick="closeProfile()">✕</button>
+            </div>
+            <div class="modal-body profile-body" id="profile-content"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
 </body>
-                  </html>
+    </html>
