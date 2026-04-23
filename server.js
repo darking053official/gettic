@@ -7,27 +7,17 @@ const app = express();
 const server = http.createServer(app);
 
 const io = new Server(server, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
-  }
+  cors: { origin: "*" }
 });
 
-// ======================
-// MONGODB BAĞLANTI
-// ======================
-mongoose.connect(process.env.MONGO_URL, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-}).then(() => {
-  console.log("MongoDB bağlı");
-}).catch(err => {
-  console.log("MongoDB hata:", err);
-});
+// =====================
+// MONGO
+// =====================
+mongoose.connect(process.env.MONGO_URL)
+  .then(() => console.log("MongoDB bağlı"))
+  .catch(err => console.log(err));
 
-// ======================
-// MESSAGE MODEL
-// ======================
+// Message model
 const Message = mongoose.model("Message", {
   user: String,
   text: String,
@@ -35,66 +25,59 @@ const Message = mongoose.model("Message", {
   time: { type: Date, default: Date.now }
 });
 
-// ======================
-// TEST ROUTE
-// ======================
+// =====================
+// ONLINE USERS
+// =====================
+let onlineUsers = {};
+
+// =====================
+// ROUTES
+// =====================
 app.get("/", (req, res) => {
-  res.send("Gettic backend çalışıyor 🚀");
+  res.send("GETTIC LIVE 🚀");
 });
 
-// ======================
-// MESAJ GEÇMİŞİ API
-// ======================
 app.get("/messages/:room", async (req, res) => {
-  try {
-    const msgs = await Message.find({ room: req.params.room })
-      .sort({ time: 1 })
-      .limit(100);
+  const msgs = await Message.find({ room: req.params.room })
+    .sort({ time: 1 })
+    .limit(100);
 
-    res.json(msgs);
-  } catch (err) {
-    res.status(500).json({ error: "server error" });
-  }
+  res.json(msgs);
 });
 
-// ======================
-// SOCKET.IO
-// ======================
+// =====================
+// SOCKET
+// =====================
 io.on("connection", (socket) => {
   console.log("Bağlandı:", socket.id);
 
-  // Odaya katıl
-  socket.on("join room", (room) => {
-    socket.join(room);
-    console.log(`${socket.id} -> ${room}`);
+  // user login
+  socket.on("login", (username) => {
+    onlineUsers[socket.id] = username;
+    io.emit("online users", Object.values(onlineUsers));
   });
 
-  // Mesaj gönder
+  // join room
+  socket.on("join room", (room) => {
+    socket.join(room);
+  });
+
+  // message
   socket.on("chat message", async (data) => {
-    if (!data || !data.room) return;
+    if (!data) return;
 
-    // MongoDB'ye kaydet
-    const msg = new Message({
-      user: data.user,
-      text: data.text,
-      room: data.room
-    });
-
+    const msg = new Message(data);
     await msg.save();
 
-    // herkese yayınla
     io.to(data.room).emit("chat message", data);
   });
 
   socket.on("disconnect", () => {
-    console.log("Ayrıldı:", socket.id);
+    delete onlineUsers[socket.id];
+    io.emit("online users", Object.values(onlineUsers));
   });
 });
 
-// ======================
-// SERVER START
-// ======================
+// =====================
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log("Server aktif:", PORT);
-});
+server.listen(PORT, () => console.log("Server aktif:", PORT));
