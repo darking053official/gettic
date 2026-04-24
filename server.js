@@ -14,7 +14,7 @@ const io = socketIo(server, {
 });
 
 app.use(cors({ origin: '*', methods: ['GET', 'POST', 'PUT', 'DELETE'], credentials: true }));
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 app.use(express.static(__dirname));
 
 // ================ MODELS ================
@@ -23,14 +23,22 @@ const userSchema = new mongoose.Schema({
     password: { type: String, required: true, minlength: 6 },
     avatar: { type: String, default: '' },
     status: { type: String, enum: ['online', 'offline', 'idle', 'dnd'], default: 'offline' },
+    bio: { type: String, default: '', maxlength: 200 },
+    badges: { type: [String], default: ['Üye'] },
     roles: { type: [String], default: ['member'] },
+    friends: [{ type: String }],
+    blocked: [{ type: String }],
     createdAt: { type: Date, default: Date.now }
 });
 
 userSchema.pre('save', async function(next) {
     if (!this.isModified('password')) return next();
-    this.password = await bcrypt.hash(this.password, 10);
-    next();
+    try {
+        this.password = await bcrypt.hash(this.password, 10);
+        next();
+    } catch (e) {
+        next(e);
+    }
 });
 
 userSchema.methods.comparePassword = async function(password) {
@@ -46,13 +54,16 @@ userSchema.methods.toJSON = function() {
 const User = mongoose.model('User', userSchema);
 
 const messageSchema = new mongoose.Schema({
-    content: { type: String, required: true, maxlength: 2000 },
-    sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    content: { type: String, default: '' },
+    sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     senderName: { type: String, required: true },
     room: { type: String, required: true },
     type: { type: String, default: 'text' },
     edited: { type: Boolean, default: false },
     replyTo: { type: mongoose.Schema.Types.Mixed, default: null },
+    pollQuestion: { type: String, default: '' },
+    pollOptions: [{ type: String }],
+    pollVotes: [{ type: Number }],
     timestamp: { type: Date, default: Date.now }
 });
 
@@ -61,6 +72,7 @@ const Message = mongoose.model('Message', messageSchema);
 const roomSchema = new mongoose.Schema({
     name: { type: String, required: true },
     description: { type: String, default: '' },
+    category: { type: String, default: 'Genel' },
     type: { type: String, default: 'text' },
     isPrivate: { type: Boolean, default: false },
     password: { type: String, default: '' },
@@ -69,23 +81,47 @@ const roomSchema = new mongoose.Schema({
 
 const Room = mongoose.model('Room', roomSchema);
 
+// ================ JWT MIDDLEWARE ================
+const auth = async (req, res, next) => {
+    try {
+        const token = req.header('Authorization')?.replace('Bearer ', '');
+        if (!token) return res.status(401).json({ error: 'Token gerekli' });
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'gettic2024secret');
+        const user = await User.findById(decoded.userId);
+        if (!user) return res.status(401).json({ error: 'Kullanıcı bulunamadı' });
+        req.user = user;
+        next();
+    } catch (e) {
+        res.status(401).json({ error: 'Geçersiz token' });
+    }
+};
+
 // ================ AUTH ================
 app.post('/api/auth/register', async (req, res) => {
     try {
         const { username, password } = req.body;
-        if (!username || !password) return res.status(400).json({ error: 'Tüm alanlar gerekli' });
-        if (username.length < 3) return res.status(400).json({ error: 'Kullanıcı adı en az 3 karakter' });
-        if (password.length < 6) return res.status(400).json({ error: 'Şifre en az 6 karakter' });
+        if (!username || !password) {
+            return res.status(400).json({ error: 'Kullanıcı adı ve şifre gerekli' });
+        }
+        if (username.length < 3) {
+            return res.status(400).json({ error: 'Kullanıcı adı en az 3 karakter olmalı' });
+        }
+        if (password.length < 6) {
+            return res.status(400).json({ error: 'Şifre en az 6 karakter olmalı' });
+        }
 
-        const exist = await User.findOne({ username });
-        if (exist) return res.status(400).json({ error: 'Bu kullanıcı adı alınmış' });
+        const exists = await User.findOne({ username });
+        if (exists) {
+            return res.status(400).json({ error: 'Bu kullanıcı adı zaten alınmış' });
+        }
 
         const user = new User({ username, password });
         await user.save();
 
-        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || 'gettic2024', { expiresIn: '30d' });
+        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || 'gettic2024secret', { expiresIn: '30d' });
         res.status(201).json({ user, token });
     } catch (e) {
+        console.error('Register error:', e);
         res.status(500).json({ error: 'Kayıt başarısız: ' + e.message });
     }
 });
@@ -93,17 +129,30 @@ app.post('/api/auth/register', async (req, res) => {
 app.post('/api/auth/login', async (req, res) => {
     try {
         const { username, password } = req.body;
+        if (!username || !password) {
+            return res.status(400).json({ error: 'Kullanıcı adı ve şifre gerekli' });
+        }
+
         const user = await User.findOne({ username });
-        if (!user) return res.status(400).json({ error: 'Kullanıcı bulunamadı' });
+        if (!user) {
+            return res.status(400).json({ error: 'Kullanıcı bulunamadı' });
+        }
 
         const match = await user.comparePassword(password);
-        if (!match) return res.status(400).json({ error: 'Şifre hatalı' });
+        if (!match) {
+            return res.status(400).json({ error: 'Şifre hatalı' });
+        }
 
-        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || 'gettic2024', { expiresIn: '30d' });
+        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || 'gettic2024secret', { expiresIn: '30d' });
         res.json({ user, token });
     } catch (e) {
+        console.error('Login error:', e);
         res.status(500).json({ error: 'Giriş başarısız' });
     }
+});
+
+app.get('/api/auth/me', auth, async (req, res) => {
+    res.json(req.user);
 });
 
 // ================ ROOMS ================
@@ -118,9 +167,9 @@ app.get('/api/rooms', async (req, res) => {
 
 app.post('/api/rooms', async (req, res) => {
     try {
-        const { name, description, isPrivate, password } = req.body;
+        const { name, description, category, isPrivate, password } = req.body;
         if (!name) return res.status(400).json({ error: 'Oda adı gerekli' });
-        const room = new Room({ name, description, isPrivate, password: isPrivate ? password : '' });
+        const room = new Room({ name, description, category, isPrivate, password: isPrivate ? password : '' });
         await room.save();
         res.status(201).json(room);
     } catch (e) {
@@ -130,7 +179,7 @@ app.post('/api/rooms', async (req, res) => {
 
 app.get('/api/rooms/:id/messages', async (req, res) => {
     try {
-        const msgs = await Message.find({ room: req.params.id }).sort({ timestamp: -1 }).limit(50);
+        const msgs = await Message.find({ room: req.params.id }).sort({ timestamp: -1 }).limit(100);
         res.json(msgs.reverse());
     } catch (e) {
         res.json([]);
@@ -140,7 +189,11 @@ app.get('/api/rooms/:id/messages', async (req, res) => {
 // ================ MESSAGES ================
 app.put('/api/messages/:id', async (req, res) => {
     try {
-        const msg = await Message.findByIdAndUpdate(req.params.id, { content: req.body.content, edited: true }, { new: true });
+        const msg = await Message.findByIdAndUpdate(
+            req.params.id,
+            { content: req.body.content, edited: true },
+            { new: true }
+        );
         res.json(msg);
     } catch (e) {
         res.status(500).json({ error: 'Düzenlenemedi' });
@@ -157,39 +210,50 @@ app.delete('/api/messages/:id', async (req, res) => {
 });
 
 // ================ SOCKET.IO ================
+const onlineUsers = {};
+
 io.on('connection', (socket) => {
     console.log('👤 Bağlandı:', socket.id);
 
     socket.on('user-online', (uid) => {
         socket.userId = uid;
+        onlineUsers[uid] = 'online';
+        io.emit('user-online-update', onlineUsers);
         socket.broadcast.emit('user-status-changed', { userId: uid, status: 'online' });
     });
 
     socket.on('join-room', (rid) => {
         socket.join(rid);
+        socket.currentRoom = rid;
         const room = io.sockets.adapter.rooms.get(rid);
-        io.to(rid).emit('room-user-count', room ? room.size : 0);
+        const count = room ? room.size : 0;
+        io.to(rid).emit('room-user-count', count);
     });
 
     socket.on('leave-room', (rid) => {
         socket.leave(rid);
         const room = io.sockets.adapter.rooms.get(rid);
-        io.to(rid).emit('room-user-count', room ? room.size : 0);
+        const count = room ? room.size : 0;
+        io.to(rid).emit('room-user-count', count);
     });
 
     socket.on('send-message', async (data) => {
         try {
             const msg = await Message.create({
-                content: data.content,
+                content: data.content || '',
                 sender: data.senderId,
                 senderName: data.senderName,
                 room: data.roomId,
                 type: data.type || 'text',
-                replyTo: data.replyTo || null
+                replyTo: data.replyTo || null,
+                pollQuestion: data.pollQuestion || '',
+                pollOptions: data.pollOptions || [],
+                pollVotes: data.pollVotes || []
             });
-            const populated = await Message.findById(msg._id).populate('sender', 'username');
+            const populated = await Message.findById(msg._id).populate('sender', 'username avatar');
             io.to(data.roomId).emit('receive-message', populated);
         } catch (e) {
+            console.error('Message error:', e);
             socket.emit('message-error', 'Mesaj gönderilemedi');
         }
     });
@@ -202,54 +266,47 @@ io.on('connection', (socket) => {
         socket.join('voice-' + data.roomId);
         socket.voiceRoom = data.roomId;
         socket.to('voice-' + data.roomId).emit('voice-join', data);
-        io.to('voice-' + data.roomId).emit('voice-users', getVoiceUsers(data.roomId));
     });
 
     socket.on('voice-leave', (data) => {
         socket.leave('voice-' + data.roomId);
         socket.to('voice-' + data.roomId).emit('voice-leave', data);
-        io.to('voice-' + data.roomId).emit('voice-users', getVoiceUsers(data.roomId));
-    });
-
-    socket.on('voice-signal', (data) => {
-        socket.to(data.to).emit('voice-signal', { ...data, from: socket.id });
     });
 
     socket.on('disconnect', () => {
+        console.log('👋 Ayrıldı:', socket.id);
+        if (socket.userId) {
+            delete onlineUsers[socket.userId];
+            io.emit('user-online-update', onlineUsers);
+            socket.broadcast.emit('user-status-changed', { userId: socket.userId, status: 'offline' });
+        }
         if (socket.voiceRoom) {
             socket.to('voice-' + socket.voiceRoom).emit('voice-leave', { userId: socket.userId });
-            io.to('voice-' + socket.voiceRoom).emit('voice-users', getVoiceUsers(socket.voiceRoom));
         }
-        if (socket.userId) {
-            socket.broadcast.emit('user-status-changed', { userId: socket.userId, status: 'offline' });
+        if (socket.currentRoom) {
+            const room = io.sockets.adapter.rooms.get(socket.currentRoom);
+            const count = room ? room.size : 0;
+            io.to(socket.currentRoom).emit('room-user-count', count);
         }
     });
 });
 
-function getVoiceUsers(roomId) {
-    const room = io.sockets.adapter.rooms.get('voice-' + roomId);
-    if (!room) return [];
-    const users = [];
-    room.forEach((sid) => {
-        const s = io.sockets.sockets.get(sid);
-        if (s && s.userId) users.push({ id: s.userId, sid: sid });
-    });
-    return users;
-}
-
-// ================ STATIC FILES ================
+// ================ FRONTEND ================
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/index.html');
 });
 
-// ================ SERVER START ================
+// ================ START ================
 const MONGODB_URI = process.env.MONGODB_URI;
 console.log('🚀 Gettic başlatılıyor...');
-console.log('📦 MongoDB:', MONGODB_URI ? '✅' : '❌');
+console.log('📦 MongoDB:', MONGODB_URI ? '✅ Yüklendi' : '❌ Yüklenmedi!');
 
 mongoose.connect(MONGODB_URI || 'mongodb://127.0.0.1:27017/gettic')
     .then(() => console.log('✅ MongoDB bağlandı'))
     .catch((e) => console.log('❌ MongoDB hatası:', e.message));
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`✅ Port: ${PORT}`));
+server.listen(PORT, () => {
+    console.log(`✅ Gettic ${PORT} portunda hazır`);
+    console.log(`🌐 http://localhost:${PORT}`);
+});
