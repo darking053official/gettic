@@ -5,8 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#1a1b2e">
     <title>Gettic</title>
-    <link rel="manifest" href="data:application/json,{}">
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <link rel="manifest" href="data:application/json,{'name':'Gettic','short_name':'Gettic','start_url':'/','display':'standalone','background_color':'#1a1b2e','theme_color':'#4a6cf7','icons':[{'src':'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎧</text></svg>','sizes':'any'}]}">
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js">
+    </script>
     <style>
         :root {
             --bg: #1a1b2e;
@@ -38,6 +39,15 @@
             --text3: #7a7b8e;
             --border: #d0d1d5;
         }
+        .theme-blue {
+            --bg: #0f1a2e;
+            --bg2: #152238;
+            --bg3: #1a2d4a;
+            --hover: #1e3558;
+            --active: #244066;
+            --accent: #38bdf8;
+            --border: #1e3558;
+        }
         * {
             margin: 0;
             padding: 0;
@@ -62,10 +72,11 @@
         .screen.active {
             display: flex;
         }
+
         #auth-screen {
             justify-content: center;
             align-items: center;
-            background: linear-gradient(145deg, #1a1b2e 0%, #1e2040 40%, #1a1d3a 100%);
+            background: linear-gradient(145deg, #1a1b2e, #1e2040, #1a1d3a);
             padding: 20px;
         }
         .auth-box {
@@ -88,11 +99,6 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-        }
-        .auth-box .logo p {
-            color: var(--text2);
-            font-size: 13px;
-            margin-top: 4px;
         }
         .tabs {
             display: flex;
@@ -250,6 +256,10 @@
             color: var(--green);
             font-size: 20px;
         }
+        .server-icon.add:hover {
+            background: var(--green);
+            color: #fff;
+        }
         .server-sep {
             width: 28px;
             height: 2px;
@@ -270,6 +280,9 @@
             z-index: 999;
             pointer-events: none;
         }
+        .server-icon:hover .server-tip {
+            display: block;
+        }
 
         .sidebar {
             width: 250px;
@@ -288,6 +301,19 @@
             justify-content: space-between;
             align-items: center;
         }
+        .sidebar-header button {
+            background: none;
+            border: none;
+            color: var(--text3);
+            cursor: pointer;
+            font-size: 17px;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        .sidebar-header button:hover {
+            background: var(--hover);
+            color: var(--text);
+        }
         .section-title {
             padding: 16px 16px 4px;
             font-size: 11px;
@@ -295,7 +321,24 @@
             color: var(--text3);
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             cursor: pointer;
+        }
+        .section-title .arrow {
+            font-size: 8px;
+            transition: 0.2s;
+        }
+        .section-title .arrow.open {
+            transform: rotate(90deg);
+        }
+        .category-group {
+            overflow: hidden;
+            transition: max-height 0.3s;
+        }
+        .category-group.collapsed {
+            max-height: 0 !important;
         }
         .voice-item,
         .room-item,
@@ -323,6 +366,26 @@
             background: var(--active);
             color: #fff;
         }
+        .voice-item .v-left,
+        .room-item,
+        .dm-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .v-count,
+        .unread-badge {
+            font-size: 10px;
+            color: var(--text3);
+            background: var(--bg3);
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: auto;
+        }
+        .unread-badge.has {
+            background: var(--red);
+            color: #fff;
+        }
         .sidebar-footer {
             padding: 8px 12px;
             background: #1a1b2e;
@@ -331,7 +394,16 @@
             justify-content: space-between;
             border-top: 1px solid var(--border);
         }
-        .avatar {
+        .sidebar-footer .user-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            flex: 1;
+        }
+        .sidebar-footer .avatar {
             width: 33px;
             height: 33px;
             border-radius: 50%;
@@ -342,9 +414,37 @@
             font-weight: 700;
             font-size: 13px;
             color: #fff;
+            flex-shrink: 0;
             background-size: cover;
             background-position: center;
         }
+        .sidebar-footer .user-meta {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+        .sidebar-footer .user-meta .uname {
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .sidebar-footer .user-meta .ustatus {
+            font-size: 10px;
+            color: var(--text3);
+        }
+        .sidebar-footer .btns {
+            display: flex;
+            gap: 2px;
+        }
+        .sidebar-footer .btns button {
+            background: none;
+            border: none;
+            color: var(--text3);
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
         .chat-wrap {
             flex: 1;
             display: flex;
@@ -364,6 +464,37 @@
         .voice-bar.open {
             display: flex;
         }
+        .voice-bar .v-info {
+            flex: 1;
+            font-size: 12px;
+            color: var(--green);
+            font-weight: 600;
+        }
+        .voice-bar .v-btns {
+            display: flex;
+            gap: 6px;
+        }
+        .voice-bar .v-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg3);
+            color: var(--text);
+            transition: 0.2s;
+        }
+        .voice-bar .v-btn.muted {
+            background: var(--red);
+            color: #fff;
+        }
+        .voice-bar .v-btn:hover {
+            background: var(--hover);
+        }
         .chat-top {
             padding: 10px 20px;
             background: var(--bg);
@@ -372,16 +503,61 @@
             justify-content: space-between;
             align-items: center;
             flex-shrink: 0;
+            min-height: 48px;
+        }
+        .chat-top .title {
+            font-weight: 700;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .chat-top .actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 12px;
+            color: var(--text3);
+        }
+        .chat-top .actions .dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--green);
+        }
+        .chat-top .actions button {
+            background: none;
+            border: none;
+            color: var(--text3);
+            cursor: pointer;
+            font-size: 16px;
+            padding: 4px;
+        }
+        .chat-top .actions button:hover {
+            color: var(--text);
         }
         .msg-area {
             flex: 1;
             overflow-y: auto;
             padding: 16px 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        .welcome {
+            text-align: center;
+            padding: 50px 20px;
+            color: var(--text3);
+            margin: auto;
+        }
+        .welcome h2 {
+            color: var(--text);
+            font-size: 1.4em;
         }
         .msg {
             padding: 5px 12px;
             border-radius: var(--radius-sm);
             transition: background 0.15s;
+            position: relative;
         }
         .msg:hover {
             background: var(--hover);
@@ -401,11 +577,17 @@
             font-weight: 700;
             font-size: 12px;
             color: #fff;
+            flex-shrink: 0;
+            background-size: cover;
+            background-position: center;
         }
         .msg .muser {
             font-weight: 700;
             font-size: 13px;
             cursor: pointer;
+        }
+        .msg .muser:hover {
+            text-decoration: underline;
         }
         .msg .mtime {
             font-size: 10px;
@@ -418,18 +600,131 @@
             line-height: 1.5;
             word-break: break-word;
         }
+        .msg .mreply {
+            margin-left: 42px;
+            font-size: 11px;
+            color: var(--text3);
+            border-left: 2px solid var(--accent);
+            padding-left: 8px;
+            margin-bottom: 3px;
+        }
+        .msg .mbtns {
+            display: none;
+            gap: 3px;
+            margin-left: 42px;
+            margin-top: 3px;
+        }
+        .msg:hover .mbtns {
+            display: flex;
+        }
+        .mbtns button {
+            background: var(--bg3);
+            border: none;
+            color: var(--text3);
+            cursor: pointer;
+            font-size: 10px;
+            padding: 3px 8px;
+            border-radius: 3px;
+        }
+        .mbtns button:hover {
+            background: var(--hover);
+            color: var(--text);
+        }
+        .msg .pinned-badge {
+            position: absolute;
+            right: 8px;
+            top: 4px;
+            font-size: 10px;
+            color: var(--accent);
+        }
+        .msg img {
+            max-width: 280px;
+            border-radius: 8px;
+            margin-left: 42px;
+            cursor: pointer;
+            margin-top: 4px;
+        }
+        .msg .gif-preview {
+            max-width: 280px;
+            border-radius: 8px;
+            margin-left: 42px;
+            margin-top: 4px;
+        }
+        .msg .link-preview {
+            margin-left: 42px;
+            margin-top: 4px;
+            padding: 8px 12px;
+            background: var(--bg3);
+            border-radius: 6px;
+            border-left: 3px solid var(--accent);
+            font-size: 12px;
+        }
+        .msg .poll-box {
+            margin-left: 42px;
+            margin-top: 6px;
+            padding: 10px;
+            background: var(--bg3);
+            border-radius: 8px;
+        }
+        .poll-option {
+            padding: 8px 12px;
+            background: var(--bg2);
+            border-radius: 4px;
+            margin: 3px 0;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .poll-option:hover {
+            background: var(--hover);
+        }
+        .poll-option .bar {
+            height: 4px;
+            background: var(--accent);
+            border-radius: 2px;
+            transition: width 0.5s;
+        }
+        .typing {
+            padding: 2px 20px;
+            font-size: 11px;
+            color: var(--text3);
+            min-height: 20px;
+            flex-shrink: 0;
+            font-style: italic;
+        }
         .input-zone {
             padding: 0 16px 18px;
             flex-shrink: 0;
+        }
+        .reply-tag {
+            background: var(--bg2);
+            padding: 8px 14px;
+            border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 11px;
+            color: var(--text3);
+            border-left: 3px solid var(--accent);
+        }
+        .reply-tag button {
+            background: none;
+            border: none;
+            color: var(--text3);
+            cursor: pointer;
+            font-size: 16px;
         }
         .input-row {
             display: flex;
             gap: 8px;
             background: var(--bg2);
-            padding: 8px 14px;
+            padding: 8px 10px 8px 14px;
             border-radius: var(--radius-sm);
             align-items: flex-end;
             border: 1px solid transparent;
+            transition: 0.2s;
+            position: relative;
         }
         .input-row:focus-within {
             border-color: var(--accent);
@@ -444,6 +739,11 @@
             outline: none;
             max-height: 130px;
             font-family: inherit;
+            line-height: 1.4;
+            padding: 4px 0;
+        }
+        .input-row textarea::placeholder {
+            color: var(--text3);
         }
         .input-row .send {
             background: var(--accent);
@@ -454,7 +754,107 @@
             cursor: pointer;
             font-weight: 600;
             font-size: 13px;
+            flex-shrink: 0;
         }
+        .input-row .attach {
+            background: none;
+            border: none;
+            color: var(--text3);
+            cursor: pointer;
+            font-size: 18px;
+            padding: 4px;
+        }
+        .input-row .attach:hover {
+            color: var(--text);
+        }
+        .emoji-picker {
+            display: none;
+            position: absolute;
+            bottom: 56px;
+            left: 10px;
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 8px;
+            z-index: 200;
+            flex-wrap: wrap;
+            gap: 4px;
+            width: 240px;
+            box-shadow: var(--shadow);
+        }
+        .emoji-picker.open {
+            display: flex;
+        }
+        .emoji-picker span {
+            cursor: pointer;
+            font-size: 20px;
+            padding: 4px;
+            border-radius: 4px;
+        }
+        .emoji-picker span:hover {
+            background: var(--hover);
+        }
+
+        .member-panel {
+            width: 240px;
+            background: var(--bg2);
+            border-left: 1px solid var(--border);
+            display: none;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+        .member-panel.open {
+            display: flex;
+        }
+        .member-panel h3 {
+            padding: 14px 16px;
+            font-size: 11px;
+            color: var(--text3);
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--border);
+            letter-spacing: 0.5px;
+        }
+        .member-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 4px 8px;
+        }
+        .mem-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            color: var(--text2);
+        }
+        .mem-item:hover {
+            background: var(--hover);
+        }
+        .mem-ava {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 11px;
+            color: #fff;
+            position: relative;
+        }
+        .mem-ava .online-dot {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--green);
+            border: 2px solid var(--bg2);
+        }
+
         .modal {
             display: none;
             position: fixed;
@@ -486,10 +886,125 @@
             max-width: 95%;
             z-index: 1;
             border: 1px solid var(--border);
+            position: relative;
             max-height: 85vh;
             overflow-y: auto;
             box-shadow: var(--shadow);
         }
+        .modal-box h3 {
+            font-size: 17px;
+            margin-bottom: 16px;
+            font-weight: 700;
+        }
+        .modal-close {
+            position: absolute;
+            top: 12px;
+            right: 14px;
+            background: none;
+            border: none;
+            color: var(--text3);
+            cursor: pointer;
+            font-size: 20px;
+        }
+        .modal-box input,
+        .modal-box select,
+        .modal-box textarea {
+            width: 100%;
+            padding: 11px;
+            margin: 5px 0 10px;
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text);
+            font-size: 13px;
+            outline: none;
+        }
+        .modal-box textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+        .modal-box input:focus,
+        .modal-box select:focus,
+        .modal-box textarea:focus {
+            border-color: var(--accent);
+        }
+        .modal-box .btn {
+            width: 100%;
+            margin-top: 8px;
+        }
+        .check-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text2);
+            margin: 6px 0;
+        }
+        .check-row input {
+            width: auto;
+            margin: 0;
+            accent-color: var(--accent);
+        }
+        .status-opt {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .status-opt:hover {
+            background: var(--hover);
+        }
+        .sdot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        .sdot.on {
+            background: var(--green);
+        }
+        .sdot.idle {
+            background: var(--yellow);
+        }
+        .sdot.dnd {
+            background: var(--red);
+        }
+        .sdot.off {
+            background: var(--text3);
+        }
+
+        #screen-preview {
+            display: none;
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            width: 300px;
+            background: #000;
+            border-radius: var(--radius);
+            overflow: hidden;
+            z-index: 200;
+            border: 2px solid var(--accent);
+        }
+        #screen-preview video {
+            width: 100%;
+            height: 170px;
+            object-fit: contain;
+        }
+        #screen-preview .stop-btn {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: var(--red);
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            padding: 4px 8px;
+        }
+
         #toast {
             position: fixed;
             bottom: 30px;
@@ -502,39 +1017,176 @@
             z-index: 9999;
             font-size: 12px;
             display: none;
+            box-shadow: var(--shadow);
+            pointer-events: none;
         }
-        .online-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--green);
-            flex-shrink: 0;
+
+        ::-webkit-scrollbar {
+            width: 4px;
         }
-        .poll-option {
-            padding: 6px 10px;
-            background: var(--bg3);
-            border-radius: 4px;
-            margin: 2px 0;
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 2px;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 220px;
+                position: fixed;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                z-index: 300;
+                transform: translateX(-100%);
+                transition: 0.3s;
+            }
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+            .member-panel {
+                position: fixed;
+                right: 0;
+                top: 0;
+                bottom: 0;
+                z-index: 300;
+                transform: translateX(100%);
+                transition: 0.3s;
+            }
+            .member-panel.open {
+                transform: translateX(0);
+            }
+            .server-list {
+                width: 50px;
+            }
+            .server-icon {
+                width: 38px;
+                height: 38px;
+                font-size: 12px;
+            }
+            .chat-top {
+                padding: 8px 12px;
+            }
+            .msg-area {
+                padding: 10px 12px;
+            }
+            .input-zone {
+                padding: 0 8px 12px;
+            }
+            .mobile-menu-btn {
+                display: flex !important;
+            }
+        }
+        @media (min-width: 769px) {
+            .sidebar {
+                transform: translateX(0) !important;
+            }
+            .mobile-menu-btn {
+                display: none !important;
+            }
+            .sidebar-backdrop {
+                display: none !important;
+            }
+        }
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text);
+            font-size: 20px;
+            padding: 6px;
             cursor: pointer;
         }
-        .poll-option:hover {
-            background: var(--hover);
+        .sidebar-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 290;
+        }
+        .sidebar-backdrop.open {
+            display: block;
+        }
+
+        .user-card {
+            text-align: center;
+            padding: 10px;
+        }
+        .user-card .big-ava {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            margin: 0 auto 10px;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: #fff;
+            background-size: cover;
+            background-position: center;
+        }
+        .user-card .username {
+            font-size: 18px;
+            font-weight: 700;
+        }
+        .user-card .tag {
+            font-size: 12px;
+            color: var(--text3);
+        }
+        .btn-row {
+            display: flex;
+            gap: 8px;
+            margin: 10px 0;
+        }
+        .btn-row .btn {
+            flex: 1;
+        }
+        .badge-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            justify-content: center;
+            margin: 6px 0;
+        }
+        .badge {
+            font-size: 10px;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+        .search-box {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .search-box input {
+            flex: 1;
+            margin: 0 !important;
+        }
+        .search-box button {
+            width: auto !important;
+            margin: 0 !important;
+            padding: 11px 16px;
         }
     </style>
 </head>
 <body>
+
     <div id="auth-screen" class="screen active">
         <div class="auth-box">
             <div class="logo"><h1>Gettic</h1><p>Takıl, konuş, paylaş</p></div>
             <div class="tabs"><button id="tab-login" class="active" onclick="switchTab('login')">Giriş</button><button id="tab-register" onclick="switchTab('register')">Kayıt</button></div>
             <div id="form-login" class="fg active">
-                <div class="if"><label>Kullanıcı Adı</label><div class="iw"><input type="text" id="login-user" placeholder="Kullanıcı adınız" autocomplete="off"></div></div>
+                <div class="if"><label>Kullanıcı Adı</label><div class="iw"><input id="login-user" placeholder="Kullanıcı adınız" autocomplete="off"></div></div>
                 <div class="if"><label>Şifre</label><div class="iw"><input type="password" id="login-pass" placeholder="Şifreniz"><button class="eye" onclick="togglePass('login-pass',this)">👁</button></div></div>
                 <button class="btn btn-primary" onclick="doLogin()">Giriş Yap</button>
                 <p class="link-text">Hesabın yok mu? <span onclick="switchTab('register')">Kayıt Ol</span></p>
             </div>
             <div id="form-register" class="fg">
-                <div class="if"><label>Kullanıcı Adı</label><div class="iw"><input type="text" id="reg-user" placeholder="Kullanıcı adı seç" autocomplete="off" minlength="3" maxlength="20"></div></div>
+                <div class="if"><label>Kullanıcı Adı</label><div class="iw"><input id="reg-user" placeholder="Kullanıcı adı seç" autocomplete="off" minlength="3"></div></div>
                 <div class="if"><label>Şifre</label><div class="iw"><input type="password" id="reg-pass" placeholder="En az 6 karakter" minlength="6"><button class="eye" onclick="togglePass('reg-pass',this)">👁</button></div></div>
                 <button class="btn btn-primary" onclick="doRegister()">Kayıt Ol</button>
                 <p class="link-text">Hesabın var mı? <span onclick="switchTab('login')">Giriş Yap</span></p>
@@ -543,50 +1195,108 @@
     </div>
 
     <div id="main-screen" class="screen">
-        <div class="server-list"><div class="server-icon active">G<span class="server-tip">Ana Sunucu</span></div><div class="server-sep"></div><div class="server-icon add" onclick="showServerModal()">+<span class="server-tip">Sunucu Ekle</span></div></div>
-        <div class="sidebar">
+        <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="closeMobileSidebar()"></div>
+        <div class="server-list" id="server-list">
+            <div class="server-icon active" onclick="selectServer('main')">G<span class="server-tip">Ana Sunucu</span></div>
+            <div class="server-sep"></div>
+            <div class="server-icon add" onclick="showServerModal()">+<span class="server-tip">Sunucu Ekle</span></div>
+        </div>
+        <div class="sidebar" id="sidebar">
             <div class="sidebar-header"><span id="server-name">Gettic</span><button onclick="showServerSettings()">⚙</button></div>
-            <div class="section-title">💬 DM</div>
-            <div class="dm-list" id="dm-list"></div>
-            <div class="section-title">🔊 Sesli</div>
-            <div class="voice-list" id="voice-list"></div>
-            <div class="section-title">📝 Yazılı</div>
-            <div class="room-list" id="room-list"></div>
+            <div class="section-title" onclick="toggleCategory('dm-cat')">💬 DM <span class="arrow open" id="arrow-dm-cat">▶</span></div>
+            <div class="category-group" id="dm-cat"><div id="dm-list"></div></div>
+            <div class="section-title" onclick="toggleCategory('voice-cat')">🔊 Sesli <span class="arrow open" id="arrow-voice-cat">▶</span></div>
+            <div class="category-group" id="voice-cat"><div id="voice-list"></div></div>
+            <div class="section-title" onclick="toggleCategory('text-cat')">💬 Yazılı <span class="arrow open" id="arrow-text-cat">▶</span></div>
+            <div class="category-group" id="text-cat"><div id="room-list"></div></div>
             <div class="sidebar-footer">
-                <div class="user-row" onclick="showProfileModal()"><div class="avatar" id="my-avatar">?</div><div class="user-meta"><span id="my-name">Misafir</span><span id="my-status">Çevrimiçi</span></div></div>
+                <div class="user-row" onclick="showProfileModal()"><div class="avatar" id="my-avatar">?</div><div class="user-meta"><span class="uname" id="my-name">Misafir</span><span class="ustatus" id="my-status">Çevrimiçi</span></div></div>
                 <div class="btns"><button onclick="showSettingsModal()">⚙</button><button onclick="doLogout()">🚪</button></div>
             </div>
         </div>
         <div class="chat-wrap">
-            <div class="voice-bar" id="voice-bar"><span id="v-info">🔊 Bağlanıyor...</span><div class="v-btns"><button class="v-btn" id="btn-mute" onclick="toggleMute()">🎤</button><button class="v-btn" onclick="toggleCamera()">📷</button><button class="v-btn" onclick="toggleScreen()">🖥</button><button class="v-btn btn-danger" onclick="leaveVoice()">✕</button></div></div>
-            <div class="chat-top"><span>#<span id="room-name">genel</span></span><span id="online-count">0 çevrimiçi</span></div>
-            <div class="msg-area" id="messages"><div class="welcome"><h2>Gettic'e Hoş Geldin!</h2></div></div>
-            <div class="input-zone"><div class="input-row"><textarea id="msg-input" placeholder="Mesaj yaz..." rows="1" onkeydown="handleInput(event)"></textarea><button class="send" onclick="sendMsg()">Gönder</button></div></div>
+            <div class="voice-bar" id="voice-bar"><div class="v-info" id="v-info">🔊 Bağlanıyor...</div><div class="v-btns"><button class="v-btn" id="btn-mute" onclick="toggleMute()">🎤</button><button class="v-btn" onclick="toggleCamera()">📷</button><button class="v-btn" onclick="toggleScreen()">🖥</button><button class="v-btn" style="background:var(--red);color:#fff;" onclick="leaveVoice()">✕</button></div></div>
+            <div class="chat-top">
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <button class="mobile-menu-btn" onclick="toggleMobileSidebar()">☰</button>
+                    <div class="title"><span id="room-prefix">#</span><span id="room-name">genel</span><button onclick="pinCurrentRoom()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px;" title="Sabitle">📌</button></div>
+                </div>
+                <div class="actions"><span class="dot"></span> <span id="online-count">0 çevrimiçi</span><button onclick="toggleMembers()">👥</button><button onclick="showSearchModal()">🔍</button></div>
+            </div>
+            <div class="msg-area" id="messages"><div class="welcome"><h2>Gettic'e Hoş Geldin!</h2><p>Sohbete başla!</p></div></div>
+            <div class="typing" id="typing"></div>
+            <div class="input-zone">
+                <div class="reply-tag" id="reply-tag"><span>Yanıt: <span id="reply-txt"></span></span><button onclick="cancelReply()">✕</button></div>
+                <div class="input-row" style="position:relative;">
+                    <button class="attach" onclick="toggleEmoji()">😊</button>
+                    <button class="attach" onclick="document.getElementById('file-upload').click()">📎</button>
+                    <input type="file" id="file-upload" style="display:none;" onchange="uploadFile()" accept="image/*,video/*">
+                    <button class="attach" onclick="startPoll()">📊</button>
+                    <textarea id="msg-input" placeholder="#genel e mesaj yaz..." rows="1" maxlength="4000" onkeydown="handleInput(event)" oninput="autoGrow(this)"></textarea>
+                    <span id="ptt-hint" style="font-size:10px;color:var(--text3);display:none;">[PTT]</span>
+                    <button class="send" onclick="sendMsg()">Gönder</button>
+                    <div class="emoji-picker" id="emoji-picker">
+                        <span onclick="addEmoji('😊')">😊</span><span onclick="addEmoji('😂')">😂</span><span onclick="addEmoji('❤️')">❤️</span><span onclick="addEmoji('👍')">👍</span><span onclick="addEmoji('🎉')">🎉</span><span onclick="addEmoji('🔥')">🔥</span><span onclick="addEmoji('😢')">😢</span><span onclick="addEmoji('😡')">😡</span><span onclick="addEmoji('👏')">👏</span><span onclick="addEmoji('💯')">💯</span><span onclick="addEmoji('🤔')">🤔</span><span onclick="addEmoji('😎')">😎</span><span onclick="addEmoji('🙏')">🙏</span><span onclick="addEmoji('💀')">💀</span><span onclick="addEmoji('👀')">👀</span><span onclick="addEmoji('🐱')">🐱</span>
+                    </div>
+                </div>
+            </div>
         </div>
+        <div class="member-panel" id="member-panel"><h3>Üyeler</h3><div class="member-list" id="member-list"></div></div>
     </div>
 
-    <div id="room-modal" class="modal"><div class="modal-bg" onclick="closeRoomModal()"></div><div class="modal-box"><h3>Kanal Oluştur</h3><select id="new-room-type"><option value="text">Yazılı</option><option value="voice">Sesli</option></select><input type="text" id="new-room-name" placeholder="Ad"><input type="text" id="new-room-cat" placeholder="Kategori"><button class="btn btn-primary" onclick="createRoom()">Oluştur</button></div></div>
-    <div id="server-modal" class="modal"><div class="modal-bg" onclick="closeServerModal()"></div><div class="modal-box"><h3>Sunucu</h3><input id="new-server-name" placeholder="Ad"><button class="btn btn-primary" onclick="createServer()">Oluştur</button></div></div>
-    <div id="settings-modal" class="modal"><div class="modal-bg" onclick="closeSettingsModal()"></div><div class="modal-box"><h3>Ayarlar</h3><select id="theme-select" onchange="changeTheme(this.value)"><option value="dark">Koyu</option><option value="light">Açık</option></select><button class="btn btn-primary" onclick="closeSettingsModal()">Kapat</button></div></div>
-    <div id="profile-modal" class="modal"><div class="modal-bg" onclick="closeProfileModal()"></div><div class="modal-box"><h3>Profil</h3><div id="profile-content"></div></div></div>
+    <div id="screen-preview"><video id="screen-video" autoplay playsinline></video><button class="stop-btn" onclick="stopScreen()">Durdur</button></div>
+
+    <div id="room-modal" class="modal"><div class="modal-bg" onclick="closeRoomModal()"></div><div class="modal-box"><button class="modal-close" onclick="closeRoomModal()">✕</button><h3>Kanal Oluştur</h3><select id="new-room-type"><option value="text">Yazılı</option><option value="voice">Sesli</option></select><input id="new-room-name" placeholder="Kanal adı"><input id="new-room-cat" placeholder="Kategori (örn: Oyun)"><input id="new-room-desc" placeholder="Açıklama"><div class="check-row"><input type="checkbox" id="new-room-private" onchange="document.getElementById('rpw').style.display=this.checked?'block':'none'"><label>Özel</label></div><div id="rpw" style="display:none;"><input type="password" id="new-room-pass" placeholder="Şifre"></div><button class="btn btn-primary" onclick="createRoom()">Oluştur</button></div></div>
+
+    <div id="server-modal" class="modal"><div class="modal-bg" onclick="closeServerModal()"></div><div class="modal-box"><button class="modal-close" onclick="closeServerModal()">✕</button><h3>Sunucu Oluştur</h3><input id="new-server-name" placeholder="Sunucu adı"><input type="file" id="server-icon-upload" accept="image/*"><select id="server-template"><option value="">Şablon seç</option><option value="gaming">Oyun</option><option value="study">Çalışma</option><option value="friend">Arkadaş</option></select><button class="btn btn-primary" onclick="createServer()">Oluştur</button></div></div>
+
+    <div id="server-settings-modal" class="modal"><div class="modal-bg" onclick="closeServerSettings()"></div><div class="modal-box"><button class="modal-close" onclick="closeServerSettings()">✕</button><h3>Sunucu Ayarları</h3><label>Sunucu Adı</label><input id="settings-server-name"><label>Roller</label><div id="roles-list"></div><div style="display:flex;gap:6px;"><input id="new-role-name" placeholder="Rol adı"><select id="new-role-color"><option value="#4a6cf7">Mavi</option><option value="#22c55e">Yeşil</option><option value="#eab308">Sarı</option><option value="#ef4444">Kırmızı</option><option value="#f472b6">Pembe</option></select><button class="btn btn-sm btn-primary" onclick="addRole()">+</button></div><label>Davet Linki</label><div style="display:flex;gap:6px;"><input id="invite-link" readonly><button class="btn btn-sm btn-primary" onclick="copyInvite()">Kopyala</button></div><button class="btn btn-primary" onclick="saveServerSettings()">Kaydet</button></div></div>
+
+    <div id="settings-modal" class="modal"><div class="modal-bg" onclick="closeSettingsModal()"></div><div class="modal-box"><button class="modal-close" onclick="closeSettingsModal()">✕</button><h3>Kullanıcı Ayarları</h3><label>Profil Resmi</label><input type="file" id="avatar-upload" accept="image/*"><label>Durum</label><select id="settings-status"><option value="online">Çevrimiçi</option><option value="idle">Boşta</option><option value="dnd">Rahatsız Etme</option><option value="offline">Görünmez</option></select><label>Tema</label><select id="theme-select" onchange="changeTheme(this.value)"><option value="dark">Koyu</option><option value="light">Açık</option><option value="blue">Mavi</option></select><label>Bildirim Sesi</label><select id="notif-sound" onchange="notifications=this.value==='on'"><option value="on">Açık</option><option value="off">Kapalı</option></select><label>Biyografi</label><textarea id="settings-bio" placeholder="Kendinden bahset..." maxlength="200"></textarea><div class="check-row"><input type="checkbox" id="ptt-toggle" onchange="pttEnabled=this.checked;document.getElementById('ptt-hint').style.display=this.checked?'inline':'none';"><label>Push-to-Talk</label></div><button class="btn btn-primary" onclick="saveSettings()">Kaydet</button></div></div>
+
+    <div id="profile-modal" class="modal"><div class="modal-bg" onclick="closeProfileModal()"></div><div class="modal-box"><button class="modal-close" onclick="closeProfileModal()">✕</button><div class="user-card"><div class="big-ava" id="profile-ava">?</div><div class="username" id="profile-name"></div><div class="tag" id="profile-status"></div><div class="tag" id="profile-bio" style="margin-top:4px;"></div><div class="badge-row" id="profile-badges"></div><div class="btn-row"><button class="btn btn-sm btn-primary" onclick="addFriend()">👤 Arkadaş Ekle</button><button class="btn btn-sm btn-green" onclick="startDM()">💬 DM</button><button class="btn btn-sm" style="background:var(--red);color:#fff;" onclick="blockUser()">🚫 Engelle</button></div></div></div></div>
+
+    <div id="status-modal" class="modal"><div class="modal-bg" onclick="closeStatusModal()"></div><div class="modal-box" style="width:340px;"><button class="modal-close" onclick="closeStatusModal()">✕</button><h3>Durum</h3><div class="status-opt" onclick="setStatus('online')"><span class="sdot on"></span> Çevrimiçi</div><div class="status-opt" onclick="setStatus('idle')"><span class="sdot idle"></span> Boşta</div><div class="status-opt" onclick="setStatus('dnd')"><span class="sdot dnd"></span> Rahatsız Etme</div><div class="status-opt" onclick="setStatus('offline')"><span class="sdot off"></span> Görünmez</div></div></div>
+
+    <div id="search-modal" class="modal"><div class="modal-bg" onclick="closeSearchModal()"></div><div class="modal-box"><button class="modal-close" onclick="closeSearchModal()">✕</button><h3>Mesaj Ara</h3><div class="search-box"><input id="search-query" placeholder="Ara..." onkeydown="if(event.key==='Enter')searchMessages()"><button class="btn btn-sm btn-primary" onclick="searchMessages()">Ara</button></div><div id="search-results" style="max-height:300px;overflow-y:auto;"></div></div></div>
+
+    <div id="poll-modal" class="modal"><div class="modal-bg" onclick="closePollModal()"></div><div class="modal-box"><button class="modal-close" onclick="closePollModal()">✕</button><h3>Anket Başlat</h3><input id="poll-question" placeholder="Soru"><div id="poll-options"><input placeholder="Seçenek 1" class="poll-opt"><input placeholder="Seçenek 2" class="poll-opt"></div><button class="btn btn-sm" onclick="addPollOption()" style="width:auto;">+ Seçenek</button><button class="btn btn-primary" onclick="createPoll()">Başlat</button></div></div>
+
     <div id="toast"></div>
 
     <script>
         (function() {
             var API = window.location.origin;
             var socket, me, token, cRoom = 'genel',
-                reply = null,
-                rooms = [],
+                cRoomType = 'text',
+                reply = null;
+            var rooms = [],
                 voiceRooms = [{ id: 'genel', name: 'Genel Sesli', users: [] }],
                 dms = [],
                 friends = [],
-                inVoice = null,
-                localStream, screenStream, notifications = true,
-                theme = 'dark';
+                blocked = [],
+                onlineUsers = {};
+            var inVoice = null,
+                micMuted = false,
+                cameraOn = false,
+                screenOn = false;
+            var localStream, screenStream;
+            var serverName = 'Gettic',
+                serverIcon = '',
+                serverRoles = [],
+                serverTemplate = null;
+            var notifications = true,
+                pttEnabled = false,
+                pttKey = 'Control',
+                pttActive = false;
+            var myBio = '',
+                myBadges = ['Üye'];
 
             if (localStorage.getItem('gt_token')) {
                 token = localStorage.getItem('gt_token');
                 me = JSON.parse(localStorage.getItem('gt_user'));
+                myBio = me.bio || '';
+                myBadges = me.badges || ['Üye'];
                 openApp();
             }
 
@@ -599,7 +1309,8 @@
                 i.type = i.type === 'password' ? 'text' : 'password';
                 btn.textContent = i.type === 'password' ? '👁' : '🙈'; };
             window.doLogin = function() { var u = document.getElementById('login-user').value.trim(),
-                    p = document.getElementById('login-pass').value;
+                    p = document.getElementById('login-pass').value; if (!u || !p) return toast('Tüm alanları doldur',
+                    'error');
                 fetch(API + '/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username: u, password: p }) }).then(r => r.json()).then(d => { if (d
                         .error) return toast(d.error, 'error');
@@ -609,7 +1320,9 @@
                     localStorage.setItem('gt_user', JSON.stringify(me));
                     openApp(); }).catch(function() { toast('Bağlantı hatası', 'error'); }); };
             window.doRegister = function() { var u = document.getElementById('reg-user').value.trim(),
-                    p = document.getElementById('reg-pass').value;
+                    p = document.getElementById('reg-pass').value; if (!u || !p) return toast('Tüm alanları doldur',
+                    'error'); if (u.length < 3) return toast('En az 3 karakter', 'error'); if (p.length < 6) return toast(
+                    'En az 6 karakter', 'error');
                 fetch(API + '/api/auth/register', { method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username: u, password: p }) }).then(r => r.json()).then(d => { if (d
                         .error) return toast(d.error, 'error');
@@ -617,25 +1330,40 @@
                     token = d.token;
                     localStorage.setItem('gt_token', token);
                     localStorage.setItem('gt_user', JSON.stringify(me));
+                    toast('Hoş geldin ' + me.username + '!', 'success');
                     openApp(); }).catch(function() { toast('Bağlantı hatası', 'error'); }); };
-            window.doLogout = function() { localStorage.clear();
+            window.doLogout = function() { if (!confirm('Çıkış yap?')) return;
+                leaveVoice();
+                localStorage.clear();
                 location.reload(); };
 
-            function openApp() {
-                document.getElementById('auth-screen').classList.remove('active');
+            function openApp() { document.getElementById('auth-screen').classList.remove('active');
                 document.getElementById('main-screen').classList.add('active');
                 document.getElementById('my-name').textContent = me.username;
-                document.getElementById('my-avatar').textContent = me.username.charAt(0).toUpperCase();
+                document.getElementById('my-avatar').textContent = me.username.charAt(0).toUpperCase(); if (me.avatar) {
+                    document.getElementById('my-avatar').style.backgroundImage = 'url(' + me.avatar + ')';
+                    document.getElementById('my-avatar').textContent = '';
+                    document.getElementById('my-avatar').style.backgroundSize = 'cover'; }
                 connectSocket();
                 loadData();
-            }
+                if (localStorage.getItem('gt_theme')) changeTheme(localStorage.getItem('gt_theme')); }
 
             function connectSocket() { socket = io(API);
-                socket.on('receive-message', m => showMsg(m));
-                socket.on('room-user-count', c => document.getElementById('online-count').textContent = c + ' çevrimiçi'); }
+                socket.on('connect', function() { if (me) socket.emit('user-online', me._id); });
+                socket.on('receive-message', function(m) { showMsg(m); if (cRoom !== m.room && m.room.indexOf('dm-') ===
+                        0) updateDMBadge(m.room); });
+                socket.on('user-typing', function(d) { document.getElementById('typing').textContent = (d.isTyping && d
+                        .userId !== me._id) ? d.userName + ' yazıyor...' : ''; });
+                socket.on('room-user-count', function(c) { document.getElementById('online-count').textContent = c +
+                        ' çevrimiçi'; });
+                socket.on('message-error', function(e) { toast(e, 'error'); });
+                socket.on('voice-join', function(data) { addVoiceUser(data); });
+                socket.on('voice-leave', function(data) { removeVoiceUser(data); });
+                socket.on('user-online-update', function(data) { onlineUsers = data;
+                    updateOnlineStatus(); }); }
 
             function loadData() { fetch(API + '/api/rooms').then(r => r.json()).then(d => { rooms = d || [];
-                    renderUI(); }); }
+                    renderUI(); }).catch(function() {}); }
 
             function renderUI() {
                 var rl = document.getElementById('room-list'),
@@ -644,97 +1372,437 @@
                 rl.innerHTML = '';
                 vl.innerHTML = '';
                 dl.innerHTML = '';
-                rooms.forEach(r => { var d = document.createElement('div');
-                    d.className = 'room-item';
-                    d.innerHTML = '# ' + r.name;
-                    d.onclick = () => joinRoom(r._id || r.name, r.name);
-                    rl.appendChild(d); });
-                voiceRooms.forEach(v => { var d = document.createElement('div');
+                var cats = {};
+                rooms.forEach(function(r) { if (r.type === 'voice') return; var cat = r.category || 'Genel'; if (!cats[
+                        cat]) cats[cat] = [];
+                    cats[cat].push(r); });
+                for (var cat in cats) { rl.innerHTML +=
+                        '<div class="section-title" onclick="toggleCategory(\'cat-' + escId(cat) +
+                        '\')" style="padding-left:8px;font-size:10px;">' + esc(cat) +
+                        ' <span class="arrow open" id="arrow-cat-' + escId(cat) + '">▶</span></div>';
+                    rl.innerHTML += '<div class="category-group" id="cat-' + escId(cat) + '"></div>'; }
+                for (var cat in cats) { var gl = document.getElementById('cat-' + escId(cat)); if (!gl) continue;
+                    cats[cat].forEach(function(r) { var d = document.createElement('div');
+                        d.className = 'room-item';
+                        d.innerHTML = '# ' + esc(r.name);
+                        d.onclick = function() { joinRoom(r._id || r.name, r.name, 'text', r.description || ''); }; if (
+                            r._id === cRoom || r.name === cRoom) d.classList.add('active');
+                        gl.appendChild(d); }); }
+                voiceRooms.forEach(function(v) { var d = document.createElement('div');
                     d.className = 'voice-item';
-                    d.innerHTML = '🔊 ' + v.name;
-                    d.onclick = () => joinVoice(v.id);
+                    d.id = 'voice-' + v.id;
+                    d.innerHTML = '<div class="v-left">🔊 ' + esc(v.name) +
+                        '</div><span class="v-count">' + (v.users ? v.users.length : 0) + '</span>';
+                    d.onclick = function() { joinVoice(v.id); }; if (inVoice === v.id) d.classList.add('active');
                     vl.appendChild(d); });
-                dms.forEach(dm => { var d = document.createElement('div');
+                dms.forEach(function(dm) { var d = document.createElement('div');
                     d.className = 'dm-item';
-                    d.innerHTML = '@ ' + dm.name;
-                    d.onclick = () => joinRoom('dm-' + dm.id, dm.name);
+                    d.id = 'dm-' + dm.id;
+                    d.innerHTML = '<div class="v-left">@ ' + esc(dm.name) +
+                        '</div><span class="unread-badge' + (dm.unread ? ' has' : '') + '">' + (dm.unread || '') +
+                        '</span>';
+                    d.onclick = function() { joinRoom('dm-' + dm.id, dm.name, 'dm', '');
+                        dm.unread = 0;
+                        renderUI(); };
                     dl.appendChild(d); });
             }
 
-            window.joinRoom = function(id, name) { cRoom = id;
+            window.joinRoom = function(id, name, type, desc) {
+                if (cRoom && socket) socket.emit('leave-room', cRoom);
+                cRoom = id;
+                cRoomType = type || 'text';
+                if (socket) socket.emit('join-room', id);
+                document.querySelectorAll('.room-item,.dm-item').forEach(function(e) { e.classList.remove(
+                'active'); });
                 document.getElementById('room-name').textContent = name;
-                document.getElementById('messages').innerHTML = ''; if (socket) socket.emit('join-room', id); };
-            window.sendMsg = function() { var t = document.getElementById('msg-input').value.trim(); if (!t || !socket)
-                    return;
-                socket.emit('send-message', { content: t, senderId: me._id, senderName: me.username, roomId: cRoom,
-                    type: 'text' });
-                document.getElementById('msg-input').value = ''; };
+                document.getElementById('room-prefix').textContent = type === 'dm' ? '@' : '#';
+                document.getElementById('msg-input').placeholder = (type === 'dm' ? '@' : '#') + name +
+                    ' e mesaj yaz...';
+                document.getElementById('messages').innerHTML =
+                    '<div class="welcome"><h2>' + (type === 'dm' ? '@' : '#') + esc(name) + '</h2><p>' + esc(desc ||
+                        'Sohbete başla!') + '</p></div>';
+                document.getElementById('online-count').textContent = '0 çevrimiçi';
+                loadMessages(id);
+                closeMobileSidebar();
+            };
 
-            function showMsg(m) {
-                var d = document.createElement('div');
-                d.className = 'msg';
-                d.innerHTML = '<div class="mhdr"><div class="mava">' + m.senderName.charAt(0) + '</div><span class="muser">' +
-                    m.senderName + '</span></div><div class="mbody">' + m.content + '</div>';
-                document.getElementById('messages').appendChild(d);
-            }
-
-            window.joinVoice = async function(vid) {
-                if (inVoice) leaveVoice();
-                try { localStream = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch (e) { return toast(
-                        'Mikrofon izni gerekli', 'error'); }
-                inVoice = vid;
-                document.getElementById('voice-bar').classList.add('open');
-                document.getElementById('v-info').textContent = '🔊 Bağlandın'; };
-            window.leaveVoice = function() { if (localStream) localStream.getTracks().forEach(t => t.stop());
-                document.getElementById('voice-bar').classList.remove('open');
-                inVoice = null; };
-            window.toggleMute = function() { if (localStream) { var m = !localStream.getAudioTracks()[0]
-                    .enabled;
-                    localStream.getAudioTracks()[0].enabled = !m;
-                    document.getElementById('btn-mute').textContent = m ? '🔇' : '🎤'; } };
-            window.toggleCamera = async function() { try { var vs = await navigator.mediaDevices.getUserMedia({ video: true });
-                    toast('Kamera açıldı', 'success'); } catch (e) { toast('Kamera izni gerekli', 'error'); } };
-            window.toggleScreen = async function() { try { screenStream = await navigator.mediaDevices.getDisplayMedia({
-                    video: true });
-                    toast('Ekran paylaşılıyor', 'success'); } catch (e) { toast('İptal', 'error'); } };
-
+            function loadMessages(rid) { fetch(API + '/api/rooms/' + rid + '/messages').then(r => r.json()).then(d => { if (
+                    Array.isArray(d)) { document.getElementById('messages').innerHTML = '';
+                    d.forEach(function(m) { showMsg(m); }); } }).catch(function() {}); }
+            window.pinCurrentRoom = function() { toast('Oda sabitlendi 📌', 'success'); };
             window.showRoomModal = function() { document.getElementById('room-modal').classList.add('open'); };
             window.closeRoomModal = function() { document.getElementById('room-modal').classList.remove('open'); };
-            window.createRoom = function() { var n = document.getElementById('new-room-name').value.trim(); if (!n)
-                    return;
+            window.createRoom = function() { var type = document.getElementById('new-room-type').value,
+                    n = document.getElementById('new-room-name').value.trim(),
+                    cat = document.getElementById('new-room-cat').value.trim(),
+                    d = document.getElementById('new-room-desc').value.trim(),
+                    p = document.getElementById('new-room-private').checked,
+                    pw = document.getElementById('new-room-pass').value; if (!n) return toast('Ad gerekli', 'error'); if (
+                    type === 'voice') { voiceRooms.push({ id: 'voice-' + Date.now(), name: n, users: [] });
+                    renderUI();
+                    toast('Sesli kanal oluşturuldu!', 'success');
+                    closeRoomModal(); return; }
                 fetch(API + '/api/rooms', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name: n }) }).then(r => r.json()).then(() => { loadData();
-                    closeRoomModal(); }); };
+                    body: JSON.stringify({ name: n, description: d, category: cat || 'Genel', isPrivate: p,
+                        password: pw }) }).then(r => r.json()).then(function() { loadData();
+                    renderUI();
+                    closeRoomModal();
+                    toast('Kanal oluşturuldu!', 'success'); }).catch(function() { toast('Hata', 'error'); }); };
+            window.toggleCategory = function(id) { var el = document.getElementById(id); if (el) el.classList.toggle(
+                    'collapsed'); var arrow = document.getElementById('arrow-' + id); if (arrow) arrow.classList.toggle(
+                    'open', !el.classList.contains('collapsed')); };
+
             window.showServerModal = function() { document.getElementById('server-modal').classList.add('open'); };
             window.closeServerModal = function() { document.getElementById('server-modal').classList.remove('open'); };
-            window.createServer = function() { var n = document.getElementById('new-server-name').value.trim(); if (n)
-                    document.getElementById('server-name').textContent = n;
+            window.createServer = function() { var n = document.getElementById('new-server-name').value.trim(),
+                    t = document.getElementById('server-template').value; if (!n) return toast('Ad gerekli',
+                'error');
+                serverName = n;
+                document.getElementById('server-name').textContent = n; if (t === 'gaming') { rooms.push({ name: 'oyun',
+                    category: 'Oyun', description: 'Oyun sohbeti' });
+                    rooms.push({ name: 'genel-oyun', category: 'Oyun', description: 'Genel oyun' });
+                    voiceRooms.push({ id: 'voice-oyun', name: 'Oyun Sesli', users: [] }); } if (t === 'study') { rooms
+                    .push({ name: 'ders', category: 'Ders', description: 'Ders çalışma' });
+                    rooms.push({ name: 'soru-cevap', category: 'Ders', description: 'Soru & Cevap' }); } if (t ===
+                    'friend') { rooms.push({ name: 'muhabbet', category: 'Sohbet', description: 'Muhabbet' });
+                    rooms.push({ name: 'medya', category: 'Sohbet', description: 'Medya paylaşım' }); }
+                loadData();
+                renderUI();
+                toast('Sunucu oluşturuldu!', 'success');
                 closeServerModal(); };
-            window.showServerSettings = function() { toast('Sunucu ayarları', 'info'); };
-            window.showSettingsModal = function() { document.getElementById('settings-modal').classList.add('open'); };
-            window.closeSettingsModal = function() { document.getElementById('settings-modal').classList.remove(
-            'open'); };
-            window.changeTheme = function(t) { theme = t;
-                document.body.classList.toggle('theme-light', t === 'light');
-                localStorage.setItem('gt_theme', t); };
+            window.selectServer = function(id) { document.querySelectorAll('.server-icon').forEach(function(e) { e
+                    .classList.remove('active'); });
+                document.querySelector('.server-icon').classList.add('active'); };
+            window.showServerSettings = function() { document.getElementById('server-settings-modal').classList.add(
+                    'open');
+                document.getElementById('settings-server-name').value = serverName;
+                document.getElementById('invite-link').value = window.location.host + '/invite/' + cRoom;
+                renderRolesList(); };
+            window.closeServerSettings = function() { document.getElementById('server-settings-modal').classList.remove(
+                    'open'); };
+            window.addRole = function() { var n = document.getElementById('new-role-name').value.trim(),
+                    c = document.getElementById('new-role-color').value; if (!n) return;
+                serverRoles.push({ name: n, color: c });
+                renderRolesList(); };
+
+            function renderRolesList() { var l = document.getElementById('roles-list');
+                l.innerHTML = '';
+                serverRoles.forEach(function(r, i) { l.innerHTML +=
+                        '<div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:13px;"><span style="width:12px;height:12px;border-radius:50%;background:' +
+                        r.color + ';"></span>' + esc(r.name) +
+                        '<button onclick="serverRoles.splice(' + i +
+                        ',1);renderRolesList();" style="margin-left:auto;background:none;border:none;color:var(--red);cursor:pointer;">✕</button></div>'; }); }
+            window.saveServerSettings = function() { serverName = document.getElementById('settings-server-name').value
+                    .trim() || serverName;
+                document.getElementById('server-name').textContent = serverName;
+                toast('Kaydedildi!', 'success');
+                closeServerSettings(); };
+            window.copyInvite = function() { navigator.clipboard.writeText(document.getElementById('invite-link').value);
+                toast('Kopyalandı!', 'success'); };
+
+            window.joinVoice = async function(vid) { if (inVoice === vid) return; if (inVoice) leaveVoice(); try {
+                    localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false }); } catch (
+                    e) { return toast('Mikrofon izni gerekli!', 'error'); }
+                inVoice = vid;
+                micMuted = false;
+                cameraOn = false;
+                screenOn = false;
+                document.getElementById('voice-bar').classList.add('open');
+                document.getElementById('v-info').textContent = '🔊 Bağlandın';
+                document.getElementById('btn-mute').classList.remove('muted');
+                document.getElementById('btn-mute').textContent = '🎤'; var vr = voiceRooms.find(function(v) { return v
+                        .id === vid; }); if (vr && !vr.users.find(function(u) { return u.id === me._id; })) { vr.users
+                        .push({ id: me._id, name: me.username, muted: false }); } if (socket) socket.emit('voice-join', {
+                    roomId: vid,
+                    user: { id: me._id, name: me.username } });
+                renderUI(); };
+            window.leaveVoice = function() { if (inVoice && socket) socket.emit('voice-leave', { roomId: inVoice,
+                    userId: me._id }); if (localStream) { localStream.getTracks().forEach(function(t) { t.stop(); });
+                    localStream = null; } if (screenStream) { screenStream.getTracks().forEach(function(t) { t.stop(); });
+                    screenStream = null; }
+                stopScreen(); var vr = voiceRooms.find(function(v) { return v.id === inVoice; }); if (vr) vr.users = vr.users
+                    .filter(function(u) { return u.id !== me._id; });
+                inVoice = null;
+                document.getElementById('voice-bar').classList.remove('open');
+                renderUI(); };
+            window.toggleMute = function() { micMuted = !micMuted; if (localStream) localStream.getAudioTracks()
+                    .forEach(function(t) { t.enabled = !micMuted; });
+                document.getElementById('btn-mute').classList.toggle('muted', micMuted);
+                document.getElementById('btn-mute').textContent = micMuted ? '🔇' : '🎤'; };
+            window.toggleCamera = async function() { cameraOn = !cameraOn; if (cameraOn) { try { var vs = await navigator
+                        .mediaDevices.getUserMedia({ video: true }); if (localStream) { localStream.getVideoTracks()
+                            .forEach(function(t) { t.stop(); });
+                        vs.getVideoTracks().forEach(function(t) { localStream.addTrack(t); }); }
+                    document.getElementById('btn-camera').classList.add('muted'); } catch (e) { cameraOn = false; return toast(
+                        'Kamera izni gerekli', 'error'); } } else { if (localStream) localStream.getVideoTracks()
+                        .forEach(function(t) { t.stop();
+                        localStream.removeTrack(t); });
+                    document.getElementById('btn-camera').classList.remove('muted'); } };
+            window.toggleScreen = async function() { screenOn = !screenOn; if (screenOn) { try { screenStream = await navigator
+                        .mediaDevices.getDisplayMedia({ video: true, audio: true });
+                    document.getElementById('screen-preview').style.display = 'block';
+                    document.getElementById('screen-video').srcObject = screenStream;
+                    screenStream.getVideoTracks()[0].onended = stopScreen; } catch (e) { screenOn = false; return toast(
+                        'İptal', 'error'); } } else { stopScreen(); } };
+            window.stopScreen = function() { if (screenStream) { screenStream.getTracks().forEach(function(t) { t.stop(); });
+                    screenStream = null; }
+                document.getElementById('screen-preview').style.display = 'none';
+                screenOn = false; };
+
+            function addVoiceUser(data) { var vr = voiceRooms.find(function(v) { return v.id === data.roomId; }); if (vr && !vr
+                    .users.find(function(u) { return u.id === data.user.id; })) { vr.users.push(data.user); }
+                renderUI(); }
+
+            function removeVoiceUser(data) { var vr = voiceRooms.find(function(v) { return v.id === data.roomId; }); if (vr) vr
+                    .users = vr.users.filter(function(u) { return u.id !== data.userId; });
+                renderUI(); }
+
+            window.sendMsg = function() { var i = document.getElementById('msg-input'),
+                    t = i.value.trim(); if (!t || !socket || !me) return; var type = 'text'; if (t.match(/\.(gif|mp4|
+                        webm)$/i)) type = 'gif'; if (t.match(/^https?:\/\//)) type = 'link';
+                socket.emit('send-message', { content: t, senderId: me._id, senderName: me.username, roomId: cRoom,
+                    type: type, replyTo: reply ? reply._id : null });
+                i.value = '';
+                i.style.height = 'auto';
+                cancelReply();
+                closeEmoji(); };
+
+            function showMsg(m) {
+                var a = document.getElementById('messages'),
+                    ti = new Date(m.timestamp).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
+                    letr = (m.senderName || '?').charAt(0).toUpperCase(),
+                    col = strColor(m.senderName || '?'),
+                    isMe = (m.sender && m.sender._id === me._id) || (m.sender === me._id); var rh = ''; if (m.replyTo &&
+                    m.replyTo.content) rh = '<div class="mreply">↪ ' + esc(m.replyTo.content.substring(0, 50)) +
+                    '</div>'; var d = document.createElement('div');
+                d.className = 'msg';
+                d.id = 'msg-' + m._id; var extra = ''; if (m.type === 'image' && m.content) extra =
+                    '<img src="' + m.content + '" onclick="window.open(\'' + m.content + '\')">'; if (m.type ===
+                    'gif') extra =
+                    '<video class="gif-preview" autoplay loop muted playsinline><source src="' + m.content +
+                    '"></video>'; if (m.type === 'link') extra = '<div class="link-preview"><a href="' + m.content +
+                    '" target="_blank" style="color:var(--accent);">' + m.content.substring(0, 50) + '...</a></div>'; if (
+                    m.type === 'poll') { extra = '<div class="poll-box"><strong>' + esc(m.pollQuestion) +
+                    '</strong>'; (m.pollOptions || []).forEach(function(o, i) { var total = m.pollVotes ? m.pollVotes
+                        .reduce(function(a, b) { return a + b; }, 0) : 0; var votes = (m.pollVotes && m.pollVotes[i]) ||
+                        0; var pct = total > 0 ? Math.round((votes / total) * 100) : 0;
+                    extra += '<div class="poll-option" onclick="votePoll(\'' + m._id + '\',' + i +
+                        ')"><span>' + esc(o) + '</span><span>' + pct + '% (' + votes + ')</span><div class="bar" style="width:' +
+                        pct + '%;"></div></div>'; });
+                    extra += '</div>'; }
+                d.innerHTML = '<div class="mhdr"><div class="mava" style="background:' + col + '">' + letr +
+                    '</div><span class="muser" style="color:' + col + '" onclick="showProfileModal()">' + esc(m
+                        .senderName) + '</span><span class="mtime">' + ti + '</span>' + (m.edited ?
+                        '<span style="font-size:9px;color:var(--text3);margin-left:3px;">düzenlendi</span>' : '') +
+                    '</div>' + rh + '<div class="mbody">' + formatMsg(esc(m.content)) + '</div>' + extra +
+                    '<div class="mbtns"><button onclick="replyMsg(\'' + m._id + '\')">Yanıtla</button>' + (isMe ?
+                        '<button onclick="editMsg(\'' + m._id + '\')">Düzenle</button><button onclick="delMsg(\'' + m
+                        ._id + '\')">Sil</button>' : '') +
+                    '<button onclick="pinMsg(\'' + m._id + '\')">📌</button><button onclick="copyMsg(\'' + m._id +
+                    '\')">Kopyala</button></div>';
+                a.appendChild(d);
+                a.scrollTop = a.scrollHeight; if (notifications && document.hidden && !isMe) { sendNotification(m
+                        .senderName, m.content); } }
+            window.votePoll = function(msgId, optIdx) { toast('Oy verildi!', 'success'); };
+            window.pinMsg = function(id) { var e = document.getElementById('msg-' + id); if (e) { e.classList.toggle(
+                    'pinned'); if (e.classList.contains('pinned')) e.innerHTML +=
+                    '<span class="pinned-badge">📌 Sabitlendi</span>'; else { var b = e.querySelector('.pinned-badge'); if (
+                        b) b.remove(); } } };
+
+            function formatMsg(t) { return t.replace(/@(\w+)/g,
+                    '<span style="color:var(--accent);cursor:pointer;" onclick="mentionClick(\'$1\')">@$1</span>')
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>').replace(
+                        /`(.*?)`/g,
+                        '<code style="background:var(--bg3);padding:2px 6px;border-radius:3px;">$1</code>'); }
+            window.mentionClick = function(name) { document.getElementById('msg-input').value += '@' + name + ' ';
+                document.getElementById('msg-input').focus(); };
+            window.replyMsg = function(id) { var e = document.getElementById('msg-' + id); if (!e) return;
+                reply = { _id: id, content: e.querySelector('.mbody').textContent };
+                document.getElementById('reply-tag').style.display = 'flex';
+                document.getElementById('reply-txt').textContent = reply.content.substring(0, 50);
+                document.getElementById('msg-input').focus(); };
+            window.cancelReply = function() { reply = null;
+                document.getElementById('reply-tag').style.display = 'none'; };
+            window.editMsg = function(id) { var n = prompt('Düzenle:'); if (!n || !n.trim()) return;
+                fetch(API + '/api/messages/' + id, { method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content: n.trim() }) }).then(function() { var e = document.getElementById(
+                        'msg-' + id); if (e) e.querySelector('.mbody').innerHTML = formatMsg(esc(n.trim())); }).catch(
+                    function() { toast('Hata', 'error'); }); };
+            window.delMsg = function(id) { if (!confirm('Silinsin mi?')) return;
+                fetch(API + '/api/messages/' + id, { method: 'DELETE' }).then(function() { var e = document.getElementById(
+                    'msg-' + id); if (e) e.remove(); }).catch(function() {}); };
+            window.copyMsg = function(id) { var e = document.getElementById('msg-' + id); if (e) { navigator.clipboard
+                    .writeText(e.querySelector('.mbody').textContent);
+                    toast('Kopyalandı!', 'success'); } };
+            window.uploadFile = function() { var f = document.getElementById('file-upload').files[0]; if (!f || !socket || !
+                    me) return; var reader = new FileReader();
+                reader.onload = function(e) { socket.emit('send-message', { content: e.target.result, senderId: me._id,
+                        senderName: me.username, roomId: cRoom, type: f.type.startsWith('video') ? 'gif' :
+                        'image' }); };
+                reader.readAsDataURL(f);
+                document.getElementById('file-upload').value = ''; };
+            window.handleInput = function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault();
+                    sendMsg(); } if (cRoom && me && socket) socket.emit('typing', { roomId: cRoom, userId: me._id,
+                    userName: me.username, isTyping: e.target.value.length > 0 }); };
+            window.autoGrow = function(e) { e.style.height = 'auto';
+                e.style.height = Math.min(e.scrollHeight, 130) + 'px'; };
+            window.toggleEmoji = function() { document.getElementById('emoji-picker').classList.toggle('open'); };
+            window.addEmoji = function(e) { document.getElementById('msg-input').value += e;
+                document.getElementById('msg-input').focus();
+                closeEmoji(); };
+
+            function closeEmoji() { document.getElementById('emoji-picker').classList.remove('open'); }
+
+            window.toggleMembers = function() { var p = document.getElementById('member-panel');
+                p.classList.toggle('open'); if (p.classList.contains('open')) loadMembers(); if (window.innerWidth <
+                    769) { p.style.transform = p.classList.contains('open') ? 'translateX(0)' : 'translateX(100%)'; } };
+
+            function loadMembers() { fetch(API + '/api/rooms/' + cRoom + '/messages').then(r => r.json()).then(function(d) { if (
+                    !Array.isArray(d)) return; var users = {};
+                    d.forEach(function(m) { if (m.senderName && !users[m.senderName]) users[m.senderName] = m
+                            .sender || m.senderName; }); var l = document.getElementById('member-list');
+                    l.innerHTML = ''; for (var n in users) { var c = strColor(n);
+                        l.innerHTML += '<div class="mem-item"><div class="mem-ava" style="background:' + c +
+                            '">' + n.charAt(0).toUpperCase() +
+                            '<span class="online-dot"></span></div>' + esc(n) +
+                            '<span style="font-size:10px;color:var(--text3);margin-left:auto;" onclick="mentionClick(\'' +
+                            n + '\')">@</span></div>'; } }).catch(function() {}); }
+
+            function updateOnlineStatus() { document.querySelectorAll('.mem-item .online-dot').forEach(function(d) { d.style
+                    .background = 'var(--text3)'; }); }
+
             window.showProfileModal = function() { document.getElementById('profile-modal').classList.add('open');
-                document.getElementById('profile-content').innerHTML = '<h2>' + me.username +
-                '</h2><p>Çevrimiçi</p><button class="btn btn-sm btn-primary">Arkadaş Ekle</button>'; };
+                document.getElementById('profile-ava').textContent = me.username.charAt(0).toUpperCase(); if (me.avatar) {
+                    document.getElementById('profile-ava').style.backgroundImage = 'url(' + me.avatar + ')';
+                    document.getElementById('profile-ava').textContent = ''; }
+                document.getElementById('profile-name').textContent = me.username;
+                document.getElementById('profile-status').textContent = me.status || 'Çevrimiçi';
+                document.getElementById('profile-bio').textContent = myBio || '';
+                document.getElementById('profile-badges').innerHTML = myBadges.map(function(b) { return '<span class="badge" style="background:var(--accent);color:#fff;">' +
+                        b + '</span>'; }).join(''); };
             window.closeProfileModal = function() { document.getElementById('profile-modal').classList.remove(
             'open'); };
-            window.handleInput = function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault();
-                    sendMsg(); } };
+            window.addFriend = function() { if (!friends.includes(me.username)) { friends.push(me.username);
+                    toast('Arkadaş eklendi!', 'success'); }
+                closeProfileModal(); };
+            window.startDM = function() { var dm = dms.find(function(d) { return d.id === me._id; }); if (!dm) { dms.push({
+                    id: me._id,
+                    name: me.username,
+                    unread: 0 }); }
+                joinRoom('dm-' + me._id, me.username, 'dm', '');
+                closeProfileModal();
+                renderUI(); };
+            window.blockUser = function() { blocked.push(me.username);
+                toast('Engellendi', 'error');
+                closeProfileModal(); };
 
-            function toast(m, t) { var e = document.getElementById('toast');
+            window.showSettingsModal = function() { document.getElementById('settings-modal').classList.add('open');
+                document.getElementById('settings-status').value = me.status || 'online';
+                document.getElementById('settings-bio').value = myBio || '';
+                document.getElementById('notif-sound').value = notifications ? 'on' : 'off'; };
+            window.closeSettingsModal = function() { document.getElementById('settings-modal').classList.remove(
+            'open'); };
+            window.saveSettings = function() { var f = document.getElementById('avatar-upload').files[0]; if (f) { var reader =
+                    new FileReader();
+                reader.onload = function(e) { me.avatar = e.target.result;
+                    localStorage.setItem('gt_user', JSON.stringify(me));
+                    document.getElementById('my-avatar').style.backgroundImage = 'url(' + e.target.result +
+                        ')';
+                    document.getElementById('my-avatar').textContent = ''; };
+                reader.readAsDataURL(f); }
+                myBio = document.getElementById('settings-bio').value;
+                me.bio = myBio;
+                me.status = document.getElementById('settings-status').value;
+                localStorage.setItem('gt_user', JSON.stringify(me));
+                document.getElementById('my-status').textContent = me.status === 'online' ? 'Çevrimiçi' : me.status ===
+                    'idle' ? 'Boşta' : me.status === 'dnd' ? 'Rahatsız Etme' : 'Görünmez';
+                toast('Kaydedildi!', 'success');
+                closeSettingsModal(); };
+            window.changeTheme = function(t) { document.body.classList.remove('theme-light', 'theme-blue'); if (t ===
+                    'light') document.body.classList.add('theme-light'); if (t === 'blue') document.body.classList.add(
+                    'theme-blue');
+                localStorage.setItem('gt_theme', t); };
+            window.showStatusModal = function() { document.getElementById('status-modal').classList.add('open'); };
+            window.closeStatusModal = function() { document.getElementById('status-modal').classList.remove('open'); };
+            window.setStatus = function(s) { me.status = s;
+                document.getElementById('my-status').textContent = { online: 'Çevrimiçi', idle: 'Boşta', dnd: 'Rahatsız Etme',
+                    offline: 'Görünmez' } [s];
+                localStorage.setItem('gt_user', JSON.stringify(me));
+                closeStatusModal(); };
+
+            window.startPoll = function() { document.getElementById('poll-modal').classList.add('open'); };
+            window.closePollModal = function() { document.getElementById('poll-modal').classList.remove('open'); };
+            window.addPollOption = function() { var d = document.createElement('input');
+                d.className = 'poll-opt';
+                d.placeholder = 'Seçenek';
+                document.getElementById('poll-options').appendChild(d); };
+            window.createPoll = function() { var q = document.getElementById('poll-question').value.trim(); var opts = [];
+                document.querySelectorAll('.poll-opt').forEach(function(i) { if (i.value.trim()) opts.push(i.value
+                        .trim()); }); if (!q || opts.length < 2) return toast('Soru ve en az 2 seçenek gerek',
+                    'error'); if (socket) socket.emit('send-message', { content: '', senderId: me._id, senderName: me
+                        .username, roomId: cRoom, type: 'poll', pollQuestion: q, pollOptions: opts, pollVotes: opts.map(
+                            function() { return 0; }) });
+                closePollModal(); };
+
+            window.showSearchModal = function() { document.getElementById('search-modal').classList.add('open'); };
+            window.closeSearchModal = function() { document.getElementById('search-modal').classList.remove('open'); };
+            window.searchMessages = function() { var q = document.getElementById('search-query').value.trim().toLowerCase(); if (
+                    !q) return;
+                fetch(API + '/api/rooms/' + cRoom + '/messages').then(r => r.json()).then(function(d) { var results =
+                        d.filter(function(m) { return m.content.toLowerCase().includes(q); });
+                    document.getElementById('search-results').innerHTML = results.length ? results.map(function(m) {
+                        return '<div style="padding:8px;border-radius:4px;cursor:pointer;" onclick="jumpToMsg(\'' +
+                            m._id + '\')"><strong>' + esc(m.senderName) + '</strong>: ' + esc(m.content
+                            .substring(0, 60)) + '</div>';
+                    }).join('') : '<p style="color:var(--text3);">Sonuç bulunamadı</p>'; }).catch(function() {}); };
+            window.jumpToMsg = function(id) { closeSearchModal(); var e = document.getElementById('msg-' + id); if (e) e
+                    .scrollIntoView({ behavior: 'smooth' }); };
+
+            window.toggleMobileSidebar = function() { document.getElementById('sidebar').classList.toggle('mobile-open');
+                document.getElementById('sidebar-backdrop').classList.toggle('open'); };
+            window.closeMobileSidebar = function() { document.getElementById('sidebar').classList.remove('mobile-open');
+                document.getElementById('sidebar-backdrop').classList.remove('open'); };
+
+            function updateDMBadge(roomId) { var dm = dms.find(function(d) { return 'dm-' + d.id === roomId; }); if (dm && dm.id !==
+                    me._id) { dm.unread = (dm.unread || 0) + 1;
+                    renderUI(); } }
+
+            function sendNotification(title, body) { if ('Notification' in window && Notification.permission ===
+                    'granted') { new Notification(title, { body: body, icon: '🎧' }); } else if ('Notification' in window &&
+                    Notification.permission !== 'denied') { Notification.requestPermission(); } }
+
+            function escId(s) { return (s || '').replace(/[^a-zA-Z0-9]/g, '_'); }
+
+            function esc(t) { var d = document.createElement('div');
+                d.textContent = t || ''; return d.innerHTML; }
+
+            function strColor(s) { var h = 0; for (var i = 0; i < (s || '?').length; i++) h = s.charCodeAt(i) + ((h << 5) -
+                    h); var c = ['#4a6cf7', '#22c55e', '#eab308', '#ef4444', '#f472b6', '#38bdf8',
+                '#a78bfa']; return c[Math.abs(h) % c.length]; }
+            window.toast = function(m, t) { var e = document.getElementById('toast');
                 e.textContent = m;
-                e.style.background = t === 'error' ? '#ef4444' : '#4a6cf7';
+                e.style.background = t === 'error' ? '#ef4444' : t === 'success' ? '#22c55e' : '#4a6cf7';
                 e.style.display = 'block';
-                setTimeout(() => e.style.display = 'none', 3000); }
-            window.toast = toast;
+                clearTimeout(e._t);
+                e._t = setTimeout(function() { e.style.display = 'none'; }, 3000); };
             document.addEventListener('click', function(e) { if (e.target.classList.contains('modal-bg')) e.target
-                    .parentElement.classList.remove('open'); });
-            if (localStorage.getItem('gt_theme') === 'light') changeTheme('light');
+                    .parentElement.classList.remove('open'); if (!e.target.closest('.emoji-picker') && !e.target
+                    .closest('.attach')) closeEmoji(); });
+            document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { document.querySelectorAll(
+                        '.modal.open').forEach(function(m) { m.classList.remove('open'); });
+                    cancelReply();
+                    closeEmoji(); } if (pttEnabled && e.key === pttKey && inVoice && !pttActive) { pttActive = true;
+                    micMuted = false; if (localStream) localStream.getAudioTracks().forEach(function(t) { t.enabled =
+                        true; });
+                    document.getElementById('btn-mute').classList.remove('muted');
+                    document.getElementById('btn-mute').textContent = '🎤'; } });
+            document.addEventListener('keyup', function(e) { if (pttEnabled && e.key === pttKey && inVoice &&
+                    pttActive) { pttActive = false;
+                    micMuted = true; if (localStream) localStream.getAudioTracks().forEach(function(t) { t.enabled =
+                        false; });
+                    document.getElementById('btn-mute').classList.add('muted');
+                    document.getElementById('btn-mute').textContent = '🔇'; } });
         })();
     </script>
 </body>
-                                                  </html>
+    </html>
