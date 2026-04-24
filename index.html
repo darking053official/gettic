@@ -3,390 +3,1570 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#1e1f22">
+    <meta name="theme-color" content="#1a1b2e">
     <title>Gettic</title>
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js">
+    </script>
     <style>
         :root {
-            --bg: #1e1f22; --bg2: #2b2d31; --bg3: #1a1b1e; --hover: #35373c; --active: #404249;
-            --accent: #5865f2; --green: #23a55a; --yellow: #f0b232; --red: #f23f42;
-            --text: #dbdee1; --text2: #949ba4; --text3: #6d6f78; --border: #3f4147;
-            --radius: 8px; --font: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            --bg: #1a1b2e;
+            --bg2: #1f2038;
+            --bg3: #252740;
+            --hover: #2a2c45;
+            --active: #2f3150;
+            --accent: #4a6cf7;
+            --accent-hover: #3b5de7;
+            --green: #22c55e;
+            --yellow: #eab308;
+            --red: #ef4444;
+            --text: #e8e8f0;
+            --text2: #a0a3b8;
+            --text3: #6b6e80;
+            --border: #2a2c42;
+            --radius: 10px;
+            --radius-sm: 6px;
+            --font: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            --shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
         }
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body { font-family:var(--font); background:var(--bg); color:var(--text); height:100vh; height:100dvh; overflow:hidden; -webkit-font-smoothing:antialiased; }
-        .screen { display:none; width:100%; height:100%; }
-        .screen.active { display:flex; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        .screen {
+            display: none;
+            width: 100%;
+            height: 100%;
+        }
+        .screen.active {
+            display: flex;
+        }
+        #auth-screen {
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(145deg, #1a1b2e 0%, #1e2040 40%, #1a1d3a 100%);
+            padding: 20px;
+        }
+        .auth-box {
+            background: var(--bg2);
+            padding: 44px 36px;
+            border-radius: 18px;
+            width: 440px;
+            max-width: 94%;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+        .auth-box .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .auth-box .logo h1 {
+            font-size: 2.2em;
+            font-weight: 800;
+            background: linear-gradient(135deg, #4a6cf7, #7c8cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .auth-box .logo p {
+            color: var(--text2);
+            font-size: 13px;
+            margin-top: 4px;
+        }
+        .tabs {
+            display: flex;
+            background: var(--bg3);
+            border-radius: 10px;
+            padding: 3px;
+            margin-bottom: 24px;
+            gap: 3px;
+        }
+        .tabs button {
+            flex: 1;
+            padding: 11px;
+            border: none;
+            background: transparent;
+            color: var(--text2);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+        .tabs button.active {
+            background: var(--accent);
+            color: #fff;
+        }
+        .fg {
+            display: none;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .fg.active {
+            display: flex;
+        }
+        .if {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .if label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text2);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
+        .iw {
+            display: flex;
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            transition: 0.2s;
+        }
+        .iw:focus-within {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.15);
+        }
+        .iw input {
+            flex: 1;
+            padding: 12px 14px;
+            background: transparent;
+            border: none;
+            color: var(--text);
+            font-size: 14px;
+            outline: none;
+            min-width: 0;
+        }
+        .iw input::placeholder {
+            color: var(--text3);
+        }
+        .iw .eye {
+            background: none;
+            border: none;
+            padding: 0 12px;
+            cursor: pointer;
+            color: var(--text3);
+            font-size: 16px;
+        }
+        .btn {
+            padding: 13px;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+        .btn-danger {
+            background: var(--red);
+            color: #fff;
+        }
+        .btn-green {
+            background: var(--green);
+            color: #fff;
+        }
+        .btn-sm {
+            padding: 6px 14px;
+            font-size: 12px;
+            border-radius: 4px;
+            width: auto;
+        }
+        .link-text {
+            text-align: center;
+            font-size: 12px;
+            color: var(--text3);
+            margin-top: 4px;
+        }
+        .link-text span {
+            color: var(--accent);
+            cursor: pointer;
+            font-weight: 600;
+        }
 
-        #auth-screen { justify-content:center; align-items:center; background:var(--bg); padding:20px; }
-        .auth-box { background:var(--bg2); padding:40px 32px; border-radius:16px; width:440px; max-width:100%; box-shadow:0 8px 40px rgba(0,0,0,0.5); border:1px solid var(--border); }
-        .auth-box .logo { text-align:center; margin-bottom:28px; }
-        .auth-box .logo h1 { font-size:2em; font-weight:800; }
-        .auth-box .logo p { color:var(--text2); font-size:13px; margin-top:4px; }
-        .tabs { display:flex; background:var(--bg); border-radius:8px; padding:3px; margin-bottom:22px; gap:3px; }
-        .tabs button { flex:1; padding:11px; border:none; background:transparent; color:var(--text2); border-radius:6px; cursor:pointer; font-weight:600; font-size:14px; transition:0.2s; }
-        .tabs button.active { background:var(--accent); color:#fff; }
-        .fg { display:none; flex-direction:column; gap:14px; }
-        .fg.active { display:flex; }
-        .if { display:flex; flex-direction:column; gap:5px; }
-        .if label { font-size:11px; font-weight:700; color:var(--text2); text-transform:uppercase; letter-spacing:0.5px; }
-        .iw { display:flex; background:var(--bg3); border:1px solid var(--border); border-radius:6px; transition:0.2s; }
-        .iw:focus-within { border-color:var(--accent); }
-        .iw input { flex:1; padding:12px 14px; background:transparent; border:none; color:var(--text); font-size:14px; outline:none; min-width:0; }
-        .iw input::placeholder { color:var(--text3); }
-        .iw .eye { background:none; border:none; padding:0 12px; cursor:pointer; color:var(--text3); font-size:16px; }
-        .btn { padding:12px; border:none; border-radius:6px; cursor:pointer; font-weight:700; font-size:14px; transition:0.2s; }
-        .btn-primary { background:var(--accent); color:#fff; }
-        .btn-danger { background:var(--red); color:#fff; }
-        .btn-green { background:var(--green); color:#fff; }
-        .btn-sm { padding:6px 12px; font-size:12px; border-radius:4px; width:auto; }
-        .link-text { text-align:center; font-size:12px; color:var(--text3); margin-top:4px; }
-        .link-text span { color:var(--accent); cursor:pointer; font-weight:600; }
+        #main-screen {
+            flex-direction: row;
+        }
+        .server-list {
+            width: 60px;
+            background: #151628;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 12px 0;
+            gap: 5px;
+            border-right: 1px solid var(--border);
+            flex-shrink: 0;
+            overflow-y: auto;
+        }
+        .server-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--bg2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--text2);
+            transition: 0.2s;
+            position: relative;
+            flex-shrink: 0;
+        }
+        .server-icon:hover,
+        .server-icon.active {
+            border-radius: 24%;
+            background: var(--accent);
+            color: #fff;
+        }
+        .server-icon.add {
+            color: var(--green);
+            font-size: 20px;
+        }
+        .server-icon.add:hover {
+            background: var(--green);
+            color: #fff;
+        }
+        .server-sep {
+            width: 28px;
+            height: 2px;
+            background: var(--border);
+            border-radius: 1px;
+            margin: 2px 0;
+        }
+        .server-tip {
+            display: none;
+            position: absolute;
+            left: 52px;
+            background: #000;
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            white-space: nowrap;
+            z-index: 999;
+            pointer-events: none;
+            font-weight: 500;
+        }
+        .server-icon:hover .server-tip {
+            display: block;
+        }
 
-        #main-screen { flex-direction:row; }
-        .server-list { width:64px; background:var(--bg3); display:flex; flex-direction:column; align-items:center; padding:12px 0; gap:6px; border-right:1px solid var(--border); flex-shrink:0; overflow-y:auto; }
-        .server-icon { width:46px; height:46px; border-radius:50%; background:var(--bg2); display:flex; align-items:center; justify-content:center; cursor:pointer; font-weight:700; font-size:15px; color:var(--text2); transition:0.2s; position:relative; flex-shrink:0; }
-        .server-icon:hover, .server-icon.active { border-radius:14px; background:var(--accent); color:#fff; }
-        .server-icon.add { color:var(--green); font-size:22px; }
-        .server-icon.add:hover { background:var(--green); color:#fff; }
-        .server-sep { width:30px; height:2px; background:var(--border); border-radius:1px; margin:4px 0; }
-        .server-tip { display:none; position:absolute; left:56px; background:#000; color:#fff; padding:6px 10px; border-radius:4px; font-size:11px; white-space:nowrap; z-index:999; pointer-events:none; font-weight:500; }
-        .server-icon:hover .server-tip { display:block; }
+        .sidebar {
+            width: 250px;
+            background: var(--bg2);
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        .sidebar-header {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+            font-weight: 700;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .sidebar-header button {
+            background: none;
+            border: none;
+            color: var(--text3);
+            cursor: pointer;
+            font-size: 17px;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        .sidebar-header button:hover {
+            background: var(--hover);
+            color: var(--text);
+        }
+        .section-title {
+            padding: 16px 16px 4px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text3);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+        .section-title .arrow {
+            font-size: 8px;
+            transition: 0.2s;
+        }
+        .section-title .arrow.open {
+            transform: rotate(90deg);
+        }
+        .category-group {}
+        .voice-item,
+        .room-item {
+            padding: 7px 12px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text2);
+            font-size: 13px;
+            transition: 0.15s;
+            justify-content: space-between;
+            margin: 0 6px 1px;
+        }
+        .voice-item:hover,
+        .room-item:hover {
+            background: var(--hover);
+            color: var(--text);
+        }
+        .voice-item.active,
+        .room-item.active {
+            background: var(--active);
+            color: #fff;
+        }
+        .voice-item .v-left,
+        .room-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .v-count,
+        .pin-icon {
+            font-size: 10px;
+            color: var(--text3);
+        }
+        .sidebar-footer {
+            padding: 8px 12px;
+            background: #1a1b2e;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-top: 1px solid var(--border);
+        }
+        .sidebar-footer .user-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            flex: 1;
+        }
+        .sidebar-footer .avatar {
+            width: 33px;
+            height: 33px;
+            border-radius: 50%;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 13px;
+            color: #fff;
+            flex-shrink: 0;
+            background-size: cover;
+            background-position: center;
+        }
+        .sidebar-footer .user-meta {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+        .sidebar-footer .user-meta .uname {
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .sidebar-footer .user-meta .ustatus {
+            font-size: 10px;
+            color: var(--text3);
+        }
+        .sidebar-footer .btns {
+            display: flex;
+            gap: 2px;
+        }
+        .sidebar-footer .btns button {
+            background: none;
+            border: none;
+            color: var(--text3);
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
 
-        .sidebar { width:250px; background:var(--bg2); display:flex; flex-direction:column; border-right:1px solid var(--border); flex-shrink:0; }
-        .sidebar-header { padding:14px 16px; border-bottom:1px solid var(--border); font-weight:700; font-size:14px; display:flex; justify-content:space-between; align-items:center; }
-        .sidebar-header button { background:none; border:none; color:var(--text3); cursor:pointer; font-size:18px; padding:4px 8px; border-radius:4px; }
-        .section-title { padding:16px 16px 4px; font-size:11px; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:0.5px; display:flex; align-items:center; gap:4px; }
-        .voice-list, .room-list { padding:4px 8px; }
-        .voice-item, .room-item { padding:8px 12px; border-radius:6px; cursor:pointer; display:flex; align-items:center; gap:8px; color:var(--text2); font-size:13px; transition:0.15s; justify-content:space-between; }
-        .voice-item:hover, .room-item:hover { background:var(--hover); color:var(--text); }
-        .voice-item.active, .room-item.active { background:var(--active); color:#fff; }
-        .voice-item .v-left, .room-item { display:flex; align-items:center; gap:8px; }
-        .room-list { flex:1; overflow-y:auto; }
-        .sidebar-footer { padding:8px 12px; background:#232428; display:flex; align-items:center; justify-content:space-between; border-top:1px solid var(--border); }
-        .sidebar-footer .user-row { display:flex; align-items:center; gap:8px; cursor:pointer; padding:4px; border-radius:4px; flex:1; }
-        .sidebar-footer .avatar { width:32px; height:32px; border-radius:50%; background:var(--accent); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; color:#fff; flex-shrink:0; }
-        .sidebar-footer .user-meta { display:flex; flex-direction:column; min-width:0; }
-        .sidebar-footer .user-meta .uname { font-size:13px; font-weight:600; }
-        .sidebar-footer .user-meta .ustatus { font-size:10px; color:var(--text3); }
-        .sidebar-footer .btns { display:flex; gap:2px; }
-        .sidebar-footer .btns button { background:none; border:none; color:var(--text3); cursor:pointer; padding:6px; border-radius:4px; font-size:14px; }
+        .chat-wrap {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            background: var(--bg);
+        }
+        .voice-bar {
+            display: none;
+            padding: 8px 16px;
+            background: #1a2e20;
+            border-bottom: 1px solid var(--green);
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+        .voice-bar.open {
+            display: flex;
+        }
+        .voice-bar .v-info {
+            flex: 1;
+            font-size: 12px;
+            color: var(--green);
+            font-weight: 600;
+        }
+        .voice-bar .v-btns {
+            display: flex;
+            gap: 6px;
+        }
+        .voice-bar .v-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg3);
+            color: var(--text);
+            transition: 0.2s;
+        }
+        .voice-bar .v-btn.muted {
+            background: var(--red);
+            color: #fff;
+        }
+        .voice-bar .v-btn:hover {
+            background: var(--hover);
+        }
+        .chat-top {
+            padding: 10px 20px;
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            min-height: 48px;
+        }
+        .chat-top .title {
+            font-weight: 700;
+            font-size: 14px;
+        }
+        .chat-top .actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 12px;
+            color: var(--text3);
+        }
+        .chat-top .actions .dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--green);
+        }
+        .msg-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 20px;
+        }
+        .welcome {
+            text-align: center;
+            padding: 50px 20px;
+            color: var(--text3);
+            margin: auto;
+        }
+        .msg {
+            padding: 5px 12px;
+            border-radius: var(--radius-sm);
+            transition: background 0.15s;
+            position: relative;
+        }
+        .msg:hover {
+            background: var(--hover);
+        }
+        .msg .mhdr {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .msg .mava {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 12px;
+            color: #fff;
+            flex-shrink: 0;
+            background-size: cover;
+            background-position: center;
+        }
+        .msg .muser {
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .msg .muser:hover {
+            text-decoration: underline;
+        }
+        .msg .mtime {
+            font-size: 10px;
+            color: var(--text3);
+        }
+        .msg .mbody {
+            margin-left: 42px;
+            font-size: 13px;
+            color: var(--text);
+            line-height: 1.5;
+            word-break: break-word;
+        }
+        .msg .mreply {
+            margin-left: 42px;
+            font-size: 11px;
+            color: var(--text3);
+            border-left: 2px solid var(--accent);
+            padding-left: 8px;
+            margin-bottom: 3px;
+        }
+        .msg .mbtns {
+            display: none;
+            gap: 3px;
+            margin-left: 42px;
+            margin-top: 3px;
+        }
+        .msg:hover .mbtns {
+            display: flex;
+        }
+        .mbtns button {
+            background: var(--bg3);
+            border: none;
+            color: var(--text3);
+            cursor: pointer;
+            font-size: 10px;
+            padding: 3px 8px;
+            border-radius: 3px;
+        }
+        .mbtns button:hover {
+            background: var(--hover);
+            color: var(--text);
+        }
+        .msg .pinned-badge {
+            position: absolute;
+            right: 8px;
+            top: 4px;
+            font-size: 10px;
+            color: var(--accent);
+        }
+        .typing {
+            padding: 2px 20px;
+            font-size: 11px;
+            color: var(--text3);
+            min-height: 20px;
+            flex-shrink: 0;
+        }
+        .input-zone {
+            padding: 0 16px 18px;
+            flex-shrink: 0;
+        }
+        .reply-tag {
+            background: var(--bg2);
+            padding: 8px 14px;
+            border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 11px;
+            color: var(--text3);
+            border-left: 3px solid var(--accent);
+        }
+        .reply-tag button {
+            background: none;
+            border: none;
+            color: var(--text3);
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .input-row {
+            display: flex;
+            gap: 8px;
+            background: var(--bg2);
+            padding: 8px 10px 8px 14px;
+            border-radius: var(--radius-sm);
+            align-items: flex-end;
+            border: 1px solid transparent;
+            transition: 0.2s;
+            position: relative;
+        }
+        .input-row:focus-within {
+            border-color: var(--accent);
+        }
+        .input-row textarea {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text);
+            font-size: 13px;
+            resize: none;
+            outline: none;
+            max-height: 130px;
+            font-family: inherit;
+            line-height: 1.4;
+            padding: 4px 0;
+        }
+        .input-row textarea::placeholder {
+            color: var(--text3);
+        }
+        .input-row .send {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+        .input-row .attach {
+            background: none;
+            border: none;
+            color: var(--text3);
+            cursor: pointer;
+            font-size: 18px;
+            padding: 4px;
+        }
+        .input-row .attach:hover {
+            color: var(--text);
+        }
+        .emoji-picker {
+            display: none;
+            position: absolute;
+            bottom: 56px;
+            left: 10px;
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 8px;
+            z-index: 200;
+            flex-wrap: wrap;
+            gap: 4px;
+            width: 220px;
+            box-shadow: var(--shadow);
+        }
+        .emoji-picker.open {
+            display: flex;
+        }
+        .emoji-picker span {
+            cursor: pointer;
+            font-size: 20px;
+            padding: 4px;
+            border-radius: 4px;
+        }
+        .emoji-picker span:hover {
+            background: var(--hover);
+        }
 
-        .chat-wrap { flex:1; display:flex; flex-direction:column; min-width:0; background:var(--bg); }
-        .voice-bar { display:none; padding:8px 16px; background:#1a3320; border-bottom:1px solid var(--green); align-items:center; gap:10px; flex-shrink:0; }
-        .voice-bar.open { display:flex; }
-        .voice-bar .v-info { flex:1; font-size:12px; color:var(--green); font-weight:600; }
-        .voice-bar .v-btns { display:flex; gap:6px; }
-        .voice-bar .v-btn { width:34px; height:34px; border-radius:50%; border:none; cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center; background:var(--bg3); color:var(--text); }
-        .voice-bar .v-btn.muted { background:var(--red); color:#fff; }
-        .chat-top { padding:10px 20px; background:var(--bg); border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; flex-shrink:0; }
-        .chat-top .title { font-weight:700; font-size:14px; }
-        .chat-top .actions { display:flex; align-items:center; gap:10px; font-size:12px; color:var(--text3); }
-        .msg-area { flex:1; overflow-y:auto; padding:16px 20px; }
-        .welcome { text-align:center; padding:40px 20px; color:var(--text3); margin:auto; }
-        .msg { padding:5px 12px; border-radius:6px; transition:background 0.15s; }
-        .msg:hover { background:var(--hover); }
-        .msg .mhdr { display:flex; align-items:center; gap:8px; }
-        .msg .mava { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; color:#fff; flex-shrink:0; }
-        .msg .muser { font-weight:700; font-size:13px; }
-        .msg .mtime { font-size:10px; color:var(--text3); }
-        .msg .mbody { margin-left:44px; font-size:13px; color:var(--text); line-height:1.5; word-break:break-word; }
-        .msg .mreply { margin-left:44px; font-size:11px; color:var(--text3); border-left:2px solid var(--accent); padding-left:8px; margin-bottom:3px; }
-        .msg .mbtns { display:none; gap:3px; margin-left:44px; margin-top:3px; }
-        .msg:hover .mbtns { display:flex; }
-        .mbtns button { background:var(--bg3); border:none; color:var(--text3); cursor:pointer; font-size:10px; padding:3px 8px; border-radius:3px; }
-        .typing { padding:2px 20px; font-size:11px; color:var(--text3); min-height:20px; flex-shrink:0; }
-        .input-zone { padding:0 16px 20px; flex-shrink:0; }
-        .reply-tag { background:var(--bg2); padding:8px 14px; border-radius:6px 6px 0 0; display:none; align-items:center; justify-content:space-between; font-size:11px; color:var(--text3); border-left:3px solid var(--accent); }
-        .input-row { display:flex; gap:10px; background:var(--bg2); padding:8px 14px; border-radius:6px; align-items:flex-end; border:1px solid transparent; transition:0.2s; }
-        .input-row:focus-within { border-color:var(--accent); }
-        .input-row textarea { flex:1; background:transparent; border:none; color:var(--text); font-size:13px; resize:none; outline:none; max-height:130px; font-family:inherit; line-height:1.4; padding:4px 0; }
-        .input-row .send { background:var(--accent); color:#fff; border:none; padding:8px 16px; border-radius:4px; cursor:pointer; font-weight:600; font-size:13px; flex-shrink:0; }
-        .input-row .attach { background:none; border:none; color:var(--text3); cursor:pointer; font-size:18px; padding:4px; }
-        .member-panel { width:240px; background:var(--bg2); border-left:1px solid var(--border); display:none; flex-direction:column; flex-shrink:0; }
-        .member-panel.open { display:flex; }
-        .member-panel h3 { padding:14px 16px; font-size:12px; color:var(--text3); text-transform:uppercase; border-bottom:1px solid var(--border); }
-        .member-list { flex:1; overflow-y:auto; padding:8px; }
-        .mem-item { display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:4px; cursor:pointer; font-size:12px; color:var(--text2); }
-        .mem-item:hover { background:var(--hover); }
-        .mem-ava { width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:11px; color:#fff; }
+        .member-panel {
+            width: 240px;
+            background: var(--bg2);
+            border-left: 1px solid var(--border);
+            display: none;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+        .member-panel.open {
+            display: flex;
+        }
+        .member-panel h3 {
+            padding: 14px 16px;
+            font-size: 11px;
+            color: var(--text3);
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--border);
+            letter-spacing: 0.5px;
+        }
+        .member-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 4px 8px;
+        }
+        .mem-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            color: var(--text2);
+        }
+        .mem-item:hover {
+            background: var(--hover);
+        }
+        .mem-ava {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 11px;
+            color: #fff;
+        }
 
-        .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:500; justify-content:center; align-items:center; padding:20px; }
-        .modal.open { display:flex; }
-        .modal-bg { position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); }
-        .modal-box { background:var(--bg2); border-radius:12px; padding:24px; width:440px; max-width:100%; z-index:1; border:1px solid var(--border); position:relative; max-height:85vh; overflow-y:auto; }
-        .modal-box h3 { font-size:16px; margin-bottom:16px; }
-        .modal-close { position:absolute; top:12px; right:14px; background:none; border:none; color:var(--text3); cursor:pointer; font-size:20px; }
-        .modal-box input, .modal-box select { width:100%; padding:11px; margin:5px 0 10px; background:var(--bg3); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:13px; outline:none; }
-        .modal-box input:focus, .modal-box select:focus { border-color:var(--accent); }
-        .modal-box .btn { width:100%; margin-top:6px; }
-        .check-row { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--text2); margin:6px 0; }
-        .check-row input { width:auto; margin:0; accent-color:var(--accent); }
-        .status-opt { display:flex; align-items:center; gap:10px; padding:10px; border-radius:6px; cursor:pointer; font-size:13px; }
-        .status-opt:hover { background:var(--hover); }
-        .sdot { width:10px; height:10px; border-radius:50%; }
-        .sdot.on { background:var(--green); } .sdot.idle { background:var(--yellow); } .sdot.dnd { background:var(--red); } .sdot.off { background:var(--text3); }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 600;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .modal.open {
+            display: flex;
+        }
+        .modal-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+        }
+        .modal-box {
+            background: var(--bg2);
+            border-radius: 14px;
+            padding: 28px;
+            width: 460px;
+            max-width: 95%;
+            z-index: 1;
+            border: 1px solid var(--border);
+            position: relative;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow);
+        }
+        .modal-box h3 {
+            font-size: 17px;
+            margin-bottom: 16px;
+            font-weight: 700;
+        }
+        .modal-close {
+            position: absolute;
+            top: 12px;
+            right: 14px;
+            background: none;
+            border: none;
+            color: var(--text3);
+            cursor: pointer;
+            font-size: 20px;
+        }
+        .modal-box input,
+        .modal-box select {
+            width: 100%;
+            padding: 11px;
+            margin: 5px 0 10px;
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text);
+            font-size: 13px;
+            outline: none;
+        }
+        .modal-box input:focus,
+        .modal-box select:focus {
+            border-color: var(--accent);
+        }
+        .modal-box .btn {
+            width: 100%;
+            margin-top: 8px;
+        }
+        .check-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text2);
+            margin: 6px 0;
+        }
+        .check-row input {
+            width: auto;
+            margin: 0;
+            accent-color: var(--accent);
+        }
+        .status-opt {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .status-opt:hover {
+            background: var(--hover);
+        }
+        .sdot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        .sdot.on {
+            background: var(--green);
+        }
+        .sdot.idle {
+            background: var(--yellow);
+        }
+        .sdot.dnd {
+            background: var(--red);
+        }
+        .sdot.off {
+            background: var(--text3);
+        }
 
-        #screen-preview { display:none; position:fixed; bottom:80px; right:20px; width:320px; background:#000; border-radius:8px; overflow:hidden; z-index:200; border:2px solid var(--accent); }
-        #screen-preview video { width:100%; height:180px; object-fit:contain; }
-        #screen-preview .stop-btn { position:absolute; top:4px; right:4px; background:var(--red); color:#fff; border:none; border-radius:4px; cursor:pointer; font-size:11px; padding:4px 8px; }
+        #screen-preview {
+            display: none;
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            width: 300px;
+            background: #000;
+            border-radius: var(--radius);
+            overflow: hidden;
+            z-index: 200;
+            border: 2px solid var(--accent);
+        }
+        #screen-preview video {
+            width: 100%;
+            height: 170px;
+            object-fit: contain;
+        }
+        #screen-preview .stop-btn {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: var(--red);
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            padding: 4px 8px;
+        }
 
-        #toast { position:fixed; bottom:30px; left:50%; transform:translateX(-50%); padding:12px 26px; border-radius:20px; color:#fff; font-weight:600; z-index:9999; font-size:12px; display:none; box-shadow:0 8px 30px rgba(0,0,0,0.5); pointer-events:none; }
-        ::-webkit-scrollbar { width:4px; } ::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+        #toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 26px;
+            border-radius: 20px;
+            color: #fff;
+            font-weight: 600;
+            z-index: 9999;
+            font-size: 12px;
+            display: none;
+            box-shadow: var(--shadow);
+            pointer-events: none;
+        }
 
-        @media (max-width:700px) {
-            .sidebar { width:60px; }
-            .sidebar-header span, .room-item span:not(.hash), .voice-item span:not(.v-icon), .sidebar-footer .user-meta, .section-title { display:none; }
-            .sidebar-footer { justify-content:center; }
-            .chat-top { padding:10px 12px; }
-            .msg-area { padding:12px; }
-            .input-zone { padding:0 10px 14px; }
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 2px;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 220px;
+                position: fixed;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                z-index: 300;
+                transform: translateX(-100%);
+                transition: 0.3s;
+            }
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+            .member-panel {
+                position: fixed;
+                right: 0;
+                top: 0;
+                bottom: 0;
+                z-index: 300;
+                transform: translateX(100%);
+                transition: 0.3s;
+            }
+            .member-panel.open {
+                transform: translateX(0);
+            }
+            .server-list {
+                width: 50px;
+            }
+            .server-icon {
+                width: 38px;
+                height: 38px;
+                font-size: 12px;
+            }
+            .chat-top {
+                padding: 8px 12px;
+            }
+            .msg-area {
+                padding: 10px 12px;
+            }
+            .input-zone {
+                padding: 0 8px 12px;
+            }
+            .mobile-menu-btn {
+                display: flex !important;
+            }
+        }
+        @media (min-width: 769px) {
+            .sidebar {
+                transform: translateX(0) !important;
+            }
+            .mobile-menu-btn {
+                display: none !important;
+            }
+            .sidebar-backdrop {
+                display: none !important;
+            }
+        }
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text);
+            font-size: 20px;
+            padding: 6px;
+            cursor: pointer;
+        }
+        .sidebar-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 290;
+        }
+        .sidebar-backdrop.open {
+            display: block;
+        }
+
+        .user-card {
+            text-align: center;
+            padding: 10px;
+        }
+        .user-card .big-ava {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            margin: 0 auto 10px;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: #fff;
+            background-size: cover;
+            background-position: center;
+        }
+        .user-card .username {
+            font-size: 18px;
+            font-weight: 700;
+        }
+        .user-card .tag {
+            font-size: 12px;
+            color: var(--text3);
+        }
+        .btn-row {
+            display: flex;
+            gap: 8px;
+            margin: 10px 0;
+        }
+        .btn-row .btn {
+            flex: 1;
         }
     </style>
 </head>
 <body>
-<div id="auth-screen" class="screen active">
-    <div class="auth-box">
-        <div class="logo"><h1>Gettic</h1><p>Takıl, konuş, paylaş</p></div>
-        <div class="tabs"><button id="tab-login" class="active" onclick="switchTab('login')">Giriş</button><button id="tab-register" onclick="switchTab('register')">Kayıt</button></div>
-        <div id="form-login" class="fg active">
-            <div class="if"><label>Kullanıcı Adı</label><div class="iw"><input type="text" id="login-user" placeholder="Kullanıcı adınız" autocomplete="off"></div></div>
-            <div class="if"><label>Şifre</label><div class="iw"><input type="password" id="login-pass" placeholder="Şifreniz"><button class="eye" onclick="togglePass('login-pass',this)">👁</button></div></div>
-            <button class="btn btn-primary" onclick="doLogin()">Giriş Yap</button>
-            <p class="link-text">Hesabın yok mu? <span onclick="switchTab('register')">Kayıt Ol</span></p>
-        </div>
-        <div id="form-register" class="fg">
-            <div class="if"><label>Kullanıcı Adı</label><div class="iw"><input type="text" id="reg-user" placeholder="Kullanıcı adı seç" autocomplete="off" minlength="3" maxlength="20"></div></div>
-            <div class="if"><label>Şifre</label><div class="iw"><input type="password" id="reg-pass" placeholder="En az 6 karakter" minlength="6"><button class="eye" onclick="togglePass('reg-pass',this)">👁</button></div></div>
-            <button class="btn btn-primary" onclick="doRegister()">Kayıt Ol</button>
-            <p class="link-text">Hesabın var mı? <span onclick="switchTab('login')">Giriş Yap</span></p>
-        </div>
-    </div>
-</div>
 
-<div id="main-screen" class="screen">
-    <div class="server-list"><div class="server-icon active">G<span class="server-tip">Ana Sunucu</span></div><div class="server-sep"></div><div class="server-icon add" onclick="showServerModal()">+<span class="server-tip">Sunucu Ekle</span></div></div>
-    <div class="sidebar">
-        <div class="sidebar-header"><span id="server-name">Gettic</span><button onclick="showServerSettings()">⚙</button></div>
-        <div class="section-title">🔊 SESLİ</div>
-        <div class="voice-list" id="voice-list"><div class="voice-item" id="voice-genel" onclick="joinVoice('genel')"><div class="v-left"><span class="v-icon">🔊</span> <span>Genel Sesli</span></div><span class="v-count" id="voice-genel-count">0</span></div></div>
-        <div class="section-title">💬 YAZILI</div>
-        <div class="room-list" id="room-list"><div class="room-item active" onclick="joinRoom('genel','genel','Genel sohbet')"><span class="hash">#</span> <span>genel</span></div></div>
-        <div class="sidebar-footer">
-            <div class="user-row" onclick="showStatusModal()"><div class="avatar" id="my-avatar">?</div><div class="user-meta"><span class="uname" id="my-name">Misafir</span><span class="ustatus" id="my-status">Çevrimiçi</span></div></div>
-            <div class="btns"><button onclick="showSettingsModal()">⚙</button><button onclick="doLogout()">🚪</button></div>
-        </div>
-    </div>
-    <div class="chat-wrap">
-        <div class="voice-bar" id="voice-bar"><div class="v-info" id="v-info">🔊 Bağlanıyor...</div><div class="v-btns"><button class="v-btn" id="btn-mute" onclick="toggleMute()">🎤</button><button class="v-btn" id="btn-camera" onclick="toggleCamera()">📷</button><button class="v-btn" id="btn-screen" onclick="toggleScreen()">🖥</button><button class="v-btn" style="background:var(--red);color:#fff;" onclick="leaveVoice()">📞</button></div></div>
-        <div class="chat-top"><div class="title"><span class="hash">#</span><span id="room-name">genel</span></div><div class="actions"><span id="online-count">0 çevrimiçi</span><button onclick="toggleMembers()">👥</button></div></div>
-        <div class="msg-area" id="messages"><div class="welcome"><h2>Gettic'e Hoş Geldin!</h2><p>Sohbete başla!</p></div></div>
-        <div class="typing" id="typing"></div>
-        <div class="input-zone">
-            <div class="reply-tag" id="reply-tag"><span>Yanıt: <span id="reply-txt"></span></span><button onclick="cancelReply()">✕</button></div>
-            <div class="input-row">
-                <button class="attach" onclick="document.getElementById('file-upload').click()" title="Dosya Ekle">📎</button>
-                <input type="file" id="file-upload" style="display:none;" onchange="uploadFile()" accept="image/*">
-                <textarea id="msg-input" placeholder="#genel e mesaj yaz..." rows="1" maxlength="2000" onkeydown="handleInput(event)" oninput="autoGrow(this)"></textarea>
-                <button class="send" onclick="sendMsg()">Gönder</button>
+    <div id="auth-screen" class="screen active">
+        <div class="auth-box">
+            <div class="logo">
+                <h1>Gettic</h1>
+                <p>Takıl, konuş, paylaş</p>
+            </div>
+            <div class="tabs">
+                <button id="tab-login" class="active" onclick="switchTab('login')">Giriş</button>
+                <button id="tab-register" onclick="switchTab('register')">Kayıt</button>
+            </div>
+            <div id="form-login" class="fg active">
+                <div class="if"><label>Kullanıcı Adı</label><div class="iw"><input type="text" id="login-user" placeholder="Kullanıcı adınız" autocomplete="off"></div></div>
+                <div class="if"><label>Şifre</label><div class="iw"><input type="password" id="login-pass" placeholder="Şifreniz"><button class="eye" onclick="togglePass('login-pass',this)">👁</button></div></div>
+                <button class="btn btn-primary" onclick="doLogin()">Giriş Yap</button>
+                <p class="link-text">Hesabın yok mu? <span onclick="switchTab('register')">Kayıt Ol</span></p>
+            </div>
+            <div id="form-register" class="fg">
+                <div class="if"><label>Kullanıcı Adı</label><div class="iw"><input type="text" id="reg-user" placeholder="Kullanıcı adı seç" autocomplete="off" minlength="3" maxlength="20"></div></div>
+                <div class="if"><label>Şifre</label><div class="iw"><input type="password" id="reg-pass" placeholder="En az 6 karakter" minlength="6"><button class="eye" onclick="togglePass('reg-pass',this)">👁</button></div></div>
+                <button class="btn btn-primary" onclick="doRegister()">Kayıt Ol</button>
+                <p class="link-text">Hesabın var mı? <span onclick="switchTab('login')">Giriş Yap</span></p>
             </div>
         </div>
     </div>
-    <div class="member-panel" id="member-panel"><h3>Üyeler</h3><div class="member-list" id="member-list"></div></div>
-</div>
 
-<div id="screen-preview"><video id="screen-video" autoplay playsinline></video><button class="stop-btn" onclick="stopScreen()">Durdur</button></div>
+    <div id="main-screen" class="screen">
+        <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="closeMobileSidebar()"></div>
+        <div class="server-list"><div class="server-icon active">G<span class="server-tip">Ana Sunucu</span></div><div class="server-sep"></div><div class="server-icon add" onclick="showServerModal()">+<span class="server-tip">Sunucu Ekle</span></div></div>
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header"><span id="server-name">Gettic</span><button onclick="showServerSettings()">⚙</button></div>
+            <div class="section-title" onclick="toggleCategory('voice-cat')">🔊 Sesli Kanallar <span class="arrow" id="arrow-voice-cat">▶</span></div>
+            <div class="category-group" id="voice-cat"><div class="voice-list" id="voice-list"><div class="voice-item" id="voice-genel" onclick="joinVoice('genel')"><div class="v-left"><span>🔊</span> <span>Genel Sesli</span></div><span class="v-count" id="voice-genel-count">0</span></div></div></div>
+            <div class="section-title" onclick="toggleCategory('text-cat')">💬 Yazılı Kanallar <span class="arrow open" id="arrow-text-cat">▶</span></div>
+            <div class="category-group" id="text-cat"><div class="room-list" id="room-list"><div class="room-item active" onclick="joinRoom('genel','genel','Genel sohbet')"><span>#</span> <span>genel</span></div></div></div>
+            <div class="sidebar-footer">
+                <div class="user-row" onclick="showProfileModal()"><div class="avatar" id="my-avatar">?</div><div class="user-meta"><span class="uname" id="my-name">Misafir</span><span class="ustatus" id="my-status">Çevrimiçi</span></div></div>
+                <div class="btns"><button onclick="showSettingsModal()" title="Ayarlar">⚙</button><button onclick="doLogout()" title="Çıkış">🚪</button></div>
+            </div>
+        </div>
+        <div class="chat-wrap">
+            <div class="voice-bar" id="voice-bar"><div class="v-info" id="v-info">🔊 Bağlanıyor...</div><div class="v-btns"><button class="v-btn" id="btn-mute" onclick="toggleMute()" title="Mikrofon">🎤</button><button class="v-btn" id="btn-camera" onclick="toggleCamera()" title="Kamera">📷</button><button class="v-btn" id="btn-screen" onclick="toggleScreen()" title="Ekran">🖥</button><button class="v-btn" style="background:var(--red);color:#fff;" onclick="leaveVoice()" title="Ayrıl">✕</button></div></div>
+            <div class="chat-top">
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <button class="mobile-menu-btn" onclick="toggleMobileSidebar()">☰</button>
+                    <div class="title"><span>#</span> <span id="room-name">genel</span></div>
+                </div>
+                <div class="actions"><span class="dot"></span> <span id="online-count">0 çevrimiçi</span><button onclick="toggleMembers()">👥</button></div>
+            </div>
+            <div class="msg-area" id="messages"><div class="welcome"><h2>Gettic'e Hoş Geldin!</h2><p>Sohbete başla!</p></div></div>
+            <div class="typing" id="typing"></div>
+            <div class="input-zone">
+                <div class="reply-tag" id="reply-tag"><span>Yanıt: <span id="reply-txt"></span></span><button onclick="cancelReply()">✕</button></div>
+                <div class="input-row" style="position:relative;">
+                    <button class="attach" onclick="toggleEmoji()" title="Emoji">😊</button>
+                    <button class="attach" onclick="document.getElementById('file-upload').click()" title="Dosya">📎</button>
+                    <input type="file" id="file-upload" style="display:none;" onchange="uploadFile()" accept="image/*">
+                    <textarea id="msg-input" placeholder="#genel e mesaj yaz..." rows="1" maxlength="2000" onkeydown="handleInput(event)" oninput="autoGrow(this)"></textarea>
+                    <span id="ptt-hint" style="font-size:10px;color:var(--text3);display:none;align-self:center;">[PTT]</span>
+                    <button class="send" onclick="sendMsg()">Gönder</button>
+                    <div class="emoji-picker" id="emoji-picker">
+                        <span onclick="addEmoji('😊')">😊</span><span onclick="addEmoji('😂')">😂</span><span onclick="addEmoji('❤️')">❤️</span><span onclick="addEmoji('👍')">👍</span><span onclick="addEmoji('🎉')">🎉</span><span onclick="addEmoji('🔥')">🔥</span><span onclick="addEmoji('😢')">😢</span><span onclick="addEmoji('😡')">😡</span><span onclick="addEmoji('👏')">👏</span><span onclick="addEmoji('💯')">💯</span><span onclick="addEmoji('🤔')">🤔</span><span onclick="addEmoji('😎')">😎</span><span onclick="addEmoji('🙏')">🙏</span><span onclick="addEmoji('💀')">💀</span><span onclick="addEmoji('👀')">👀</span><span onclick="addEmoji('🐱')">🐱</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="member-panel" id="member-panel"><h3>Üyeler</h3><div class="member-list" id="member-list"></div></div>
+    </div>
 
-<div id="room-modal" class="modal"><div class="modal-bg" onclick="closeRoomModal()"></div><div class="modal-box"><button class="modal-close" onclick="closeRoomModal()">✕</button><h3>Kanal Oluştur</h3><select id="new-room-type"><option value="text">Yazılı Kanal</option><option value="voice">Sesli Kanal</option></select><input type="text" id="new-room-name" placeholder="Kanal adı"><input type="text" id="new-room-desc" placeholder="Açıklama"><div class="check-row"><input type="checkbox" id="new-room-private" onchange="document.getElementById('rpw').style.display=this.checked?'block':'none'"><label>Özel</label></div><div id="rpw" style="display:none;"><input type="password" id="new-room-pass" placeholder="Şifre"></div><button class="btn btn-primary" onclick="createRoom()">Oluştur</button></div></div>
+    <div id="screen-preview"><video id="screen-video" autoplay playsinline></video><button class="stop-btn" onclick="stopScreen()">Durdur</button></div>
 
-<div id="server-modal" class="modal"><div class="modal-bg" onclick="closeServerModal()"></div><div class="modal-box"><button class="modal-close" onclick="closeServerModal()">✕</button><h3>Sunucu Oluştur</h3><input type="text" id="new-server-name" placeholder="Sunucu adı"><input type="file" id="server-icon-upload" accept="image/*" style="margin:8px 0;"><button class="btn btn-primary" onclick="createServer()">Oluştur</button></div></div>
+    <div id="room-modal" class="modal"><div class="modal-bg" onclick="closeRoomModal()"></div><div class="modal-box"><button class="modal-close" onclick="closeRoomModal()">✕</button><h3>Kanal Oluştur</h3><select id="new-room-type"><option value="text">Yazılı Kanal</option><option value="voice">Sesli Kanal</option></select><input type="text" id="new-room-name" placeholder="Kanal adı"><input type="text" id="new-room-desc" placeholder="Açıklama"><input type="text" id="new-room-cat" placeholder="Kategori (örn: Oyun)"><div class="check-row"><input type="checkbox" id="new-room-private" onchange="document.getElementById('rpw').style.display=this.checked?'block':'none'"><label>Özel</label></div><div id="rpw" style="display:none;"><input type="password" id="new-room-pass" placeholder="Şifre"></div><button class="btn btn-primary" onclick="createRoom()">Oluştur</button></div></div>
 
-<div id="server-settings-modal" class="modal"><div class="modal-bg" onclick="closeServerSettings()"></div><div class="modal-box"><button class="modal-close" onclick="closeServerSettings()">✕</button><h3>⚙ Sunucu Ayarları</h3><label style="font-size:11px;color:var(--text3);">Sunucu Adı</label><input type="text" id="settings-server-name" placeholder="Sunucu adı"><h4 style="margin-top:12px;color:var(--text3);font-size:11px;">ROLLER</h4><div id="roles-list" style="margin:8px 0;"></div><div style="display:flex;gap:6px;"><input type="text" id="new-role-name" placeholder="Rol adı"><select id="new-role-color"><option value="#5865f2">Mavi</option><option value="#23a55a">Yeşil</option><option value="#f0b232">Sarı</option><option value="#f23f42">Kırmızı</option><option value="#eb459e">Pembe</option></select><button class="btn btn-sm btn-primary" onclick="addRole()">+</button></div><button class="btn btn-primary" style="margin-top:12px;" onclick="saveServerSettings()">Kaydet</button></div></div>
+    <div id="server-modal" class="modal"><div class="modal-bg" onclick="closeServerModal()"></div><div class="modal-box"><button class="modal-close" onclick="closeServerModal()">✕</button><h3>Sunucu Oluştur</h3><input type="text" id="new-server-name" placeholder="Sunucu adı"><input type="file" id="server-icon-upload" accept="image/*" style="margin:8px 0;"><button class="btn btn-primary" onclick="createServer()">Oluştur</button></div></div>
 
-<div id="settings-modal" class="modal"><div class="modal-bg" onclick="closeSettingsModal()"></div><div class="modal-box"><button class="modal-close" onclick="closeSettingsModal()">✕</button><h3>⚙ Kullanıcı Ayarları</h3><label style="font-size:11px;color:var(--text3);">Profil Resmi</label><input type="file" id="avatar-upload" accept="image/*"><label style="font-size:11px;color:var(--text3);margin-top:10px;">Durum</label><select id="settings-status" onchange="setStatus(this.value)"><option value="online">Çevrimiçi</option><option value="idle">Boşta</option><option value="dnd">Rahatsız Etme</option><option value="offline">Görünmez</option></select><label style="font-size:11px;color:var(--text3);margin-top:10px;">Tema</label><select id="theme-select" onchange="changeTheme(this.value)"><option value="dark">Koyu</option><option value="light">Açık (Yakında)</option></select><button class="btn btn-primary" style="margin-top:12px;" onclick="saveSettings()">Kaydet</button></div></div>
+    <div id="server-settings-modal" class="modal"><div class="modal-bg" onclick="closeServerSettings()"></div><div class="modal-box"><button class="modal-close" onclick="closeServerSettings()">✕</button><h3>⚙ Sunucu Ayarları</h3><label style="font-size:11px;color:var(--text3);">Sunucu Adı</label><input type="text" id="settings-server-name"><h4 style="margin-top:12px;color:var(--text3);font-size:11px;">ROLLER</h4><div id="roles-list" style="margin:8px 0;"></div><div style="display:flex;gap:6px;"><input type="text" id="new-role-name" placeholder="Rol adı"><select id="new-role-color"><option value="#4a6cf7">Mavi</option><option value="#22c55e">Yeşil</option><option value="#eab308">Sarı</option><option value="#ef4444">Kırmızı</option><option value="#f472b6">Pembe</option></select><button class="btn btn-sm btn-primary" onclick="addRole()">+</button></div><label style="font-size:11px;color:var(--text3);margin-top:10px;">Davet Linki</label><div style="display:flex;gap:6px;"><input type="text" id="invite-link" readonly value="gettic.onrender.com"><button class="btn btn-sm btn-primary" onclick="copyInvite()">Kopyala</button></div><button class="btn btn-primary" style="margin-top:12px;" onclick="saveServerSettings()">Kaydet</button></div></div>
 
-<div id="status-modal" class="modal"><div class="modal-bg" onclick="closeStatusModal()"></div><div class="modal-box" style="width:320px;"><button class="modal-close" onclick="closeStatusModal()">✕</button><h3>Durum</h3><div class="status-opt" onclick="setStatus('online')"><span class="sdot on"></span> Çevrimiçi</div><div class="status-opt" onclick="setStatus('idle')"><span class="sdot idle"></span> Boşta</div><div class="status-opt" onclick="setStatus('dnd')"><span class="sdot dnd"></span> Rahatsız Etme</div><div class="status-opt" onclick="setStatus('offline')"><span class="sdot off"></span> Görünmez</div></div></div>
+    <div id="settings-modal" class="modal"><div class="modal-bg" onclick="closeSettingsModal()"></div><div class="modal-box"><button class="modal-close" onclick="closeSettingsModal()">✕</button><h3>⚙ Kullanıcı Ayarları</h3><label style="font-size:11px;color:var(--text3);">Profil Resmi</label><input type="file" id="avatar-upload" accept="image/*"><label style="font-size:11px;color:var(--text3);margin-top:10px;">Durum</label><select id="settings-status" onchange="setStatus(this.value)"><option value="online">Çevrimiçi</option><option value="idle">Boşta</option><option value="dnd">Rahatsız Etme</option><option value="offline">Görünmez</option></select><label style="font-size:11px;color:var(--text3);margin-top:10px;">Bildirim Sesi</label><select id="notif-sound" onchange="notifications=this.value==='on'"><option value="on">Açık</option><option value="off">Kapalı</option></select><div class="check-row" style="margin-top:10px;"><input type="checkbox" id="ptt-toggle" onchange="pttEnabled=this.checked;document.getElementById('ptt-hint').style.display=this.checked?'inline':'none';"><label>Push-to-Talk (Seslide Ctrl ile konuş)</label></div><button class="btn btn-primary" style="margin-top:12px;" onclick="saveSettings()">Kaydet</button></div></div>
 
-<div id="toast"></div>
+    <div id="profile-modal" class="modal"><div class="modal-bg" onclick="closeProfileModal()"></div><div class="modal-box"><button class="modal-close" onclick="closeProfileModal()">✕</button><div class="user-card" id="profile-content"><div class="big-ava" id="profile-ava">?</div><div class="username" id="profile-name"></div><div class="tag" id="profile-status"></div><div class="btn-row" style="margin-top:14px;"><button class="btn btn-sm btn-primary" onclick="addFriend()">👤 Arkadaş Ekle</button><button class="btn btn-sm" style="background:var(--bg3);color:var(--text);" onclick="sendDM()">💬 Mesaj Gönder</button></div></div></div></div>
 
-<script>
-(function(){
-var API=window.location.origin;
-var socket=null, me=null, token=null, cRoom='genel', reply=null, rooms=[], voiceRooms=[{id:'genel',name:'Genel Sesli',users:[]}];
-var inVoice=null, micMuted=false, deafened=false, cameraOn=false, screenOn=false;
-var localStream=null, screenStream=null, serverRoles=[], serverName='Gettic', serverIcon='';
-var friends=[], blockedUsers=[], notifications=true;
+    <div id="status-modal" class="modal"><div class="modal-bg" onclick="closeStatusModal()"></div><div class="modal-box" style="width:340px;"><button class="modal-close" onclick="closeStatusModal()">✕</button><h3>Durum</h3><div class="status-opt" onclick="setStatus('online')"><span class="sdot on"></span> Çevrimiçi</div><div class="status-opt" onclick="setStatus('idle')"><span class="sdot idle"></span> Boşta</div><div class="status-opt" onclick="setStatus('dnd')"><span class="sdot dnd"></span> Rahatsız Etme</div><div class="status-opt" onclick="setStatus('offline')"><span class="sdot off"></span> Görünmez</div></div></div>
 
-(function(){ var t=localStorage.getItem('gt_token'); var u=localStorage.getItem('gt_user');
-if(t&&u){ try{ token=t; me=JSON.parse(u); openApp(); }catch(e){ localStorage.clear(); } } })();
+    <div id="toast"></div>
 
-window.switchTab=function(t){
-    document.getElementById('tab-login').classList.toggle('active',t==='login');
-    document.getElementById('tab-register').classList.toggle('active',t==='register');
-    document.getElementById('form-login').classList.toggle('active',t==='login');
-    document.getElementById('form-register').classList.toggle('active',t==='register');
-};
-window.togglePass=function(id,btn){ var i=document.getElementById(id); i.type=i.type==='password'?'text':'password'; btn.textContent=i.type==='password'?'👁':'🙈'; };
-window.doLogin=function(){
-    var u=document.getElementById('login-user').value.trim(), p=document.getElementById('login-pass').value;
-    if(!u||!p) return toast('Tüm alanları doldur','error');
-    fetch(API+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})})
-    .then(r=>r.json()).then(d=>{ if(d.error) return toast(d.error,'error'); me=d.user; token=d.token; localStorage.setItem('gt_token',token); localStorage.setItem('gt_user',JSON.stringify(me)); openApp(); }).catch(function(){ toast('Bağlantı hatası','error'); });
-};
-window.doRegister=function(){
-    var u=document.getElementById('reg-user').value.trim(), p=document.getElementById('reg-pass').value;
-    if(!u||!p) return toast('Tüm alanları doldur','error');
-    if(u.length<3) return toast('En az 3 karakter','error');
-    if(p.length<6) return toast('En az 6 karakter','error');
-    fetch(API+'/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})})
-    .then(r=>r.json()).then(d=>{ if(d.error) return toast(d.error,'error'); me=d.user; token=d.token; localStorage.setItem('gt_token',token); localStorage.setItem('gt_user',JSON.stringify(me)); toast('Hoş geldin '+me.username+'!','success'); openApp(); }).catch(function(){ toast('Bağlantı hatası','error'); });
-};
-window.doLogout=function(){ if(!confirm('Çıkış yap?')) return; leaveVoice(); localStorage.clear(); me=null; token=null; if(socket){ socket.disconnect(); socket=null; } document.getElementById('main-screen').classList.remove('active'); document.getElementById('auth-screen').classList.add('active'); };
+    <script>
+        (function() {
+            var API = window.location.origin;
+            var socket = null,
+                me = null,
+                token = null,
+                cRoom = 'genel',
+                reply = null,
+                rooms = [],
+                voiceRooms = [{ id: 'genel', name: 'Genel Sesli', users: [] }],
+                categories = {};
+            var inVoice = null,
+                micMuted = false,
+                cameraOn = false,
+                screenOn = false;
+            var localStream = null,
+                screenStream = null,
+                serverRoles = [],
+                serverName = 'Gettic',
+                notifications = true,
+                pttEnabled = false,
+                pttKey = 'Control',
+                pttActive = false;
 
-function openApp(){
-    document.getElementById('auth-screen').classList.remove('active'); document.getElementById('main-screen').classList.add('active');
-    document.getElementById('my-name').textContent=me.username; document.getElementById('my-avatar').textContent=me.username.charAt(0).toUpperCase();
-    connectSocket(); loadRooms(); joinRoom('genel','genel','Genel sohbet');
-}
-function connectSocket(){
-    if(socket) return; socket=io(API);
-    socket.on('connect',function(){ if(me) socket.emit('user-online',me._id); });
-    socket.on('receive-message',function(m){ showMsg(m); });
-    socket.on('user-typing',function(d){ document.getElementById('typing').textContent=(d.isTyping&&d.userId!==me._id)?d.userName+' yazıyor...':''; });
-    socket.on('room-user-count',function(c){ document.getElementById('online-count').textContent=c+' çevrimiçi'; });
-    socket.on('message-error',function(e){ toast(e,'error'); });
-    socket.on('voice-join',function(data){ addVoiceUser(data); });
-    socket.on('voice-leave',function(data){ removeVoiceUser(data); });
-}
+            (function() { var t = localStorage.getItem('gt_token'),
+                    u = localStorage.getItem('gt_user'); if (t && u) { try { token = t;
+                        me = JSON.parse(u);
+                        openApp(); } catch (e) { localStorage.clear(); } } })();
 
-function loadRooms(){
-    fetch(API+'/api/rooms').then(r=>r.json()).then(d=>{ if(Array.isArray(d)){ rooms=d; renderRooms(); } }).catch(function(){});
-    renderRooms();
-}
-function renderRooms(){
-    var l=document.getElementById('room-list'); l.innerHTML='';
-    rooms.forEach(function(r){ if(r.type==='voice') return; var d=document.createElement('div'); d.className='room-item'; d.innerHTML='<span class="hash">#</span> <span>'+esc(r.name)+'</span>'; d.onclick=function(){ joinRoom(r._id||r.name,r.name,r.description||''); }; if(r._id===cRoom||r.name===cRoom) d.classList.add('active'); l.appendChild(d); });
-    var vl=document.getElementById('voice-list'); vl.innerHTML='';
-    voiceRooms.forEach(function(vr){ var d=document.createElement('div'); d.className='voice-item'; d.id='voice-'+vr.id; if(inVoice===vr.id) d.classList.add('active'); d.innerHTML='<div class="v-left"><span class="v-icon">🔊</span> <span>'+esc(vr.name)+'</span></div><span class="v-count">'+(vr.users?vr.users.length:0)+'</span>'; d.onclick=function(){ joinVoice(vr.id); }; vl.appendChild(d); });
-}
-window.joinRoom=function(id,name,desc){
-    if(cRoom&&socket) socket.emit('leave-room',cRoom); cRoom=id; if(socket) socket.emit('join-room',id);
-    document.querySelectorAll('.room-item').forEach(e=>e.classList.remove('active'));
-    document.getElementById('room-name').textContent=name; document.getElementById('msg-input').placeholder='#'+name+' e mesaj yaz...';
-    document.getElementById('messages').innerHTML='<div class="welcome"><h2>#'+esc(name)+'</h2><p>'+esc(desc||'Sohbete başla!')+'</p></div>';
-    loadMsgs(id);
-};
-function loadMsgs(rid){
-    fetch(API+'/api/rooms/'+rid+'/messages').then(r=>r.json()).then(d=>{ if(!Array.isArray(d)) return; document.getElementById('messages').innerHTML=''; d.forEach(m=>showMsg(m)); }).catch(function(){});
-}
-window.showRoomModal=function(){ document.getElementById('room-modal').classList.add('open'); };
-window.closeRoomModal=function(){ document.getElementById('room-modal').classList.remove('open'); };
-window.createRoom=function(){
-    var type=document.getElementById('new-room-type').value, n=document.getElementById('new-room-name').value.trim(), d=document.getElementById('new-room-desc').value.trim(), p=document.getElementById('new-room-private').checked, pw=document.getElementById('new-room-pass').value;
-    if(!n) return toast('Ad gerekli','error');
-    if(type==='voice'){ voiceRooms.push({id:'voice-'+Date.now(),name:n,users:[]}); renderRooms(); toast('Sesli kanal oluşturuldu!','success'); closeRoomModal(); return; }
-    fetch(API+'/api/rooms',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:n,description:d,isPrivate:p,password:pw})}).then(r=>r.json()).then(data=>{ if(data.error) return toast(data.error,'error'); closeRoomModal(); loadRooms(); toast('Kanal oluşturuldu!','success'); }).catch(function(){ toast('Hata','error'); });
-};
+            window.switchTab = function(t) { document.getElementById('tab-login').classList.toggle('active', t ===
+                    'login');
+                document.getElementById('tab-register').classList.toggle('active', t === 'register');
+                document.getElementById('form-login').classList.toggle('active', t === 'login');
+                document.getElementById('form-register').classList.toggle('active', t === 'register'); };
+            window.togglePass = function(id, btn) { var i = document.getElementById(id);
+                i.type = i.type === 'password' ? 'text' : 'password';
+                btn.textContent = i.type === 'password' ? '👁' : '🙈'; };
+            window.doLogin = function() { var u = document.getElementById('login-user').value.trim(),
+                    p = document.getElementById('login-pass').value; if (!u || !p) return toast('Tüm alanları doldur',
+                    'error');
+                fetch(API + '/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: u, password: p }) }).then(r => r.json()).then(d => { if (d
+                        .error) return toast(d.error, 'error');
+                    me = d.user;
+                    token = d.token;
+                    localStorage.setItem('gt_token', token);
+                    localStorage.setItem('gt_user', JSON.stringify(me));
+                    openApp(); }).catch(function() { toast('Bağlantı hatası', 'error'); }); };
+            window.doRegister = function() { var u = document.getElementById('reg-user').value.trim(),
+                    p = document.getElementById('reg-pass').value; if (!u || !p) return toast('Tüm alanları doldur',
+                    'error'); if (u.length < 3) return toast('En az 3 karakter', 'error'); if (p.length < 6) return toast(
+                    'En az 6 karakter', 'error');
+                fetch(API + '/api/auth/register', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: u, password: p }) }).then(r => r.json()).then(d => { if (d
+                        .error) return toast(d.error, 'error');
+                    me = d.user;
+                    token = d.token;
+                    localStorage.setItem('gt_token', token);
+                    localStorage.setItem('gt_user', JSON.stringify(me));
+                    toast('Hoş geldin ' + me.username + '!', 'success');
+                    openApp(); }).catch(function() { toast('Bağlantı hatası', 'error'); }); };
+            window.doLogout = function() { if (!confirm('Çıkış yap?')) return;
+                leaveVoice();
+                localStorage.clear();
+                me = null;
+                token = null; if (socket) { socket.disconnect();
+                    socket = null; }
+                document.getElementById('main-screen').classList.remove('active');
+                document.getElementById('auth-screen').classList.add('active'); };
 
-// SERVER
-window.showServerModal=function(){ document.getElementById('server-modal').classList.add('open'); };
-window.closeServerModal=function(){ document.getElementById('server-modal').classList.remove('open'); };
-window.createServer=function(){ var n=document.getElementById('new-server-name').value.trim(); if(!n) return toast('Ad gerekli','error'); serverName=n; document.getElementById('server-name').textContent=n; var f=document.getElementById('server-icon-upload').files[0]; if(f){ var reader=new FileReader(); reader.onload=function(e){ serverIcon=e.target.result; }; reader.readAsDataURL(f); } toast('Sunucu oluşturuldu!','success'); closeServerModal(); };
-window.showServerSettings=function(){ document.getElementById('server-settings-modal').classList.add('open'); document.getElementById('settings-server-name').value=serverName; renderRolesList(); };
-window.closeServerSettings=function(){ document.getElementById('server-settings-modal').classList.remove('open'); };
-window.addRole=function(){ var n=document.getElementById('new-role-name').value.trim(), c=document.getElementById('new-role-color').value; if(!n) return; serverRoles.push({name:n,color:c}); document.getElementById('new-role-name').value=''; renderRolesList(); };
-function renderRolesList(){ var l=document.getElementById('roles-list'); l.innerHTML=''; serverRoles.forEach(function(r,i){ l.innerHTML+='<div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:13px;"><span style="width:12px;height:12px;border-radius:50%;background:'+r.color+';"></span>'+esc(r.name)+'<button onclick="serverRoles.splice('+i+',1);renderRolesList();" style="margin-left:auto;background:none;border:none;color:var(--red);cursor:pointer;">✕</button></div>'; }); }
-window.saveServerSettings=function(){ var n=document.getElementById('settings-server-name').value.trim(); if(n) serverName=n; document.getElementById('server-name').textContent=serverName; toast('Ayarlar kaydedildi!','success'); closeServerSettings(); };
+            function openApp() { document.getElementById('auth-screen').classList.remove('active');
+                document.getElementById('main-screen').classList.add('active');
+                document.getElementById('my-name').textContent = me.username;
+                document.getElementById('my-avatar').textContent = me.username.charAt(0).toUpperCase(); if (me.avatar) {
+                    document.getElementById('my-avatar').style.backgroundImage = 'url(' + me.avatar + ')';
+                    document.getElementById('my-avatar').textContent = '';
+                    document.getElementById('my-avatar').style.backgroundSize = 'cover'; }
+                connectSocket();
+                loadRooms();
+                joinRoom('genel', 'genel', 'Genel sohbet'); }
 
-// VOICE
-window.joinVoice=async function(vid){
-    if(inVoice===vid) return; if(inVoice) leaveVoice();
-    try{ localStream=await navigator.mediaDevices.getUserMedia({audio:true, video:false}); }catch(e){ return toast('Mikrofon izni gerekli!','error'); }
-    inVoice=vid; micMuted=false; cameraOn=false; screenOn=false;
-    document.getElementById('voice-bar').classList.add('open'); document.getElementById('v-info').textContent='🔊 Bağlandın';
-    document.getElementById('btn-mute').classList.remove('muted'); document.getElementById('btn-mute').textContent='🎤';
-    document.getElementById('btn-camera').classList.remove('muted'); document.getElementById('btn-camera').textContent='📷';
-    document.getElementById('btn-screen').classList.remove('muted'); document.getElementById('btn-screen').textContent='🖥';
-    var vr=voiceRooms.find(v=>v.id===vid); if(vr&&!vr.users.find(u=>u.id===me._id)){ vr.users.push({id:me._id,name:me.username,muted:false}); }
-    if(socket){ socket.emit('voice-join',{roomId:vid,user:{id:me._id,name:me.username}}); }
-    renderRooms();
-};
-window.leaveVoice=function(){
-    if(inVoice&&socket) socket.emit('voice-leave',{roomId:inVoice,userId:me._id});
-    if(localStream){ localStream.getTracks().forEach(t=>t.stop()); localStream=null; }
-    if(screenStream){ screenStream.getTracks().forEach(t=>t.stop()); screenStream=null; }
-    stopScreen();
-    var vr=voiceRooms.find(v=>v.id===inVoice); if(vr) vr.users=vr.users.filter(u=>u.id!==me._id);
-    inVoice=null; document.getElementById('voice-bar').classList.remove('open'); renderRooms();
-};
-window.toggleMute=function(){ micMuted=!micMuted; if(localStream) localStream.getAudioTracks().forEach(t=>t.enabled=!micMuted); document.getElementById('btn-mute').classList.toggle('muted',micMuted); document.getElementById('btn-mute').textContent=micMuted?'🔇':'🎤'; };
-window.toggleCamera=async function(){
-    cameraOn=!cameraOn;
-    if(cameraOn){
-        try{ var vs=await navigator.mediaDevices.getUserMedia({video:true}); if(localStream){ localStream.getVideoTracks().forEach(t=>t.stop()); vs.getVideoTracks().forEach(t=>localStream.addTrack(t)); } document.getElementById('btn-camera').classList.add('muted'); document.getElementById('btn-camera').textContent='📸'; }
-        catch(e){ cameraOn=false; return toast('Kamera izni gerekli!','error'); }
-    } else { if(localStream) localStream.getVideoTracks().forEach(t=>{ t.stop(); localStream.removeTrack(t); }); document.getElementById('btn-camera').classList.remove('muted'); document.getElementById('btn-camera').textContent='📷'; }
-};
-window.toggleScreen=async function(){
-    screenOn=!screenOn;
-    if(screenOn){
-        try{ screenStream=await navigator.mediaDevices.getDisplayMedia({video:true}); document.getElementById('screen-preview').style.display='block'; var vid=document.getElementById('screen-video'); vid.srcObject=screenStream; screenStream.getVideoTracks()[0].onended=function(){ stopScreen(); }; document.getElementById('btn-screen').classList.add('muted'); document.getElementById('btn-screen').textContent='🖥✓'; }
-        catch(e){ screenOn=false; return toast('Ekran paylaşımı iptal edildi','error'); }
-    } else { stopScreen(); }
-};
-window.stopScreen=function(){ if(screenStream){ screenStream.getTracks().forEach(t=>t.stop()); screenStream=null; } document.getElementById('screen-preview').style.display='none'; screenOn=false; document.getElementById('btn-screen').classList.remove('muted'); document.getElementById('btn-screen').textContent='🖥'; };
+            function connectSocket() { if (socket) return;
+                socket = io(API);
+                socket.on('connect', function() { if (me) socket.emit('user-online', me._id); });
+                socket.on('receive-message', function(m) { showMsg(m); });
+                socket.on('user-typing', function(d) { document.getElementById('typing').textContent = (d.isTyping && d
+                        .userId !== me._id) ? d.userName + ' yazıyor...' : ''; });
+                socket.on('room-user-count', function(c) { document.getElementById('online-count').textContent = c +
+                        ' çevrimiçi'; });
+                socket.on('message-error', function(e) { toast(e, 'error'); });
+                socket.on('voice-join', function(data) { addVoiceUser(data); });
+                socket.on('voice-leave', function(data) { removeVoiceUser(data); }); }
 
-function addVoiceUser(data){ var vr=voiceRooms.find(v=>v.id===data.roomId); if(vr&&!vr.users.find(u=>u.id===data.user.id)){ vr.users.push(data.user); } renderRooms(); }
-function removeVoiceUser(data){ var vr=voiceRooms.find(v=>v.id===data.roomId); if(vr) vr.users=vr.users.filter(u=>u.id!==data.userId); renderRooms(); }
+            function loadRooms() { fetch(API + '/api/rooms').then(r => r.json()).then(d => { if (Array.isArray(d)) { rooms =
+                        d;
+                        renderRooms(); } }).catch(function() {});
+                renderRooms(); }
 
-// MESSAGES
-window.sendMsg=function(){
-    var i=document.getElementById('msg-input'), t=i.value.trim();
-    if(!t||!socket||!me) return;
-    socket.emit('send-message',{content:t,senderId:me._id,senderName:me.username,roomId:cRoom,type:'text',replyTo:reply?reply._id:null});
-    i.value=''; i.style.height='auto'; cancelReply();
-};
-function showMsg(m){
-    var a=document.getElementById('messages'), ti=new Date(m.timestamp).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'}), letr=(m.senderName||'?').charAt(0).toUpperCase(), col=strColor(m.senderName||'?'), isMe=(m.sender&&m.sender._id===me._id)||(m.sender===me._id);
-    var rh=''; if(m.replyTo&&m.replyTo.content) rh='<div class="mreply">↪ '+esc(m.replyTo.content.substring(0,50))+'</div>';
-    var d=document.createElement('div'); d.className='msg'; d.id='msg-'+m._id;
-    var imgHtml=''; if(m.type==='image'&&m.content) imgHtml='<img src="'+m.content+'" style="max-width:300px;border-radius:6px;margin-left:44px;cursor:pointer;" onclick="window.open(\''+m.content+'\')">';
-    d.innerHTML='<div class="mhdr"><div class="mava" style="background:'+col+'">'+letr+'</div><span class="muser" style="color:'+col+'">'+esc(m.senderName)+'</span><span class="mtime">'+ti+'</span>'+(m.edited?'<span style="font-size:9px;color:var(--text3);margin-left:3px;">düzenlendi</span>':'')+'</div>'+rh+'<div class="mbody">'+formatMsg(esc(m.content))+'</div>'+imgHtml+'<div class="mbtns"><button onclick="replyMsg(\''+m._id+'\')">Yanıtla</button>'+(isMe?'<button onclick="editMsg(\''+m._id+'\')">Düzenle</button><button onclick="delMsg(\''+m._id+'\')">Sil</button>':'')+'<button onclick="copyMsg(\''+m._id+'\')">Kopyala</button></div>';
-    a.appendChild(d); a.scrollTop=a.scrollHeight;
-    if(notifications&&document.hidden&&m.sender!==me._id){ new Audio('https://cdn.pixabay.com/download/audio/2022/03/10/audio_c6c8f3f0cd.mp3').play().catch(function(){}); }
-}
-function formatMsg(t){ return t.replace(/@(\w+)/g,'<span style="color:var(--accent);cursor:pointer;" onclick="mentionClick(\'$1\')">@$1</span>'); }
-window.mentionClick=function(name){ document.getElementById('msg-input').value+='@'+name+' '; document.getElementById('msg-input').focus(); };
-window.replyMsg=function(id){ var e=document.getElementById('msg-'+id); if(!e) return; reply={_id:id,content:e.querySelector('.mbody').textContent}; document.getElementById('reply-tag').style.display='flex'; document.getElementById('reply-txt').textContent=reply.content.substring(0,50); document.getElementById('msg-input').focus(); };
-window.cancelReply=function(){ reply=null; document.getElementById('reply-tag').style.display='none'; };
-window.editMsg=function(id){ var n=prompt('Düzenle:'); if(!n||!n.trim()) return; fetch(API+'/api/messages/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:n.trim()})}).then(function(){ var e=document.getElementById('msg-'+id); if(e){ e.querySelector('.mbody').innerHTML=formatMsg(esc(n.trim())); if(!e.querySelector('.mhdr').querySelector('[style]')) e.querySelector('.mhdr').insertAdjacentHTML('beforeend','<span style="font-size:9px;color:var(--text3);margin-left:3px;">düzenlendi</span>'); } }).catch(function(){ toast('Hata','error'); }); };
-window.delMsg=function(id){ if(!confirm('Silinsin mi?')) return; fetch(API+'/api/messages/'+id,{method:'DELETE'}).then(function(){ var e=document.getElementById('msg-'+id); if(e) e.remove(); }).catch(function(){ toast('Hata','error'); }); };
-window.copyMsg=function(id){ var e=document.getElementById('msg-'+id); if(e){ var t=e.querySelector('.mbody').textContent; navigator.clipboard.writeText(t); toast('Kopyalandı!','success'); } };
-window.uploadFile=function(){ var f=document.getElementById('file-upload').files[0]; if(!f||!socket||!me) return; var reader=new FileReader(); reader.onload=function(e){ var dataUrl=e.target.result; socket.emit('send-message',{content:dataUrl,senderId:me._id,senderName:me.username,roomId:cRoom,type:'image',replyTo:null}); }; reader.readAsDataURL(f); document.getElementById('file-upload').value=''; };
-window.handleInput=function(e){ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); sendMsg(); } if(cRoom&&me&&socket) socket.emit('typing',{roomId:cRoom,userId:me._id,userName:me.username,isTyping:e.target.value.length>0}); };
-window.autoGrow=function(e){ e.style.height='auto'; e.style.height=Math.min(e.scrollHeight,130)+'px'; };
+            function renderRooms() { var l = document.getElementById('room-list');
+                l.innerHTML = '';
+                var cats = {};
+                rooms.forEach(function(r) { if (r.type === 'voice') return; var cat = r.category || 'Genel'; if (!cats[
+                        cat]) cats[cat] = [];
+                    cats[cat].push(r); });
+                for (var cat in cats) { l.innerHTML +=
+                        '<div class="section-title" onclick="toggleCategory(\'cat-' + escId(cat) +
+                        '\')" style="padding-left:8px;"><span>' + esc(cat) +
+                        '</span><span class="arrow open" id="arrow-cat-' + escId(cat) + '">▶</span></div>'; l.innerHTML +=
+                        '<div class="category-group" id="cat-' + escId(cat) + '"></div>'; }
+                for (var cat in cats) { var gl = document.getElementById('cat-' + escId(cat)); if (!gl) continue;
+                    cats[cat].forEach(function(r) { var d = document.createElement('div');
+                        d.className = 'room-item';
+                        d.innerHTML = '<span>#</span> <span>' + esc(r.name) + '</span>';
+                        d.onclick = function() { joinRoom(r._id || r.name, r.name, r.description || ''); }; if (r._id ===
+                            cRoom || r.name === cRoom) d.classList.add('active');
+                        gl.appendChild(d); }); }
+                var vl = document.getElementById('voice-list');
+                vl.innerHTML = '';
+                voiceRooms.forEach(function(vr) { var d = document.createElement('div');
+                    d.className = 'voice-item';
+                    d.id = 'voice-' + vr.id; if (inVoice === vr.id) d.classList.add('active');
+                    d.innerHTML = '<div class="v-left"><span>🔊</span> <span>' + esc(vr.name) +
+                        '</span></div><span class="v-count">' + (vr.users ? vr.users.length : 0) +
+                        '</span>';
+                    d.onclick = function() { joinVoice(vr.id); };
+                    vl.appendChild(d); }); }
+            window.joinRoom = function(id, name, desc) { if (cRoom && socket) socket.emit('leave-room', cRoom);
+                cRoom = id; if (socket) socket.emit('join-room', id);
+                document.querySelectorAll('.room-item').forEach(e => e.classList.remove('active'));
+                document.getElementById('room-name').textContent = name;
+                document.getElementById('msg-input').placeholder = '#' + name + ' e mesaj yaz...';
+                document.getElementById('messages').innerHTML = '<div class="welcome"><h2>#' + esc(name) +
+                    '</h2><p>' + esc(desc || 'Sohbete başla!') + '</p></div>';
+                loadMsgs(id);
+                closeMobileSidebar(); };
 
-// MEMBERS
-window.toggleMembers=function(){ var p=document.getElementById('member-panel'); p.classList.toggle('open'); if(p.classList.contains('open')) loadMembers(); };
-function loadMembers(){ fetch(API+'/api/rooms/'+cRoom+'/messages').then(r=>r.json()).then(d=>{ if(!Array.isArray(d)) return; var users={}; d.forEach(function(m){ if(m.senderName&&!users[m.senderName]) users[m.senderName]=m.sender||m.senderName; }); var l=document.getElementById('member-list'); l.innerHTML=''; for(var n in users){ var c=strColor(n); l.innerHTML+='<div class="mem-item"><div class="mem-ava" style="background:'+c+'">'+n.charAt(0).toUpperCase()+'</div>'+esc(n)+'<span style="font-size:10px;color:var(--text3);margin-left:auto;">@'+esc(n)+'</span></div>'; } }).catch(function(){}); }
+            function loadMsgs(rid) { fetch(API + '/api/rooms/' + rid + '/messages').then(r => r.json()).then(d => { if (!Array
+                    .isArray(d)) return;
+                    document.getElementById('messages').innerHTML = '';
+                    d.forEach(m => showMsg(m)); }).catch(function() {}); }
+            window.showRoomModal = function() { document.getElementById('room-modal').classList.add('open'); };
+            window.closeRoomModal = function() { document.getElementById('room-modal').classList.remove('open'); };
+            window.createRoom = function() { var type = document.getElementById('new-room-type').value,
+                    n = document.getElementById('new-room-name').value.trim(),
+                    d = document.getElementById('new-room-desc').value.trim(),
+                    cat = document.getElementById('new-room-cat').value.trim(),
+                    p = document.getElementById('new-room-private').checked,
+                    pw = document.getElementById('new-room-pass').value; if (!n) return toast('Ad gerekli', 'error'); if (
+                    type === 'voice') { voiceRooms.push({ id: 'voice-' + Date.now(), name: n, users: [] });
+                    renderRooms();
+                    toast('Sesli kanal oluşturuldu!', 'success');
+                    closeRoomModal(); return; }
+                fetch(API + '/api/rooms', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: n, description: d, category: cat || 'Genel', isPrivate: p,
+                        password: pw }) }).then(r => r.json()).then(data => { if (data.error) return toast(data
+                        .error, 'error');
+                    closeRoomModal();
+                    loadRooms();
+                    toast('Kanal oluşturuldu!', 'success'); }).catch(function() { toast('Hata', 'error'); }); };
+            window.toggleCategory = function(id) { var el = document.getElementById(id); var arrow = document.getElementById(
+                    'arrow-' + id); if (el) el.style.display = (el.style.display === 'none') ? 'block' : 'none'; if (
+                    arrow) arrow.classList.toggle('open', el.style.display !== 'none'); };
 
-// SETTINGS
-window.showSettingsModal=function(){ document.getElementById('settings-modal').classList.add('open'); document.getElementById('settings-status').value=me.status||'online'; };
-window.closeSettingsModal=function(){ document.getElementById('settings-modal').classList.remove('open'); };
-window.saveSettings=function(){ var f=document.getElementById('avatar-upload').files[0]; if(f){ var reader=new FileReader(); reader.onload=function(e){ me.avatar=e.target.result; document.getElementById('my-avatar').style.backgroundImage='url('+e.target.result+')'; document.getElementById('my-avatar').textContent=''; document.getElementById('my-avatar').style.backgroundSize='cover'; }; reader.readAsDataURL(f); } toast('Ayarlar kaydedildi!','success'); closeSettingsModal(); };
+            window.showServerModal = function() { document.getElementById('server-modal').classList.add('open'); };
+            window.closeServerModal = function() { document.getElementById('server-modal').classList.remove('open'); };
+            window.createServer = function() { var n = document.getElementById('new-server-name').value.trim(); if (!n)
+                    return toast('Ad gerekli', 'error');
+                serverName = n;
+                document.getElementById('server-name').textContent = n;
+                toast('Sunucu oluşturuldu!', 'success');
+                closeServerModal(); };
+            window.showServerSettings = function() { document.getElementById('server-settings-modal').classList.add(
+                    'open');
+                document.getElementById('settings-server-name').value = serverName;
+                document.getElementById('invite-link').value = window.location.host + '/invite/' + (cRoom);
+                renderRolesList(); };
+            window.closeServerSettings = function() { document.getElementById('server-settings-modal').classList.remove(
+                    'open'); };
+            window.addRole = function() { var n = document.getElementById('new-role-name').value.trim(),
+                    c = document.getElementById('new-role-color').value; if (!n) return;
+                serverRoles.push({ name: n, color: c });
+                document.getElementById('new-role-name').value = '';
+                renderRolesList(); };
 
-// STATUS
-window.showStatusModal=function(){ document.getElementById('status-modal').classList.add('open'); };
-window.closeStatusModal=function(){ document.getElementById('status-modal').classList.remove('open'); };
-window.setStatus=function(s){ me.status=s; var t={online:'Çevrimiçi',idle:'Boşta',dnd:'Rahatsız Etme',offline:'Görünmez'}[s]; document.getElementById('my-status').textContent=t; closeStatusModal(); closeSettingsModal(); toast('Durum güncellendi','success'); };
+            function renderRolesList() { var l = document.getElementById('roles-list');
+                l.innerHTML = '';
+                serverRoles.forEach(function(r, i) { l.innerHTML +=
+                        '<div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:13px;"><span style="width:12px;height:12px;border-radius:50%;background:' +
+                        r.color + ';"></span>' + esc(r.name) +
+                        '<button onclick="serverRoles.splice(' + i +
+                        ',1);renderRolesList();" style="margin-left:auto;background:none;border:none;color:var(--red);cursor:pointer;">✕</button></div>'; }); }
+            window.saveServerSettings = function() { var n = document.getElementById('settings-server-name').value.trim(); if (
+                    n) serverName = n;
+                document.getElementById('server-name').textContent = serverName;
+                toast('Ayarlar kaydedildi!', 'success');
+                closeServerSettings(); };
+            window.copyInvite = function() { var inp = document.getElementById('invite-link');
+                inp.select();
+                document.execCommand('copy');
+                toast('Davet linki kopyalandı!', 'success'); };
 
-// HELPERS
-function esc(t){ var d=document.createElement('div'); d.textContent=t||''; return d.innerHTML; }
-function strColor(s){ var h=0; for(var i=0;i<(s||'?').length;i++) h=s.charCodeAt(i)+((h<<5)-h); var c=['#e94560','#4ecca3','#faa81a','#60a5fa','#a78bfa','#f472b6','#38bdf8']; return c[Math.abs(h)%c.length]; }
-window.toast=function(m,type){ var e=document.getElementById('toast'); e.textContent=m; e.style.background=type==='error'?'#f23f42':type==='success'?'#23a55a':'#5865f2'; e.style.display='block'; clearTimeout(e._t); e._t=setTimeout(function(){ e.style.display='none'; },3000); };
-document.addEventListener('click',function(e){ if(e.target.classList.contains('modal-bg')) e.target.parentElement.classList.remove('open'); });
-document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ document.querySelectorAll('.modal.open').forEach(m=>m.classList.remove('open')); cancelReply(); } });
-})();
-</script>
+            window.joinVoice = async function(vid) { if (inVoice === vid) return; if (inVoice) leaveVoice(); try {
+                    localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false }); } catch (
+                    e) { return toast('Mikrofon izni gerekli!', 'error'); }
+                inVoice = vid;
+                micMuted = false;
+                cameraOn = false;
+                screenOn = false;
+                document.getElementById('voice-bar').classList.add('open');
+                document.getElementById('v-info').textContent = '🔊 Bağlandın';
+                document.getElementById('btn-mute').classList.remove('muted');
+                document.getElementById('btn-mute').textContent = '🎤';
+                document.getElementById('btn-camera').classList.remove('muted');
+                document.getElementById('btn-camera').textContent = '📷';
+                document.getElementById('btn-screen').classList.remove('muted');
+                document.getElementById('btn-screen').textContent = '🖥'; var vr = voiceRooms.find(v => v.id === vid); if (
+                    vr && !vr.users.find(u => u.id === me._id)) { vr.users.push({ id: me._id, name: me.username,
+                        muted: false }); } if (socket) { socket.emit('voice-join', { roomId: vid, user: { id: me._id,
+                        name: me.username } }); }
+                renderRooms(); };
+            window.leaveVoice = function() { if (inVoice && socket) socket.emit('voice-leave', { roomId: inVoice,
+                    userId: me._id }); if (localStream) { localStream.getTracks().forEach(t => t.stop());
+                    localStream = null; } if (screenStream) { screenStream.getTracks().forEach(t => t.stop());
+                    screenStream = null; }
+                stopScreen(); var vr = voiceRooms.find(v => v.id === inVoice); if (vr) vr.users = vr.users.filter(u => u
+                    .id !== me._id);
+                inVoice = null;
+                document.getElementById('voice-bar').classList.remove('open');
+                renderRooms(); };
+            window.toggleMute = function() { micMuted = !micMuted; if (localStream) localStream.getAudioTracks()
+                    .forEach(t => t.enabled = !micMuted);
+                document.getElementById('btn-mute').classList.toggle('muted', micMuted);
+                document.getElementById('btn-mute').textContent = micMuted ? '🔇' : '🎤'; };
+            window.toggleCamera = async function() { cameraOn = !cameraOn; if (cameraOn) { try { var vs = await navigator
+                        .mediaDevices.getUserMedia({ video: true }); if (localStream) { localStream
+                        .getVideoTracks().forEach(t => t.stop());
+                        vs.getVideoTracks().forEach(t => localStream.addTrack(t)); }
+                    document.getElementById('btn-camera').classList.add('muted');
+                    document.getElementById('btn-camera').textContent = '📸'; } catch (e) { cameraOn = false; return toast(
+                        'Kamera izni gerekli!', 'error'); } } else { if (localStream) localStream.getVideoTracks()
+                        .forEach(t => { t.stop();
+                        localStream.removeTrack(t); });
+                    document.getElementById('btn-camera').classList.remove('muted');
+                    document.getElementById('btn-camera').textContent = '📷'; } };
+            window.toggleScreen = async function() { screenOn = !screenOn; if (screenOn) { try { screenStream = await navigator
+                        .mediaDevices.getDisplayMedia({ video: true });
+                    document.getElementById('screen-preview').style.display = 'block'; var vid = document
+                        .getElementById('screen-video');
+                    vid.srcObject = screenStream;
+                    screenStream.getVideoTracks()[0].onended = function() { stopScreen(); };
+                    document.getElementById('btn-screen').classList.add('muted');
+                    document.getElementById('btn-screen').textContent = '🖥✓'; } catch (e) { screenOn = false; return toast(
+                        'Ekran paylaşımı iptal', 'error'); } } else { stopScreen(); } };
+            window.stopScreen = function() { if (screenStream) { screenStream.getTracks().forEach(t => t.stop());
+                    screenStream = null; }
+                document.getElementById('screen-preview').style.display = 'none';
+                screenOn = false;
+                document.getElementById('btn-screen').classList.remove('muted');
+                document.getElementById('btn-screen').textContent = '🖥'; };
+
+            function addVoiceUser(data) { var vr = voiceRooms.find(v => v.id === data.roomId); if (vr && !vr.users.find(u => u
+                    .id === data.user.id)) { vr.users.push(data.user); }
+                renderRooms(); }
+
+            function removeVoiceUser(data) { var vr = voiceRooms.find(v => v.id === data.roomId); if (vr) vr.users = vr.users
+                    .filter(u => u.id !== data.userId);
+                renderRooms(); }
+
+            window.sendMsg = function() { var i = document.getElementById('msg-input'),
+                    t = i.value.trim(); if (!t || !socket || !me) return;
+                socket.emit('send-message', { content: t, senderId: me._id, senderName: me.username, roomId: cRoom,
+                    type: 'text', replyTo: reply ? reply._id : null });
+                i.value = '';
+                i.style.height = 'auto';
+                cancelReply();
+                closeEmoji(); };
+
+            function showMsg(m) { var a = document.getElementById('messages'),
+                    ti = new Date(m.timestamp).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
+                    letr = (m.senderName || '?').charAt(0).toUpperCase(),
+                    col = strColor(m.senderName || '?'),
+                    isMe = (m.sender && m.sender._id === me._id) || (m.sender === me._id); var rh = ''; if (m.replyTo &&
+                    m.replyTo.content) rh = '<div class="mreply">↪ ' + esc(m.replyTo.content.substring(0, 50)) +
+                    '</div>'; var d = document.createElement('div');
+                d.className = 'msg';
+                d.id = 'msg-' + m._id; var imgHtml = ''; if (m.type === 'image' && m.content) imgHtml =
+                    '<img src="' + m.content +
+                    '" style="max-width:280px;border-radius:8px;margin-left:42px;cursor:pointer;margin-top:3px;" onclick="window.open(\'' +
+                    m.content + '\')">';
+                d.innerHTML = '<div class="mhdr"><div class="mava" style="background:' + col + '">' + letr +
+                    '</div><span class="muser" style="color:' + col + '" onclick="showProfileModal()">' + esc(m
+                        .senderName) + '</span><span class="mtime">' + ti + '</span>' + (m.edited ?
+                        '<span style="font-size:9px;color:var(--text3);margin-left:3px;">düzenlendi</span>' : '') +
+                    '</div>' + rh + '<div class="mbody">' + formatMsg(esc(m.content)) + '</div>' + imgHtml +
+                    '<div class="mbtns"><button onclick="replyMsg(\'' + m._id + '\')">Yanıtla</button>' + (isMe ?
+                        '<button onclick="editMsg(\'' + m._id + '\')">Düzenle</button><button onclick="delMsg(\'' + m
+                        ._id + '\')">Sil</button>' : '') +
+                    '<button onclick="pinMsg(\'' + m._id + '\')">📌 Sabitle</button><button onclick="copyMsg(\'' + m._id +
+                    '\')">Kopyala</button></div>';
+                a.appendChild(d);
+                a.scrollTop = a.scrollHeight; if (notifications && document.hidden && m.sender !== me._id) { try { new Audio(
+                        'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACAf39/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/fw=='
+                    ).play().catch(function() {}); } catch (e) {} } }
+
+            function formatMsg(t) { return t.replace(/@(\w+)/g,
+                    '<span style="color:var(--accent);cursor:pointer;" onclick="mentionClick(\'$1\')">@$1</span>'); }
+            window.mentionClick = function(name) { document.getElementById('msg-input').value += '@' + name + ' ';
+                document.getElementById('msg-input').focus(); };
+            window.replyMsg = function(id) { var e = document.getElementById('msg-' + id); if (!e) return;
+                reply = { _id: id, content: e.querySelector('.mbody').textContent };
+                document.getElementById('reply-tag').style.display = 'flex';
+                document.getElementById('reply-txt').textContent = reply.content.substring(0, 50);
+                document.getElementById('msg-input').focus(); };
+            window.cancelReply = function() { reply = null;
+                document.getElementById('reply-tag').style.display = 'none'; };
+            window.editMsg = function(id) { var n = prompt('Düzenle:'); if (!n || !n.trim()) return;
+                fetch(API + '/api/messages/' + id, { method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content: n.trim() }) }).then(function() { var e = document.getElementById(
+                        'msg-' + id); if (e) { e.querySelector('.mbody').innerHTML = formatMsg(esc(n.trim())); if (
+                        !e.querySelector('.mhdr').querySelector('[style]')) e.querySelector('.mhdr')
+                        .insertAdjacentHTML('beforeend',
+                            '<span style="font-size:9px;color:var(--text3);margin-left:3px;">düzenlendi</span>'); } })
+                    .catch(function() { toast('Hata', 'error'); }); };
+            window.delMsg = function(id) { if (!confirm('Silinsin mi?')) return;
+                fetch(API + '/api/messages/' + id, { method: 'DELETE' }).then(function() { var e = document.getElementById(
+                    'msg-' + id); if (e) e.remove(); }).catch(function() { toast('Hata', 'error'); }); };
+            window.pinMsg = function(id) { var e = document.getElementById('msg-' + id); if (e) { e.classList.toggle(
+                    'pinned'); if (e.classList.contains('pinned')) { e.insertAdjacentHTML('beforeend',
+                        '<span class="pinned-badge">📌 Sabitlendi</span>'); } else { var b = e.querySelector(
+                        '.pinned-badge'); if (b) b.remove(); } } };
+            window.copyMsg = function(id) { var e = document.getElementById('msg-' + id); if (e) { var t = e.querySelector(
+                    '.mbody').textContent;
+                navigator.clipboard.writeText(t);
+                toast('Kopyalandı!', 'success'); } };
+            window.uploadFile = function() { var f = document.getElementById('file-upload').files[0]; if (!f || !socket || !
+                    me) return; var reader = new FileReader();
+                reader.onload = function(e) { var dataUrl = e.target.result;
+                    socket.emit('send-message', { content: dataUrl, senderId: me._id, senderName: me.username,
+                        roomId: cRoom, type: 'image', replyTo: null }); };
+                reader.readAsDataURL(f);
+                document.getElementById('file-upload').value = ''; };
+            window.handleInput = function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault();
+                    sendMsg(); } if (cRoom && me && socket) socket.emit('typing', { roomId: cRoom, userId: me._id,
+                    userName: me.username, isTyping: e.target.value.length > 0 }); };
+            window.autoGrow = function(e) { e.style.height = 'auto';
+                e.style.height = Math.min(e.scrollHeight, 130) + 'px'; };
+            window.toggleEmoji = function() { document.getElementById('emoji-picker').classList.toggle('open'); };
+            window.addEmoji = function(e) { document.getElementById('msg-input').value += e;
+                document.getElementById('msg-input').focus();
+                document.getElementById('emoji-picker').classList.remove('open'); };
+
+            function closeEmoji() { document.getElementById('emoji-picker').classList.remove('open'); }
+
+            window.toggleMembers = function() { var p = document.getElementById('member-panel');
+                p.classList.toggle('open'); if (p.classList.contains('open')) loadMembers(); if (window.innerWidth <
+                    769) { p.style.transform = p.classList.contains('open') ? 'translateX(0)' : 'translateX(100%)'; } };
+
+            function loadMembers() { fetch(API + '/api/rooms/' + cRoom + '/messages').then(r => r.json()).then(d => { if (!Array
+                    .isArray(d)) return; var users = {};
+                    d.forEach(function(m) { if (m.senderName && !users[m.senderName]) users[m.senderName] = m
+                            .sender || m.senderName; }); var l = document.getElementById('member-list');
+                    l.innerHTML = ''; for (var n in users) { var c = strColor(n);
+                        l.innerHTML += '<div class="mem-item"><div class="mem-ava" style="background:' + c + '">' +
+                            n.charAt(0).toUpperCase() + '</div>' + esc(n) + '<span style="font-size:10px;color:var(--text3);margin-left:auto;" onclick="mentionClick(\'' +
+                            n + '\')">@</span></div>'; } }).catch(function() {}); }
+
+            window.showProfileModal = function() { document.getElementById('profile-modal').classList.add('open');
+                document.getElementById('profile-ava').textContent = me.username.charAt(0).toUpperCase();
+                document.getElementById('profile-ava').style.background = strColor(me.username); if (me.avatar) {
+                    document.getElementById('profile-ava').style.backgroundImage = 'url(' + me.avatar + ')';
+                    document.getElementById('profile-ava').textContent = '';
+                    document.getElementById('profile-ava').style.backgroundSize = 'cover'; }
+                document.getElementById('profile-name').textContent = me.username;
+                document.getElementById('profile-status').textContent = me.status || 'Çevrimiçi'; };
+            window.closeProfileModal = function() { document.getElementById('profile-modal').classList.remove(
+                'open'); };
+            window.addFriend = function() { toast('Arkadaş eklendi! 👥', 'success');
+                closeProfileModal(); };
+            window.sendDM = function() { toast('DM özelliği yakında!', 'info');
+                closeProfileModal(); };
+
+            window.showSettingsModal = function() { document.getElementById('settings-modal').classList.add('open');
+                document.getElementById('settings-status').value = me.status || 'online';
+                document.getElementById('notif-sound').value = notifications ? 'on' : 'off';
+                document.getElementById('ptt-toggle').checked = pttEnabled; };
+            window.closeSettingsModal = function() { document.getElementById('settings-modal').classList.remove(
+            'open'); };
+            window.saveSettings = function() { var f = document.getElementById('avatar-upload').files[0]; if (f) { var reader =
+                    new FileReader();
+                reader.onload = function(e) { me.avatar = e.target.result;
+                    document.getElementById('my-avatar').style.backgroundImage = 'url(' + e.target.result +
+                        ')';
+                    document.getElementById('my-avatar').textContent = '';
+                    document.getElementById('my-avatar').style.backgroundSize = 'cover'; };
+                reader.readAsDataURL(f); }
+                notifications = document.getElementById('notif-sound').value === 'on';
+                pttEnabled = document.getElementById('ptt-toggle').checked;
+                document.getElementById('ptt-hint').style.display = pttEnabled ? 'inline' : 'none';
+                toast('Ayarlar kaydedildi!', 'success');
+                closeSettingsModal(); };
+
+            window.showStatusModal = function() { document.getElementById('status-modal').classList.add('open'); };
+            window.closeStatusModal = function() { document.getElementById('status-modal').classList.remove('open'); };
+            window.setStatus = function(s) { me.status = s; var t = { online: 'Çevrimiçi', idle: 'Boşta', dnd: 'Rahatsız Etme',
+                    offline: 'Görünmez' } [s];
+                document.getElementById('my-status').textContent = t;
+                closeStatusModal();
+                closeSettingsModal();
+                toast('Durum güncellendi', 'success'); };
+
+            window.toggleMobileSidebar = function() { var s = document.getElementById('sidebar'); var b = document
+                    .getElementById('sidebar-backdrop'); if (s) s.classList.toggle('mobile-open'); if (b) b.classList
+                    .toggle('open', s.classList.contains('mobile-open')); };
+            window.closeMobileSidebar = function() { var s = document.getElementById('sidebar'); var b = document
+                    .getElementById('sidebar-backdrop'); if (s) s.classList.remove('mobile-open'); if (b) b.classList
+                    .remove('open'); };
+
+            function escId(s) { return s.replace(/[^a-zA-Z0-9]/g, '_'); }
+
+            function esc(t) { var d = document.createElement('div');
+                d.textContent = t || ''; return d.innerHTML; }
+
+            function strColor(s) { var h = 0; for (var i = 0; i < (s || '?').length; i++) h = s.charCodeAt(i) + ((h << 5) -
+                    h); var c = ['#4a6cf7', '#22c55e', '#eab308', '#ef4444', '#f472b6', '#38bdf8',
+                '#a78bfa']; return c[Math.abs(h) % c.length]; }
+            window.toast = function(m, type) { var e = document.getElementById('toast');
+                e.textContent = m;
+                e.style.background = type === 'error' ? '#ef4444' : type === 'success' ? '#22c55e' : '#4a6cf7';
+                e.style.display = 'block';
+                clearTimeout(e._t);
+                e._t = setTimeout(function() { e.style.display = 'none'; }, 3000); };
+
+            document.addEventListener('click', function(e) { if (e.target.classList.contains('modal-bg')) e.target
+                    .parentElement.classList.remove('open'); if (!e.target.closest('.emoji-picker') && !e.target
+                    .closest('.attach')) closeEmoji(); });
+            document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { document.querySelectorAll(
+                        '.modal.open').forEach(m => m.classList.remove('open'));
+                    cancelReply();
+                    closeEmoji(); } if (pttEnabled && e.key === pttKey && inVoice) { e.preventDefault();
+                    micMuted = false; if (localStream) localStream.getAudioTracks().forEach(t => t.enabled = true);
+                    document.getElementById('btn-mute').classList.remove('muted');
+                    document.getElementById('btn-mute').textContent = '🎤';
+                    pttActive = true; } });
+            document.addEventListener('keyup', function(e) { if (pttEnabled && e.key === pttKey && inVoice &&
+                    pttActive) { micMuted = true; if (localStream) localStream.getAudioTracks().forEach(t => t
+                        .enabled = false);
+                    document.getElementById('btn-mute').classList.add('muted');
+                    document.getElementById('btn-mute').textContent = '🔇';
+                    pttActive = false; } });
+        })();
+    </script>
 </body>
     </html>
