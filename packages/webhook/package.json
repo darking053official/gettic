@@ -1,9 +1,0 @@
-{
-  "name": "@gettic/webhook",
-  "version": "2.0.0",
-  "description": "Gettic Webhook İstemcisi",
-  "main": "index.js",
-  "dependencies": {
-    "axios": "^1.6.0"
-  }
-}
