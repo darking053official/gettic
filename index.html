@@ -12,7 +12,7 @@
     <meta property="og:type" content="website">
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png">
     <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png">
-    <link rel="manifest" href="data:application/json,{'name':'Gettic','short_name':'Gettic','start_url':'/','display':'standalone','background_color':'#1a1b2e','theme_color':'#4a6cf7','icons':[{'src':'https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png','sizes':'512x512','type':'image/png'}]}">
+    <link rel="manifest" href="data:application/json,{'name':'Gettic','short_name':'Gettic','start_url':'/','display':'standalone','background_color':'#1a1b2e','theme_color':'#4a6cf7'}">
     <title>Gettic - Sohbet Platformu</title>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <style>
@@ -46,7 +46,7 @@
         .screen { display:none; width:100%; height:100%; }
         .screen.active { display:flex; }
 
-        /* ========== AUTH ========== */
+        /* Auth Screen */
         #auth-screen {
             justify-content:center; align-items:center;
             background: linear-gradient(145deg, #1a1b2e 0%, #1e2040 40%, #1a1d3a 100%);
@@ -66,10 +66,10 @@
             width:160px; height:auto; display:block; margin:0 auto 20px;
             filter: drop-shadow(0 4px 12px rgba(74,108,247,0.3));
         }
-        .auth-box .logo p { color:var(--text2); font-size:14px; text-align:center; }
+        .auth-box .logo-text { color:var(--text2); font-size:14px; text-align:center; margin-bottom:24px; }
         .auth-tabs {
             display:flex; background:var(--bg3); border-radius:var(--radius);
-            padding:3px; margin:24px 0; gap:3px;
+            padding:3px; margin-bottom:24px; gap:3px;
         }
         .auth-tabs button {
             flex:1; padding:12px; border:none; background:transparent; color:var(--text2);
@@ -107,7 +107,7 @@
         .auth-link { text-align:center; font-size:12px; color:var(--text3); margin-top:4px; }
         .auth-link span { color:var(--accent); cursor:pointer; font-weight:600; }
 
-        /* ========== MAIN SCREEN ========== */
+        /* Main Screen */
         #main-screen { flex-direction:column; }
         .nav-bar {
             display:flex; align-items:center; padding:0 16px; background:var(--bg2);
@@ -121,10 +121,9 @@
         }
         .nav-links button:hover, .nav-links button.active { background:var(--hover); color:var(--text); }
         .nav-right { margin-left:auto; display:flex; align-items:center; gap:8px; }
-        .nav-right .user-badge { display:flex; align-items:center; gap:6px; font-size:13px; cursor:pointer; }
         .app-container { display:flex; flex:1; overflow:hidden; }
 
-        /* ========== SERVER SIDEBAR (DISCORD STİLİ) ========== */
+        /* Server Sidebar */
         .server-sidebar {
             width:64px; background:#151628; display:flex; flex-direction:column;
             align-items:center; padding:12px 0; gap:4px; border-right:1px solid var(--border);
@@ -147,17 +146,13 @@
             z-index:999; pointer-events:none; font-weight:500;
         }
         .server-icon:hover .server-tooltip { display:block; }
-        .server-unread {
-            position:absolute; top:6px; left:6px; width:8px; height:8px;
-            border-radius:50%; background:var(--red); z-index:2;
-        }
         .server-pfp {
             width:46px; height:46px; border-radius:50%; object-fit:cover;
             cursor:pointer; transition:var(--transition);
         }
         .server-pfp:hover { border-radius:30%; }
 
-        /* ========== MAIN SIDEBAR ========== */
+        /* Main Sidebar */
         .main-sidebar {
             width:260px; background:var(--bg2); display:flex; flex-direction:column;
             border-right:1px solid var(--border); flex-shrink:0;
@@ -225,7 +220,7 @@
         }
         .sidebar-userbar .ubtn-group button:hover { background:var(--hover); color:var(--text); }
 
-        /* ========== CHAT ========== */
+        /* Chat */
         .chat-container { flex:1; display:flex; flex-direction:column; min-width:0; background:var(--bg); }
         .voice-bar {
             display:none; padding:8px 16px; background:#1a2e20; border-bottom:1px solid var(--green);
@@ -249,14 +244,7 @@
         .chat-header .ch-title { font-weight:700; font-size:14px; display:flex; align-items:center; gap:8px; }
         .chat-header .ch-actions { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--text3); }
         .chat-header .ch-actions .online-dot { width:7px; height:7px; border-radius:50%; background:var(--green); }
-        .chat-header .ch-actions button {
-            background:none; border:none; color:var(--text3); cursor:pointer;
-            font-size:16px; padding:4px 6px; border-radius:4px;
-        }
-        .chat-header .ch-actions button:hover { color:var(--text); background:var(--hover); }
-        .msg-area {
-            flex:1; overflow-y:auto; padding:16px 20px; display:flex; flex-direction:column;
-        }
+        .msg-area { flex:1; overflow-y:auto; padding:16px 20px; display:flex; flex-direction:column; }
         .msg-area .welcome { text-align:center; padding:60px 30px; color:var(--text3); margin:auto; }
         .msg {
             padding:5px 14px; border-radius:var(--radius-sm); transition:background 0.15s; position:relative;
@@ -273,7 +261,7 @@
         .msg .mtime { font-size:10px; color:var(--text3); }
         .msg .mbody { margin-left:44px; font-size:13px; color:var(--text); line-height:1.5; word-break:break-word; }
         .msg .mreply { margin-left:44px; font-size:11px; color:var(--text3); border-left:2px solid var(--accent); padding-left:8px; margin-bottom:3px; }
-        .msg .mimg { max-width:300px; max-height:300px; border-radius:8px; margin-left:44px; margin-top:4px; cursor:pointer; }
+        .msg .mimg { max-width:300px; border-radius:8px; margin-left:44px; margin-top:4px; cursor:pointer; }
         .msg .mbtns { display:none; gap:3px; margin-left:44px; margin-top:3px; }
         .msg:hover .mbtns { display:flex; }
         .mbtns button {
@@ -309,22 +297,13 @@
             background:var(--accent); color:#fff; border:none; padding:9px 16px;
             border-radius:4px; cursor:pointer; font-weight:600; font-size:13px; flex-shrink:0;
         }
-        .input-row .send-btn:hover { background:var(--accent2); }
-        .emoji-picker {
-            display:none; position:absolute; bottom:54px; left:12px; background:var(--bg2);
-            border:1px solid var(--border); border-radius:var(--radius); padding:8px; z-index:200;
-            flex-wrap:wrap; gap:3px; width:260px; box-shadow:var(--shadow); max-height:200px; overflow-y:auto;
-        }
-        .emoji-picker.open { display:flex; }
-        .emoji-picker span { cursor:pointer; font-size:22px; padding:5px; border-radius:4px; transition:var(--transition); }
-        .emoji-picker span:hover { background:var(--hover); }
 
-        /* ========== PANELS ========== */
+        /* Panels */
         .panel-container { display:none; flex:1; overflow-y:auto; padding:30px; }
         .panel-container.active { display:block; }
         .panel-card {
             background:var(--bg2); padding:20px; border-radius:var(--radius);
-            border:1px solid var(--border); margin-bottom:16px;
+            border:1px solid var(--border); margin-bottom:16px; position:relative;
         }
         .panel-card h3 { margin-bottom:12px; color:var(--accent); }
         .panel-card input, .panel-card select, .panel-card textarea {
@@ -334,16 +313,18 @@
         }
         .panel-card pre {
             background:#000; padding:15px; border-radius:var(--radius-sm);
-            overflow-x:auto; font-size:13px; position:relative;
+            overflow-x:auto; font-size:13px; position:relative; margin:0;
         }
-        .panel-card code { color:var(--green); }
+        .panel-card code { color:var(--green); font-family:'Consolas','Monaco',monospace; }
         .copy-btn {
-            position:absolute; top:8px; right:8px; background:var(--accent); color:#fff;
-            border:none; padding:4px 10px; border-radius:4px; cursor:pointer; font-size:11px;
+            position:absolute; top:28px; right:28px; background:var(--accent); color:#fff;
+            border:none; padding:5px 12px; border-radius:4px; cursor:pointer; font-size:11px;
+            font-weight:600; z-index:5;
         }
         .copy-btn:hover { background:var(--accent2); }
+        .copy-btn.copied { background:var(--green); }
 
-        /* ========== MODALS ========== */
+        /* Modals */
         .modal-overlay {
             display:none; position:fixed; top:0; left:0; width:100%; height:100%;
             z-index:600; justify-content:center; align-items:center; padding:20px;
@@ -362,8 +343,10 @@
             border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text);
             font-size:13px; outline:none;
         }
+        .check-row { display:flex; align-items:center; gap:8px; margin:8px 0; font-size:12px; color:var(--text2); }
+        .check-row input { width:auto; accent-color:var(--accent); }
 
-        /* ========== TOAST ========== */
+        /* Toast */
         #toast {
             position:fixed; bottom:30px; left:50%; transform:translateX(-50%);
             padding:14px 30px; border-radius:20px; color:#fff; font-weight:600;
@@ -371,12 +354,14 @@
             pointer-events:none; animation:toastIn 0.3s ease;
         }
 
-        /* ========== SCROLLBAR ========== */
+        /* Scrollbar */
         ::-webkit-scrollbar { width:5px; }
         ::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
 
-        /* ========== MOBILE ========== */
+        /* Mobile */
         .mobile-menu-btn { display:none!important; background:none; border:none; color:var(--text); font-size:22px; padding:6px 10px; cursor:pointer; }
+        .sidebar-backdrop { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:290; }
+        .sidebar-backdrop.open { display:block; }
         @media (max-width:768px) {
             .main-sidebar { position:fixed; left:0; top:0; bottom:0; z-index:300; transform:translateX(-100%); transition:transform 0.3s; width:260px; }
             .main-sidebar.mobile-open { transform:translateX(0); }
@@ -396,51 +381,49 @@
 </head>
 <body>
 
-<!-- ==================== AUTH SCREEN ==================== -->
+<!-- AUTH SCREEN -->
 <div id="auth-screen" class="screen active">
     <div class="auth-box">
         <img src="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png" alt="Gettic Logo" class="auth-logo-img">
-        <p style="text-align:center;color:var(--text2);">Takıl, konuş, paylaş</p>
+        <p class="logo-text">Takıl, konuş, paylaş</p>
         <div class="auth-tabs">
             <button id="tab-login" class="active" onclick="switchTab('login')">Giriş Yap</button>
             <button id="tab-register" onclick="switchTab('register')">Kayıt Ol</button>
         </div>
         <div id="form-login" class="auth-form active">
             <div class="input-group"><label>Kullanıcı Adı</label><div class="input-wrap"><input type="text" id="login-user" placeholder="Kullanıcı adınız" autocomplete="off"></div></div>
-            <div class="input-group"><label>Şifre</label><div class="input-wrap"><input type="password" id="login-pass" placeholder="Şifreniz"><button class="eye-btn" onclick="togglePass('login-pass',this)">👁</button></div></div>
+            <div class="input-group"><label>Şifre</label><div class="input-wrap"><input type="password" id="login-pass" placeholder="Şifreniz"><button class="eye-btn" onclick="togglePass('login-pass',this)">Göster</button></div></div>
             <button class="btn btn-primary" onclick="doLogin()">Giriş Yap</button>
             <p class="auth-link">Hesabın yok mu? <span onclick="switchTab('register')">Kayıt Ol</span></p>
         </div>
         <div id="form-register" class="auth-form">
             <div class="input-group"><label>Kullanıcı Adı</label><div class="input-wrap"><input type="text" id="reg-user" placeholder="Bir kullanıcı adı seçin" autocomplete="off" minlength="3" maxlength="20"></div></div>
-            <div class="input-group"><label>Şifre</label><div class="input-wrap"><input type="password" id="reg-pass" placeholder="En az 6 karakter" minlength="6"><button class="eye-btn" onclick="togglePass('reg-pass',this)">👁</button></div></div>
+            <div class="input-group"><label>Şifre</label><div class="input-wrap"><input type="password" id="reg-pass" placeholder="En az 6 karakter" minlength="6"><button class="eye-btn" onclick="togglePass('reg-pass',this)">Göster</button></div></div>
             <button class="btn btn-primary" onclick="doRegister()">Kayıt Ol</button>
             <p class="auth-link">Zaten hesabın var mı? <span onclick="switchTab('login')">Giriş Yap</span></p>
         </div>
-        <p style="text-align:center;color:var(--text3);font-size:10px;margin-top:12px;">Gettic v3.0 • 200+ Özellik</p>
+        <p style="text-align:center;color:var(--text3);font-size:10px;margin-top:12px;">Gettic v3.0 • 200+ Ozellik • gettic.js npm</p>
     </div>
 </div>
 
-<!-- ==================== MAIN SCREEN ==================== -->
+<!-- MAIN SCREEN -->
 <div id="main-screen" class="screen">
-    <!-- NAV BAR -->
     <div class="nav-bar">
         <img src="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png" alt="Gettic" class="nav-logo" onclick="navigate('chat')">
         <div class="nav-links">
-            <button onclick="navigate('chat')" id="nav-chat" class="active">💬 Sohbet</button>
-            <button onclick="navigate('bot')" id="nav-bot">🤖 Bot</button>
-            <button onclick="navigate('webhook')" id="nav-webhook">🔗 Webhook</button>
-            <button onclick="navigate('docs')" id="nav-docs">📚 Dökümantasyon</button>
+            <button onclick="navigate('chat')" id="nav-chat" class="active">Sohbet</button>
+            <button onclick="navigate('bot')" id="nav-bot">Bot</button>
+            <button onclick="navigate('webhook')" id="nav-webhook">Webhook</button>
+            <button onclick="navigate('docs')" id="nav-docs">Dokumantasyon</button>
         </div>
         <div class="nav-right">
             <span id="nav-username" style="font-size:13px;font-weight:600;"></span>
-            <button class="btn btn-sm btn-outline" onclick="showSettingsModal()">⚙️</button>
-            <button class="btn btn-sm btn-danger" onclick="doLogout()">Çıkış</button>
+            <button class="btn btn-sm btn-outline" onclick="showSettingsModal()">Ayarlar</button>
+            <button class="btn btn-sm btn-danger" onclick="doLogout()">Cikis</button>
         </div>
     </div>
 
     <div class="app-container">
-        <!-- SERVER SIDEBAR (DISCORD STİLİ) -->
         <div class="server-sidebar" id="server-sidebar">
             <div class="server-icon active" onclick="selectServer('main')" data-server="main">
                 <img src="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png" alt="Ana Sunucu">
@@ -450,22 +433,21 @@
             <div id="user-servers"></div>
         </div>
 
-        <!-- MAIN SIDEBAR -->
         <div class="main-sidebar" id="chat-sidebar">
             <div class="sidebar-banner" id="sidebar-banner"></div>
             <div class="sidebar-header">
                 <span id="server-name">Gettic</span>
                 <div style="display:flex;gap:2px;">
-                    <button onclick="showServerSettings()" title="Sunucu Ayarları">⚙️</button>
+                    <button onclick="showServerSettings()" title="Sunucu Ayarlari"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b6e80' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='3'%3E%3C/circle%3E%3Cpath d='M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42'%3E%3C/path%3E%3C/svg%3E" alt="Ayarlar"></button>
                     <button onclick="showRoomModal()" title="Kanal Ekle">+</button>
                 </div>
             </div>
             <div class="sidebar-scroll">
-                <div class="sidebar-section"><span>💬 DM</span></div>
+                <div class="sidebar-section"><span>DM</span></div>
                 <div id="dm-list"></div>
-                <div class="sidebar-section"><span>🔊 Sesli Kanallar</span></div>
+                <div class="sidebar-section"><span>Sesli Kanallar</span></div>
                 <div id="voice-list"></div>
-                <div class="sidebar-section"><span>💬 Yazılı Kanallar</span></div>
+                <div class="sidebar-section"><span>Yazili Kanallar</span></div>
                 <div id="room-list"></div>
             </div>
             <div class="sidebar-userbar">
@@ -473,104 +455,99 @@
                     <div class="avatar" id="my-avatar-small">?<span class="status-dot online" id="my-status-dot"></span></div>
                     <div class="user-text">
                         <span class="uname" id="my-name-small">Misafir</span>
-                        <span class="ustatus" id="my-status-small">Çevrimiçi</span>
+                        <span class="ustatus" id="my-status-small">Cevrimici</span>
                     </div>
                 </div>
                 <div class="ubtn-group">
-                    <button onclick="toggleMic()" title="Mikrofon">🎤</button>
-                    <button onclick="showSettingsModal()" title="Ayarlar">⚙️</button>
-                    <button onclick="doLogout()" title="Çıkış">🚪</button>
+                    <button onclick="toggleMic()" title="Mikrofon"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236b6e80' stroke-width='2'%3E%3Cpath d='M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z'%3E%3C/path%3E%3Cpath d='M19 10v2a7 7 0 0 1-14 0v-2'%3E%3C/path%3E%3C/svg%3E" alt="Mikrofon"></button>
+                    <button onclick="showSettingsModal()" title="Ayarlar"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236b6e80' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='3'%3E%3C/circle%3E%3C/svg%3E" alt="Ayarlar"></button>
+                    <button onclick="doLogout()" title="Cikis"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236b6e80' stroke-width='2'%3E%3Cpath d='M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4'%3E%3C/path%3E%3Cpolyline points='16 17 21 12 16 7'%3E%3C/polyline%3E%3Cline x1='21' y1='12' x2='9' y2='12'%3E%3C/line%3E%3C/svg%3E" alt="Cikis"></button>
                 </div>
             </div>
         </div>
 
-        <!-- CHAT -->
         <div class="chat-container" id="chat-container">
             <div class="voice-bar" id="voice-bar">
-                <span class="v-info" id="v-info">🔊 Bağlanıyor...</span>
+                <span class="v-info" id="v-info">Sesli kanala baglaniyor...</span>
                 <div class="v-btns">
-                    <button class="v-btn" id="btn-mute" onclick="toggleMic()">🎤</button>
-                    <button class="v-btn" onclick="toggleCamera()">📷</button>
-                    <button class="v-btn" onclick="toggleScreenShare()">🖥️</button>
-                    <button class="v-btn" style="background:var(--red);color:#fff;" onclick="leaveVoice()">✕</button>
+                    <button class="v-btn" id="btn-mute" onclick="toggleMic()"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2'%3E%3Cpath d='M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z'%3E%3C/path%3E%3C/svg%3E" alt="Mikrofon"></button>
+                    <button class="v-btn" onclick="toggleCamera()"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2'%3E%3Cpolygon points='23 7 16 12 23 17 23 7'%3E%3C/polygon%3E%3Crect x='1' y='5' width='15' height='14' rx='2' ry='2'%3E%3C/rect%3E%3C/svg%3E" alt="Kamera"></button>
+                    <button class="v-btn" onclick="toggleScreenShare()"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2'%3E%3Crect x='2' y='3' width='20' height='14' rx='2' ry='2'%3E%3C/rect%3E%3Cline x1='8' y1='21' x2='16' y2='21'%3E%3C/line%3E%3Cline x1='12' y1='17' x2='12' y2='21'%3E%3C/line%3E%3C/svg%3E" alt="Ekran"></button>
+                    <button class="v-btn" style="background:var(--red);color:#fff;" onclick="leaveVoice()">X</button>
                 </div>
             </div>
             <div class="chat-header">
                 <div class="ch-title">
-                    <button class="mobile-menu-btn" onclick="toggleMobileSidebar()">☰</button>
+                    <button class="mobile-menu-btn" onclick="toggleMobileSidebar()">&#9776;</button>
                     <span>#</span><span id="room-name">genel</span>
-                    <button onclick="pinRoom()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;" title="Sabitle">📌</button>
+                    <button onclick="pinRoom()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;" title="Sabitle"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236b6e80' stroke-width='2'%3E%3Cline x1='12' y1='17' x2='12' y2='22'%3E%3C/line%3E%3Cpath d='M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z'%3E%3C/path%3E%3C/svg%3E" alt="Sabitle"></button>
                 </div>
                 <div class="ch-actions">
-                    <span class="online-dot"></span><span id="online-count">0 çevrimiçi</span>
-                    <button onclick="toggleMembers()">👥</button>
-                    <button onclick="showSearchModal()">🔍</button>
+                    <span class="online-dot"></span><span id="online-count">0 cevrimici</span>
+                    <button onclick="toggleMembers()"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b6e80' stroke-width='2'%3E%3Cpath d='M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2'%3E%3C/path%3E%3Ccircle cx='9' cy='7' r='4'%3E%3C/circle%3E%3Cpath d='M23 21v-2a4 4 0 0 0-3-3.87'%3E%3C/path%3E%3Cpath d='M16 3.13a4 4 0 0 1 0 7.75'%3E%3C/path%3E%3C/svg%3E" alt="Uyeler"></button>
                 </div>
             </div>
             <div class="msg-area" id="messages">
                 <div class="welcome">
-                    <img src="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png" alt="Gettic" style="width:120px;margin-bottom:20px;opacity:0.4;">
-                    <h2>Gettic'e Hoş Geldin!</h2>
-                    <p>Sohbete başlamak için bir mesaj yaz</p>
+                    <img src="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png" alt="Gettic" style="width:100px;margin-bottom:20px;opacity:0.3;">
+                    <h2>Gettic'e Hos Geldin!</h2>
+                    <p>Sohbete baslamak icin bir mesaj yaz</p>
                 </div>
             </div>
             <div class="typing-row" id="typing"></div>
             <div class="input-zone">
                 <div class="reply-bar" id="reply-bar">
-                    <span>↪ Yanıtlanıyor: <span id="reply-text"></span></span>
-                    <button onclick="cancelReply()">✕</button>
+                    <span>Yanitlaniyor: <span id="reply-text"></span></span>
+                    <button onclick="cancelReply()">X</button>
                 </div>
                 <div class="input-row">
-                    <button class="inp-btn" onclick="toggleEmojiPicker()">😊</button>
-                    <button class="inp-btn" onclick="document.getElementById('file-upload').click()">📎</button>
+                    <button class="inp-btn" onclick="document.getElementById('file-upload').click()"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%236b6e80' stroke-width='2'%3E%3Cpath d='M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48'%3E%3C/path%3E%3C/svg%3E" alt="Dosya"></button>
                     <input type="file" id="file-upload" style="display:none;" onchange="uploadFile()" accept="image/*,video/*">
-                    <button class="inp-btn" onclick="showPollModal()">📊</button>
+                    <button class="inp-btn" onclick="showPollModal()"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%236b6e80' stroke-width='2'%3E%3Cpath d='M18 20V10'%3E%3C/path%3E%3Cpath d='M12 20V4'%3E%3C/path%3E%3Cpath d='M6 20v-6'%3E%3C/path%3E%3C/svg%3E" alt="Anket"></button>
                     <textarea id="msg-input" placeholder="#genel e mesaj yaz..." rows="1" maxlength="4000" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg();}" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,140)+'px';"></textarea>
-                    <button class="send-btn" onclick="sendMsg()">Gönder</button>
-                    <div class="emoji-picker" id="emoji-picker">
-                        <span onclick="insertEmoji('😊')">😊</span><span onclick="insertEmoji('😂')">😂</span><span onclick="insertEmoji('❤️')">❤️</span><span onclick="insertEmoji('👍')">👍</span><span onclick="insertEmoji('🎉')">🎉</span><span onclick="insertEmoji('🔥')">🔥</span><span onclick="insertEmoji('😢')">😢</span><span onclick="insertEmoji('😡')">😡</span><span onclick="insertEmoji('👏')">👏</span><span onclick="insertEmoji('💯')">💯</span><span onclick="insertEmoji('🤔')">🤔</span><span onclick="insertEmoji('😎')">😎</span><span onclick="insertEmoji('🙏')">🙏</span><span onclick="insertEmoji('💀')">💀</span><span onclick="insertEmoji('🐱')">🐱</span><span onclick="insertEmoji('🐶')">🐶</span><span onclick="insertEmoji('🦊')">🦊</span><span onclick="insertEmoji('🌈')">🌈</span><span onclick="insertEmoji('⚡')">⚡</span><span onclick="insertEmoji('🍕')">🍕</span><span onclick="insertEmoji('🎮')">🎮</span><span onclick="insertEmoji('💻')">💻</span><span onclick="insertEmoji('☕')">☕</span><span onclick="insertEmoji('🌟')">🌟</span><span onclick="insertEmoji('🎵')">🎵</span>
-                    </div>
+                    <button class="send-btn" onclick="sendMsg()">Gonder</button>
                 </div>
             </div>
         </div>
 
-        <!-- PANELS -->
         <div class="panel-container" id="panel-bot">
-            <h2>🤖 Bot Yönetimi</h2>
-            <div class="panel-card"><h3>Bot Oluştur</h3><input type="text" id="bot-name" placeholder="Bot Adı"><button class="btn btn-primary" onclick="createBot()">Oluştur</button></div>
+            <h2 style="margin-bottom:16px;">Bot Yonetimi</h2>
+            <div class="panel-card"><h3>Bot Olustur</h3><input type="text" id="bot-name" placeholder="Bot Adi"><button class="btn btn-primary" onclick="createBot()">Olustur</button></div>
             <div id="bot-list"></div>
         </div>
+
         <div class="panel-container" id="panel-webhook">
-            <h2>🔗 Webhook Yönetimi</h2>
-            <div class="panel-card"><h3>Webhook Oluştur</h3><input type="text" id="webhook-name" placeholder="Webhook Adı"><input type="text" id="webhook-room" placeholder="Oda (genel)"><button class="btn btn-primary" onclick="createWebhook()">Oluştur</button></div>
+            <h2 style="margin-bottom:16px;">Webhook Yonetimi</h2>
+            <div class="panel-card"><h3>Webhook Olustur</h3><input type="text" id="webhook-name" placeholder="Webhook Adi"><input type="text" id="webhook-room" placeholder="Oda (genel)"><button class="btn btn-primary" onclick="createWebhook()">Olustur</button></div>
             <div id="webhook-list"></div>
         </div>
+
         <div class="panel-container" id="panel-docs">
-            <h2>📚 Gettic.js Dökümantasyonu</h2>
+            <h2 style="margin-bottom:16px;">Gettic.js Dokumantasyonu</h2>
             <div class="panel-card">
                 <h3>Kurulum</h3>
-                <pre><code>npm install gettic.js</code><button class="copy-btn" onclick="copyCode(this)">📋 Kopyala</button></pre>
+                <pre><code>npm install gettic.js</code><button class="copy-btn" onclick="copyCode(this)">Kopyala</button></pre>
             </div>
             <div class="panel-card">
-                <h3>Bot Örneği</h3>
+                <h3>Bot Ornegi</h3>
                 <pre><code>const { Client } = require('gettic.js');
 const bot = new Client({ token: 'BOT_TOKEN' });
 bot.on('ready', () => bot.send('genel', 'Merhaba!'));
 bot.command('ping', ctx => ctx.reply('Pong!'));
-bot.connect();</code><button class="copy-btn" onclick="copyCode(this)">📋 Kopyala</button></pre>
+bot.connect();</code><button class="copy-btn" onclick="copyCode(this)">Kopyala</button></pre>
             </div>
             <div class="panel-card">
-                <h3>Webhook Örneği</h3>
+                <h3>Webhook Ornegi</h3>
                 <pre><code>const { WebhookClient } = require('gettic.js');
 const webhook = new WebhookClient('WEBHOOK_URL');
-webhook.send('Merhaba Gettic!');</code><button class="copy-btn" onclick="copyCode(this)">📋 Kopyala</button></pre>
+webhook.send('Merhaba Gettic!');</code><button class="copy-btn" onclick="copyCode(this)">Kopyala</button></pre>
             </div>
             <div class="panel-card">
                 <h3>REST API</h3>
                 <pre><code>const { RESTClient } = require('gettic.js');
 const api = new RESTClient({ token: 'USER_TOKEN' });
 const rooms = await api.getRooms();
-const profile = await api.getProfile();</code><button class="copy-btn" onclick="copyCode(this)">📋 Kopyala</button></pre>
+const profile = await api.getProfile();</code><button class="copy-btn" onclick="copyCode(this)">Kopyala</button></pre>
             </div>
             <div class="panel-card">
                 <h3>HTTP Panel</h3>
@@ -578,20 +555,28 @@ const profile = await api.getProfile();</code><button class="copy-btn" onclick="
 const server = http.createServer((req, res) => {
   if (req.url === '/ping') res.end('{"ping":"ok"}');
 });
-server.listen(3000);</code><button class="copy-btn" onclick="copyCode(this)">📋 Kopyala</button></pre>
+server.listen(3000);</code><button class="copy-btn" onclick="copyCode(this)">Kopyala</button></pre>
             </div>
         </div>
     </div>
 </div>
 
-<!-- ==================== MODALS ==================== -->
-<div id="room-modal" class="modal-overlay"><div class="modal-bg" onclick="closeMod('room-modal')"></div><div class="modal-box"><button class="modal-close" onclick="closeMod('room-modal')">✕</button><h3>Kanal Oluştur</h3><select id="new-room-type"><option value="text">Yazılı</option><option value="voice">Sesli</option></select><input id="new-room-name" placeholder="Kanal adı"><input id="new-room-cat" placeholder="Kategori"><input id="new-room-desc" placeholder="Açıklama"><div class="check-row" style="display:flex;align-items:center;gap:8px;margin:8px 0;"><input type="checkbox" id="new-room-private" onchange="$('room-pass-wrap').style.display=this.checked?'block':'none'"><label style="font-size:12px;">Özel (şifreli)</label></div><div id="room-pass-wrap" style="display:none;"><input type="password" id="new-room-pass" placeholder="Şifre"></div><button class="btn btn-primary" onclick="createRoom()">Oluştur</button></div></div>
-<div id="server-modal" class="modal-overlay"><div class="modal-bg" onclick="closeMod('server-modal')"></div><div class="modal-box"><button class="modal-close" onclick="closeMod('server-modal')">✕</button><h3>Sunucu Oluştur</h3><input id="new-server-name" placeholder="Sunucu adı"><input type="file" id="server-icon-upload" accept="image/*"><label style="font-size:12px;color:var(--text3);">Şablon</label><select id="server-template"><option value="">Boş</option><option value="gaming">Oyun</option><option value="study">Çalışma</option><option value="friend">Arkadaş</option></select><button class="btn btn-primary" onclick="createServer()">Oluştur</button></div></div>
-<div id="server-settings-modal" class="modal-overlay"><div class="modal-bg" onclick="closeMod('server-settings-modal')"></div><div class="modal-box"><button class="modal-close" onclick="closeMod('server-settings-modal')">✕</button><h3>Sunucu Ayarları</h3><label style="font-size:11px;color:var(--text3);">Sunucu Adı</label><input id="settings-server-name"><label style="font-size:11px;color:var(--text3);">Roller</label><div id="roles-list"></div><div style="display:flex;gap:6px;"><input id="new-role-name" placeholder="Rol adı"><select id="new-role-color"><option value="#4a6cf7">Mavi</option><option value="#22c55e">Yeşil</option><option value="#eab308">Sarı</option><option value="#ef4444">Kırmızı</option></select><button class="btn btn-sm btn-primary" onclick="addRole()">+</button></div><label style="font-size:11px;color:var(--text3);">Davet</label><div style="display:flex;gap:6px;"><input id="invite-link" readonly><button class="btn btn-sm btn-primary" onclick="copyInvite()">Kopyala</button></div><button class="btn btn-primary" onclick="saveServerSettings()">Kaydet</button></div></div>
-<div id="settings-modal" class="modal-overlay"><div class="modal-bg" onclick="closeMod('settings-modal')"></div><div class="modal-box"><button class="modal-close" onclick="closeMod('settings-modal')">✕</button><h3>Ayarlar</h3><select id="theme-select" onchange="changeTheme(this.value)"><option value="dark">Koyu</option><option value="light">Açık</option><option value="blue">Mavi</option><option value="midnight">Gece</option></select><button class="btn btn-primary" onclick="closeMod('settings-modal')">Kapat</button></div></div>
-<div id="poll-modal" class="modal-overlay"><div class="modal-bg" onclick="closeMod('poll-modal')"></div><div class="modal-box"><button class="modal-close" onclick="closeMod('poll-modal')">✕</button><h3>Anket</h3><input id="poll-question" placeholder="Soru"><div id="poll-options"><input placeholder="Seçenek 1"><input placeholder="Seçenek 2"></div><button class="btn btn-sm" onclick="addPollOption()">+</button><button class="btn btn-primary" onclick="createPoll()">Başlat</button></div></div>
+<div class="sidebar-backdrop" id="sidebar-backdrop" onclick="closeMobileSidebar()"></div>
+
+<!-- MODALS -->
+<div id="room-modal" class="modal-overlay"><div class="modal-bg" onclick="closeMod('room-modal')"></div><div class="modal-box"><button class="modal-close" onclick="closeMod('room-modal')">X</button><h3>Kanal Olustur</h3><select id="new-room-type"><option value="text">Yazili Kanal</option><option value="voice">Sesli Kanal</option></select><input id="new-room-name" placeholder="Kanal adi"><input id="new-room-cat" placeholder="Kategori (Orn: Oyun)"><input id="new-room-desc" placeholder="Aciklama"><div class="check-row"><input type="checkbox" id="new-room-private" onchange="document.getElementById('room-pass-wrap').style.display=this.checked?'block':'none'"><label>Ozel Kanal (sifreli)</label></div><div id="room-pass-wrap" style="display:none;"><input type="password" id="new-room-pass" placeholder="Sifre"></div><button class="btn btn-primary" onclick="createRoom()">Olustur</button></div></div>
+
+<div id="server-modal" class="modal-overlay"><div class="modal-bg" onclick="closeMod('server-modal')"></div><div class="modal-box"><button class="modal-close" onclick="closeMod('server-modal')">X</button><h3>Sunucu Olustur</h3><input id="new-server-name" placeholder="Sunucu adi"><input type="file" id="server-icon-upload" accept="image/*"><label style="font-size:12px;color:var(--text3);">Sablon (Opsiyonel)</label><select id="server-template"><option value="">Bos Sunucu</option><option value="gaming">Oyun</option><option value="study">Calisma</option><option value="friend">Arkadas</option></select><button class="btn btn-primary" onclick="createServer()">Olustur</button></div></div>
+
+<div id="server-settings-modal" class="modal-overlay"><div class="modal-bg" onclick="closeMod('server-settings-modal')"></div><div class="modal-box"><button class="modal-close" onclick="closeMod('server-settings-modal')">X</button><h3>Sunucu Ayarlari</h3><label style="font-size:11px;color:var(--text3);">Sunucu Adi</label><input id="settings-server-name"><label style="font-size:11px;color:var(--text3);margin-top:10px;">Roller</label><div id="roles-list" style="margin:6px 0;"></div><div style="display:flex;gap:6px;"><input id="new-role-name" placeholder="Rol adi"><select id="new-role-color"><option value="#4a6cf7">Mavi</option><option value="#22c55e">Yesil</option><option value="#eab308">Sari</option><option value="#ef4444">Kirmizi</option></select><button class="btn btn-sm btn-primary" onclick="addRole()">+</button></div><label style="font-size:11px;color:var(--text3);margin-top:10px;">Davet Linki</label><div style="display:flex;gap:6px;"><input id="invite-link" readonly><button class="btn btn-sm btn-primary" onclick="copyInvite()">Kopyala</button></div><button class="btn btn-primary" style="margin-top:10px;" onclick="saveServerSettings()">Kaydet</button></div></div>
+
+<div id="settings-modal" class="modal-overlay"><div class="modal-bg" onclick="closeMod('settings-modal')"></div><div class="modal-box"><button class="modal-close" onclick="closeMod('settings-modal')">X</button><h3>Kullanici Ayarlari</h3><label style="font-size:11px;color:var(--text3);">Tema</label><select id="theme-select" onchange="changeTheme(this.value)"><option value="dark">Koyu</option><option value="light">Acik</option><option value="blue">Mavi</option><option value="midnight">Gece Yarisi</option></select><button class="btn btn-primary" style="margin-top:10px;" onclick="closeMod('settings-modal')">Kapat</button></div></div>
+
+<div id="poll-modal" class="modal-overlay"><div class="modal-bg" onclick="closeMod('poll-modal')"></div><div class="modal-box"><button class="modal-close" onclick="closeMod('poll-modal')">X</button><h3>Anket Baslat</h3><input id="poll-question" placeholder="Anket sorusu"><div id="poll-options"><input placeholder="Secenek 1"><input placeholder="Secenek 2"></div><button class="btn btn-sm btn-outline" onclick="addPollOption()" style="width:auto;">+ Secenek Ekle</button><button class="btn btn-primary" style="margin-top:8px;" onclick="createPoll()">Baslat</button></div></div>
+
 <div id="toast"></div>
 
+<!-- PART 2: JAVASCRIPT (ayri mesajda geliyor) -->
 <script>
 (function(){
 "use strict";
@@ -609,8 +594,11 @@ function showToast(m,t){
     clearTimeout(e._timer);e._timer=setTimeout(function(){e.style.display='none';},3500);
 }
 function closeMod(id){$(id).classList.remove('open');}
+function openMod(id){$(id).classList.add('open');}
 function esc(s){var d=document.createElement('div');d.textContent=s||'';return d.innerHTML;}
 function strColor(s){var h=0;for(var i=0;i<(s||'?').length;i++)h=s.charCodeAt(i)+((h<<5)-h);var c=['#4a6cf7','#22c55e','#eab308','#ef4444','#f472b6','#38bdf8','#a78bfa','#fb923c'];return c[Math.abs(h)%c.length];}
+function formatDate(d){return new Date(d).toLocaleDateString('tr-TR',{day:'numeric',month:'long',year:'numeric'});}
+function formatTime(d){return new Date(d).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});}
 
 // ============ NAVIGATION ============
 window.navigate=function(v){
@@ -625,23 +613,44 @@ window.navigate=function(v){
 };
 
 // ============ AUTH ============
-window.switchTab=function(t){$('tab-login').classList.toggle('active',t==='login');$('tab-register').classList.toggle('active',t==='register');$('form-login').classList.toggle('active',t==='login');$('form-register').classList.toggle('active',t==='register');};
-window.togglePass=function(id,btn){var i=$(id);i.type=i.type==='password'?'text':'password';btn.textContent=i.type==='password'?'👁':'🙈';};
+window.switchTab=function(t){
+    $('tab-login').classList.toggle('active',t==='login');
+    $('tab-register').classList.toggle('active',t==='register');
+    $('form-login').classList.toggle('active',t==='login');
+    $('form-register').classList.toggle('active',t==='register');
+};
+window.togglePass=function(id,btn){
+    var i=$(id);i.type=i.type==='password'?'text':'password';btn.textContent=i.type==='password'?'Goster':'Gizle';
+};
 window.doLogin=function(){
     var u=$('login-user').value.trim(),p=$('login-pass').value;
-    if(!u||!p) return showToast('Tüm alanları doldur','error');
+    if(!u||!p) return showToast('Tum alanlari doldurun','error');
     fetch(API+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})})
-    .then(function(r){return r.json();}).then(function(d){if(d.error) return showToast(d.error,'error');me=d.user;token=d.token;myStatus=me.status||'online';localStorage.setItem('gt_token',token);localStorage.setItem('gt_user',JSON.stringify(me));openApp();}).catch(function(){showToast('Sunucuya bağlanılamadı!','error');});
+    .then(function(r){return r.json();}).then(function(d){
+        if(d.error) return showToast(d.error,'error');
+        me=d.user;token=d.token;myStatus=me.status||'online';
+        localStorage.setItem('gt_token',token);localStorage.setItem('gt_user',JSON.stringify(me));
+        openApp();
+    }).catch(function(){showToast('Sunucuya baglanilamadi! Internetini kontrol et.','error');});
 };
 window.doRegister=function(){
     var u=$('reg-user').value.trim(),p=$('reg-pass').value;
-    if(!u||!p) return showToast('Tüm alanları doldur','error');
-    if(u.length<3) return showToast('Kullanıcı adı en az 3 karakter','error');
-    if(p.length<6) return showToast('Şifre en az 6 karakter','error');
+    if(!u||!p) return showToast('Tum alanlari doldurun','error');
+    if(u.length<3) return showToast('Kullanici adi en az 3 karakter olmali','error');
+    if(p.length<6) return showToast('Sifre en az 6 karakter olmali','error');
     fetch(API+'/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})})
-    .then(function(r){return r.json();}).then(function(d){if(d.error) return showToast(d.error,'error');me=d.user;token=d.token;localStorage.setItem('gt_token',token);localStorage.setItem('gt_user',JSON.stringify(me));showToast('Hoş geldin '+me.username+'!','success');openApp();}).catch(function(){showToast('Sunucuya bağlanılamadı!','error');});
+    .then(function(r){return r.json();}).then(function(d){
+        if(d.error) return showToast(d.error,'error');
+        me=d.user;token=d.token;
+        localStorage.setItem('gt_token',token);localStorage.setItem('gt_user',JSON.stringify(me));
+        showToast('Hos geldin '+me.username+'!','success');
+        openApp();
+    }).catch(function(){showToast('Sunucuya baglanilamadi!','error');});
 };
-window.doLogout=function(){if(!confirm('Çıkış yap?')) return;leaveVoice();localStorage.clear();location.reload();};
+window.doLogout=function(){
+    if(!confirm('Cikis yapmak istediginize emin misiniz?')) return;
+    leaveVoice();localStorage.clear();location.reload();
+};
 
 // ============ APP ============
 function openApp(){
@@ -651,96 +660,317 @@ function openApp(){
     if(me.avatar){$('my-avatar-small').style.backgroundImage='url('+me.avatar+')';$('my-avatar-small').textContent='';}
     updateStatusUI();connectSocket();loadRooms();navigate('chat');
     if(localStorage.getItem('gt_theme')) changeTheme(localStorage.getItem('gt_theme'));
+    renderServers();
 }
-function connectSocket(){if(socket) return;socket=io(API);socket.on('connect',function(){if(me)socket.emit('user-online',me._id);});socket.on('receive-message',function(m){showMsg(m);});socket.on('user-typing',function(d){$('typing').textContent=(d.isTyping&&d.userId!==me._id)?d.userName+' yazıyor...':'';});socket.on('room-user-count',function(c){$('online-count').textContent=c+' çevrimiçi';});socket.on('message-error',function(e){showToast(e,'error');});}
-function loadRooms(){fetch(API+'/api/rooms').then(function(r){return r.json();}).then(function(d){if(Array.isArray(d)){rooms=d;renderRooms();}}).catch(function(){});}
+
+function connectSocket(){
+    if(socket) return;
+    socket=io(API);
+    socket.on('connect',function(){if(me)socket.emit('user-online',me._id);});
+    socket.on('receive-message',function(m){showMsg(m);});
+    socket.on('user-typing',function(d){$('typing').textContent=(d.isTyping&&d.userId!==me._id)?d.userName+' yaziyor...':'';});
+    socket.on('room-user-count',function(c){$('online-count').textContent=c+' cevrimici';});
+    socket.on('message-error',function(e){showToast(e,'error');});
+    socket.on('voice-join',function(d){addVoiceUser(d);});
+    socket.on('voice-leave',function(d){removeVoiceUser(d);});
+}
+
+function loadRooms(){
+    fetch(API+'/api/rooms').then(function(r){return r.json();}).then(function(d){
+        if(Array.isArray(d)){rooms=d;renderRooms();}
+    }).catch(function(){});
+}
+
 function renderRooms(){
     var rl=$('room-list'),vl=$('voice-list'),dl=$('dm-list');
     rl.innerHTML='';vl.innerHTML='';dl.innerHTML='';
-    rooms.forEach(function(r){var d=document.createElement('div');d.className='sidebar-item';d.innerHTML='<span class="prefix">'+(r.type==='voice'?'🔊':'#')+'</span> '+esc(r.name);d.onclick=function(){if(r.type==='voice')joinVoice(r._id);else joinRoom(r._id,r.name,'text',r.description||'');};if(r.type==='voice')vl.appendChild(d);else rl.appendChild(d);});
-    voiceRooms.forEach(function(v){vl.innerHTML+='<div class="sidebar-item" onclick="joinVoice(\''+v.id+'\')"><span class="prefix">🔊</span> '+esc(v.name)+'</div>';});
-    dms.forEach(function(dm){dl.innerHTML+='<div class="sidebar-item" onclick="joinRoom(\'dm-'+dm.id+'\',\''+dm.name+'\',\'dm\',\'\')"><span class="prefix">@</span> '+esc(dm.name)+'</div>';});
+    rooms.forEach(function(r){
+        var d=document.createElement('div');d.className='sidebar-item';
+        d.innerHTML='<span class="prefix">'+(r.type==='voice'?'&#9830;':'#')+'</span> '+esc(r.name);
+        d.onclick=function(){if(r.type==='voice')joinVoice(r._id);else joinRoom(r._id,r.name,'text',r.description||'');};
+        if(r.type==='voice')vl.appendChild(d);else rl.appendChild(d);
+    });
+    voiceRooms.forEach(function(v){
+        vl.innerHTML+='<div class="sidebar-item" onclick="joinVoice(\''+v.id+'\')"><span class="prefix">&#9830;</span> '+esc(v.name)+'</div>';
+    });
+    dms.forEach(function(dm){
+        dl.innerHTML+='<div class="sidebar-item" onclick="joinRoom(\'dm-'+dm.id+'\',\''+dm.name+'\',\'dm\',\'\')"><span class="prefix">@</span> '+esc(dm.name)+'</div>';
+    });
 }
+
 window.joinRoom=function(id,name,type,desc){
-    if(cRoom&&socket)socket.emit('leave-room',cRoom);cRoom=id;cRoomType=type||'text';if(socket)socket.emit('join-room',id);
+    if(cRoom&&socket)socket.emit('leave-room',cRoom);cRoom=id;cRoomType=type||'text';
+    if(socket)socket.emit('join-room',id);
+    document.querySelectorAll('.sidebar-item').forEach(function(e){e.classList.remove('active');});
     $('room-name').textContent=name;$('msg-input').placeholder=(type==='dm'?'@':'#')+name+' e mesaj yaz...';
-    $('messages').innerHTML='<div class="welcome"><h2>#'+esc(name)+'</h2><p>'+esc(desc||'Sohbete başla!')+'</p></div>';
-    loadMessages(id);
+    $('messages').innerHTML='<div class="welcome"><h2>'+(type==='dm'?'@':'#')+esc(name)+'</h2><p>'+esc(desc||'Sohbete basla!')+'</p></div>';
+    loadMessages(id);closeMobileSidebar();
 };
-function loadMessages(rid){fetch(API+'/api/rooms/'+rid+'/messages').then(function(r){return r.json();}).then(function(d){if(!Array.isArray(d)) return;$('messages').innerHTML='';d.forEach(function(m){showMsg(m);});}).catch(function(){});}
+
+function loadMessages(rid){
+    fetch(API+'/api/rooms/'+rid+'/messages').then(function(r){return r.json();}).then(function(d){
+        if(!Array.isArray(d)) return;$('messages').innerHTML='';d.forEach(function(m){showMsg(m);});
+    }).catch(function(){});
+}
 
 // ============ MESSAGES ============
-window.sendMsg=function(){var inp=$('msg-input'),txt=inp.value.trim();if(!txt||!socket||!me) return;socket.emit('send-message',{content:txt,senderId:me._id,senderName:me.username,roomId:cRoom,type:'text',replyTo:reply?reply._id:null});inp.value='';inp.style.height='auto';};
-function showMsg(m){var a=$('messages'),ti=new Date(m.timestamp).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'}),letr=(m.senderName||'?').charAt(0).toUpperCase(),col=strColor(m.senderName||'?'),isMe=(m.sender&&m.sender._id===me._id)||(m.sender===me._id);var d=document.createElement('div');d.className='msg';d.innerHTML='<div class="mhdr"><div class="mava" style="background:'+col+'">'+letr+'</div><span class="muser" style="color:'+col+'">'+esc(m.senderName)+'</span><span class="mtime">'+ti+'</span></div><div class="mbody">'+esc(m.content)+'</div><div class="mbtns"><button onclick="replyMsg(\''+m._id+'\')">↩ Yanıtla</button>'+(isMe?'<button onclick="editMsg(\''+m._id+'\')">✏ Düzenle</button><button onclick="delMsg(\''+m._id+'\')">🗑 Sil</button>':'')+'<button onclick="pinMsg(\''+m._id+'\')">📌</button></div>';a.appendChild(d);a.scrollTop=a.scrollHeight;}
-window.replyMsg=function(id){var e=document.getElementById('msg-'+id);if(!e) return;reply={_id:id,content:e.querySelector('.mbody').textContent};$('reply-bar').style.display='flex';$('reply-text').textContent=reply.content.substring(0,60);$('msg-input').focus();};
+window.sendMsg=function(){
+    var inp=$('msg-input'),txt=inp.value.trim();
+    if(!txt||!socket||!me) return;
+    var type='text';
+    if(txt.match(/\.(gif|png|jpg|jpeg|webp|svg)$/i)) type='image';
+    if(txt.match(/\.(mp4|webm)$/i)) type='video';
+    if(txt.match(/^https?:\/\/.+/)) type='link';
+    socket.emit('send-message',{content:txt,senderId:me._id,senderName:me.username,roomId:cRoom,type:type,replyTo:reply?reply._id:null});
+    inp.value='';inp.style.height='auto';cancelReply();
+};
+
+function showMsg(m){
+    var a=$('messages'),ti=formatTime(m.timestamp),letr=(m.senderName||'?').charAt(0).toUpperCase(),col=strColor(m.senderName||'?'),isMe=(m.sender&&m.sender._id===me._id)||(m.sender===me._id);
+    var rh='';if(m.replyTo&&m.replyTo.content) rh='<div class="mreply">Yanit: '+esc(m.replyTo.content.substring(0,60))+'</div>';
+    var d=document.createElement('div');d.className='msg';d.id='msg-'+m._id;
+    var extra='';
+    if(m.type==='image'||(m.content&&m.content.match(/^data:image/))) extra='<img class="mimg" src="'+m.content+'" onclick="window.open(\''+m.content+'\')" loading="lazy">';
+    if(m.type==='video'||(m.content&&m.content.match(/^data:video/))) extra='<video class="mimg" autoplay loop muted playsinline style="max-width:300px;border-radius:8px;margin-left:44px;margin-top:4px;"><source src="'+m.content+'"></video>';
+    if(m.type==='poll'){ extra='<div class="poll-box" style="margin-left:44px;margin-top:6px;padding:10px;background:var(--bg3);border-radius:8px;"><strong>'+esc(m.pollQuestion)+'</strong>';var total=(m.pollVotes||[]).reduce(function(a,b){return a+b;},0);(m.pollOptions||[]).forEach(function(o,i){var v=m.pollVotes?m.pollVotes[i]:0,pct=total>0?Math.round(v/total*100):0;extra+='<div class="poll-option" onclick="votePoll(\''+m._id+'\','+i+')" style="padding:8px 12px;background:var(--bg2);border-radius:4px;margin:3px 0;cursor:pointer;display:flex;justify-content:space-between;"><span>'+esc(o)+'</span><span>'+pct+'% ('+v+')</span></div>';});extra+='</div>';}
+    d.innerHTML='<div class="mhdr"><div class="mava" style="background:'+col+'" onclick="showProfileModal()">'+letr+'</div><span class="muser" style="color:'+col+'" onclick="showProfileModal()">'+esc(m.senderName)+'</span><span class="mtime">'+ti+'</span>'+(m.edited?'<span style="font-size:9px;color:var(--text3);margin-left:3px;">(duzenlendi)</span>':'')+'</div>'+rh+'<div class="mbody">'+formatMsg(esc(m.content))+'</div>'+extra+'<div class="mbtns"><button onclick="replyMsg(\''+m._id+'\')">Yanitla</button>'+(isMe?'<button onclick="editMsg(\''+m._id+'\')">Duzenle</button><button onclick="delMsg(\''+m._id+'\')">Sil</button>':'')+'<button onclick="pinMsg(\''+m._id+'\')">Sabitle</button><button onclick="copyMsg(\''+m._id+'\')">Kopyala</button></div>';
+    a.appendChild(d);a.scrollTop=a.scrollHeight;
+    if(notifications&&document.hidden&&m.senderName!==me.username){sendNotification(m.senderName,m.content.substring(0,100));}
+}
+
+function formatMsg(t){
+    return t.replace(/@(\w+)/g,'<span style="color:var(--accent);cursor:pointer;" onclick="mentionClick(\'$1\')">@$1</span>')
+    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\*(.*?)\*/g,'<em>$1</em>')
+    .replace(/`(.*?)`/g,'<code style="background:var(--bg3);padding:2px 6px;border-radius:3px;">$1</code>');
+}
+window.mentionClick=function(name){$('msg-input').value+='@'+name+' ';$('msg-input').focus();};
+
+window.replyMsg=function(id){
+    var e=document.getElementById('msg-'+id);if(!e) return;
+    reply={_id:id,content:e.querySelector('.mbody').textContent};
+    $('reply-bar').style.display='flex';$('reply-text').textContent=reply.content.substring(0,60);$('msg-input').focus();
+};
 window.cancelReply=function(){reply=null;$('reply-bar').style.display='none';};
-window.editMsg=function(id){var n=prompt('Düzenle:');if(!n||!n.trim()) return;fetch(API+'/api/messages/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:n.trim()})}).then(function(){var e=$('msg-'+id);if(e)e.querySelector('.mbody').textContent=n.trim();}).catch(function(){showToast('Düzenlenemedi','error');});};
-window.delMsg=function(id){if(!confirm('Silinsin mi?')) return;fetch(API+'/api/messages/'+id,{method:'DELETE'}).then(function(){var e=$('msg-'+id);if(e)e.remove();}).catch(function(){});};
-window.pinMsg=function(id){var e=$('msg-'+id);if(e){e.classList.toggle('pinned');pinnedMsgs.push(id);showToast('Sabitlendi!','success');}};
-window.uploadFile=function(){var f=$('file-upload').files[0];if(!f||!socket||!me) return;var reader=new FileReader();reader.onload=function(e){socket.emit('send-message',{content:e.target.result,senderId:me._id,senderName:me.username,roomId:cRoom,type:'image'});};reader.readAsDataURL(f);$('file-upload').value='';};
+window.editMsg=function(id){
+    var n=prompt('Mesaji duzenle:');if(!n||!n.trim()) return;
+    fetch(API+'/api/messages/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:n.trim()})})
+    .then(function(){var e=$('msg-'+id);if(e)e.querySelector('.mbody').innerHTML=formatMsg(esc(n.trim()));})
+    .catch(function(){showToast('Duzenlenemedi','error');});
+};
+window.delMsg=function(id){
+    if(!confirm('Bu mesaji silmek istediginize emin misiniz?')) return;
+    fetch(API+'/api/messages/'+id,{method:'DELETE'}).then(function(){var e=$('msg-'+id);if(e)e.remove();}).catch(function(){});
+};
+window.pinMsg=function(id){pinnedMsgs.push(id);showToast('Mesaj sabitlendi!','success');};
+window.copyMsg=function(id){
+    var e=$('msg-'+id);if(e){navigator.clipboard.writeText(e.querySelector('.mbody').textContent);showToast('Kopyalandi!','success');}
+};
+window.votePoll=function(msgId,idx){showToast('Oy verildi!','success');};
+window.uploadFile=function(){
+    var f=$('file-upload').files[0];if(!f||!socket||!me) return;
+    if(f.size>10*1024*1024) return showToast('Dosya cok buyuk! Max 10MB','error');
+    var reader=new FileReader();
+    reader.onload=function(e){socket.emit('send-message',{content:e.target.result,senderId:me._id,senderName:me.username,roomId:cRoom,type:f.type.startsWith('video')?'video':'image'});};
+    reader.readAsDataURL(f);$('file-upload').value='';
+};
 
 // ============ VOICE ============
-window.joinVoice=async function(vid){inVoice=vid;$('voice-bar').classList.add('open');$('v-info').textContent='🔊 Bağlandın';try{localStream=await navigator.mediaDevices.getUserMedia({audio:true});}catch(e){return showToast('Mikrofon izni gerekli!','error');}};
-window.leaveVoice=function(){if(localStream){localStream.getTracks().forEach(function(t){t.stop();});localStream=null;}inVoice=null;$('voice-bar').classList.remove('open');};
-window.toggleMic=function(){micMuted=!micMuted;if(localStream)localStream.getAudioTracks().forEach(function(t){t.enabled=!micMuted;});$('btn-mute').classList.toggle('muted',micMuted);$('btn-mute').textContent=micMuted?'🔇':'🎤';};
-window.toggleCamera=async function(){cameraOn=!cameraOn;if(cameraOn){try{var vs=await navigator.mediaDevices.getUserMedia({video:true});if(localStream){localStream.getVideoTracks().forEach(function(t){t.stop();});vs.getVideoTracks().forEach(function(t){localStream.addTrack(t);});}}catch(e){cameraOn=false;return showToast('Kamera izni gerekli','error');}}else{if(localStream)localStream.getVideoTracks().forEach(function(t){t.stop();localStream.removeTrack(t);});}};
-window.toggleScreenShare=async function(){screenOn=!screenOn;if(screenOn){try{screenStream=await navigator.mediaDevices.getDisplayMedia({video:true,audio:true});}catch(e){screenOn=false;return showToast('İptal','error');}}else{if(screenStream){screenStream.getTracks().forEach(function(t){t.stop();});screenStream=null;}}};
+window.joinVoice=async function(vid){
+    if(inVoice) leaveVoice();
+    try{localStream=await navigator.mediaDevices.getUserMedia({audio:true});}catch(e){return showToast('Mikrofon izni gerekli! Tarayici ayarlarindan izin verin.','error');}
+    inVoice=vid;$('voice-bar').classList.add('open');$('v-info').textContent='Sesli kanala baglandiniz';
+    $('btn-mute').classList.remove('muted');$('btn-mute').innerHTML='<img src="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'16\' height=\'16\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'white\' stroke-width=\'2\'%3E%3Cpath d=\'M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z\'%3E%3C/path%3E%3C/svg%3E" alt="Mikrofon">';
+    if(socket)socket.emit('voice-join',{roomId:vid,user:{id:me._id,name:me.username}});
+};
+window.leaveVoice=function(){
+    if(inVoice&&socket)socket.emit('voice-leave',{roomId:inVoice,userId:me._id});
+    if(localStream){localStream.getTracks().forEach(function(t){t.stop();});localStream=null;}
+    inVoice=null;$('voice-bar').classList.remove('open');
+};
+window.toggleMic=function(){
+    micMuted=!micMuted;if(localStream)localStream.getAudioTracks().forEach(function(t){t.enabled=!micMuted;});
+    $('btn-mute').classList.toggle('muted',micMuted);
+    $('btn-mute').innerHTML=micMuted?'<img src="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'16\' height=\'16\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'white\' stroke-width=\'2\'%3E%3Cline x1=\'1\' y1=\'1\' x2=\'23\' y2=\'23\'%3E%3C/line%3E%3Cpath d=\'M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6\'%3E%3C/path%3E%3C/svg%3E" alt="Mikrofon Kapali">':'<img src="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'16\' height=\'16\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'white\' stroke-width=\'2\'%3E%3Cpath d=\'M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z\'%3E%3C/path%3E%3C/svg%3E" alt="Mikrofon">';
+};
+window.toggleCamera=async function(){
+    cameraOn=!cameraOn;
+    if(cameraOn){try{var vs=await navigator.mediaDevices.getUserMedia({video:true});if(localStream){localStream.getVideoTracks().forEach(function(t){t.stop();});vs.getVideoTracks().forEach(function(t){localStream.addTrack(t);});}}catch(e){cameraOn=false;return showToast('Kamera izni gerekli','error');}}
+    else{if(localStream)localStream.getVideoTracks().forEach(function(t){t.stop();localStream.removeTrack(t);});}
+};
+window.toggleScreenShare=async function(){
+    screenOn=!screenOn;
+    if(screenOn){try{screenStream=await navigator.mediaDevices.getDisplayMedia({video:true,audio:true});}catch(e){screenOn=false;return showToast('Ekran paylasimi iptal edildi','error');}}
+    else{if(screenStream){screenStream.getTracks().forEach(function(t){t.stop();});screenStream=null;}}
+};
+function addVoiceUser(d){var vr=voiceRooms.find(function(v){return v.id===d.roomId;});if(vr&&!vr.users.find(function(u){return u.id===d.user.id;})){vr.users.push(d.user);}renderRooms();}
+function removeVoiceUser(d){var vr=voiceRooms.find(function(v){return v.id===d.roomId;});if(vr)vr.users=vr.users.filter(function(u){return u.id!==d.userId;});renderRooms();}
 
 // ============ ROOMS & SERVER ============
-window.showRoomModal=function(){$('room-modal').classList.add('open');};
-window.createRoom=function(){var type=$('new-room-type').value,n=$('new-room-name').value.trim(),cat=$('new-room-cat').value.trim(),d=$('new-room-desc').value.trim();if(!n) return showToast('Kanal adı gerekli','error');fetch(API+'/api/rooms',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:n,description:d,category:cat||'Genel',type:type})}).then(function(r){return r.json();}).then(function(){loadRooms();closeMod('room-modal');showToast('Kanal oluşturuldu!','success');}).catch(function(){showToast('Hata!','error');});};
-window.showServerModal=function(){$('server-modal').classList.add('open');};
-window.createServer=function(){var n=$('new-server-name').value.trim(),t=$('server-template').value;if(!n) return showToast('Sunucu adı gerekli','error');servers.push({id:'srv-'+Date.now(),name:n,icon:'https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png'});$('server-name').textContent=n;renderServers();closeMod('server-modal');showToast('Sunucu oluşturuldu!','success');};
-function renderServers(){var el=$('user-servers');el.innerHTML='';servers.forEach(function(s){el.innerHTML+='<img src="'+s.icon+'" class="server-pfp" onclick="selectServer(\''+s.id+'\')" title="'+esc(s.name)+'">';});}
-window.selectServer=function(id){document.querySelectorAll('.server-icon').forEach(function(e){e.classList.remove('active');});var s=servers.find(function(x){return x.id===id;});if(s){$('server-name').textContent=s.name;}};
-window.showServerSettings=function(){$('server-settings-modal').classList.add('open');$('settings-server-name').value=serverName;$('invite-link').value=window.location.host+'/invite/'+cRoom;};
-window.saveServerSettings=function(){serverName=$('settings-server-name').value.trim()||serverName;$('server-name').textContent=serverName;closeMod('server-settings-modal');showToast('Kaydedildi!','success');};
-window.addRole=function(){var n=$('new-role-name').value.trim(),c=$('new-role-color').value;if(!n) return;serverRoles.push({name:n,color:c});renderRoles();};
-function renderRoles(){var l=$('roles-list');l.innerHTML='';serverRoles.forEach(function(r,i){l.innerHTML+='<div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:13px;"><span style="width:12px;height:12px;border-radius:50%;background:'+r.color+';"></span>'+esc(r.name)+'<button onclick="serverRoles.splice('+i+',1);renderRoles();" style="margin-left:auto;background:none;border:none;color:var(--red);cursor:pointer;">✕</button></div>';});}
-window.copyInvite=function(){navigator.clipboard.writeText($('invite-link').value);showToast('Kopyalandı!','success');};
+window.showRoomModal=function(){openMod('room-modal');};
+window.createRoom=function(){
+    var type=$('new-room-type').value,n=$('new-room-name').value.trim(),cat=$('new-room-cat').value.trim(),d=$('new-room-desc').value.trim(),priv=$('new-room-private').checked,pw=$('new-room-pass').value;
+    if(!n) return showToast('Kanal adi gerekli','error');
+    if(type==='voice'){voiceRooms.push({id:'voice-'+Date.now(),name:n,users:[]});renderRooms();closeMod('room-modal');showToast('Sesli kanal olusturuldu!','success');return;}
+    fetch(API+'/api/rooms',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:n,description:d,category:cat||'Genel',type:type,isPrivate:priv,password:pw})})
+    .then(function(r){return r.json();}).then(function(){loadRooms();closeMod('room-modal');showToast('Kanal olusturuldu!','success');}).catch(function(){showToast('Hata!','error');});
+};
+window.showServerModal=function(){openMod('server-modal');};
+window.createServer=function(){
+    var n=$('new-server-name').value.trim(),t=$('server-template').value;
+    if(!n) return showToast('Sunucu adi gerekli','error');
+    var icon='https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png';
+    var f=$('server-icon-upload').files[0];
+    if(f){var reader=new FileReader();reader.onload=function(e){icon=e.target.result;addServer(n,icon,t);};reader.readAsDataURL(f);}
+    else{addServer(n,icon,t);}
+};
+function addServer(name,icon,template){
+    servers.push({id:'srv-'+Date.now(),name:name,icon:icon});
+    if(template==='gaming'){rooms.push({name:'oyun',category:'Oyun',description:'Oyun sohbeti'});rooms.push({name:'genel-oyun',category:'Oyun'});voiceRooms.push({id:'voice-oyun',name:'Oyun Sesli',users:[]});}
+    if(template==='study'){rooms.push({name:'ders',category:'Ders'});rooms.push({name:'soru-cevap',category:'Ders'});}
+    if(template==='friend'){rooms.push({name:'muhabbet',category:'Sohbet'});rooms.push({name:'medya',category:'Sohbet'});}
+    $('server-name').textContent=name;serverName=name;
+    renderServers();renderRooms();loadRooms();closeMod('server-modal');showToast('Sunucu olusturuldu!','success');
+}
+function renderServers(){
+    var el=$('user-servers');el.innerHTML='';
+    servers.forEach(function(s){el.innerHTML+='<img src="'+s.icon+'" class="server-pfp" onclick="selectServer(\''+s.id+'\')" title="'+esc(s.name)+'" style="width:46px;height:46px;border-radius:50%;object-fit:cover;cursor:pointer;margin:4px 0;transition:var(--transition);">';});
+}
+window.selectServer=function(id){
+    document.querySelectorAll('.server-icon,.server-pfp').forEach(function(e){e.classList.remove('active');});
+    var s=servers.find(function(x){return x.id===id;});if(s){$('server-name').textContent=s.name;serverName=s.name;}
+};
+window.showServerSettings=function(){
+    openMod('server-settings-modal');$('settings-server-name').value=serverName;
+    $('invite-link').value=window.location.host+'/invite/'+cRoom;renderRoles();
+};
+window.saveServerSettings=function(){
+    serverName=$('settings-server-name').value.trim()||serverName;$('server-name').textContent=serverName;
+    closeMod('server-settings-modal');showToast('Ayarlar kaydedildi!','success');
+};
+window.addRole=function(){var n=$('new-role-name').value.trim(),c=$('new-role-color').value;if(!n) return;serverRoles.push({name:n,color:c});$('new-role-name').value='';renderRoles();};
+function renderRoles(){
+    var l=$('roles-list');l.innerHTML='';
+    serverRoles.forEach(function(r,i){l.innerHTML+='<div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:13px;"><span style="width:12px;height:12px;border-radius:50%;background:'+r.color+';"></span>'+esc(r.name)+'<button onclick="serverRoles.splice('+i+',1);renderRoles();" style="margin-left:auto;background:none;border:none;color:var(--red);cursor:pointer;">X</button></div>';});
+}
+window.copyInvite=function(){navigator.clipboard.writeText($('invite-link').value);showToast('Davet linki kopyalandi!','success');};
 window.pinRoom=function(){showToast('Oda sabitlendi!','success');};
 
 // ============ BOT ============
-window.createBot=function(){var n=$('bot-name').value.trim();if(!n) return showToast('Bot adı gerekli','error');fetch(API+'/api/bots',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({name:n})}).then(function(r){return r.json();}).then(function(d){if(d.error) return showToast(d.error,'error');showToast('Bot oluşturuldu! Token: '+d.token,'success');loadBots();}).catch(function(){showToast('Hata!','error');});};
-function loadBots(){fetch(API+'/api/bots',{headers:{'Authorization':'Bearer '+token}}).then(function(r){return r.json();}).then(function(d){if(!Array.isArray(d)) return;$('bot-list').innerHTML=d.map(function(b){return '<div class="panel-card"><strong>'+esc(b.name)+'</strong><br>Token: <code>'+b.token+'</code><br><button class="btn btn-sm btn-danger" onclick="deleteBot(\''+b._id+'\')">Sil</button></div>';}).join('');}).catch(function(){});}
+window.createBot=function(){
+    var n=$('bot-name').value.trim();if(!n) return showToast('Bot adi gerekli','error');
+    fetch(API+'/api/bots',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({name:n})})
+    .then(function(r){return r.json();}).then(function(d){if(d.error) return showToast(d.error,'error');showToast('Bot olusturuldu! Token: '+d.token,'success');loadBots();}).catch(function(){showToast('Hata!','error');});
+};
+function loadBots(){
+    fetch(API+'/api/bots',{headers:{'Authorization':'Bearer '+token}}).then(function(r){return r.json();}).then(function(d){
+        if(!Array.isArray(d)) return;$('bot-list').innerHTML=d.map(function(b){return '<div class="panel-card"><strong>'+esc(b.name)+'</strong><br>Token: <code>'+b.token+'</code><br><button class="btn btn-sm btn-danger" onclick="deleteBot(\''+b._id+'\')">Sil</button></div>';}).join('');
+    }).catch(function(){});
+}
 window.deleteBot=function(id){fetch(API+'/api/bots/'+id,{method:'DELETE',headers:{'Authorization':'Bearer '+token}}).then(function(){loadBots();showToast('Bot silindi','success');});};
 
 // ============ WEBHOOK ============
-window.createWebhook=function(){var n=$('webhook-name').value.trim(),r=$('webhook-room').value.trim()||'genel';if(!n) return showToast('Webhook adı gerekli','error');fetch(API+'/api/webhooks',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({name:n,room:r})}).then(function(r){return r.json();}).then(function(d){if(d.error) return showToast(d.error,'error');showToast('Webhook URL: '+API+d.url,'success');loadWebhooks();}).catch(function(){showToast('Hata!','error');});};
-function loadWebhooks(){fetch(API+'/api/webhooks',{headers:{'Authorization':'Bearer '+token}}).then(function(r){return r.json();}).then(function(d){if(!Array.isArray(d)) return;$('webhook-list').innerHTML=d.map(function(w){return '<div class="panel-card"><strong>'+esc(w.name)+'</strong> → #'+esc(w.room)+'<br>URL: <code>'+API+w.url+'</code><br><button class="btn btn-sm btn-danger" onclick="deleteWebhook(\''+w._id+'\')">Sil</button></div>';}).join('');}).catch(function(){});}
+window.createWebhook=function(){
+    var n=$('webhook-name').value.trim(),r=$('webhook-room').value.trim()||'genel';if(!n) return showToast('Webhook adi gerekli','error');
+    fetch(API+'/api/webhooks',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({name:n,room:r})})
+    .then(function(r){return r.json();}).then(function(d){if(d.error) return showToast(d.error,'error');showToast('Webhook URL: '+API+d.url,'success');loadWebhooks();}).catch(function(){showToast('Hata!','error');});
+};
+function loadWebhooks(){
+    fetch(API+'/api/webhooks',{headers:{'Authorization':'Bearer '+token}}).then(function(r){return r.json();}).then(function(d){
+        if(!Array.isArray(d)) return;$('webhook-list').innerHTML=d.map(function(w){return '<div class="panel-card"><strong>'+esc(w.name)+'</strong> -> #'+esc(w.room)+'<br>URL: <code>'+API+w.url+'</code><br><button class="btn btn-sm btn-danger" onclick="deleteWebhook(\''+w._id+'\')">Sil</button></div>';}).join('');
+    }).catch(function(){});
+}
 window.deleteWebhook=function(id){fetch(API+'/api/webhooks/'+id,{method:'DELETE',headers:{'Authorization':'Bearer '+token}}).then(function(){loadWebhooks();showToast('Webhook silindi','success');});};
 
 // ============ POLL ============
-window.showPollModal=function(){$('poll-modal').classList.add('open');};
-window.addPollOption=function(){var d=document.createElement('input');d.placeholder='Seçenek...';$('poll-options').appendChild(d);};
-window.createPoll=function(){var q=$('poll-question').value.trim(),opts=[];document.querySelectorAll('#poll-options input').forEach(function(i){if(i.value.trim())opts.push(i.value.trim());});if(!q||opts.length<2) return showToast('Soru ve en az 2 seçenek gerekli','error');if(socket)socket.emit('send-message',{content:'',senderId:me._id,senderName:me.username,roomId:cRoom,type:'poll',pollQuestion:q,pollOptions:opts,pollVotes:opts.map(function(){return 0;})});closeMod('poll-modal');};
-
-// ============ EMOJI ============
-window.toggleEmojiPicker=function(){$('emoji-picker').classList.toggle('open');};
-window.insertEmoji=function(e){$('msg-input').value+=e;$('msg-input').focus();$('emoji-picker').classList.remove('open');};
-
-// ============ SETTINGS ============
-window.showSettingsModal=function(){$('settings-modal').classList.add('open');};
-window.changeTheme=function(t){document.body.classList.remove('theme-light','theme-blue','theme-midnight');if(t==='light')document.body.classList.add('theme-light');if(t==='blue')document.body.classList.add('theme-blue');if(t==='midnight')document.body.classList.add('theme-midnight');localStorage.setItem('gt_theme',t);};
-function updateStatusUI(){$('my-status-dot').className='status-dot '+(myStatus==='online'?'online':myStatus==='idle'?'idle':myStatus==='dnd'?'dnd':'offline');$('my-status-small').textContent=myStatus==='online'?'Çevrimiçi':myStatus==='idle'?'Boşta':myStatus==='dnd'?'Rahatsız Etme':'Görünmez';}
-window.copyCode=function(btn){var pre=btn.parentElement;var code=pre.querySelector('code').textContent;navigator.clipboard.writeText(code);btn.textContent='✅ Kopyalandı!';setTimeout(function(){btn.textContent='📋 Kopyala';},2000);};
+window.showPollModal=function(){openMod('poll-modal');};
+window.addPollOption=function(){var d=document.createElement('input');d.placeholder='Secenek...';$('poll-options').appendChild(d);};
+window.createPoll=function(){
+    var q=$('poll-question').value.trim(),opts=[];
+    document.querySelectorAll('#poll-options input').forEach(function(i){if(i.value.trim())opts.push(i.value.trim());});
+    if(!q||opts.length<2) return showToast('Soru ve en az 2 secenek gerekli','error');
+    if(socket)socket.emit('send-message',{content:'',senderId:me._id,senderName:me.username,roomId:cRoom,type:'poll',pollQuestion:q,pollOptions:opts,pollVotes:opts.map(function(){return 0;})});
+    closeMod('poll-modal');
+};
 
 // ============ MEMBERS ============
-window.toggleMembers=function(){showToast('Üye listesi yakında!','info');};
-window.showSearchModal=function(){showToast('Arama yakında!','info');};
-window.showProfileModal=function(){showToast('Profil yakında!','info');};
+window.toggleMembers=function(){
+    showToast('Uye listesi yukleniyor...','info');
+    fetch(API+'/api/rooms/'+cRoom+'/messages').then(function(r){return r.json();}).then(function(d){
+        if(!Array.isArray(d)) return;var users={};
+        d.forEach(function(m){if(m.senderName&&!users[m.senderName])users[m.senderName]=m.sender;});
+        var list=Object.keys(users).map(function(n){return n;}).join(', ');
+        showToast('Odadaki kullanicilar: '+list,'success');
+    }).catch(function(){});
+};
+
+// ============ SEARCH ============
+window.showSearchModal=function(){
+    var q=prompt('Mesajlarda aramak icin bir kelime yazin:');
+    if(!q) return;
+    fetch(API+'/api/rooms/'+cRoom+'/messages').then(function(r){return r.json();}).then(function(d){
+        if(!Array.isArray(d)) return;
+        var results=d.filter(function(m){return m.content.toLowerCase().includes(q.toLowerCase());});
+        if(results.length===0) return showToast('Sonuc bulunamadi','error');
+        $('messages').innerHTML='<h3>Arama Sonuclari: "'+esc(q)+'" ('+results.length+')</h3><hr style="border-color:var(--border);margin:10px 0;">';
+        results.forEach(function(m){showMsg(m);});
+    }).catch(function(){});
+};
+
+// ============ PROFILE ============
+window.showProfileModal=function(){
+    var info='Kullanici: '+me.username+'\nDurum: '+(myStatus==='online'?'Cevrimici':myStatus==='idle'?'Bosta':myStatus==='dnd'?'Rahatsiz Etme':'Gorunmez')+'\nKatilim: '+formatDate(me.createdAt||Date.now())+'\nRozetler: '+(me.badges||['Uye']).join(', ');
+    alert(info);
+};
+
+// ============ SETTINGS ============
+window.showSettingsModal=function(){openMod('settings-modal');};
+window.changeTheme=function(t){
+    document.body.classList.remove('theme-light','theme-blue','theme-midnight');
+    if(t==='light')document.body.classList.add('theme-light');
+    if(t==='blue')document.body.classList.add('theme-blue');
+    if(t==='midnight')document.body.classList.add('theme-midnight');
+    localStorage.setItem('gt_theme',t);
+};
+function updateStatusUI(){
+    $('my-status-dot').className='status-dot '+(myStatus==='online'?'online':myStatus==='idle'?'idle':myStatus==='dnd'?'dnd':'offline');
+    $('my-status-small').textContent=myStatus==='online'?'Cevrimici':myStatus==='idle'?'Bosta':myStatus==='dnd'?'Rahatsiz Etme':'Gorunmez';
+}
+window.copyCode=function(btn){
+    var pre=btn.parentElement;var code=pre.querySelector('code').textContent;
+    navigator.clipboard.writeText(code);btn.textContent='Kopyalandi!';btn.classList.add('copied');
+    setTimeout(function(){btn.textContent='Kopyala';btn.classList.remove('copied');},2000);
+};
+
+// ============ NOTIFICATIONS ============
+function sendNotification(title,body){
+    if('Notification' in window&&Notification.permission==='granted'){new Notification(title,{body:body,icon:'https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png'});}
+    else if('Notification' in window&&Notification.permission!=='denied'){Notification.requestPermission();}
+}
+if('Notification' in window&&Notification.permission==='default'){Notification.requestPermission();}
 
 // ============ MOBILE ============
-window.toggleMobileSidebar=function(){$('chat-sidebar').classList.toggle('mobile-open');};
+window.toggleMobileSidebar=function(){
+    $('chat-sidebar').classList.toggle('mobile-open');$('sidebar-backdrop').classList.toggle('open',$('chat-sidebar').classList.contains('mobile-open'));
+};
+window.closeMobileSidebar=function(){$('chat-sidebar').classList.remove('mobile-open');$('sidebar-backdrop').classList.remove('open');};
 
-// ============ GLOBAL ============
-document.addEventListener('click',function(e){if(e.target.classList.contains('modal-bg'))e.target.parentElement.classList.remove('open');if(!e.target.closest('.emoji-picker')&&!e.target.closest('.inp-btn'))$('emoji-picker').classList.remove('open');});
-document.addEventListener('keydown',function(e){if(e.key==='Escape'){document.querySelectorAll('.modal-overlay.open').forEach(function(m){m.classList.remove('open');});cancelReply();$('emoji-picker').classList.remove('open');}});
+// ============ GLOBAL EVENTS ============
+document.addEventListener('click',function(e){
+    if(e.target.classList.contains('modal-bg'))e.target.parentElement.classList.remove('open');
+});
+document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'){
+        document.querySelectorAll('.modal-overlay.open').forEach(function(m){m.classList.remove('open');});
+        cancelReply();
+    }
+});
 
 // ============ AUTO LOGIN ============
-if(localStorage.getItem('gt_token')){token=localStorage.getItem('gt_token');try{me=JSON.parse(localStorage.getItem('gt_user'));myStatus=me.status||'online';openApp();}catch(e){localStorage.clear();}}
-renderServers();
+if(localStorage.getItem('gt_token')){
+    token=localStorage.getItem('gt_token');
+    try{me=JSON.parse(localStorage.getItem('gt_user'));myStatus=me.status||'online';openApp();}catch(e){localStorage.clear();}
+}
 })();
 </script>
 </body>
-            </html>
+    </html>
