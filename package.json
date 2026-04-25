@@ -1,28 +1,15 @@
 {
   "name": "gettic",
   "version": "5.0.0",
-  "description": "Gettic - Modern Sohbet Platformu (Node.js + Go + Rust + React)",
-  "main": "backend/node/server.js",
+  "description": "Gettic - Sohbet Platformu",
+  "main": "server.js",
   "scripts": {
-    "build": "npm run build:node && npm run build:go && npm run build:rust && npm run build:react",
-    "build:node": "cd backend/node && npm install",
-    "build:go": "cd backend/go && go build -o server .",
-    "build:rust": "cd backend/rust && cargo build --release",
-    "build:react": "cd frontend/react && npm install && npm run build",
-    
-    "start": "concurrently \"npm run start:node\" \"npm run start:go\" \"npm run start:rust\" \"npm run start:react\"",
-    "start:node": "node backend/node/server.js",
-    "start:go": "./backend/go/server",
-    "start:rust": "./backend/rust/target/release/gettic-server",
-    "start:react": "npx serve -s frontend/react/build -l 3001",
-    
-    "dev": "concurrently \"npm run dev:node\" \"npm run dev:react\"",
-    "dev:node": "node --watch backend/node/server.js",
-    "dev:react": "cd frontend/react && npm start",
-    
-    "test": "echo '✅ Testler hazır'",
-    "docker": "docker-compose up -d",
-    "docker:build": "docker-compose build",
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "build:go": "go build -o server server.go",
+    "build:rust": "cargo build --release",
+    "build:all": "npm install && npm run build:go && npm run build:rust",
+    "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down"
   },
   "dependencies": {
@@ -32,10 +19,6 @@
     "jsonwebtoken": "^9.0.2",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
-    "dotenv": "^16.3.1",
-    "ioredis": "^5.3.2"
-  },
-  "devDependencies": {
-    "concurrently": "^8.2.0"
+    "dotenv": "^16.3.1"
   }
 }
