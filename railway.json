@@ -6,8 +6,6 @@
     }
   },
   "deploy": {
-    "startCommand": "node server.js",
-    "healthcheckPath": "/health",
-    "restartPolicyType": "ON_FAILURE"
+    "startCommand": "node server.js"
   }
 }
