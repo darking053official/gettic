@@ -1,8 +1,13 @@
 {
   "build": {
-    "builder": "NIXPACKS"
+    "builder": "NIXPACKS",
+    "nixpacksConfig": {
+      "providers": ["node"]
+    }
   },
   "deploy": {
-    "startCommand": "node server.js"
+    "startCommand": "node server.js",
+    "healthcheckPath": "/health",
+    "restartPolicyType": "ON_FAILURE"
   }
 }
