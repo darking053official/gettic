@@ -239,107 +239,11 @@ app.delete('/api/bots/:id', auth, async (req, res) => {
 });
 
 // ============ SOCKET.IO ============
-const onlineUsers = {};
-
-io.on('connection', (socket) => {
-    console.log('Bağlandı:', socket.id.substring(0, 8));
-
-    socket.on('user-online', (uid) => {
-        socket.userId = uid;
-        onlineUsers[uid] = 'online';
-        io.emit('user-online-update', onlineUsers);
-    });
-
-    socket.on('join-room', (rid) => {
-        socket.join(rid);
-        socket.currentRoom = rid;
-        const room = io.sockets.adapter.rooms.get(rid);
-        io.to(rid).emit('room-user-count', room ? room.size : 0);
-    });
-
-    socket.on('leave-room', (rid) => {
-        socket.leave(rid);
-        const room = io.sockets.adapter.rooms.get(rid);
-        io.to(rid).emit('room-user-count', room ? room.size : 0);
-    });
-
-    socket.on('send-message', async (data) => {
-        try {
-            const msg = await Message.create({
-                content: data.content || '',
-                sender: data.senderId,
-                senderName: data.senderName,
-                room: data.roomId,
-                type: data.type || 'text',
-                replyTo: data.replyTo || null,
-                pollQuestion: data.pollQuestion || '',
-                pollOptions: data.pollOptions || [],
-                pollVotes: data.pollVotes || []
-            });
-            const populated = await Message.findById(msg._id);
-            io.to(data.roomId).emit('receive-message', populated);
-            processBotCommands(populated);
-        } catch (e) {
-            socket.emit('message-error', 'Mesaj gönderilemedi');
-        }
-    });
-
-    socket.on('typing', (data) => {
-        socket.to(data.roomId).emit('user-typing', data);
-    });
-
-    socket.on('voice-join', (data) => {
-        socket.join('voice-' + data.roomId);
-        socket.to('voice-' + data.roomId).emit('voice-join', data);
-    });
-
-    socket.on('voice-leave', (data) => {
-        socket.leave('voice-' + data.roomId);
-        socket.to('voice-' + data.roomId).emit('voice-leave', data);
-    });
-
-    socket.on('disconnect', () => {
-        if (socket.userId) {
-            delete onlineUsers[socket.userId];
-            io.emit('user-online-update', onlineUsers);
-        }
-        if (socket.currentRoom) {
-            const room = io.sockets.adapter.rooms.get(socket.currentRoom);
-            io.to(socket.currentRoom).emit('room-user-count', room ? room.size : 0);
-        }
-    });
+const io = socketIo(server, {
+    cors: { origin: "*", methods: ["GET", "POST"] },
+    transports: ['polling', 'websocket'],
+    allowEIO3: true
 });
-
-async function processBotCommands(msg) {
-    if (msg.isBot || !msg.content || !msg.content.startsWith('/')) return;
-    const parts = msg.content.substring(1).split(' ');
-    const cmd = parts[0].toLowerCase();
-    const bots = await Bot.find({});
-
-    for (const bot of bots) {
-        const command = bot.commands.find(c => c.name === cmd);
-        if (command) {
-            let response = command.response;
-
-            if (cmd === 'temizle') {
-                const count = parseInt(parts[1]) || 5;
-                const msgs = await Message.find({ room: msg.room }).sort({ timestamp: -1 }).limit(count);
-                await Message.deleteMany({ _id: { $in: msgs.map(m => m._id) } });
-                response = count + ' mesaj temizlendi!';
-            }
-
-            const botMsg = await Message.create({
-                content: response,
-                senderName: bot.name,
-                room: msg.room,
-                type: 'text',
-                isBot: true
-            });
-            io.to(msg.room).emit('receive-message', botMsg);
-            break;
-        }
-    }
-}
 
 // ============ FRONTEND ============
 app.get('/', (req, res) => { res.sendFile(path.join(__dirname, 'index.html')); });
