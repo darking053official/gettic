@@ -1,149 +1,280 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Gettic - Kurumsal İletişim Platformu</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.js"></script>
-  <style>
-    body { font-family: system-ui, sans-serif; background: #0a0a0f; color: #e0e0e0; margin: 0; padding: 0; }
-    .gettic-gradient { background: linear-gradient(135deg, #1e40af, #3b82f6); }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#1a1b2e">
+    <title>Gettic - Kurumsal İletişim Platformu</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+        :root {
+            --bg: #1a1b2e;
+            --bg2: #1f2038;
+            --bg3: #252740;
+            --hover: #2a2c45;
+            --active: #2f3150;
+            --accent: #4a6cf7;
+            --accent2: #7c8cf8;
+            --green: #22c55e;
+            --text: #e8e8f0;
+            --text2: #a0a3b8;
+            --text3: #6b6e80;
+            --border: #2a2c42;
+            --radius: 12px;
+            --radius-sm: 8px;
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            height: 100dvh;
+            overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* AUTH SCREEN - MOBİL İYİLEŞTİRME */
+        #auth-screen {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100dvh;
+            padding: 20px 16px;
+            background: linear-gradient(145deg, #1a1b2e, #1e2040);
+        }
+
+        .auth-box {
+            background: var(--bg2);
+            padding: 40px 24px;
+            border-radius: var(--radius);
+            width: 100%;
+            max-width: 420px;
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .auth-logo-img {
+            width: 110px;
+            height: auto;
+            display: block;
+            margin: 0 auto 20px;
+        }
+
+        .logo-text {
+            text-align: center;
+            color: var(--text2);
+            font-size: 15px;
+            margin-bottom: 30px;
+        }
+
+        .auth-tabs {
+            display: flex;
+            background: var(--bg3);
+            border-radius: 9999px;
+            padding: 4px;
+            margin-bottom: 28px;
+        }
+
+        .auth-tabs button {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            background: transparent;
+            color: var(--text2);
+            border-radius: 9999px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .auth-tabs button.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        .auth-form {
+            display: none;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .auth-form.active {
+            display: flex;
+        }
+
+        .input-wrap {
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+        }
+
+        .input-wrap input {
+            width: 100%;
+            padding: 16px 18px;
+            background: transparent;
+            border: none;
+            color: var(--text);
+            font-size: 16px;
+        }
+
+        .input-wrap input::placeholder {
+            color: var(--text3);
+        }
+
+        .btn {
+            padding: 16px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:active {
+            transform: scale(0.97);
+        }
+
+        .auth-link {
+            text-align: center;
+            margin-top: 16px;
+            color: var(--text3);
+            font-size: 14px;
+        }
+
+        .auth-link span {
+            color: var(--accent);
+            cursor: pointer;
+        }
+
+        /* ANA EKRAN İÇİN BASİT DÜZELTME */
+        #main-screen {
+            display: none;
+            flex-direction: column;
+            height: 100dvh;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #4b5563;
+            border-radius: 10px;
+        }
+    </style>
 </head>
-<body class="min-h-screen">
+<body>
 
-  <!-- Login Ekranı -->
-  <div id="auth-screen" class="min-h-screen flex items-center justify-center p-6 bg-[#0a0a0f]">
-    <div class="bg-[#16181f] w-full max-w-md rounded-3xl p-8 shadow-2xl border border-[#334155]">
-      <div class="text-center mb-8">
-        <img src="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png" 
-             alt="Gettic" class="mx-auto w-24 h-24 rounded-3xl mb-4">
-        <h1 class="text-4xl font-bold">Gettic</h1>
-        <p class="text-blue-400 mt-1">Kurumsal İletişim Platformu</p>
-      </div>
+<!-- AUTH SCREEN -->
+<div id="auth-screen" class="screen active">
+    <div class="auth-box">
+        <img src="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png" alt="Gettic Logo" class="auth-logo-img">
+        <p class="logo-text">Takıl, konuş, paylaş</p>
 
-      <div class="flex bg-[#272a32] rounded-3xl p-1 mb-8">
-        <button id="tab-login" class="flex-1 py-3 rounded-3xl font-medium">Giriş Yap</button>
-        <button id="tab-register" class="flex-1 py-3 rounded-3xl font-medium">Kayıt Ol</button>
-      </div>
-
-      <div id="login-form" class="space-y-5">
-        <input id="login-username" type="text" placeholder="Kullanıcı Adı" class="w-full px-5 py-4 bg-[#272a32] rounded-2xl">
-        <input id="login-password" type="password" placeholder="Şifre" class="w-full px-5 py-4 bg-[#272a32] rounded-2xl">
-        <button id="login-btn" class="w-full gettic-gradient py-4 rounded-3xl font-semibold text-lg">Giriş Yap</button>
-      </div>
-
-      <div id="register-form" class="hidden space-y-5">
-        <input id="reg-username" type="text" placeholder="Kullanıcı Adı" class="w-full px-5 py-4 bg-[#272a32] rounded-2xl">
-        <input id="reg-password" type="password" placeholder="Şifre" class="w-full px-5 py-4 bg-[#272a32] rounded-2xl">
-        <button id="register-btn" class="w-full gettic-gradient py-4 rounded-3xl font-semibold text-lg">Hesap Oluştur</button>
-      </div>
-
-      <p class="text-center text-xs text-gray-500 mt-10">gettic.js ile güçlendirilmiş</p>
-    </div>
-  </div>
-
-  <!-- Ana Ekran -->
-  <div id="main-app" class="hidden min-h-screen flex flex-col">
-    <div class="h-14 bg-[#24272f] flex items-center px-4 border-b border-gray-700">
-      <span id="room-title" class="font-semibold"># genel-iletisim</span>
-    </div>
-
-    <div id="messages" class="flex-1 overflow-y-auto p-4 bg-[#1f222a] space-y-4"></div>
-
-    <div class="p-4 bg-[#24272f]">
-      <div class="flex gap-3">
-        <input id="message-input" type="text" placeholder="Mesaj yazın..." class="flex-1 bg-[#2f323a] rounded-3xl px-5 py-4">
-        <button id="send-btn" class="bg-blue-600 px-8 rounded-3xl">Gönder</button>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    const socket = io();
-    let currentUsername = null;
-
-    // Tab değiştirme
-    document.getElementById('tab-login').addEventListener('click', () => {
-      document.getElementById('login-form').classList.remove('hidden');
-      document.getElementById('register-form').classList.add('hidden');
-    });
-
-    document.getElementById('tab-register').addEventListener('click', () => {
-      document.getElementById('register-form').classList.remove('hidden');
-      document.getElementById('login-form').classList.add('hidden');
-    });
-
-    // Login
-    document.getElementById('login-btn').addEventListener('click', async () => {
-      const username = document.getElementById('login-username').value.trim();
-      const password = document.getElementById('login-password').value;
-      if (!username || !password) return alert("Kullanıcı adı ve şifre girin.");
-
-      const res = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
-      const data = await res.json();
-      if (data.success) {
-        currentUsername = data.username;
-        document.getElementById('auth-screen').classList.add('hidden');
-        document.getElementById('main-app').classList.remove('hidden');
-        socket.emit('login', { token: data.token });
-      } else {
-        alert(data.error || "Giriş başarısız");
-      }
-    });
-
-    // Register
-    document.getElementById('register-btn').addEventListener('click', async () => {
-      const username = document.getElementById('reg-username').value.trim();
-      const password = document.getElementById('reg-password').value;
-      if (!username || !password) return alert("Kullanıcı adı ve şifre girin.");
-
-      const res = await fetch('/api/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
-      const data = await res.json();
-      if (data.success) {
-        alert("Hesap oluşturuldu! Giriş yapabilirsiniz.");
-        document.getElementById('tab-login').click();
-      } else {
-        alert(data.error || "Kayıt başarısız");
-      }
-    });
-
-    // Mesaj gönderme
-    document.getElementById('send-btn').addEventListener('click', () => {
-      const input = document.getElementById('message-input');
-      if (input.value.trim()) {
-        socket.emit('sendMessage', { content: input.value.trim() });
-        input.value = '';
-      }
-    });
-
-    socket.on('newMessage', (msg) => {
-      const div = document.createElement('div');
-      div.className = 'flex gap-3';
-      div.innerHTML = `
-        <div class="w-8 h-8 bg-blue-600 rounded-2xl flex items-center justify-center text-white font-bold">${msg.senderName[0]}</div>
-        <div>
-          <div class="font-semibold">${msg.senderName}</div>
-          <div>${msg.content}</div>
+        <div class="auth-tabs">
+            <button id="tab-login" class="active" onclick="switchTab('login')">Giriş Yap</button>
+            <button id="tab-register" onclick="switchTab('register')">Kayıt Ol</button>
         </div>
-      `;
-      document.getElementById('messages').appendChild(div);
-      document.getElementById('messages').scrollTop = 999999;
-    });
 
-    window.onload = () => {
-      document.getElementById('tab-login').click();
-    };
-  </script>
+        <div id="form-login" class="auth-form active">
+            <div class="input-wrap"><input type="text" id="login-user" placeholder="Kullanıcı adınız" autocomplete="off"></div>
+            <div class="input-wrap"><input type="password" id="login-pass" placeholder="Şifreniz"></div>
+            <button class="btn btn-primary" onclick="doLogin()">Giriş Yap</button>
+            <p class="auth-link">Hesabın yok mu? <span onclick="switchTab('register')">Kayıt Ol</span></p>
+        </div>
+
+        <div id="form-register" class="auth-form">
+            <div class="input-wrap"><input type="text" id="reg-user" placeholder="Kullanıcı adı seçin" autocomplete="off"></div>
+            <div class="input-wrap"><input type="password" id="reg-pass" placeholder="En az 6 karakter"></div>
+            <button class="btn btn-primary" onclick="doRegister()">Kayıt Ol</button>
+            <p class="auth-link">Hesabın var mı? <span onclick="switchTab('login')">Giriş Yap</span></p>
+        </div>
+    </div>
+</div>
+
+<!-- MAIN SCREEN (Basit tutuldu) -->
+<div id="main-screen" class="screen">
+    <div style="padding:20px; text-align:center; color:#888;">
+        <h2>Gettic Ana Ekran</h2>
+        <p>Login başarılı! Burası ana sohbet alanı olacak.</p>
+        <button onclick="doLogout()" style="margin-top:30px; padding:12px 24px; background:#ef4444; color:white; border:none; border-radius:8px;">Çıkış Yap</button>
+    </div>
+</div>
+
+<script>
+function switchTab(tab) {
+    document.getElementById('form-login').classList.toggle('active', tab === 'login');
+    document.getElementById('form-register').classList.toggle('active', tab === 'register');
+    document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+    document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+}
+
+async function doLogin() {
+    const username = document.getElementById('login-user').value.trim();
+    const password = document.getElementById('login-pass').value;
+    if (!username || !password) return alert("Kullanıcı adı ve şifre girin.");
+
+    try {
+        const res = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if (data.success) {
+            document.getElementById('auth-screen').classList.remove('active');
+            document.getElementById('main-screen').classList.add('active');
+            alert("Giriş başarılı! Hoş geldin " + username);
+        } else {
+            alert(data.error || "Giriş başarısız.");
+        }
+    } catch (e) {
+        alert("Sunucu bağlantı hatası.");
+    }
+}
+
+async function doRegister() {
+    const username = document.getElementById('reg-user').value.trim();
+    const password = document.getElementById('reg-pass').value;
+    if (!username || !password) return alert("Kullanıcı adı ve şifre girin.");
+
+    try {
+        const res = await fetch('/api/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if (data.success) {
+            alert("Kayıt başarılı! Şimdi giriş yapabilirsiniz.");
+            switchTab('login');
+        } else {
+            alert(data.error || "Kayıt başarısız.");
+        }
+    } catch (e) {
+        alert("Kayıt sırasında hata oluştu.");
+    }
+}
+
+function doLogout() {
+    document.getElementById('main-screen').classList.remove('active');
+    document.getElementById('auth-screen').classList.add('active');
+    switchTab('login');
+}
+</script>
 </body>
 </html>
