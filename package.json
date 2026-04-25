@@ -1,14 +1,15 @@
 {
   "name": "gettic",
   "version": "5.0.0",
-  "description": "Gettic - Sohbet Platformu",
+  "description": "Gettic - Modern Sohbet Platformu",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
+    "go": "go run server.go",
+    "rust": "cargo run",
     "build:go": "go build -o server server.go",
-    "build:rust": "cargo build --release",
-    "build:all": "npm install && npm run build:go && npm run build:rust",
+    "build:rust": "cargo build --release"
   },
   "dependencies": {
     "express": "^4.18.2",
@@ -20,6 +21,9 @@
     "dotenv": "^16.3.1"
   },
   "engines": {
-    "node": ">=18.0.0"
-  }
+    "node": ">=16.0.0"
+  },
+  "keywords": ["gettic", "chat", "messaging", "bot", "webhook"],
+  "author": "darking053",
+  "license": "MIT"
 }
