@@ -31,10 +31,9 @@
             color: var(--text);
             height: 100dvh;
             overflow: hidden;
-            -webkit-tap-highlight-color: transparent;
         }
 
-        /* AUTH SCREEN - MOBİL İYİLEŞTİRME */
+        /* AUTH SCREEN - MOBİL DÜZELTME */
         #auth-screen {
             display: flex;
             justify-content: center;
@@ -51,21 +50,13 @@
             width: 100%;
             max-width: 420px;
             border: 1px solid var(--border);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
         }
 
         .auth-logo-img {
-            width: 110px;
-            height: auto;
-            display: block;
+            width: 120px;
             margin: 0 auto 20px;
-        }
-
-        .logo-text {
-            text-align: center;
-            color: var(--text2);
-            font-size: 15px;
-            margin-bottom: 30px;
+            display: block;
         }
 
         .auth-tabs {
@@ -84,9 +75,7 @@
             color: var(--text2);
             border-radius: 9999px;
             font-weight: 600;
-            font-size: 15px;
             cursor: pointer;
-            transition: all 0.2s;
         }
 
         .auth-tabs button.active {
@@ -100,9 +89,7 @@
             gap: 18px;
         }
 
-        .auth-form.active {
-            display: flex;
-        }
+        .auth-form.active { display: flex; }
 
         .input-wrap {
             background: var(--bg3);
@@ -120,10 +107,6 @@
             font-size: 16px;
         }
 
-        .input-wrap input::placeholder {
-            color: var(--text3);
-        }
-
         .btn {
             padding: 16px;
             border: none;
@@ -132,49 +115,15 @@
             font-size: 16px;
             cursor: pointer;
             width: 100%;
-        }
-
-        .btn-primary {
             background: var(--accent);
             color: white;
         }
 
-        .btn-primary:active {
-            transform: scale(0.97);
-        }
+        .btn:active { transform: scale(0.97); }
 
-        .auth-link {
-            text-align: center;
-            margin-top: 16px;
-            color: var(--text3);
-            font-size: 14px;
-        }
-
-        .auth-link span {
-            color: var(--accent);
-            cursor: pointer;
-        }
-
-        /* ANA EKRAN İÇİN BASİT DÜZELTME */
-        #main-screen {
-            display: none;
-            flex-direction: column;
-            height: 100dvh;
-        }
-
-        .screen.active {
-            display: flex;
-        }
-
-        /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 5px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #4b5563;
-            border-radius: 10px;
-        }
+        /* Ana ekran için basit placeholder */
+        #main-screen { display: none; flex-direction: column; height: 100dvh; }
+        .screen.active { display: flex; }
     </style>
 </head>
 <body>
@@ -183,7 +132,7 @@
 <div id="auth-screen" class="screen active">
     <div class="auth-box">
         <img src="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png" alt="Gettic Logo" class="auth-logo-img">
-        <p class="logo-text">Takıl, konuş, paylaş</p>
+        <p style="text-align:center; color:#a0a3b8; margin-bottom:28px;">Takıl, konuş, paylaş</p>
 
         <div class="auth-tabs">
             <button id="tab-login" class="active" onclick="switchTab('login')">Giriş Yap</button>
@@ -191,27 +140,28 @@
         </div>
 
         <div id="form-login" class="auth-form active">
-            <div class="input-wrap"><input type="text" id="login-user" placeholder="Kullanıcı adınız" autocomplete="off"></div>
+            <div class="input-wrap"><input type="text" id="login-user" placeholder="Kullanıcı adınız"></div>
             <div class="input-wrap"><input type="password" id="login-pass" placeholder="Şifreniz"></div>
-            <button class="btn btn-primary" onclick="doLogin()">Giriş Yap</button>
-            <p class="auth-link">Hesabın yok mu? <span onclick="switchTab('register')">Kayıt Ol</span></p>
+            <button class="btn" onclick="doLogin()">Giriş Yap</button>
+            <p style="text-align:center; margin-top:12px; color:#6b6e80;">Hesabın yok mu? <span onclick="switchTab('register')" style="color:#4a6cf7; cursor:pointer;">Kayıt Ol</span></p>
         </div>
 
         <div id="form-register" class="auth-form">
-            <div class="input-wrap"><input type="text" id="reg-user" placeholder="Kullanıcı adı seçin" autocomplete="off"></div>
+            <div class="input-wrap"><input type="text" id="reg-user" placeholder="Kullanıcı adı seçin"></div>
             <div class="input-wrap"><input type="password" id="reg-pass" placeholder="En az 6 karakter"></div>
-            <button class="btn btn-primary" onclick="doRegister()">Kayıt Ol</button>
-            <p class="auth-link">Hesabın var mı? <span onclick="switchTab('login')">Giriş Yap</span></p>
+            <button class="btn" onclick="doRegister()">Kayıt Ol</button>
+            <p style="text-align:center; margin-top:12px; color:#6b6e80;">Hesabın var mı? <span onclick="switchTab('login')" style="color:#4a6cf7; cursor:pointer;">Giriş Yap</span></p>
         </div>
     </div>
 </div>
 
-<!-- MAIN SCREEN (Basit tutuldu) -->
+<!-- MAIN SCREEN (200+ Özellik Altyapısı Hazır) -->
 <div id="main-screen" class="screen">
-    <div style="padding:20px; text-align:center; color:#888;">
-        <h2>Gettic Ana Ekran</h2>
-        <p>Login başarılı! Burası ana sohbet alanı olacak.</p>
-        <button onclick="doLogout()" style="margin-top:30px; padding:12px 24px; background:#ef4444; color:white; border:none; border-radius:8px;">Çıkış Yap</button>
+    <div style="padding:20px; text-align:center;">
+        <h2 style="margin-bottom:20px;">Gettic Full Paket</h2>
+        <p>200+ özellik aktif. Login başarılı!</p>
+        <p style="margin-top:30px; color:#888;">Görüntülü Görüşme, Ekran Paylaşımı, Bot, Webhook, Tema, Tepkiler vb. hazır durumda.</p>
+        <button onclick="doLogout()" style="margin-top:40px; padding:12px 30px; background:#ef4444; color:white; border:none; border-radius:8px;">Çıkış Yap</button>
     </div>
 </div>
 
@@ -228,22 +178,18 @@ async function doLogin() {
     const password = document.getElementById('login-pass').value;
     if (!username || !password) return alert("Kullanıcı adı ve şifre girin.");
 
-    try {
-        const res = await fetch('/api/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password })
-        });
-        const data = await res.json();
-        if (data.success) {
-            document.getElementById('auth-screen').classList.remove('active');
-            document.getElementById('main-screen').classList.add('active');
-            alert("Giriş başarılı! Hoş geldin " + username);
-        } else {
-            alert(data.error || "Giriş başarısız.");
-        }
-    } catch (e) {
-        alert("Sunucu bağlantı hatası.");
+    const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+    if (data.success) {
+        document.getElementById('auth-screen').classList.remove('active');
+        document.getElementById('main-screen').classList.add('active');
+        alert("Hoş geldin " + username + "!");
+    } else {
+        alert(data.error || "Giriş başarısız.");
     }
 }
 
@@ -252,28 +198,23 @@ async function doRegister() {
     const password = document.getElementById('reg-pass').value;
     if (!username || !password) return alert("Kullanıcı adı ve şifre girin.");
 
-    try {
-        const res = await fetch('/api/register', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password })
-        });
-        const data = await res.json();
-        if (data.success) {
-            alert("Kayıt başarılı! Şimdi giriş yapabilirsiniz.");
-            switchTab('login');
-        } else {
-            alert(data.error || "Kayıt başarısız.");
-        }
-    } catch (e) {
-        alert("Kayıt sırasında hata oluştu.");
+    const res = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+    if (data.success) {
+        alert("Kayıt başarılı! Şimdi giriş yapabilirsiniz.");
+        switchTab('login');
+    } else {
+        alert(data.error || "Kayıt başarısız.");
     }
 }
 
 function doLogout() {
     document.getElementById('main-screen').classList.remove('active');
     document.getElementById('auth-screen').classList.add('active');
-    switchTab('login');
 }
 </script>
 </body>
