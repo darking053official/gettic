@@ -1910,58 +1910,35 @@ function connectSocket() {
     if (socket) return;
     try {
         socket = io(API, {
-            transports: ['websocket', 'polling'],
+            transports: ['polling', 'websocket'],
+            upgrade: true,
+            rememberUpgrade: true,
             reconnection: true,
-            reconnectionAttempts: Infinity,
-            reconnectionDelay: 1000,
-            reconnectionDelayMax: 5000,
-            timeout: 20000,
-            forceNew: true
+            reconnectionAttempts: 10,
+            reconnectionDelay: 1000
         });
 
         socket.on('connect', function() {
-            console.log('Socket bağlandı');
+            console.log('Bağlandı');
             if (me) socket.emit('user-online', me._id);
             if (cRoom) socket.emit('join-room', cRoom);
-            showToast('Sunucuya bağlanıldı!', 'success');
+            showToast('Bağlandı!', 'success');
         });
-
-        socket.on('receive-message', function(m) {
-            if (blockedUsers && blockedUsers.includes(m.senderName)) return;
-            showMsg(m);
-        });
-
-        socket.on('user-typing', function(d) {
+        
+        socket.on('receive-message', function(m) { showMsg(m); });
+        socket.on('user-typing', function(d) { 
             if (d.userId === me._id) return;
             typingUsers[d.userId] = { name: d.userName, time: Date.now() };
             updateTypingIndicator();
         });
-
-        socket.on('room-user-count', function(c) {
-            $('online-count').textContent = c + ' çevrimiçi';
+        socket.on('room-user-count', function(c) { $('online-count').textContent = c + ' çevrimiçi'; });
+        socket.on('message-error', function(e) { showToast(e || 'Hata', 'error'); });
+        socket.on('disconnect', function() { console.log('Koptu'); });
+        socket.on('connect_error', function() {
+            console.log('Polling deneniyor...');
         });
-
-        socket.on('message-error', function(e) {
-            showToast(e || 'Mesaj gönderilemedi', 'error');
-        });
-
-        socket.on('voice-join', function(d) { addVoiceUser(d); });
-        socket.on('voice-leave', function(d) { removeVoiceUser(d); });
-        socket.on('user-online-update', function(d) { onlineUsers = d; });
-        
-        socket.on('disconnect', function() {
-            console.log('Socket koptu');
-            showToast('Bağlantı koptu, tekrar bağlanılıyor...', 'warning');
-        });
-
-        socket.on('connect_error', function(err) {
-            console.log('Bağlantı hatası:', err.message);
-            showToast('Bağlantı hatası: ' + err.message, 'error');
-        });
-
     } catch(e) {
-        console.error('Socket hatası:', e);
-        setTimeout(connectSocket, 5000);
+        setTimeout(connectSocket, 3000);
     }
 }
 
