@@ -1912,15 +1912,18 @@ function connectSocket() {
         socket = io(API, {
             transports: ['websocket', 'polling'],
             reconnection: true,
-            reconnectionAttempts: 10,
-            reconnectionDelay: 3000,
-            timeout: 20000
+            reconnectionAttempts: Infinity,
+            reconnectionDelay: 1000,
+            reconnectionDelayMax: 5000,
+            timeout: 20000,
+            forceNew: true
         });
 
         socket.on('connect', function() {
             console.log('Socket bağlandı');
             if (me) socket.emit('user-online', me._id);
             if (cRoom) socket.emit('join-room', cRoom);
+            showToast('Sunucuya bağlanıldı!', 'success');
         });
 
         socket.on('receive-message', function(m) {
@@ -1945,8 +1948,15 @@ function connectSocket() {
         socket.on('voice-join', function(d) { addVoiceUser(d); });
         socket.on('voice-leave', function(d) { removeVoiceUser(d); });
         socket.on('user-online-update', function(d) { onlineUsers = d; });
+        
         socket.on('disconnect', function() {
-            console.log('Socket koptu, tekrar bağlanılıyor...');
+            console.log('Socket koptu');
+            showToast('Bağlantı koptu, tekrar bağlanılıyor...', 'warning');
+        });
+
+        socket.on('connect_error', function(err) {
+            console.log('Bağlantı hatası:', err.message);
+            showToast('Bağlantı hatası: ' + err.message, 'error');
         });
 
     } catch(e) {
@@ -1954,20 +1964,6 @@ function connectSocket() {
         setTimeout(connectSocket, 5000);
     }
 }
-
-function updateTypingIndicator() {
-    var now = Date.now();
-    var typers = [];
-    for (var uid in typingUsers) {
-        if (now - typingUsers[uid].time < 5000) typers.push(typingUsers[uid].name);
-        else delete typingUsers[uid];
-    }
-    if (typers.length === 0) $('typing').textContent = '';
-    else if (typers.length === 1) $('typing').textContent = typers[0] + ' yazıyor...';
-    else if (typers.length === 2) $('typing').textContent = typers[0] + ' ve ' + typers[1] + ' yazıyor...';
-    else $('typing').textContent = typers.slice(0, 2).join(', ') + ' ve ' + (typers.length-2) + ' kişi daha yazıyor...';
-}
-setInterval(updateTypingIndicator, 2000);
 
 // ============ ROOMS ============
 function loadRooms() {
