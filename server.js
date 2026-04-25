@@ -238,11 +238,12 @@ app.delete('/api/bots/:id', auth, async (req, res) => {
     try { await Bot.findByIdAndDelete(req.params.id); res.json({ ok: true }); } catch (e) { res.status(500).json({ error: 'Silinemedi' }); }
 });
 
-// ============ SOCKET.IO ============
+// ============ SOCKET.IO ===========
 const io = socketIo(server, {
-    cors: { origin: "*", methods: ["GET", "POST"] },
-    transports: ['polling', 'websocket'],
-    allowEIO3: true
+    cors: { origin: "*", methods: ["GET", "POST", "PUT", "DELETE"] },
+    maxHttpBufferSize: 10e6,
+    pingTimeout: 60000,
+    transports: ['polling', 'websocket']
 });
 
 // ============ FRONTEND ============
