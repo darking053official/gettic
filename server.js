@@ -17,13 +17,12 @@ const io = socketIo(server, {
     pingTimeout: 60000
 });
 
-// ==================== MIDDLEWARE ====================
 app.use(cors({ origin: '*', methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], credentials: true }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.static(__dirname));
 
-// ==================== MODELS ====================
+// ============ MODELS ============
 const userSchema = new mongoose.Schema({
     username: { type: String, required: true, unique: true, trim: true, minlength: 3, maxlength: 20 },
     password: { type: String, required: true, minlength: 6 },
@@ -38,6 +37,7 @@ const userSchema = new mongoose.Schema({
     blocked: [{ type: String }],
     createdAt: { type: Date, default: Date.now }
 });
+
 userSchema.pre('save', async function(next) {
     if (!this.isModified('password')) return next();
     try { this.password = await bcrypt.hash(this.password, 10); next(); } catch (e) { next(e); }
@@ -91,7 +91,7 @@ const botSchema = new mongoose.Schema({
 });
 const Bot = mongoose.model('Bot', botSchema);
 
-// ==================== AUTH MIDDLEWARE ====================
+// ============ AUTH MIDDLEWARE ============
 const auth = async (req, res, next) => {
     try {
         const token = req.header('Authorization')?.replace('Bearer ', '');
@@ -103,8 +103,22 @@ const auth = async (req, res, next) => {
     } catch (e) { res.status(401).json({ error: 'Geçersiz token' }); }
 };
 
-// ==================== AUTH ROUTES ====================
-app.post('/api/auth/register', async (req, res) => {
+// ============ RATE LIMITER ============
+const rateLimit = {};
+function rateLimiter(max, windowMs) {
+    return (req, res, next) => {
+        const ip = req.ip || req.connection?.remoteAddress || '127.0.0.1';
+        if (!rateLimit[ip]) rateLimit[ip] = [];
+        const now = Date.now();
+        rateLimit[ip] = rateLimit[ip].filter(t => now - t < windowMs);
+        if (rateLimit[ip].length >= max) return res.status(429).json({ error: 'Çok fazla istek! Biraz bekle.' });
+        rateLimit[ip].push(now);
+        next();
+    };
+}
+
+// ============ AUTH ROUTES ============
+app.post('/api/auth/register', rateLimiter(5, 60000), async (req, res) => {
     try {
         const { username, password } = req.body;
         if (!username || !password) return res.status(400).json({ error: 'Kullanıcı adı ve şifre gerekli' });
@@ -115,10 +129,10 @@ app.post('/api/auth/register', async (req, res) => {
         await user.save();
         const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || 'gettic2024secret', { expiresIn: '30d' });
         res.status(201).json({ user, token });
-    } catch (e) { res.status(500).json({ error: 'Kayıt başarısız' }); }
+    } catch (e) { console.error('Register:', e); res.status(500).json({ error: 'Kayıt başarısız' }); }
 });
 
-app.post('/api/auth/login', async (req, res) => {
+app.post('/api/auth/login', rateLimiter(10, 60000), async (req, res) => {
     try {
         const { username, password } = req.body;
         if (!username || !password) return res.status(400).json({ error: 'Kullanıcı adı ve şifre gerekli' });
@@ -132,16 +146,16 @@ app.post('/api/auth/login', async (req, res) => {
 
 app.get('/api/auth/me', auth, async (req, res) => { res.json(req.user); });
 
-// ==================== ROOMS ====================
+// ============ ROOMS ============
 app.get('/api/rooms', async (req, res) => {
     try { res.json(await Room.find({}).sort({ createdAt: 1 })); } catch (e) { res.json([]); }
 });
 
-app.post('/api/rooms', async (req, res) => {
+app.post('/api/rooms', rateLimiter(10, 30000), async (req, res) => {
     try {
-        const { name, description, category, type, isPrivate, password } = req.body;
+        const { name, description, category, isPrivate, password } = req.body;
         if (!name || name.trim().length < 1) return res.status(400).json({ error: 'Oda adı gerekli' });
-        const room = new Room({ name: name.trim(), description, category: category || 'Genel', type: type || 'text', isPrivate: !!isPrivate, password: isPrivate ? password : '' });
+        const room = new Room({ name: name.trim(), description, category: category || 'Genel', isPrivate: !!isPrivate, password: isPrivate ? password : '' });
         await room.save();
         res.status(201).json(room);
     } catch (e) { res.status(500).json({ error: 'Oda oluşturulamadı' }); }
@@ -154,7 +168,7 @@ app.get('/api/rooms/:id/messages', async (req, res) => {
     } catch (e) { res.json([]); }
 });
 
-// ==================== MESSAGES ====================
+// ============ MESSAGES ============
 app.put('/api/messages/:id', async (req, res) => {
     try {
         const msg = await Message.findByIdAndUpdate(req.params.id, { content: req.body.content, edited: true }, { new: true });
@@ -167,7 +181,7 @@ app.delete('/api/messages/:id', async (req, res) => {
     try { await Message.findByIdAndDelete(req.params.id); res.json({ ok: true }); } catch (e) { res.status(500).json({ error: 'Silinemedi' }); }
 });
 
-// ==================== WEBHOOKS ====================
+// ============ WEBHOOKS ============
 app.post('/api/webhooks', auth, async (req, res) => {
     try {
         const { name, room } = req.body;
@@ -200,7 +214,7 @@ app.delete('/api/webhooks/:id', auth, async (req, res) => {
     try { await Webhook.findByIdAndDelete(req.params.id); res.json({ ok: true }); } catch (e) { res.status(500).json({ error: 'Silinemedi' }); }
 });
 
-// ==================== BOTS ====================
+// ============ BOTS ============
 app.post('/api/bots', auth, async (req, res) => {
     try {
         const { name } = req.body;
@@ -208,7 +222,7 @@ app.post('/api/bots', auth, async (req, res) => {
         if (await Bot.findOne({ name })) return res.status(400).json({ error: 'Bu bot adı kullanılıyor' });
         const token = crypto.randomBytes(16).toString('hex');
         const bot = new Bot({ name, owner: req.user.username, token, commands: [
-            { name: 'ping', response: 'Pong! 🏓' },
+            { name: 'ping', response: 'Pong!' },
             { name: 'yardim', response: '/ping, /sa, /temizle, /anket' }
         ]});
         await bot.save();
@@ -217,43 +231,82 @@ app.post('/api/bots', auth, async (req, res) => {
 });
 
 app.get('/api/bots', auth, async (req, res) => {
-    try { res.json(await Bot.find({ owner: req.user.username })); } catch (e) { res.json([]); }
+    try { res.json(await Bot.find({})); } catch (e) { res.json([]); }
 });
 
 app.delete('/api/bots/:id', auth, async (req, res) => {
     try { await Bot.findByIdAndDelete(req.params.id); res.json({ ok: true }); } catch (e) { res.status(500).json({ error: 'Silinemedi' }); }
 });
 
-// ==================== SOCKET.IO ====================
+// ============ SOCKET.IO ============
 const onlineUsers = {};
 
 io.on('connection', (socket) => {
-    console.log('👤 Bağlandı:', socket.id.substring(0, 8));
+    console.log('Bağlandı:', socket.id.substring(0, 8));
 
-    socket.on('user-online', (uid) => { socket.userId = uid; onlineUsers[uid] = 'online'; io.emit('user-online-update', onlineUsers); });
-    socket.on('join-room', (rid) => { socket.join(rid); socket.currentRoom = rid; const room = io.sockets.adapter.rooms.get(rid); io.to(rid).emit('room-user-count', room ? room.size : 0); });
-    socket.on('leave-room', (rid) => { socket.leave(rid); const room = io.sockets.adapter.rooms.get(rid); io.to(rid).emit('room-user-count', room ? room.size : 0); });
+    socket.on('user-online', (uid) => {
+        socket.userId = uid;
+        onlineUsers[uid] = 'online';
+        io.emit('user-online-update', onlineUsers);
+    });
+
+    socket.on('join-room', (rid) => {
+        socket.join(rid);
+        socket.currentRoom = rid;
+        const room = io.sockets.adapter.rooms.get(rid);
+        io.to(rid).emit('room-user-count', room ? room.size : 0);
+    });
+
+    socket.on('leave-room', (rid) => {
+        socket.leave(rid);
+        const room = io.sockets.adapter.rooms.get(rid);
+        io.to(rid).emit('room-user-count', room ? room.size : 0);
+    });
 
     socket.on('send-message', async (data) => {
         try {
             const msg = await Message.create({
-                content: data.content || '', sender: data.senderId, senderName: data.senderName,
-                room: data.roomId, type: data.type || 'text', replyTo: data.replyTo || null,
-                pollQuestion: data.pollQuestion || '', pollOptions: data.pollOptions || [], pollVotes: data.pollVotes || []
+                content: data.content || '',
+                sender: data.senderId,
+                senderName: data.senderName,
+                room: data.roomId,
+                type: data.type || 'text',
+                replyTo: data.replyTo || null,
+                pollQuestion: data.pollQuestion || '',
+                pollOptions: data.pollOptions || [],
+                pollVotes: data.pollVotes || []
             });
             const populated = await Message.findById(msg._id);
             io.to(data.roomId).emit('receive-message', populated);
             processBotCommands(populated);
-        } catch (e) { socket.emit('message-error', 'Mesaj gönderilemedi'); }
+        } catch (e) {
+            socket.emit('message-error', 'Mesaj gönderilemedi');
+        }
     });
 
-    socket.on('typing', (data) => { socket.to(data.roomId).emit('user-typing', data); });
-    socket.on('voice-join', (data) => { socket.join('voice-' + data.roomId); socket.to('voice-' + data.roomId).emit('voice-join', data); });
-    socket.on('voice-leave', (data) => { socket.leave('voice-' + data.roomId); socket.to('voice-' + data.roomId).emit('voice-leave', data); });
+    socket.on('typing', (data) => {
+        socket.to(data.roomId).emit('user-typing', data);
+    });
+
+    socket.on('voice-join', (data) => {
+        socket.join('voice-' + data.roomId);
+        socket.to('voice-' + data.roomId).emit('voice-join', data);
+    });
+
+    socket.on('voice-leave', (data) => {
+        socket.leave('voice-' + data.roomId);
+        socket.to('voice-' + data.roomId).emit('voice-leave', data);
+    });
 
     socket.on('disconnect', () => {
-        if (socket.userId) { delete onlineUsers[socket.userId]; io.emit('user-online-update', onlineUsers); }
-        if (socket.currentRoom) { const room = io.sockets.adapter.rooms.get(socket.currentRoom); io.to(socket.currentRoom).emit('room-user-count', room ? room.size : 0); }
+        if (socket.userId) {
+            delete onlineUsers[socket.userId];
+            io.emit('user-online-update', onlineUsers);
+        }
+        if (socket.currentRoom) {
+            const room = io.sockets.adapter.rooms.get(socket.currentRoom);
+            io.to(socket.currentRoom).emit('room-user-count', room ? room.size : 0);
+        }
     });
 });
 
@@ -262,38 +315,50 @@ async function processBotCommands(msg) {
     const parts = msg.content.substring(1).split(' ');
     const cmd = parts[0].toLowerCase();
     const bots = await Bot.find({});
+
     for (const bot of bots) {
         const command = bot.commands.find(c => c.name === cmd);
         if (command) {
-            const botMsg = await Message.create({ content: command.response, senderName: bot.name, room: msg.room, type: 'text', isBot: true });
+            let response = command.response;
+
+            if (cmd === 'temizle') {
+                const count = parseInt(parts[1]) || 5;
+                const msgs = await Message.find({ room: msg.room }).sort({ timestamp: -1 }).limit(count);
+                await Message.deleteMany({ _id: { $in: msgs.map(m => m._id) } });
+                response = count + ' mesaj temizlendi!';
+            }
+
+            const botMsg = await Message.create({
+                content: response,
+                senderName: bot.name,
+                room: msg.room,
+                type: 'text',
+                isBot: true
+            });
             io.to(msg.room).emit('receive-message', botMsg);
             break;
         }
     }
 }
 
-// ==================== FRONTEND ====================
+// ============ FRONTEND ============
 app.get('/', (req, res) => { res.sendFile(path.join(__dirname, 'index.html')); });
-app.get('/bot', (req, res) => { res.sendFile(path.join(__dirname, 'index.html')); });
-app.get('/webhook', (req, res) => { res.sendFile(path.join(__dirname, 'index.html')); });
-app.get('/docs', (req, res) => { res.sendFile(path.join(__dirname, 'index.html')); });
 app.get('*', (req, res) => { res.sendFile(path.join(__dirname, 'index.html')); });
 
-// ==================== START ====================
-const MONGODB_URI = process.env.MONGODB_URI;
-console.log('🚀 Gettic v3.0 başlatılıyor...');
-console.log('📦 MongoDB:', MONGODB_URI ? '✅ Yüklendi' : '❌ Yüklenmedi!');
+// ============ HEALTH CHECK ============
+app.get('/health', (req, res) => { res.json({ status: 'ok', uptime: process.uptime(), timestamp: Date.now() }); });
 
-mongoose.connect(MONGODB_URI || 'mongodb://127.0.0.1:27017/gettic')
-    .then(() => console.log('✅ MongoDB bağlandı'))
-    .catch((e) => console.log('❌ MongoDB hatası:', e.message));
-
+// ============ START ============
+const MONGODB_URI = process.env.MONGODB_URI || process.env.MONGO_URL || 'mongodb://127.0.0.1:27017/gettic';
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-    console.log(`✅ Gettic ${PORT} portunda çalışıyor`);
-    console.log(`🌐 http://localhost:${PORT}`);
-    console.log(`🤖 Bot Sistemi: Aktif`);
-    console.log(`🔗 Webhook Sistemi: Aktif`);
-    console.log(`📚 Dökümantasyon: /docs`);
-    console.log(`🛠 Yönetim Paneli: /bot | /webhook`);
+
+console.log('Gettic v3.0 başlatılıyor...');
+console.log('Port:', PORT);
+
+mongoose.connect(MONGODB_URI)
+    .then(() => console.log('MongoDB bağlandı'))
+    .catch((e) => console.log('MongoDB hatası:', e.message));
+
+server.listen(PORT, '0.0.0.0', () => {
+    console.log('Gettic hazır! Port: ' + PORT);
 });
