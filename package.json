@@ -4,12 +4,7 @@
   "description": "Gettic - Modern Sohbet Platformu",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js",
-    "go": "go run server.go",
-    "rust": "cargo run",
-    "build:go": "go build -o server server.go",
-    "build:rust": "cargo build --release"
+    "start": "node server.js"
   },
   "dependencies": {
     "express": "^4.18.2",
@@ -22,8 +17,5 @@
   },
   "engines": {
     "node": ">=16.0.0"
-  },
-  "keywords": ["gettic", "chat", "messaging", "bot", "webhook"],
-  "author": "darking053",
-  "license": "MIT"
+  }
 }
