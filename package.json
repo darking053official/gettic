@@ -1,7 +1,7 @@
 {
   "name": "gettic",
-  "version": "3.0.0",
-  "description": "Gettic - Modern Sohbet Platformu",
+  "version": "4.0.0",
+  "description": "Gettic - Sohbet Platformu",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
@@ -17,5 +17,8 @@
   },
   "engines": {
     "node": ">=16.0.0"
-  }
+  },
+  "keywords": ["gettic", "chat", "alternative", "threads", "stage", "forum"],
+  "author": "darking053",
+  "license": "MIT"
 }
