@@ -2,7 +2,6 @@
   "build": {
     "builder": "NIXPACKS",
     "nixpacksConfig": {
-      "providers": ["node"]
     }
   },
   "deploy": {
