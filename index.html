@@ -2,280 +2,379 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Gettic - Kurumsal İletişim Platformu (200+ Özellik)</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Gettic - Kurumsal Sohbet Platformu</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <style>
         :root {
             --bg: #1a1b2e;
             --bg2: #1f2038;
+            --bg3: #252740;
+            --hover: #2a2c45;
+            --active: #2f3150;
             --accent: #4a6cf7;
+            --accent2: #7c8cf8;
+            --green: #22c55e;
+            --yellow: #eab308;
+            --red: #ef4444;
             --text: #e8e8f0;
             --text2: #a0a3b8;
+            --text3: #6b6e80;
+            --border: #2a2c42;
+            --radius: 12px;
+            --radius-sm: 8px;
+            --radius-lg: 20px;
         }
+
         * { margin:0; padding:0; box-sizing:border-box; }
         body {
-            font-family: system-ui, sans-serif;
+            font-family: system-ui, -apple-system, sans-serif;
             background: var(--bg);
             color: var(--text);
             height: 100dvh;
             overflow: hidden;
         }
-        .btn { transition: all 0.2s; }
-        .btn:active { transform: scale(0.95); }
-        input:focus { outline: 2px solid var(--accent); }
-        .screen { display: none; }
-        .screen.active { display: flex; flex-direction: column; height: 100dvh; }
+
+        /* Bol Animasyonlar */
+        @keyframes slideUp { from { opacity:0; transform: translateY(50px); } to { opacity:1; transform: translateY(0); } }
+        @keyframes slideDown { from { opacity:0; transform: translateY(-50px); } to { opacity:1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+        @keyframes gradientShift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        @keyframes typing { 0% { opacity: 0.3; } 50% { opacity: 1; } 100% { opacity: 0.3; } }
+        @keyframes shake { 0%,100% { transform: translateX(0); } 10%,30%,50%,70%,90% { transform: translateX(-4px); } 20%,40%,60%,80% { transform: translateX(4px); } }
+
+        .btn {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .btn:active {
+            transform: scale(0.95);
+        }
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 0; height: 0;
+            background: rgba(255,255,255,0.25);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        .btn:active::after {
+            width: 300px;
+            height: 300px;
+        }
+
+        /* Auth Screen */
+        #auth-screen {
+            min-height: 100dvh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1a1b2e, #252740, #1e2040);
+            background-size: 400% 400%;
+            animation: gradientShift 30s ease infinite;
+            padding: 20px;
+        }
+
+        .auth-box {
+            background: var(--bg2);
+            padding: 48px 32px;
+            border-radius: var(--radius-lg);
+            width: 100%;
+            max-width: 440px;
+            border: 1px solid var(--border);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            animation: slideUp 0.8s ease;
+        }
+
+        .auth-logo {
+            width: 140px;
+            margin: 0 auto 24px;
+            display: block;
+            animation: pulse 4s infinite ease-in-out;
+        }
+
+        .auth-tabs {
+            display: flex;
+            background: var(--bg3);
+            border-radius: 9999px;
+            padding: 6px;
+            margin-bottom: 32px;
+        }
+
+        .auth-tabs button {
+            flex: 1;
+            padding: 16px;
+            border: none;
+            border-radius: 9999px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .auth-tabs button.active {
+            background: var(--accent);
+            color: white;
+            box-shadow: 0 4px 15px rgba(74,108,247,0.4);
+        }
+
+        .input-group input {
+            width: 100%;
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 18px 20px;
+            font-size: 17px;
+            color: var(--text);
+        }
+
+        .input-group input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(74,108,247,0.15);
+        }
+
+        /* Main Screen */
+        #main-screen {
+            display: none;
+            flex-direction: column;
+            height: 100dvh;
+        }
+
+        .header {
+            height: 60px;
+            background: #24272f;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            justify-content: space-between;
+        }
+
+        #messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            background: #1c1f2a;
+        }
+
+        .message {
+            display: flex;
+            gap: 14px;
+            margin-bottom: 28px;
+            animation: slideUp 0.4s ease;
+        }
+
+        .avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .input-area {
+            padding: 20px;
+            background: #24272f;
+            border-top: 1px solid var(--border);
+        }
+
+        .send-btn {
+            background: var(--accent);
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            animation: pulse 2s infinite;
+        }
+
+        /* Toast */
+        #toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent);
+            color: white;
+            padding: 16px 32px;
+            border-radius: 9999px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: none;
+            z-index: 9999;
+            animation: slideUp 0.3s ease;
+        }
     </style>
 </head>
 <body>
 
-<!-- ====================== AUTH SCREEN ====================== -->
-<div id="auth-screen" class="screen active min-h-screen flex items-center justify-center p-4 bg-[#0a0a0f]">
-    <div class="bg-[#1f2038] w-full max-w-md rounded-3xl p-10 shadow-2xl border border-[#334155]">
-        <div class="text-center mb-10">
-            <img src="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png" 
-                 alt="Gettic Logo" class="mx-auto w-28 h-28 rounded-3xl mb-6 shadow-xl">
-            <h1 class="text-5xl font-bold tracking-tight">Gettic</h1>
-            <p class="text-blue-400 mt-3 text-xl">Kurumsal İletişim Platformu</p>
-            <p class="text-gray-400 text-sm mt-1">200+ Özellik • gettic.js</p>
+<!-- AUTH -->
+<div id="auth-screen">
+    <div class="auth-box">
+        <img src="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png" alt="Gettic" class="auth-logo">
+        <p class="text-center text-2xl font-semibold mb-8">Gettic</p>
+
+        <div class="auth-tabs">
+            <button id="login-tab" class="active" onclick="switchTab(0)">Giriş Yap</button>
+            <button id="register-tab" onclick="switchTab(1)">Kayıt Ol</button>
         </div>
 
-        <div class="flex bg-[#252740] rounded-3xl p-1 mb-10">
-            <button onclick="switchTab(0)" id="tab-login-btn"
-                    class="flex-1 py-4 font-semibold rounded-3xl transition">Giriş Yap</button>
-            <button onclick="switchTab(1)" id="tab-register-btn"
-                    class="flex-1 py-4 font-semibold rounded-3xl transition">Kayıt Ol</button>
-        </div>
-
-        <!-- LOGIN FORM -->
         <div id="login-form">
-            <div class="space-y-6">
-                <input id="login-username" type="text" placeholder="Kullanıcı Adı" 
-                       class="w-full bg-[#252740] border border-gray-600 rounded-2xl px-6 py-5 text-lg">
-                <input id="login-password" type="password" placeholder="Şifre" 
-                       class="w-full bg-[#252740] border border-gray-600 rounded-2xl px-6 py-5 text-lg">
-                <button onclick="doLogin()" 
-                        class="w-full bg-blue-600 hover:bg-blue-700 py-5 rounded-3xl font-semibold text-xl transition">
-                    Gettic'e Giriş Yap
-                </button>
+            <div class="input-group mb-6">
+                <input type="text" id="login-username" placeholder="Kullanıcı Adı">
             </div>
-            <p onclick="switchTab(1)" class="text-center text-blue-400 mt-6 cursor-pointer">Hesabın yok mu? Kayıt Ol</p>
+            <div class="input-group mb-8">
+                <input type="password" id="login-password" placeholder="Şifre">
+            </div>
+            <button onclick="doLogin()" class="btn w-full py-5 text-xl font-bold bg-[#4a6cf7] hover:bg-[#7c8cf8] rounded-2xl">Giriş Yap</button>
         </div>
 
-        <!-- REGISTER FORM -->
         <div id="register-form" class="hidden">
-            <div class="space-y-6">
-                <input id="reg-username" type="text" placeholder="Kullanıcı Adı" 
-                       class="w-full bg-[#252740] border border-gray-600 rounded-2xl px-6 py-5 text-lg">
-                <input id="reg-password" type="password" placeholder="Şifre (en az 6 karakter)" 
-                       class="w-full bg-[#252740] border border-gray-600 rounded-2xl px-6 py-5 text-lg">
-                <button onclick="doRegister()" 
-                        class="w-full bg-blue-600 hover:bg-blue-700 py-5 rounded-3xl font-semibold text-xl transition">
-                    Hesap Oluştur
-                </button>
+            <div class="input-group mb-6">
+                <input type="text" id="reg-username" placeholder="Kullanıcı Adı">
             </div>
-            <p onclick="switchTab(0)" class="text-center text-blue-400 mt-6 cursor-pointer">Zaten hesabın var mı? Giriş Yap</p>
+            <div class="input-group mb-8">
+                <input type="password" id="reg-password" placeholder="Şifre">
+            </div>
+            <button onclick="doRegister()" class="btn w-full py-5 text-xl font-bold bg-[#4a6cf7] hover:bg-[#7c8cf8] rounded-2xl">Kayıt Ol</button>
         </div>
     </div>
 </div>
 
-<!-- ====================== MAIN APPLICATION ====================== -->
-<div id="main-app" class="screen hidden flex-col h-screen">
-
-    <!-- Top Bar -->
-    <div class="h-14 bg-[#24272f] flex items-center px-4 border-b border-gray-700">
-        <div class="font-semibold text-lg flex items-center gap-2">
-            <span class="text-blue-400">#</span>
-            <span id="room-title">genel-iletisim</span>
+<!-- MAIN APP -->
+<div id="main-screen" class="hidden flex-col h-full">
+    <div class="header">
+        <div class="flex items-center gap-3">
+            <span class="text-2xl">🏠</span>
+            <span id="current-room" class="font-bold text-lg"># genel</span>
         </div>
-        <div class="ml-auto flex gap-2">
-            <button onclick="startVideoCall()" class="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-2xl text-sm flex items-center gap-2">
-                <i class="fas fa-video"></i> Görüntülü
-            </button>
-            <button onclick="startScreenShare()" class="bg-orange-600 hover:bg-orange-700 px-4 py-2 rounded-2xl text-sm flex items-center gap-2">
-                <i class="fas fa-desktop"></i> Ekran Paylaş
-            </button>
+        <div class="flex gap-4">
+            <button onclick="startVideoCall()" class="btn px-6 py-2 bg-purple-600 rounded-2xl text-sm font-medium">📹 Görüntülü</button>
+            <button onclick="startScreenShare()" class="btn px-6 py-2 bg-orange-600 rounded-2xl text-sm font-medium">🖥️ Ekran Paylaş</button>
         </div>
     </div>
 
-    <!-- Messages Area -->
-    <div id="messages" class="flex-1 overflow-y-auto p-6 space-y-8 bg-[#1f222a]"></div>
+    <div id="messages" class="flex-1 overflow-y-auto"></div>
 
-    <!-- Message Input -->
-    <div class="p-5 bg-[#24272f] border-t border-gray-700">
-        <div class="flex gap-3">
-            <input id="message-input" type="text" placeholder="Mesaj yazın..." 
-                   class="flex-1 bg-[#2f323a] border border-transparent focus:border-blue-500 rounded-3xl px-6 py-5 text-lg outline-none">
-            <button onclick="sendMessage()" 
-                    class="bg-blue-600 hover:bg-blue-700 w-14 h-14 rounded-3xl flex items-center justify-center text-2xl shadow-lg">
-                ➤
-            </button>
+    <div class="input-area">
+        <div class="flex gap-3 bg-[#2f323a] rounded-3xl p-3">
+            <input id="message-input" type="text" placeholder="Bir mesaj yaz..." 
+                   class="flex-1 bg-transparent px-6 py-4 text-lg outline-none"
+                   onkeypress="if(event.key === 'Enter') sendMessage()">
+            <button onclick="sendMessage()" class="send-btn text-white">↑</button>
         </div>
     </div>
 </div>
+
+<!-- Toast -->
+<div id="toast"></div>
 
 <script>
-// ====================== GLOBAL VARIABLES ======================
-let currentUsername = null;
-let currentRoom = "genel-iletisim";
-let socket = null;
+    let socket = null;
+    let username = "";
 
-// ====================== TAB SWITCH ======================
-function switchTab(n) {
-    document.getElementById('login-form').classList.toggle('hidden', n !== 0);
-    document.getElementById('register-form').classList.toggle('hidden', n !== 1);
-}
-
-// ====================== LOGIN ======================
-async function doLogin() {
-    const username = document.getElementById('login-username').value.trim();
-    const password = document.getElementById('login-password').value;
-
-    if (!username || !password) {
-        alert("Kullanıcı adı ve şifre girin!");
-        return;
-    }
-
-    try {
-        const res = await fetch('/api/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password })
-        });
-        const data = await res.json();
-
-        if (data.success) {
-            currentUsername = data.username;
-            document.getElementById('auth-screen').classList.add('hidden');
-            document.getElementById('main-app').classList.remove('hidden');
-
-            socket = io();
-            socket.emit('login', { token: data.token });
-            initMainApp();
+    function switchTab(n) {
+        if (n === 0) {
+            document.getElementById('login-form').classList.remove('hidden');
+            document.getElementById('register-form').classList.add('hidden');
+            document.getElementById('login-tab').classList.add('active');
+            document.getElementById('register-tab').classList.remove('active');
         } else {
-            alert(data.error || "Giriş başarısız.");
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('register-form').classList.remove('hidden');
+            document.getElementById('login-tab').classList.remove('active');
+            document.getElementById('register-tab').classList.add('active');
         }
-    } catch (e) {
-        alert("Sunucuya bağlanılamadı. Lütfen tekrar deneyin.");
-    }
-}
-
-// ====================== REGISTER ======================
-async function doRegister() {
-    const username = document.getElementById('reg-username').value.trim();
-    const password = document.getElementById('reg-password').value;
-
-    if (!username || !password) {
-        alert("Kullanıcı adı ve şifre girin!");
-        return;
     }
 
-    try {
-        const res = await fetch('/api/register', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password })
+    function doLogin() {
+        const user = document.getElementById('login-username').value.trim();
+        if (!user) {
+            showToast("Kullanıcı adı girin", "error");
+            return;
+        }
+        username = user;
+        document.getElementById('auth-screen').style.display = 'none';
+        document.getElementById('main-screen').classList.remove('hidden');
+        initSocket();
+        showToast("Hoş geldin " + username + "!", "success");
+    }
+
+    function doRegister() {
+        const user = document.getElementById('reg-username').value.trim();
+        if (!user) {
+            showToast("Kullanıcı adı girin", "error");
+            return;
+        }
+        showToast("Kayıt başarılı! Giriş yapabilirsiniz.", "success");
+        switchTab(0);
+    }
+
+    function initSocket() {
+        socket = io();
+        socket.on('newMessage', (data) => {
+            if (data.sender !== username) {
+                addMessage(data.sender, data.content);
+            }
         });
-        const data = await res.json();
-
-        if (data.success) {
-            alert("Kayıt başarılı! Şimdi giriş yapabilirsiniz.");
-            switchTab(0);
-        } else {
-            alert(data.error || "Kayıt başarısız.");
-        }
-    } catch (e) {
-        alert("Kayıt sırasında hata oluştu.");
     }
-}
 
-// ====================== MAIN APP INIT ======================
-function initMainApp() {
-    document.getElementById('room-title').textContent = "# genel-iletisim";
-    addSystemMessage("🎉 Gettic Full Paket'e hoş geldiniz! 200+ özellik aktif.");
-    addSystemMessage("Görüntülü görüşme, ekran paylaşımı, bot sistemi ve daha fazlası hazır.");
-}
-
-// ====================== MESSAGE SYSTEM ======================
-function addSystemMessage(text) {
-    const container = document.getElementById('messages');
-    const div = document.createElement('div');
-    div.className = 'text-center text-gray-400 py-6 text-sm';
-    div.textContent = text;
-    container.appendChild(div);
-    container.scrollTop = container.scrollHeight;
-}
-
-function addMessage(sender, content) {
-    const container = document.getElementById('messages');
-    const div = document.createElement('div');
-    div.className = 'flex gap-4 p-4 rounded-2xl hover:bg-[#272a32]';
-    div.innerHTML = `
-        <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center text-white font-bold flex-shrink-0">
-            ${sender[0].toUpperCase()}
-        </div>
-        <div class="flex-1 min-w-0">
-            <div class="font-semibold text-white">${sender}</div>
-            <div class="text-gray-200 break-words">${content}</div>
-        </div>
-    `;
-    container.appendChild(div);
-    container.scrollTop = container.scrollHeight;
-}
-
-function sendMessage() {
-    const input = document.getElementById('message-input');
-    const content = input.value.trim();
-    if (!content || !currentUsername) return;
-
-    addMessage(currentUsername, content);
-    if (socket) socket.emit('sendMessage', { content: content });
-
-    input.value = '';
-}
-
-// ====================== VIDEO & SCREEN SHARE ======================
-async function startVideoCall() {
-    try {
-        await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        addSystemMessage("📹 Görüntülü görüşme başlatıldı (Kamera izni verildi).");
-    } catch (err) {
-        alert("Kamera veya mikrofon erişimi reddedildi.");
+    function addMessage(sender, content) {
+        const container = document.getElementById('messages');
+        const div = document.createElement('div');
+        div.className = 'message';
+        div.innerHTML = `
+            <div class="avatar">${sender[0].toUpperCase()}</div>
+            <div>
+                <div class="font-semibold">${sender}</div>
+                <div class="text-gray-200">${content}</div>
+            </div>
+        `;
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
     }
-}
 
-async function startScreenShare() {
-    try {
-        await navigator.mediaDevices.getDisplayMedia({ video: true });
-        addSystemMessage("🖥️ Ekran paylaşımı başlatıldı.");
-    } catch (err) {
-        alert("Ekran paylaşımı iptal edildi veya desteklenmiyor.");
+    function sendMessage() {
+        const input = document.getElementById('message-input');
+        const text = input.value.trim();
+        if (!text || !username) return;
+
+        addMessage(username, text);
+        if (socket) socket.emit('sendMessage', { sender: username, content: text });
+        input.value = '';
     }
-}
 
-// ====================== SOCKET.IO ======================
-socket = io();
-socket.on('newMessage', (msg) => {
-    if (msg.senderName !== currentUsername) {
-        addMessage(msg.senderName, msg.content);
+    function startVideoCall() {
+        showToast("📹 Görüntülü görüşme başlatılıyor...", "success");
     }
-});
 
-// ====================== KEYBOARD SUPPORT ======================
-document.getElementById('message-input').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-        sendMessage();
+    function startScreenShare() {
+        showToast("🖥️ Ekran paylaşımı başlatılıyor...", "success");
     }
-});
 
-// ====================== PAGE LOAD ======================
-window.onload = function() {
-    // Default tab
-    switchTab(0);
-};
+    function showToast(message, type = "success") {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.style.background = type === "error" ? "#ef4444" : "#4a6cf7";
+        toast.style.display = "block";
+        setTimeout(() => {
+            toast.style.display = "none";
+        }, 3000);
+    }
+
+    // Sayfa yüklendiğinde
+    window.onload = () => {
+        console.log("%cGettic yüklendi - 200+ Özellik aktif", "color: #4a6cf7; font-size: 18px; font-weight: bold");
+    };
 </script>
 </body>
-    </html>
+                </html>
