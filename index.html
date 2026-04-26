@@ -3,8 +3,23 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Gettic – Modern Sohbet Platformu</title>
-<meta name="description" content="Gettic, Türkiye'nin modern sohbet platformu. Bot sistemi, webhook desteği ve daha fazlası." />
+<title>Gettic – Modern Sohbet Platformu | gettic.js.org</title>
+<meta name="description" content="Gettic — Modern sohbet platformu. Bot sistemi, webhook, sesli kanallar. gettic.js.org" />
+<meta name="keywords" content="gettic, gettic.js, sohbet, bot, webhook, discord alternatifi" />
+<meta name="author" content="Gettic" />
+<meta name="theme-color" content="#5b6af0" />
+<link rel="canonical" href="https://gettic.js.org" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://gettic.js.org" />
+<meta property="og:title" content="Gettic – Modern Sohbet Platformu" />
+<meta property="og:description" content="Bot sistemi, webhook, sesli kanallar ve daha fazlası." />
+<meta property="og:image" content="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png" />
+<meta property="og:site_name" content="Gettic" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:url" content="https://gettic.js.org" />
+<meta name="twitter:title" content="Gettic – Modern Sohbet Platformu" />
+<meta name="twitter:image" content="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png" />
+<link rel="icon" href="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png" type="image/png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
 <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
@@ -648,7 +663,7 @@ code { font-family: var(--font-mono); font-size: 12px; background: var(--bg-deep
           <pre>const { Client } = require('gettic.js');
 
 const bot = new Client({
-    url: 'https://gettic-production.up.railway.app',
+    url: 'https://gettic.js.org',
     token: 'BOT_TOKEN',   // Panelden al
     username: 'BenimBot',
     prefix: '/'
@@ -693,7 +708,7 @@ npm start</pre>
         <div class="docs-block">
           <h3>Client Ayarları</h3>
           <pre>const bot = new Client({
-    url: 'https://gettic-production.up.railway.app',
+    url: 'https://gettic.js.org',
     token: 'BOT_TOKEN',
     username: 'BotAdı',
     prefix: '/'   // varsayılan: /
@@ -749,7 +764,7 @@ npm start</pre>
           <pre>const { WebhookClient } = require('gettic.js');
 
 const webhook = new WebhookClient(
-    'https://gettic-production.up.railway.app/api/webhook/WEBHOOK_TOKEN'
+    'https://gettic.js.org/api/webhook/WEBHOOK_TOKEN'
 );
 
 // Basit mesaj
@@ -769,7 +784,7 @@ await webhook.sendEmbed({
         <div class="docs-block">
           <h3>HTTP ile Mesaj Gönderme</h3>
           <p>Herhangi bir dil/platform ile POST isteği atabilirsin:</p>
-          <pre>POST https://gettic-production.up.railway.app/api/webhook/WEBHOOK_TOKEN
+          <pre>POST https://gettic.js.org/api/webhook/WEBHOOK_TOKEN
 
 // Normal mesaj:
 { "content": "Merhaba Gettic!" }
