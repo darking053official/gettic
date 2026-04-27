@@ -1,1663 +1,1394 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Gettic – Modern Sohbet Platformu | gettic.js.org</title>
-<meta name="description" content="Gettic — Modern sohbet platformu. Bot sistemi, webhook, sesli kanallar. gettic.js.org" />
-<meta name="keywords" content="gettic, gettic.js, sohbet, bot, webhook, discord alternatifi" />
-<meta name="author" content="Gettic" />
-<meta name="theme-color" content="#5b6af0" />
-<link rel="canonical" href="https://gettic.js.org" />
-<meta property="og:type" content="website" />
-<meta property="og:url" content="https://gettic.js.org" />
-<meta property="og:title" content="Gettic – Modern Sohbet Platformu" />
-<meta property="og:description" content="Bot sistemi, webhook, sesli kanallar ve daha fazlası." />
-<meta property="og:image" content="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png" />
-<meta property="og:site_name" content="Gettic" />
-<meta name="twitter:card" content="summary" />
-<meta name="twitter:url" content="https://gettic.js.org" />
-<meta name="twitter:title" content="Gettic – Modern Sohbet Platformu" />
-<meta name="twitter:image" content="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png" />
-<link rel="icon" href="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png" type="image/png" />
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
-<script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
-<style>
-/* ─── Reset & Variables ─────────────────────────────────────────────────── */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-:root {
-  --bg-deepest:  #050508;
-  --bg-deep:     #0a0a10;
-  --bg-dark:     #0f0f18;
-  --bg-card:     #13131f;
-  --bg-hover:    #1a1a2e;
-  --bg-active:   #1f1f35;
-  --border:      rgba(255,255,255,0.06);
-  --border-bright: rgba(255,255,255,0.12);
-  --accent:      #5b6af0;
-  --accent2:     #8b5cf6;
-  --accent-glow: rgba(91,106,240,0.35);
-  --accent-dim:  rgba(91,106,240,0.15);
-  --green:       #22c55e;
-  --red:         #ef4444;
-  --yellow:      #f59e0b;
-  --text-1:      #f0f0ff;
-  --text-2:      #a0a0c0;
-  --text-3:      #606080;
-  --radius-sm:   6px;
-  --radius:      10px;
-  --radius-lg:   16px;
-  --radius-xl:   22px;
-  --font-display: 'Syne', sans-serif;
-  --font-mono:    'JetBrains Mono', monospace;
-  --font-body:    'Inter', sans-serif;
-}
-html { scroll-behavior: smooth; }
-body {
-  font-family: var(--font-body);
-  background: var(--bg-deepest);
-  color: var(--text-1);
-  overflow: hidden;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 99px; }
-button { cursor: pointer; font-family: var(--font-body); }
-input, textarea { font-family: var(--font-body); outline: none; }
-a { text-decoration: none; color: inherit; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gettic - Modern Sohbet Platformu</title>
+    <meta name="description" content="Gettic - Türkiye'nin modern sohbet platformu. Bot, webhook, DM, sunucu.">
+    <meta property="og:title" content="Gettic - Sohbet Platformu">
+    <meta property="og:description" content="Takıl, konuş, paylaş.">
+    <meta property="og:image" content="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png">
+    <link rel="icon" href="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js">
+    </script>
+    <style>
+        :root {
+            --bg: #04040e;
+            --bg1: #08081a;
+            --bg2: #0d0d24;
+            --bg3: #12122e;
+            --b: rgba(100, 100, 255, .1);
+            --b2: rgba(100, 100, 255, .2);
+            --b3: rgba(100, 100, 255, .35);
+            --ac: #6366f1;
+            --ac2: #818cf8;
+            --ac3: #a5b4fc;
+            --ac4: #c7d2fe;
+            --acg: rgba(99, 102, 241, .3);
+            --acd: rgba(99, 102, 241, .12);
+            --t1: #f0f0ff;
+            --t2: #9090b8;
+            --t3: #4a4a6a;
+            --gr: #22c55e;
+            --re: #ef4444;
+            --ye: #f59e0b;
+            --pu: #a855f7;
+            --mono: 'JetBrains Mono', monospace;
+            --sans: 'Outfit', sans-serif;
+            --radius: 12px;
+            --shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+        }
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        html {
+            scroll-behavior: smooth;
+            overflow-x: hidden;
+        }
+        body {
+            font-family: var(--sans);
+            background: var(--bg);
+            color: var(--t1);
+            overflow-x: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--ac);
+            border-radius: 99px;
+        }
 
-/* ─── AUTH ──────────────────────────────────────────────────────────────── */
-#auth-screen {
-  position: fixed; inset: 0;
-  background: var(--bg-deepest);
-  display: flex; align-items: center; justify-content: center;
-  z-index: 1000;
-  background-image: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(91,106,240,0.18) 0%, transparent 70%);
-}
-#auth-screen.hidden { display: none; }
-.auth-box {
-  background: var(--bg-card);
-  border: 1px solid var(--border-bright);
-  border-radius: var(--radius-xl);
-  padding: 40px 44px;
-  width: 420px;
-  max-width: 94vw;
-  box-shadow: 0 0 80px rgba(91,106,240,0.12), 0 24px 60px rgba(0,0,0,0.5);
-  animation: fadeUp 0.4s ease;
-}
-@keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
-.auth-logo {
-  display: flex; align-items: center; gap: 12px;
-  margin-bottom: 32px;
-}
-.auth-logo img { width: 38px; height: 38px; border-radius: 8px; }
-.auth-logo span { font-family: var(--font-display); font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
-.auth-tabs {
-  display: flex; gap: 4px;
-  background: var(--bg-deep);
-  border-radius: var(--radius);
-  padding: 4px;
-  margin-bottom: 28px;
-}
-.auth-tab {
-  flex: 1; padding: 8px;
-  background: none; border: none; color: var(--text-3);
-  font-size: 13px; font-weight: 600; border-radius: var(--radius-sm);
-  transition: all 0.2s;
-}
-.auth-tab.active { background: var(--bg-active); color: var(--text-1); }
-.auth-field { margin-bottom: 16px; }
-.auth-field label { display: block; font-size: 11px; font-weight: 600; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
-.auth-field input {
-  width: 100%; padding: 12px 14px;
-  background: var(--bg-deep); border: 1px solid var(--border);
-  border-radius: var(--radius); color: var(--text-1); font-size: 14px;
-  transition: border-color 0.2s;
-}
-.auth-field input:focus { border-color: var(--accent); }
-.btn-primary {
-  width: 100%; padding: 13px;
-  background: var(--accent); border: none;
-  border-radius: var(--radius); color: #fff; font-size: 14px; font-weight: 600;
-  transition: all 0.2s; margin-top: 8px;
-  box-shadow: 0 4px 20px var(--accent-glow);
-}
-.btn-primary:hover { background: #6b7af5; transform: translateY(-1px); }
-.auth-error { color: var(--red); font-size: 13px; margin-top: 10px; text-align: center; min-height: 18px; }
+        /* ========== LOADING SCREEN ========== */
+        #loading-screen {
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 24px;
+            transition: opacity 0.5s, visibility 0.5s;
+        }
+        #loading-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        .loader {
+            transform: rotateZ(45deg);
+            perspective: 1000px;
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            color: var(--ac);
+        }
+        .loader:before,
+        .loader:after {
+            content: '';
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: inherit;
+            height: inherit;
+            border-radius: 50%;
+            transform: rotateX(70deg);
+            animation: 1s spin linear infinite;
+        }
+        .loader:after {
+            color: var(--pu);
+            transform: rotateY(70deg);
+            animation-delay: .4s;
+        }
+        @keyframes spin {
+            0%,
+            100% {
+                box-shadow: .2em 0px 0 0px currentcolor;
+            }
+            12% {
+                box-shadow: .2em .2em 0 0 currentcolor;
+            }
+            25% {
+                box-shadow: 0 .2em 0 0px currentcolor;
+            }
+            37% {
+                box-shadow: -.2em .2em 0 0 currentcolor;
+            }
+            50% {
+                box-shadow: -.2em 0 0 0 currentcolor;
+            }
+            62% {
+                box-shadow: -.2em -.2em 0 0 currentcolor;
+            }
+            75% {
+                box-shadow: 0px -.2em 0 0 currentcolor;
+            }
+            87% {
+                box-shadow: .2em -.2em 0 0 currentcolor;
+            }
+        }
+        .loading-text {
+            font-family: var(--mono);
+            font-size: 13px;
+            color: var(--t3);
+            animation: pulse-text 1.5s ease infinite;
+        }
+        @keyframes pulse-text {
+            0%,
+            100% {
+                opacity: 0.4;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
 
-/* ─── APP LAYOUT ────────────────────────────────────────────────────────── */
-#app { display: flex; height: 100vh; overflow: hidden; }
-#app.hidden { display: none; }
+        /* ========== AUTH SCREEN ========== */
+        #auth-screen {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 800;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        #auth-screen.show {
+            display: flex;
+        }
+        .auth-box {
+            background: var(--bg2);
+            border: 1px solid var(--b2);
+            border-radius: 20px;
+            padding: 40px 36px;
+            width: 400px;
+            max-width: 94vw;
+            box-shadow: var(--shadow);
+            animation: modal-in 0.3s ease;
+        }
+        @keyframes modal-in {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+        .auth-box h2 {
+            font-size: 22px;
+            font-weight: 800;
+            margin-bottom: 6px;
+            text-align: center;
+        }
+        .auth-box p {
+            font-size: 13px;
+            color: var(--t3);
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .auth-tabs {
+            display: flex;
+            background: var(--bg);
+            border-radius: 10px;
+            padding: 3px;
+            margin-bottom: 20px;
+            gap: 3px;
+        }
+        .auth-tab {
+            flex: 1;
+            padding: 10px;
+            background: none;
+            border: none;
+            color: var(--t3);
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: var(--sans);
+        }
+        .auth-tab.active {
+            background: var(--ac);
+            color: #fff;
+        }
+        .auth-field {
+            margin-bottom: 14px;
+        }
+        .auth-field label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--t2);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 6px;
+        }
+        .auth-field input {
+            width: 100%;
+            padding: 12px 14px;
+            background: var(--bg);
+            border: 1px solid var(--b);
+            border-radius: 10px;
+            color: var(--t1);
+            font-size: 14px;
+            font-family: var(--sans);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .auth-field input:focus {
+            border-color: var(--ac);
+        }
+        .auth-btn {
+            width: 100%;
+            padding: 13px;
+            background: linear-gradient(135deg, var(--ac), var(--pu));
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: var(--sans);
+            transition: all 0.3s;
+            margin-top: 8px;
+        }
+        .auth-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px var(--acg);
+        }
+        .auth-error {
+            color: var(--re);
+            font-size: 12px;
+            text-align: center;
+            margin-top: 8px;
+            min-height: 18px;
+        }
+        .auth-switch {
+            text-align: center;
+            font-size: 12px;
+            color: var(--t3);
+            margin-top: 12px;
+        }
+        .auth-switch span {
+            color: var(--ac3);
+            cursor: pointer;
+            font-weight: 600;
+        }
 
-/* Server sidebar */
-.sidebar-servers {
-  width: 64px; flex-shrink: 0;
-  background: var(--bg-deepest);
-  display: flex; flex-direction: column; align-items: center;
-  padding: 12px 0; gap: 6px;
-  border-right: 1px solid var(--border);
-  overflow-y: auto;
-}
-.srv-icon {
-  width: 44px; height: 44px; border-radius: 50%;
-  background: var(--bg-card); border: 2px solid transparent;
-  cursor: pointer; display: flex; align-items: center; justify-content: center;
-  font-size: 16px; font-weight: 700; color: var(--text-2);
-  transition: all 0.2s; flex-shrink: 0;
-  font-family: var(--font-display);
-  position: relative;
-}
-.srv-icon:hover { border-radius: var(--radius-sm); border-color: var(--accent); color: var(--accent); }
-.srv-icon.active { border-radius: var(--radius-sm); border-color: var(--accent); background: var(--accent-dim); color: var(--accent); }
-.srv-icon img { width: 100%; height: 100%; border-radius: inherit; object-fit: cover; }
-.srv-divider { width: 32px; height: 1px; background: var(--border); margin: 4px 0; flex-shrink: 0; }
-.srv-add-btn {
-  width: 44px; height: 44px; border-radius: 50%;
-  background: var(--bg-card); border: 2px dashed var(--border-bright);
-  cursor: pointer; display: flex; align-items: center; justify-content: center;
-  color: var(--green); font-size: 20px; transition: all 0.2s; flex-shrink: 0;
-}
-.srv-add-btn:hover { border-radius: var(--radius-sm); border-color: var(--green); background: rgba(34,197,94,0.1); }
+        /* ========== NAV BAR ========== */
+        .nav-bar {
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            height: 56px;
+            background: var(--bg1);
+            border-bottom: 1px solid var(--b);
+            flex-shrink: 0;
+            gap: 12px;
+            z-index: 100;
+        }
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 800;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: none;
+            color: var(--t1);
+            flex-shrink: 0;
+        }
+        .nav-logo img {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+        }
+        .nav-logo .gt {
+            background: linear-gradient(135deg, var(--ac2), var(--ac3));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .nav-links {
+            display: flex;
+            gap: 4px;
+            margin-left: 16px;
+            overflow-x: auto;
+            flex: 1;
+        }
+        .nav-link {
+            padding: 7px 14px;
+            background: none;
+            border: none;
+            color: var(--t3);
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+            font-family: var(--sans);
+        }
+        .nav-link:hover,
+        .nav-link.active {
+            background: var(--bg2);
+            color: var(--t1);
+        }
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        .nav-btn {
+            padding: 7px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: var(--sans);
+            transition: all 0.2s;
+        }
+        .nav-btn-login {
+            background: none;
+            border: 1px solid var(--b2);
+            color: var(--t1);
+        }
+        .nav-btn-login:hover {
+            background: var(--bg2);
+        }
+        .nav-btn-register {
+            background: var(--ac);
+            border: none;
+            color: #fff;
+        }
+        .nav-btn-register:hover {
+            background: var(--ac2);
+        }
+        .nav-btn-logout {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: var(--re);
+        }
+        .nav-btn-app {
+            background: linear-gradient(135deg, var(--gr), #16a34a);
+            border: none;
+            color: #fff;
+        }
 
-/* Channel sidebar */
-.sidebar-channels {
-  width: 230px; flex-shrink: 0;
-  background: var(--bg-deep);
-  border-right: 1px solid var(--border);
-  display: flex; flex-direction: column;
-  overflow: hidden;
-}
-.sidebar-header {
-  padding: 14px 16px;
-  border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; gap: 8px;
-  flex-shrink: 0;
-}
-.sidebar-header h3 { font-family: var(--font-display); font-size: 14px; font-weight: 700; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.icon-btn {
-  width: 28px; height: 28px;
-  background: none; border: none;
-  color: var(--text-3); border-radius: var(--radius-sm);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 15px; transition: all 0.2s;
-}
-.icon-btn:hover { background: var(--bg-hover); color: var(--text-1); }
-.channel-list { flex: 1; overflow-y: auto; padding: 8px 8px; }
-.ch-category {
-  font-size: 10px; font-weight: 700; text-transform: uppercase;
-  letter-spacing: 1px; color: var(--text-3); padding: 12px 8px 4px;
-}
-.ch-item {
-  display: flex; align-items: center; gap: 8px;
-  padding: 7px 8px; border-radius: var(--radius-sm);
-  cursor: pointer; color: var(--text-3); font-size: 14px;
-  transition: all 0.15s;
-}
-.ch-item:hover { background: var(--bg-hover); color: var(--text-2); }
-.ch-item.active { background: var(--bg-active); color: var(--text-1); }
-.ch-icon { font-size: 15px; flex-shrink: 0; }
-.user-panel {
-  padding: 10px 12px;
-  border-top: 1px solid var(--border);
-  display: flex; align-items: center; gap: 10px;
-  background: var(--bg-deepest); flex-shrink: 0;
-}
-.user-avatar {
-  width: 32px; height: 32px; border-radius: 50%;
-  background: var(--accent-dim); display: flex; align-items: center; justify-content: center;
-  font-size: 13px; font-weight: 700; color: var(--accent); flex-shrink: 0; position: relative;
-}
-.status-dot {
-  width: 10px; height: 10px; border-radius: 50%;
-  position: absolute; bottom: -1px; right: -1px;
-  border: 2px solid var(--bg-deepest);
-}
-.status-online  { background: var(--green); }
-.status-idle    { background: var(--yellow); }
-.status-dnd     { background: var(--red); }
-.status-invisible{ background: var(--text-3); }
-.user-info { flex: 1; min-width: 0; }
-.user-info .uname { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.user-info .ustatus { font-size: 11px; color: var(--text-3); }
-.user-panel-actions { display: flex; gap: 2px; }
+        /* ========== MAIN LAYOUT ========== */
+        .app-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
 
-/* Main content */
-.main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+        /* SERVER SIDEBAR */
+        .server-sidebar {
+            width: 58px;
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px 0;
+            gap: 4px;
+            border-right: 1px solid var(--b);
+            flex-shrink: 0;
+            overflow-y: auto;
+        }
+        .srv-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: var(--bg1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--t2);
+            transition: all 0.2s;
+            position: relative;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        .srv-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: inherit;
+        }
+        .srv-icon.active,
+        .srv-icon:hover {
+            border-radius: 14px;
+            background: var(--ac);
+            color: #fff;
+        }
+        .srv-sep {
+            width: 28px;
+            height: 2px;
+            background: var(--b);
+            border-radius: 1px;
+            margin: 3px 0;
+            flex-shrink: 0;
+        }
+        .srv-add {
+            color: var(--gr);
+            font-size: 20px;
+            border: 2px dashed var(--b2);
+        }
+        .srv-add:hover {
+            background: var(--gr) !important;
+            color: #fff !important;
+            border-color: var(--gr);
+        }
 
-/* Topbar */
-.topbar {
-  height: 48px; flex-shrink: 0;
-  border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; padding: 0 16px; gap: 12px;
-  background: var(--bg-dark);
-}
-.topbar-title { font-family: var(--font-display); font-size: 14px; font-weight: 700; flex: 1; }
-.topbar-actions { display: flex; gap: 4px; }
-.topbar-tab {
-  padding: 6px 14px; border-radius: var(--radius-sm);
-  background: none; border: none; color: var(--text-3); font-size: 13px; font-weight: 500;
-  transition: all 0.2s;
-}
-.topbar-tab:hover { color: var(--text-2); background: var(--bg-hover); }
-.topbar-tab.active { color: var(--text-1); background: var(--bg-active); }
+        /* CHANNEL SIDEBAR */
+        .channel-sidebar {
+            width: 240px;
+            background: var(--bg1);
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--b);
+            flex-shrink: 0;
+        }
+        .ch-header {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--b);
+            font-weight: 700;
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .ch-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding: 4px 0;
+        }
+        .ch-section {
+            padding: 12px 14px 4px;
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--t3);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+        .ch-item {
+            padding: 6px 12px;
+            margin: 0 6px 1px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--t2);
+            font-size: 13px;
+            transition: all 0.15s;
+        }
+        .ch-item:hover {
+            background: var(--bg2);
+            color: var(--t1);
+        }
+        .ch-item.active {
+            background: var(--acd);
+            color: var(--ac3);
+        }
+        .ch-prefix {
+            color: var(--t3);
+            font-weight: 700;
+            font-size: 14px;
+            width: 18px;
+            text-align: center;
+        }
 
-/* Messages area */
-.messages-area {
-  flex: 1; overflow-y: auto;
-  padding: 20px 20px 0;
-  display: flex; flex-direction: column; gap: 2px;
-}
-.msg-group { display: flex; gap: 14px; padding: 6px 0; }
-.msg-group:hover .msg-actions { opacity: 1; }
-.msg-avatar {
-  width: 36px; height: 36px; border-radius: 50%;
-  background: var(--accent-dim); display: flex; align-items: center; justify-content: center;
-  font-size: 14px; font-weight: 700; color: var(--accent); flex-shrink: 0; align-self: flex-start; margin-top: 2px;
-}
-.msg-avatar.bot { background: rgba(139,92,246,0.15); color: var(--accent2); }
-.msg-body { flex: 1; min-width: 0; }
-.msg-header { display: flex; align-items: baseline; gap: 8px; margin-bottom: 3px; }
-.msg-name { font-size: 14px; font-weight: 600; }
-.msg-name.bot { color: var(--accent2); }
-.msg-name.bot::after { content: 'BOT'; font-size: 9px; font-weight: 700; background: rgba(139,92,246,0.2); color: var(--accent2); padding: 1px 5px; border-radius: 4px; margin-left: 5px; vertical-align: middle; }
-.msg-time { font-size: 11px; color: var(--text-3); }
-.msg-content { font-size: 14px; color: var(--text-1); line-height: 1.55; word-break: break-word; }
-.msg-content.edited::after { content: ' (düzenlendi)'; font-size: 11px; color: var(--text-3); }
-.msg-actions { opacity: 0; display: flex; gap: 2px; margin-top: 4px; transition: opacity 0.15s; }
-.msg-action-btn {
-  padding: 3px 8px; border-radius: var(--radius-sm);
-  background: var(--bg-card); border: 1px solid var(--border);
-  color: var(--text-3); font-size: 11px; transition: all 0.15s;
-}
-.msg-action-btn:hover { color: var(--text-1); border-color: var(--border-bright); }
-.msg-reactions { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
-.reaction-pill {
-  padding: 2px 8px; border-radius: 99px;
-  background: var(--bg-card); border: 1px solid var(--border);
-  font-size: 12px; cursor: pointer; transition: all 0.15s;
-}
-.reaction-pill:hover { border-color: var(--accent); }
-.typing-indicator { padding: 8px 20px; font-size: 12px; color: var(--text-3); min-height: 28px; font-style: italic; }
-.date-divider { display: flex; align-items: center; gap: 12px; margin: 16px 0; }
-.date-divider span { font-size: 11px; color: var(--text-3); white-space: nowrap; }
-.date-divider::before, .date-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+        /* USER BAR */
+        .user-bar {
+            padding: 8px 10px;
+            background: var(--bg);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-top: 1px solid var(--b);
+            flex-shrink: 0;
+        }
+        .user-ava {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--ac);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 12px;
+            color: #fff;
+            position: relative;
+            flex-shrink: 0;
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            border: 2px solid var(--bg);
+        }
+        .status-online {
+            background: var(--gr);
+        }
+        .user-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .user-info .uname {
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .user-info .ustatus {
+            font-size: 10px;
+            color: var(--t3);
+        }
 
-/* Message input */
-.input-area {
-  padding: 12px 16px 16px;
-  flex-shrink: 0;
-}
-.input-box {
-  display: flex; align-items: flex-end; gap: 10px;
-  background: var(--bg-card); border: 1px solid var(--border);
-  border-radius: var(--radius-lg); padding: 10px 14px;
-  transition: border-color 0.2s;
-}
-.input-box:focus-within { border-color: var(--accent); }
-#msg-input {
-  flex: 1; background: none; border: none; color: var(--text-1);
-  font-size: 14px; resize: none; max-height: 120px; min-height: 22px; line-height: 1.5;
-}
-#msg-input::placeholder { color: var(--text-3); }
-.send-btn {
-  width: 34px; height: 34px; border-radius: var(--radius-sm);
-  background: var(--accent); border: none; color: #fff;
-  display: flex; align-items: center; justify-content: center; font-size: 16px;
-  transition: all 0.2s; flex-shrink: 0;
-}
-.send-btn:hover { background: #6b7af5; transform: scale(1.05); }
-.send-btn:disabled { opacity: 0.4; transform: none; }
+        /* CHAT */
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            background: var(--bg);
+        }
+        .chat-top {
+            padding: 8px 16px;
+            background: var(--bg1);
+            border-bottom: 1px solid var(--b);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            min-height: 44px;
+        }
+        .chat-top .ctitle {
+            font-weight: 700;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .msg-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            scroll-behavior: smooth;
+        }
+        .welcome {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--t3);
+            margin: auto;
+        }
+        .msg {
+            padding: 4px 10px;
+            border-radius: 6px;
+            transition: background 0.15s;
+            margin: 1px 0;
+        }
+        .msg:hover {
+            background: var(--bg1);
+        }
+        .msg .mhdr {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 2px;
+        }
+        .msg .mava {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 11px;
+            color: #fff;
+            flex-shrink: 0;
+        }
+        .msg .muser {
+            font-weight: 700;
+            font-size: 12px;
+        }
+        .msg .mtime {
+            font-size: 9px;
+            color: var(--t3);
+        }
+        .msg .mbody {
+            margin-left: 36px;
+            font-size: 13px;
+            color: var(--t1);
+            line-height: 1.5;
+            word-break: break-word;
+        }
+        .msg .mbtns {
+            display: none;
+            gap: 3px;
+            margin-left: 36px;
+            margin-top: 3px;
+        }
+        .msg:hover .mbtns {
+            display: flex;
+        }
+        .mbtns button {
+            background: var(--bg2);
+            border: none;
+            color: var(--t3);
+            cursor: pointer;
+            font-size: 10px;
+            padding: 3px 8px;
+            border-radius: 4px;
+        }
+        .mbtns button:hover {
+            color: var(--t1);
+        }
+        .typing-bar {
+            padding: 2px 16px;
+            font-size: 10px;
+            color: var(--gr);
+            font-style: italic;
+            min-height: 18px;
+            flex-shrink: 0;
+        }
+        .input-zone {
+            padding: 0 12px 12px;
+            flex-shrink: 0;
+        }
+        .input-row {
+            display: flex;
+            gap: 6px;
+            background: var(--bg2);
+            padding: 8px 10px 8px 14px;
+            border-radius: 10px;
+            align-items: flex-end;
+            border: 1px solid var(--b);
+            transition: border-color 0.2s;
+        }
+        .input-row:focus-within {
+            border-color: var(--ac);
+        }
+        .input-row textarea {
+            flex: 1;
+            background: none;
+            border: none;
+            color: var(--t1);
+            font-size: 13px;
+            resize: none;
+            outline: none;
+            max-height: 120px;
+            font-family: var(--sans);
+            line-height: 1.4;
+            padding: 4px 0;
+        }
+        .input-row textarea::placeholder {
+            color: var(--t3);
+        }
+        .input-row .send-btn {
+            background: var(--ac);
+            color: #fff;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
 
-/* Welcome / no server */
-.welcome-view {
-  flex: 1; display: flex; align-items: center; justify-content: center;
-  flex-direction: column; gap: 16px; text-align: center; padding: 40px;
-}
-.welcome-view h2 { font-family: var(--font-display); font-size: 28px; font-weight: 800; }
-.welcome-view p { color: var(--text-2); font-size: 15px; max-width: 400px; line-height: 1.6; }
+        /* PANELS */
+        .panel-view {
+            display: none;
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px 30px;
+            flex-direction: column;
+        }
+        .panel-view.active {
+            display: flex;
+        }
+        .panel-card {
+            background: var(--bg1);
+            border: 1px solid var(--b);
+            border-radius: 14px;
+            padding: 20px;
+            margin-bottom: 16px;
+            transition: border-color 0.2s;
+            position: relative;
+        }
+        .panel-card:hover {
+            border-color: var(--b2);
+        }
+        .panel-card h3 {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--ac3);
+        }
+        .panel-card input,
+        .panel-card select {
+            width: 100%;
+            padding: 10px 12px;
+            background: var(--bg);
+            border: 1px solid var(--b);
+            border-radius: 8px;
+            color: var(--t1);
+            font-size: 13px;
+            font-family: var(--sans);
+            outline: none;
+            margin: 4px 0 8px;
+            transition: border-color 0.2s;
+        }
+        .panel-card input:focus,
+        .panel-card select:focus {
+            border-color: var(--ac);
+        }
+        .token-box {
+            background: var(--bg);
+            border: 1px solid var(--b);
+            border-radius: 6px;
+            padding: 8px 11px;
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--t2);
+            cursor: pointer;
+            word-break: break-all;
+            margin: 8px 0;
+        }
+        .token-box:hover {
+            border-color: var(--ac);
+        }
+        .btn-sm {
+            padding: 7px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: var(--sans);
+            border: none;
+            transition: all 0.2s;
+        }
+        .btn-accent {
+            background: var(--ac);
+            color: #fff;
+        }
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--re);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+        .btn-ghost {
+            background: var(--bg2);
+            color: var(--t2);
+        }
 
-/* ─── PANELS (Bot, Webhook, Docs) ───────────────────────────────────────── */
-.panel-view { flex: 1; overflow-y: auto; padding: 32px 40px; display: none; }
-.panel-view.active { display: block; }
-.panel-header { margin-bottom: 32px; }
-.panel-header h1 { font-family: var(--font-display); font-size: 26px; font-weight: 800; margin-bottom: 6px; }
-.panel-header p { color: var(--text-2); font-size: 14px; }
-.panel-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; margin-bottom: 32px; }
-.panel-card {
-  background: var(--bg-card); border: 1px solid var(--border);
-  border-radius: var(--radius-lg); padding: 20px;
-  transition: border-color 0.2s;
-}
-.panel-card:hover { border-color: var(--border-bright); }
-.card-top { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
-.card-icon {
-  width: 40px; height: 40px; border-radius: var(--radius);
-  display: flex; align-items: center; justify-content: center; font-size: 18px;
-  background: var(--accent-dim);
-}
-.card-icon.purple { background: rgba(139,92,246,0.15); }
-.card-name { font-family: var(--font-display); font-size: 15px; font-weight: 700; }
-.card-sub { font-size: 12px; color: var(--text-3); margin-top: 2px; }
-.token-box {
-  background: var(--bg-deep); border: 1px solid var(--border);
-  border-radius: var(--radius-sm); padding: 8px 12px;
-  font-family: var(--font-mono); font-size: 11px; color: var(--text-2);
-  word-break: break-all; margin-bottom: 12px; cursor: pointer;
-  transition: border-color 0.2s;
-}
-.token-box:hover { border-color: var(--accent); }
-.token-hint { font-size: 11px; color: var(--text-3); margin-bottom: 12px; }
-.card-actions { display: flex; gap: 8px; }
-.btn-sm {
-  padding: 6px 14px; border-radius: var(--radius-sm);
-  font-size: 12px; font-weight: 600; border: none;
-  transition: all 0.2s; cursor: pointer;
-}
-.btn-accent { background: var(--accent); color: #fff; }
-.btn-accent:hover { background: #6b7af5; }
-.btn-danger { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.2); }
-.btn-danger:hover { background: rgba(239,68,68,0.25); }
-.btn-ghost { background: var(--bg-hover); color: var(--text-2); }
-.btn-ghost:hover { background: var(--bg-active); color: var(--text-1); }
-.create-form {
-  background: var(--bg-card); border: 1px solid var(--border);
-  border-radius: var(--radius-lg); padding: 24px; margin-bottom: 24px;
-}
-.create-form h3 { font-family: var(--font-display); font-size: 16px; font-weight: 700; margin-bottom: 16px; }
-.form-row { display: flex; gap: 12px; flex-wrap: wrap; }
-.form-field { flex: 1; min-width: 180px; }
-.form-field label { display: block; font-size: 11px; font-weight: 600; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
-.form-field input, .form-field select, .form-field textarea {
-  width: 100%; padding: 10px 12px;
-  background: var(--bg-deep); border: 1px solid var(--border);
-  border-radius: var(--radius-sm); color: var(--text-1); font-size: 13px;
-  transition: border-color 0.2s;
-}
-.form-field input:focus, .form-field select:focus, .form-field textarea:focus { border-color: var(--accent); }
-.form-field select { appearance: none; }
-.form-actions { margin-top: 16px; display: flex; gap: 8px; }
+        /* MODALS */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            z-index: 500;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-overlay.open {
+            display: flex;
+        }
+        .modal-box {
+            background: var(--bg2);
+            border: 1px solid var(--b2);
+            border-radius: 18px;
+            padding: 26px;
+            width: 440px;
+            max-width: 95vw;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow);
+            animation: modal-in 0.3s ease;
+        }
+        .modal-box h2 {
+            font-size: 18px;
+            font-weight: 800;
+            margin-bottom: 18px;
+        }
+        .modal-close {
+            position: absolute;
+            top: 14px;
+            right: 16px;
+            background: none;
+            border: none;
+            color: var(--t3);
+            cursor: pointer;
+            font-size: 20px;
+        }
+        .modal-box input,
+        .modal-box select,
+        .modal-box textarea {
+            width: 100%;
+            padding: 10px 12px;
+            background: var(--bg);
+            border: 1px solid var(--b);
+            border-radius: 8px;
+            color: var(--t1);
+            font-size: 13px;
+            font-family: var(--sans);
+            outline: none;
+            margin: 4px 0 10px;
+        }
 
-/* ─── DOCS PAGE ─────────────────────────────────────────────────────────── */
-.docs-nav { display: flex; gap: 4px; margin-bottom: 28px; flex-wrap: wrap; }
-.docs-nav-btn {
-  padding: 7px 16px; border-radius: var(--radius);
-  background: var(--bg-card); border: 1px solid var(--border);
-  color: var(--text-2); font-size: 13px; font-weight: 500; transition: all 0.2s;
-}
-.docs-nav-btn:hover, .docs-nav-btn.active { background: var(--accent-dim); border-color: var(--accent); color: var(--text-1); }
-.docs-section { display: none; }
-.docs-section.active { display: block; }
-.docs-section h2 { font-family: var(--font-display); font-size: 22px; font-weight: 800; margin-bottom: 6px; }
-.docs-section .lead { color: var(--text-2); font-size: 14px; margin-bottom: 28px; }
-.docs-block {
-  background: var(--bg-card); border: 1px solid var(--border);
-  border-radius: var(--radius-lg); padding: 24px; margin-bottom: 20px;
-}
-.docs-block h3 { font-family: var(--font-display); font-size: 16px; font-weight: 700; margin-bottom: 10px; color: var(--accent); }
-.docs-block p { color: var(--text-2); font-size: 13px; line-height: 1.7; margin-bottom: 14px; }
-.docs-block p:last-child { margin-bottom: 0; }
-pre {
-  background: var(--bg-deepest); border: 1px solid var(--border);
-  border-radius: var(--radius-sm); padding: 16px;
-  font-family: var(--font-mono); font-size: 12px; line-height: 1.7;
-  overflow-x: auto; color: var(--text-1); margin: 10px 0;
-}
-code { font-family: var(--font-mono); font-size: 12px; background: var(--bg-deep); padding: 2px 6px; border-radius: 4px; color: var(--accent2); }
-.api-table { width: 100%; border-collapse: collapse; margin: 12px 0; }
-.api-table th { text-align: left; padding: 8px 12px; background: var(--bg-deep); color: var(--text-2); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-.api-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 13px; color: var(--text-2); }
-.api-table td:first-child { font-family: var(--font-mono); color: var(--text-1); font-size: 12px; }
-.method-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; margin-right: 6px; }
-.get    { background: rgba(34,197,94,0.15); color: var(--green); }
-.post   { background: rgba(91,106,240,0.2); color: #8891f5; }
-.patch  { background: rgba(245,158,11,0.15); color: var(--yellow); }
-.delete { background: rgba(239,68,68,0.15); color: var(--red); }
+        /* TOAST */
+        #toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 999;
+            padding: 11px 20px;
+            background: var(--bg2);
+            border: 1px solid var(--b2);
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--gr);
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s;
+            pointer-events: none;
+            box-shadow: var(--shadow);
+        }
+        #toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
 
-/* ─── MODALS ────────────────────────────────────────────────────────────── */
-.modal-overlay {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
-  display: flex; align-items: center; justify-content: center;
-  z-index: 500; opacity: 0; pointer-events: none; transition: opacity 0.2s;
-}
-.modal-overlay.open { opacity: 1; pointer-events: all; }
-.modal {
-  background: var(--bg-card); border: 1px solid var(--border-bright);
-  border-radius: var(--radius-xl); padding: 28px; width: 440px; max-width: 94vw;
-  transform: scale(0.95); transition: transform 0.2s;
-  box-shadow: 0 24px 60px rgba(0,0,0,0.5);
-}
-.modal-overlay.open .modal { transform: scale(1); }
-.modal h2 { font-family: var(--font-display); font-size: 18px; font-weight: 800; margin-bottom: 20px; }
-.modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
-
-/* ─── Toast ─────────────────────────────────────────────────────────────── */
-#toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
-.toast {
-  background: var(--bg-card); border: 1px solid var(--border-bright);
-  border-radius: var(--radius); padding: 12px 18px;
-  font-size: 13px; font-weight: 500; color: var(--text-1);
-  animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s forwards;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.4);
-}
-.toast.success { border-color: rgba(34,197,94,0.4); color: var(--green); }
-.toast.error   { border-color: rgba(239,68,68,0.4); color: var(--red); }
-@keyframes slideIn  { from { opacity:0; transform:translateX(20px); } to { opacity:1; transform:translateX(0); } }
-@keyframes fadeOut  { to { opacity:0; transform:translateX(20px); } }
-
-/* ─── Responsive ────────────────────────────────────────────────────────── */
-@media (max-width: 768px) {
-  .sidebar-channels { width: 200px; }
-  .panel-view { padding: 20px 16px; }
-}
-@media (max-width: 580px) {
-  .sidebar-servers { display: none; }
-  .sidebar-channels { width: 180px; }
-}
-</style>
+        /* MOBILE */
+        @media (max-width: 768px) {
+            .channel-sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                z-index: 300;
+                transform: translateX(-100%);
+                transition: transform 0.3s;
+                width: 260px;
+            }
+            .channel-sidebar.open {
+                transform: translateX(0);
+            }
+            .server-sidebar {
+                width: 48px;
+            }
+            .srv-icon {
+                width: 36px;
+                height: 36px;
+                font-size: 12px;
+            }
+            .nav-links {
+                display: none;
+            }
+            .panel-view {
+                padding: 16px 14px;
+            }
+        }
+    </style>
 </head>
 <body>
 
-<!-- ─── AUTH SCREEN ─────────────────────────────────────────────────────────── -->
-<div id="auth-screen">
-  <div class="auth-box">
-    <div class="auth-logo">
-      <img src="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png" alt="Gettic" onerror="this.style.display='none'" />
-      <span>Gettic</span>
+    <!-- LOADING SCREEN -->
+    <div id="loading-screen">
+        <div class="loader"></div>
+        <div class="loading-text">Gettic yükleniyor...</div>
     </div>
-    <div class="auth-tabs">
-      <button class="auth-tab active" onclick="switchTab('login')">Giriş Yap</button>
-      <button class="auth-tab" onclick="switchTab('register')">Kayıt Ol</button>
+
+    <!-- AUTH SCREEN -->
+    <div id="auth-screen">
+        <div class="auth-box">
+            <h2 id="auth-title">Giriş Yap</h2>
+            <p id="auth-sub">Gettic hesabınla devam et</p>
+            <div class="auth-tabs">
+                <button class="auth-tab active" onclick="switchAuthTab('login')">Giriş</button>
+                <button class="auth-tab" onclick="switchAuthTab('register')">Kayıt</button>
+            </div>
+            <div id="auth-form-login">
+                <div class="auth-field"><label>Kullanıcı Adı</label><input type="text" id="login-user" placeholder="kullanıcı_adın" autocomplete="username"></div>
+                <div class="auth-field"><label>Şifre</label><input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password"></div>
+                <button class="auth-btn" onclick="doLogin()">Giriş Yap</button>
+                <div class="auth-error" id="login-err"></div>
+            </div>
+            <div id="auth-form-register" style="display:none">
+                <div class="auth-field"><label>Kullanıcı Adı</label><input type="text" id="reg-user" placeholder="kullanıcı_adın" autocomplete="username"></div>
+                <div class="auth-field"><label>Şifre</label><input type="password" id="reg-pass" placeholder="En az 6 karakter" autocomplete="new-password"></div>
+                <button class="auth-btn" onclick="doRegister()">Kayıt Ol</button>
+                <div class="auth-error" id="reg-err"></div>
+            </div>
+            <p class="auth-switch"><span onclick="switchAuthTab(document.getElementById('auth-form-register').style.display==='none'?'register':'login')">Hesabın var mı? / Hesabın yok mu?</span></p>
+        </div>
     </div>
-    <div id="auth-login">
-      <div class="auth-field">
-        <label>Kullanıcı Adı</label>
-        <input type="text" id="login-user" placeholder="kullanıcı_adın" autocomplete="username" />
-      </div>
-      <div class="auth-field">
-        <label>Şifre</label>
-        <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" />
-      </div>
-      <button class="btn-primary" onclick="doLogin()">Giriş Yap</button>
-      <div class="auth-error" id="login-err"></div>
+
+    <!-- NAV BAR -->
+    <nav class="nav-bar" id="nav-bar">
+        <a href="/" class="nav-logo">
+            <img src="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png" alt="Gettic" onerror="this.style.display='none'">
+            <span class="gt">gettic</span>
+        </a>
+        <div class="nav-links">
+            <button class="nav-link active" onclick="showPanel('chat')">Sohbet</button>
+            <button class="nav-link" onclick="showPanel('bots')">Bot</button>
+            <button class="nav-link" onclick="showPanel('webhooks')">Webhook</button>
+            <button class="nav-link" onclick="showPanel('docs')">Docs</button>
+        </div>
+        <div class="nav-right" id="nav-right">
+            <button class="nav-btn nav-btn-login" id="btn-login-nav" onclick="showAuth()">Giriş</button>
+            <button class="nav-btn nav-btn-register" id="btn-register-nav" onclick="showAuth('register')">Kayıt</button>
+            <button class="nav-btn nav-btn-logout" id="btn-logout-nav" style="display:none" onclick="doLogout()">Çıkış</button>
+            <a href="/app" class="nav-btn nav-btn-app">Gettic'e Git →</a>
+        </div>
+    </nav>
+
+    <!-- APP CONTAINER -->
+    <div class="app-container" id="app-container">
+        <!-- SERVER SIDEBAR -->
+        <div class="server-sidebar" id="server-sidebar">
+            <div class="srv-icon active" id="srv-main" title="Ana Sunucu" onclick="selectServer('main')">
+                <img src="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png" alt="Ana">
+            </div>
+            <div class="srv-sep"></div>
+            <div id="user-servers"></div>
+            <div class="srv-icon srv-add" title="Sunucu Ekle" onclick="openModal('modal-server')">+</div>
+        </div>
+
+        <!-- CHANNEL SIDEBAR -->
+        <div class="channel-sidebar" id="channel-sidebar">
+            <div class="ch-header">
+                <span id="server-name">Gettic</span>
+                <button class="nav-btn btn-sm btn-ghost" onclick="openModal('modal-channel')" style="font-size:11px">+</button>
+            </div>
+            <div class="ch-scroll">
+                <div class="ch-section">DM</div><div id="dm-list"></div>
+                <div class="ch-section">Sesli</div><div id="voice-list"></div>
+                <div class="ch-section">Yazılı</div><div id="room-list"></div>
+                <div class="ch-section">Forum</div><div id="forum-list"></div>
+            </div>
+            <div class="user-bar" id="user-bar">
+                <div class="user-ava" id="sidebar-ava">?<span class="status-dot status-online" id="sidebar-status"></span></div>
+                <div class="user-info">
+                    <div class="uname" id="sidebar-uname">Misafir</div>
+                    <div class="ustatus" id="sidebar-ustatus">Çevrimiçi</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CHAT -->
+        <div class="chat-area" id="chat-container">
+            <div class="chat-top">
+                <div class="ctitle"><span>#</span><span id="room-name">genel</span></div>
+                <span id="online-count" style="font-size:11px;color:var(--t3)">0 çevrimiçi</span>
+            </div>
+            <div class="msg-area" id="messages">
+                <div class="welcome"><h2>Gettic'e Hoş Geldin!</h2><p>Sohbete başla!</p></div>
+            </div>
+            <div class="typing-bar" id="typing"></div>
+            <div class="input-zone">
+                <div class="input-row">
+                    <textarea id="msg-input" placeholder="Mesaj yaz..." rows="1" onkeydown="handleMsgKey(event)" oninput="autoResize(this)"></textarea>
+                    <button class="send-btn" onclick="sendMsg()">Gönder</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- BOTS PANEL -->
+        <div class="panel-view" id="view-bots">
+            <h2 style="margin-bottom:16px">🤖 Bot Paneli</h2>
+            <div class="panel-card"><h3>Bot Oluştur</h3><input id="new-bot-name" placeholder="Bot adı"><button class="btn-sm btn-accent" onclick="createBot()">Oluştur</button></div>
+            <div id="bot-cards"></div>
+        </div>
+
+        <!-- WEBHOOKS PANEL -->
+        <div class="panel-view" id="view-webhooks">
+            <h2 style="margin-bottom:16px">🔗 Webhook Paneli</h2>
+            <div class="panel-card"><h3>Webhook Oluştur</h3><input id="new-wh-name" placeholder="Ad"><select id="new-wh-server"><option value="">Sunucu seç</option></select><select id="new-wh-channel"><option value="">Kanal seç</option></select><button class="btn-sm btn-accent" onclick="createWebhook()">Oluştur</button></div>
+            <div id="webhook-cards"></div>
+        </div>
+
+        <!-- DOCS PANEL -->
+        <div class="panel-view" id="view-docs">
+            <h2 style="margin-bottom:16px">📖 Dokümantasyon</h2>
+            <div class="panel-card">
+                <h3>Kurulum</h3>
+                <div class="token-box" onclick="copyText(this.textContent)">npm install gettic.js</div>
+            </div>
+            <div class="panel-card">
+                <h3>Bot Örneği</h3>
+                <pre style="background:var(--bg);padding:14px;border-radius:8px;overflow-x:auto;font-size:12px;font-family:var(--mono);color:var(--t2)">const { Client } = require('gettic.js');
+                const bot = new Client({ token: 'TOKEN' });
+                bot.on('ready', () => bot.send('genel', 'Merhaba!'));
+                bot.command('ping', ctx => ctx.reply('Pong!'));
+            bot.connect();</pre>
+        </div>
+        <div class="panel-card">
+            <h3>Webhook</h3>
+            <pre style="background:var(--bg);padding:14px;border-radius:8px;overflow-x:auto;font-size:12px;font-family:var(--mono);color:var(--t2)">const { WebhookClient } = require('gettic.js');
+            const wh = new WebhookClient('URL');
+        await wh.send('Merhaba!');</pre>
     </div>
-    <div id="auth-register" style="display:none">
-      <div class="auth-field">
-        <label>Kullanıcı Adı</label>
-        <input type="text" id="reg-user" placeholder="kullanıcı_adın" autocomplete="username" />
-      </div>
-      <div class="auth-field">
-        <label>Şifre</label>
-        <input type="password" id="reg-pass" placeholder="En az 6 karakter" autocomplete="new-password" />
-      </div>
-      <button class="btn-primary" onclick="doRegister()">Kayıt Ol</button>
-      <div class="auth-error" id="reg-err"></div>
-    </div>
-  </div>
+</div>
 </div>
 
-<!-- ─── APP ─────────────────────────────────────────────────────────────────── -->
-<div id="app" class="hidden">
-  <!-- Server list -->
-  <div class="sidebar-servers" id="server-list">
-    <div class="srv-divider"></div>
-    <button class="srv-add-btn" title="Sunucu Oluştur / Katıl" onclick="openModal('modal-server')">＋</button>
-  </div>
-
-  <!-- Channel list -->
-  <div class="sidebar-channels">
-    <div class="sidebar-header">
-      <h3 id="current-server-name">Gettic</h3>
-      <button class="icon-btn" title="Sunucu Ayarları" onclick="openModal('modal-server-settings')">⚙️</button>
-    </div>
-    <div class="channel-list" id="channel-list">
-      <!-- Nav items -->
-      <div class="ch-category">Navigasyon</div>
-      <div class="ch-item" onclick="showPanel('chat')" id="nav-chat">
-        <span class="ch-icon">💬</span> Sohbet
-      </div>
-      <div class="ch-item" onclick="showPanel('bots')" id="nav-bots">
-        <span class="ch-icon">🤖</span> Bot Paneli
-      </div>
-      <div class="ch-item" onclick="showPanel('webhooks')" id="nav-webhooks">
-        <span class="ch-icon">🔗</span> Webhook Paneli
-      </div>
-      <div class="ch-item" onclick="showPanel('docs')" id="nav-docs">
-        <span class="ch-icon">📖</span> Dokümantasyon
-      </div>
-      <div class="ch-category" id="channels-cat" style="display:none">Kanallar</div>
-      <div id="channels-dynamic"></div>
-    </div>
-    <div class="user-panel">
-      <div class="user-avatar" id="sidebar-avatar">
-        <span id="sidebar-avatar-letter">?</span>
-        <div class="status-dot status-online" id="sidebar-status-dot"></div>
-      </div>
-      <div class="user-info">
-        <div class="uname" id="sidebar-uname">Yükleniyor...</div>
-        <div class="ustatus" id="sidebar-ustatus">Çevrimiçi</div>
-      </div>
-      <div class="user-panel-actions">
-        <button class="icon-btn" title="Profil Ayarları" onclick="openModal('modal-profile')">⚙</button>
-        <button class="icon-btn" title="Çıkış Yap" onclick="logout()" style="color:var(--red)">⏻</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Main -->
-  <div class="main-content">
-    <!-- CHAT VIEW -->
-    <div id="view-chat" class="panel-view active">
-      <div class="topbar">
-        <span class="ch-icon">💬</span>
-        <div class="topbar-title" id="chat-channel-name">Kanal seçin</div>
-        <div class="topbar-actions" id="chat-topbar-actions"></div>
-      </div>
-      <div class="messages-area" id="messages-area">
-        <div class="welcome-view" id="welcome-view">
-          <div style="font-size:56px">💬</div>
-          <h2>Gettic'e Hoş Geldin!</h2>
-          <p>Sol taraftan bir sunucu seç ya da yeni sunucu oluştur. Ardından bir kanala gir ve sohbet etmeye başla.</p>
-          <button class="btn-primary" style="width:auto;padding:12px 28px;margin-top:8px" onclick="openModal('modal-server')">Sunucu Oluştur</button>
-        </div>
-      </div>
-      <div class="typing-indicator" id="typing-indicator"></div>
-      <div class="input-area" id="input-area" style="display:none">
-        <div class="input-box">
-          <textarea id="msg-input" rows="1" placeholder="Mesaj gönder..." maxlength="2000"></textarea>
-          <button class="send-btn" id="send-btn" onclick="sendMessage()">➤</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- BOT PANEL VIEW -->
-    <div id="view-bots" class="panel-view">
-      <div class="panel-header">
-        <h1>🤖 Bot Paneli</h1>
-        <p>Botlarını oluştur, yönet ve token'larını görüntüle.</p>
-      </div>
-      <div class="create-form">
-        <h3>Yeni Bot Oluştur</h3>
-        <div class="form-row">
-          <div class="form-field">
-            <label>Bot Adı</label>
-            <input type="text" id="new-bot-name" placeholder="BenimBot" />
-          </div>
-          <div class="form-field">
-            <label>Prefix</label>
-            <input type="text" id="new-bot-prefix" placeholder="/" maxlength="5" value="/" />
-          </div>
-          <div class="form-field">
-            <label>Açıklama</label>
-            <input type="text" id="new-bot-desc" placeholder="Opsiyonel..." />
-          </div>
-        </div>
-        <div class="form-actions">
-          <button class="btn-sm btn-accent" onclick="createBot()">Bot Oluştur</button>
-        </div>
-      </div>
-      <div class="panel-cards" id="bot-cards"></div>
-    </div>
-
-    <!-- WEBHOOK PANEL VIEW -->
-    <div id="view-webhooks" class="panel-view">
-      <div class="panel-header">
-        <h1>🔗 Webhook Paneli</h1>
-        <p>Webhooklarını oluştur ve dış sistemlerden mesaj gönder.</p>
-      </div>
-      <div class="create-form">
-        <h3>Yeni Webhook Oluştur</h3>
-        <div class="form-row">
-          <div class="form-field">
-            <label>Webhook Adı</label>
-            <input type="text" id="new-wh-name" placeholder="GitHub Webhook" />
-          </div>
-          <div class="form-field">
-            <label>Sunucu</label>
-            <select id="new-wh-server" onchange="loadWhChannels()"></select>
-          </div>
-          <div class="form-field">
-            <label>Kanal</label>
-            <select id="new-wh-channel"></select>
-          </div>
-        </div>
-        <div class="form-actions">
-          <button class="btn-sm btn-accent" onclick="createWebhook()">Webhook Oluştur</button>
-        </div>
-      </div>
-      <div class="panel-cards" id="webhook-cards"></div>
-    </div>
-
-    <!-- DOCS VIEW -->
-    <div id="view-docs" class="panel-view">
-      <div class="panel-header">
-        <h1>📖 Dokümantasyon</h1>
-        <p>gettic.js kütüphanesi ve Webhook API referansı.</p>
-      </div>
-      <div class="docs-nav">
-        <button class="docs-nav-btn active" onclick="showDoc('quickstart')">🚀 Hızlı Başlangıç</button>
-        <button class="docs-nav-btn" onclick="showDoc('bot-api')">🤖 Bot API</button>
-        <button class="docs-nav-btn" onclick="showDoc('webhook-api')">🔗 Webhook API</button>
-        <button class="docs-nav-btn" onclick="showDoc('rest-api')">⚙️ REST API</button>
-        <button class="docs-nav-btn" onclick="showDoc('events')">📡 Olaylar</button>
-        <button class="docs-nav-btn" onclick="showDoc('examples')">💡 Örnekler</button>
-      </div>
-
-      <!-- Quickstart -->
-      <div class="docs-section active" id="doc-quickstart">
-        <h2>🚀 Hızlı Başlangıç</h2>
-        <p class="lead">Gettic botunu birkaç dakikada çalıştır.</p>
-        <div class="docs-block">
-          <h3>Kurulum</h3>
-          <p>gettic.js NPM paketi ile botunu kolayca oluştur:</p>
-          <pre>npm install gettic.js</pre>
-          <p>Ya da bağımlılıkları manuel kur:</p>
-          <pre>npm install socket.io-client axios</pre>
-        </div>
-        <div class="docs-block">
-          <h3>İlk Bot</h3>
-          <pre>const { Client } = require('gettic.js');
-
-const bot = new Client({
-    url: 'https://gettic.js.org',
-    token: 'BOT_TOKEN',   // Panelden al
-    username: 'BenimBot',
-    prefix: '/'
-});
-
-bot.on('ready', () => {
-    console.log('✅ Bot hazır!');
-    bot.send('genel', 'Merhaba! Ben bir Gettic botuyum 🤖');
-});
-
-bot.on('message', (msg) => {
-    console.log(`${msg.senderName}: ${msg.content}`);
-});
-
-bot.command('ping', (ctx) => {
-    ctx.reply(`🏓 Pong! Gecikme: ${bot.ping}ms`);
-});
-
-bot.connect();</pre>
-        </div>
-        <div class="docs-block">
-          <h3>package.json</h3>
-          <pre>{
-  "name": "gettic-bot",
-  "version": "latest",
-  "main": "index.js",
-  "scripts": { "start": "node index.js" },
-  "dependencies": { "gettic.js": "^1.0.0" }
-}</pre>
-        </div>
-        <div class="docs-block">
-          <h3>Başlatma</h3>
-          <pre>npm install
-npm start</pre>
-        </div>
-      </div>
-
-      <!-- Bot API -->
-      <div class="docs-section" id="doc-bot-api">
-        <h2>🤖 Bot API Referansı</h2>
-        <p class="lead">Client nesnesi özellikleri ve metodları.</p>
-        <div class="docs-block">
-          <h3>Client Ayarları</h3>
-          <pre>const bot = new Client({
-    url: 'https://gettic.js.org',
-    token: 'BOT_TOKEN',
-    username: 'BotAdı',
-    prefix: '/'   // varsayılan: /
-});</pre>
-        </div>
-        <div class="docs-block">
-          <h3>Özellikler</h3>
-          <table class="api-table">
-            <tr><th>Özellik</th><th>Tip</th><th>Açıklama</th></tr>
-            <tr><td>bot.username</td><td>string</td><td>Bot kullanıcı adı</td></tr>
-            <tr><td>bot.prefix</td><td>string</td><td>Komut öneki</td></tr>
-            <tr><td>bot.ready</td><td>boolean</td><td>Bot hazır mı?</td></tr>
-            <tr><td>bot.ping</td><td>number</td><td>Gecikme (ms)</td></tr>
-            <tr><td>bot.uptime</td><td>number</td><td>Çalışma süresi (ms)</td></tr>
-          </table>
-        </div>
-        <div class="docs-block">
-          <h3>Metodlar</h3>
-          <table class="api-table">
-            <tr><th>Metod</th><th>Açıklama</th></tr>
-            <tr><td>bot.send(oda, mesaj)</td><td>Odaya mesaj gönder</td></tr>
-            <tr><td>bot.joinRoom(oda)</td><td>Odaya katıl</td></tr>
-            <tr><td>bot.leaveRoom(oda)</td><td>Odadan ayrıl</td></tr>
-            <tr><td>bot.command(isim, fn)</td><td>Komut tanımla</td></tr>
-            <tr><td>bot.commands(liste)</td><td>Toplu komut ekle</td></tr>
-            <tr><td>bot.setName(isim)</td><td>Bot adını değiştir</td></tr>
-            <tr><td>bot.setPrefix(önek)</td><td>Prefix değiştir</td></tr>
-            <tr><td>bot.connect()</td><td>Bağlantı başlat</td></tr>
-            <tr><td>bot.destroy()</td><td>Botu durdur</td></tr>
-          </table>
-        </div>
-        <div class="docs-block">
-          <h3>Context (ctx) Referansı</h3>
-          <table class="api-table">
-            <tr><th>Alan</th><th>Açıklama</th></tr>
-            <tr><td>ctx.reply(mesaj)</td><td>Yanıt gönder</td></tr>
-            <tr><td>ctx.sender</td><td>Gönderen kullanıcı adı</td></tr>
-            <tr><td>ctx.room</td><td>Oda ID'si</td></tr>
-            <tr><td>ctx.args</td><td>Komut argümanları (dizi)</td></tr>
-            <tr><td>ctx.message</td><td>Ham mesaj nesnesi</td></tr>
-            <tr><td>ctx.delete()</td><td>Mesajı sil</td></tr>
-            <tr><td>ctx.edit(yeniMesaj)</td><td>Mesajı düzenle</td></tr>
-          </table>
-        </div>
-      </div>
-
-      <!-- Webhook API -->
-      <div class="docs-section" id="doc-webhook-api">
-        <h2>🔗 Webhook API</h2>
-        <p class="lead">Dış sistemlerden Gettic kanallarına mesaj gönder.</p>
-        <div class="docs-block">
-          <h3>WebhookClient Kullanımı</h3>
-          <pre>const { WebhookClient } = require('gettic.js');
-
-const webhook = new WebhookClient(
-    'https://gettic.js.org/api/webhook/WEBHOOK_TOKEN'
-);
-
-// Basit mesaj
-await webhook.send('Merhaba Gettic!');
-
-// Embed mesaj
-await webhook.sendEmbed({
-    title: '🚀 Yeni Güncelleme!',
-    description: 'v2.0 yayınlandı.',
-    fields: [
-        { name: 'Özellik', value: '✅ Eklendi' },
-        { name: 'Hata', value: '🔧 Düzeltildi' }
-    ],
-    footer: 'Gettic Webhook'
-});</pre>
-        </div>
-        <div class="docs-block">
-          <h3>HTTP ile Mesaj Gönderme</h3>
-          <p>Herhangi bir dil/platform ile POST isteği atabilirsin:</p>
-          <pre>POST https://gettic.js.org/api/webhook/WEBHOOK_TOKEN
-
-// Normal mesaj:
-{ "content": "Merhaba Gettic!" }
-
-// Embed mesaj:
-{
-  "embed": {
-    "title": "Başlık",
-    "description": "Açıklama",
-    "fields": [{ "name": "Alan", "value": "Değer" }]
-  }
-}</pre>
-        </div>
-      </div>
-
-      <!-- REST API -->
-      <div class="docs-section" id="doc-rest-api">
-        <h2>⚙️ REST API Referansı</h2>
-        <p class="lead">Tüm endpoint'ler. Authorization header: <code>Bearer TOKEN</code></p>
-        <div class="docs-block">
-          <h3>Auth</h3>
-          <table class="api-table">
-            <tr><th>Method</th><th>Endpoint</th><th>Açıklama</th></tr>
-            <tr><td><span class="method-badge post">POST</span></td><td>/api/register</td><td>Kayıt ol</td></tr>
-            <tr><td><span class="method-badge post">POST</span></td><td>/api/login</td><td>Giriş yap</td></tr>
-            <tr><td><span class="method-badge get">GET</span></td><td>/api/me</td><td>Kendi profilini getir</td></tr>
-            <tr><td><span class="method-badge patch">PATCH</span></td><td>/api/me</td><td>Profili güncelle</td></tr>
-          </table>
-        </div>
-        <div class="docs-block">
-          <h3>Sunucular</h3>
-          <table class="api-table">
-            <tr><th>Method</th><th>Endpoint</th><th>Açıklama</th></tr>
-            <tr><td><span class="method-badge get">GET</span></td><td>/api/servers</td><td>Sunucu listesi</td></tr>
-            <tr><td><span class="method-badge post">POST</span></td><td>/api/servers</td><td>Sunucu oluştur</td></tr>
-            <tr><td><span class="method-badge post">POST</span></td><td>/api/servers/join</td><td>Davet koduyla katıl</td></tr>
-            <tr><td><span class="method-badge get">GET</span></td><td>/api/servers/:id</td><td>Sunucu detayı</td></tr>
-            <tr><td><span class="method-badge delete">DELETE</span></td><td>/api/servers/:id</td><td>Sunucu sil</td></tr>
-          </table>
-        </div>
-        <div class="docs-block">
-          <h3>Kanallar & Mesajlar</h3>
-          <table class="api-table">
-            <tr><th>Method</th><th>Endpoint</th><th>Açıklama</th></tr>
-            <tr><td><span class="method-badge get">GET</span></td><td>/api/servers/:id/channels</td><td>Kanal listesi</td></tr>
-            <tr><td><span class="method-badge post">POST</span></td><td>/api/servers/:id/channels</td><td>Kanal oluştur</td></tr>
-            <tr><td><span class="method-badge get">GET</span></td><td>/api/channels/:id/messages</td><td>Mesajları getir</td></tr>
-            <tr><td><span class="method-badge post">POST</span></td><td>/api/channels/:id/messages</td><td>Mesaj gönder</td></tr>
-            <tr><td><span class="method-badge patch">PATCH</span></td><td>/api/messages/:id</td><td>Mesaj düzenle</td></tr>
-            <tr><td><span class="method-badge delete">DELETE</span></td><td>/api/messages/:id</td><td>Mesaj sil</td></tr>
-            <tr><td><span class="method-badge post">POST</span></td><td>/api/messages/:id/pin</td><td>Mesaj sabitle</td></tr>
-            <tr><td><span class="method-badge post">POST</span></td><td>/api/messages/:id/react</td><td>Tepki ekle</td></tr>
-          </table>
-        </div>
-        <div class="docs-block">
-          <h3>Bot & Webhook</h3>
-          <table class="api-table">
-            <tr><th>Method</th><th>Endpoint</th><th>Açıklama</th></tr>
-            <tr><td><span class="method-badge get">GET</span></td><td>/api/bots</td><td>Bot listesi</td></tr>
-            <tr><td><span class="method-badge post">POST</span></td><td>/api/bots</td><td>Bot oluştur</td></tr>
-            <tr><td><span class="method-badge delete">DELETE</span></td><td>/api/bots/:id</td><td>Bot sil</td></tr>
-            <tr><td><span class="method-badge post">POST</span></td><td>/api/bots/:id/regenerate</td><td>Token yenile</td></tr>
-            <tr><td><span class="method-badge post">POST</span></td><td>/api/bot/send</td><td>Bot ile mesaj gönder</td></tr>
-            <tr><td><span class="method-badge get">GET</span></td><td>/api/webhooks</td><td>Webhook listesi</td></tr>
-            <tr><td><span class="method-badge post">POST</span></td><td>/api/webhooks</td><td>Webhook oluştur</td></tr>
-            <tr><td><span class="method-badge post">POST</span></td><td>/api/webhook/:token</td><td>Webhook ile mesaj gönder</td></tr>
-          </table>
-        </div>
-      </div>
-
-      <!-- Events -->
-      <div class="docs-section" id="doc-events">
-        <h2>📡 Socket.io Olayları</h2>
-        <p class="lead">Gerçek zamanlı olaylar Socket.io üzerinden iletilir.</p>
-        <div class="docs-block">
-          <h3>Gelen Olaylar (sunucu → client)</h3>
-          <table class="api-table">
-            <tr><th>Olay</th><th>Veri</th><th>Açıklama</th></tr>
-            <tr><td>auth_success</td><td>{ userId, username }</td><td>Kimlik doğrulama başarılı</td></tr>
-            <tr><td>new_message</td><td>Message objesi</td><td>Yeni mesaj</td></tr>
-            <tr><td>message_deleted</td><td>{ id }</td><td>Mesaj silindi</td></tr>
-            <tr><td>message_edited</td><td>Message objesi</td><td>Mesaj düzenlendi</td></tr>
-            <tr><td>reaction_update</td><td>{ messageId, reactions }</td><td>Tepki güncellendi</td></tr>
-            <tr><td>user_typing</td><td>{ userId, username, channelId }</td><td>Kullanıcı yazıyor</td></tr>
-            <tr><td>user_online</td><td>{ userId, username, status }</td><td>Kullanıcı çevrimiçi</td></tr>
-            <tr><td>user_offline</td><td>{ userId }</td><td>Kullanıcı çevrimdışı</td></tr>
-            <tr><td>channel_created</td><td>Channel objesi</td><td>Kanal oluşturuldu</td></tr>
-            <tr><td>channel_deleted</td><td>{ id }</td><td>Kanal silindi</td></tr>
-          </table>
-        </div>
-        <div class="docs-block">
-          <h3>Gönderilen Olaylar (client → sunucu)</h3>
-          <table class="api-table">
-            <tr><th>Olay</th><th>Veri</th><th>Açıklama</th></tr>
-            <tr><td>auth</td><td>JWT token</td><td>Kimlik doğrula</td></tr>
-            <tr><td>join_channel</td><td>channelId</td><td>Kanala katıl</td></tr>
-            <tr><td>leave_channel</td><td>channelId</td><td>Kanaldan ayrıl</td></tr>
-            <tr><td>join_server</td><td>serverId</td><td>Sunucuya katıl</td></tr>
-            <tr><td>typing</td><td>{ channelId }</td><td>Yazıyor göster</td></tr>
-            <tr><td>status_change</td><td>{ status }</td><td>Durumu değiştir</td></tr>
-          </table>
-        </div>
-      </div>
-
-      <!-- Examples -->
-      <div class="docs-section" id="doc-examples">
-        <h2>💡 Örnek Botlar</h2>
-        <p class="lead">Hazır bot örnekleri.</p>
-        <div class="docs-block">
-          <h3>Komut Botu</h3>
-          <pre>const { Client } = require('gettic.js');
-const bot = new Client({ url: '...', token: 'TOKEN', username: 'KomutBot' });
-
-bot.command('yardim', (ctx) => {
-    ctx.reply(`📋 **Komutlar:**
-/ping - Gecikme testi
-/sa - Selam ver
-/yardim - Bu menü
-/anket soru|a|b - Anket başlat`);
-});
-
-bot.command('ping', (ctx) => ctx.reply(`🏓 Pong! ${bot.ping}ms`));
-bot.command('sa', (ctx) => ctx.reply(`Aleyküm selam ${ctx.sender}! 👋`));
-
-bot.command('anket', (ctx) => {
-    const parts = ctx.args.join(' ').split('|');
-    if (parts.length < 3) return ctx.reply('❌ /anket soru|seçenek1|seçenek2');
-    ctx.reply(`📊 **${parts[0]}**\n🔵 ${parts[1]}\n🟢 ${parts[2]}`);
-});
-
-bot.connect();</pre>
-        </div>
-        <div class="docs-block">
-          <h3>HTTP Panel ile Bot</h3>
-          <pre>const { Client } = require('gettic.js');
-const http = require('http');
-
-const bot = new Client({ url: '...', token: 'TOKEN', username: 'PanelBot' });
-
-http.createServer((req, res) => {
-    res.setHeader('Content-Type', 'application/json');
-    if (req.url === '/') {
-        res.end(JSON.stringify({ status: bot.ready ? '🟢 Online' : '🔴 Offline', ping: bot.ping + 'ms' }));
-    }
-}).listen(3000);
-
-bot.command('ping', ctx => ctx.reply('Pong!'));
-bot.connect();</pre>
-        </div>
-        <div class="docs-block">
-          <h3>Webhook ile CI/CD Bildirimi</h3>
-          <pre>const { WebhookClient } = require('gettic.js');
-const wh = new WebhookClient('https://.../api/webhook/TOKEN');
-
-// GitHub Actions workflow'unda çağır:
-await wh.sendEmbed({
-    title: '✅ Deploy Başarılı!',
-    description: 'main branch Railway\'e deploy edildi.',
-    fields: [
-        { name: 'Branch', value: 'main' },
-        { name: 'Commit', value: 'abc1234' },
-        { name: 'Durum', value: '✅ Canlı' }
-    ]
-});</pre>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ─── MODALS ───────────────────────────────────────────────────────────────── -->
-
-<!-- Create/Join Server -->
-<div class="modal-overlay" id="modal-server">
-  <div class="modal">
-    <h2>Sunucu Oluştur / Katıl</h2>
-    <div class="auth-tabs" style="margin-bottom:20px">
-      <button class="auth-tab active" onclick="switchServerTab('create')" id="stab-create">Oluştur</button>
-      <button class="auth-tab" onclick="switchServerTab('join')" id="stab-join">Katıl</button>
-    </div>
-    <div id="srv-create-form">
-      <div class="form-field" style="margin-bottom:12px">
-        <label>Sunucu Adı</label>
-        <input type="text" id="new-srv-name" placeholder="Sunucumun Adı" />
-      </div>
-      <div class="form-field" style="margin-bottom:16px">
-        <label>Şablon</label>
-        <select id="new-srv-template">
-          <option value="default">Genel</option>
-          <option value="gaming">Oyun</option>
-          <option value="work">Çalışma</option>
-        </select>
-      </div>
-      <div class="modal-actions">
-        <button class="btn-sm btn-ghost" onclick="closeModal('modal-server')">İptal</button>
-        <button class="btn-sm btn-accent" onclick="createServer()">Oluştur</button>
-      </div>
-    </div>
-    <div id="srv-join-form" style="display:none">
-      <div class="form-field" style="margin-bottom:16px">
-        <label>Davet Kodu</label>
-        <input type="text" id="join-invite" placeholder="abc12345" />
-      </div>
-      <div class="modal-actions">
-        <button class="btn-sm btn-ghost" onclick="closeModal('modal-server')">İptal</button>
-        <button class="btn-sm btn-accent" onclick="joinServer()">Katıl</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Channel Create -->
-<div class="modal-overlay" id="modal-channel">
-  <div class="modal">
-    <h2>Kanal Oluştur</h2>
-    <div class="form-field" style="margin-bottom:12px">
-      <label>Kanal Adı</label>
-      <input type="text" id="new-ch-name" placeholder="kanal-adı" />
-    </div>
-    <div class="form-field" style="margin-bottom:12px">
-      <label>Kanal Türü</label>
-      <select id="new-ch-type">
-        <option value="text">💬 Metin</option>
-        <option value="voice">🔊 Ses</option>
-        <option value="forum">📋 Forum</option>
-        <option value="stage">🎙️ Stage</option>
-      </select>
-    </div>
-    <div class="form-field" style="margin-bottom:16px">
-      <label>Konu (Opsiyonel)</label>
-      <input type="text" id="new-ch-topic" placeholder="Bu kanalın konusu..." />
-    </div>
-    <div class="modal-actions">
-      <button class="btn-sm btn-ghost" onclick="closeModal('modal-channel')">İptal</button>
-      <button class="btn-sm btn-accent" onclick="createChannel()">Oluştur</button>
-    </div>
-  </div>
-</div>
-
-<!-- Server Settings -->
-<div class="modal-overlay" id="modal-server-settings">
-  <div class="modal">
-    <h2 id="ss-title">Sunucu Ayarları</h2>
-    <p style="color:var(--text-2);font-size:13px;margin-bottom:16px">Davet Kodu:</p>
-    <div class="token-box" id="ss-invite-code" onclick="copyText(this.textContent, 'Davet kodu kopyalandı!')">—</div>
-    <div class="modal-actions">
-      <button class="btn-sm btn-danger" onclick="deleteServer()">Sunucuyu Sil</button>
-      <button class="btn-sm btn-ghost" onclick="closeModal('modal-server-settings')">Kapat</button>
-    </div>
-  </div>
-</div>
-
-<!-- Profile -->
-<div class="modal-overlay" id="modal-profile">
-  <div class="modal">
-    <h2>Profil Ayarları</h2>
-    <div class="form-field" style="margin-bottom:12px">
-      <label>Biyografi</label>
-      <textarea id="profile-bio" rows="3" style="width:100%;background:var(--bg-deep);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-1);padding:10px 12px;font-size:13px" placeholder="Kendini tanıt..."></textarea>
-    </div>
-    <div class="form-field" style="margin-bottom:12px">
-      <label>Durum</label>
-      <select id="profile-status">
-        <option value="online">🟢 Çevrimiçi</option>
-        <option value="idle">🟡 Boşta</option>
-        <option value="dnd">🔴 Rahatsız Etme</option>
-        <option value="invisible">⚫ Görünmez</option>
-      </select>
-    </div>
-    <div class="modal-actions">
-      <button class="btn-sm btn-ghost" onclick="closeModal('modal-profile')">İptal</button>
-      <button class="btn-sm btn-accent" onclick="saveProfile()">Kaydet</button>
-    </div>
-  </div>
-</div>
-
-<!-- Toast -->
-<div id="toast-container"></div>
+<!-- MODALS -->
+<div class="modal-overlay" id="modal-server"><div class="modal-bg" onclick="closeModal('modal-server')"></div><div class="modal-box"><h2>Sunucu Oluştur</h2><input id="new-srv-name" placeholder="Sunucu adı"><input id="new-srv-icon" placeholder="İkon URL (opsiyonel)"><button class="btn-sm btn-accent" onclick="createServer()" style="width:100%">Oluştur</button></div></div>
+<div class="modal-overlay" id="modal-channel"><div class="modal-bg" onclick="closeModal('modal-channel')"></div><div class="modal-box"><h2>Kanal Oluştur</h2><input id="new-ch-name" placeholder="Kanal adı"><select id="new-ch-type"><option value="text">Yazılı</option><option value="voice">Sesli</option><option value="forum">Forum</option></select><button class="btn-sm btn-accent" onclick="createChannel()" style="width:100%">Oluştur</button></div></div>
+<div id="toast">✓ Kopyalandı!</div>
 
 <script>
-// ─── State ───────────────────────────────────────────────────────────────────
-let token = localStorage.getItem('gettic_token');
-let me = null;
-let currentServer = null;
-let currentChannel = null;
-let servers = [];
-let channels = [];
-let socket = null;
-let typingTimeout = null;
-let typingUsers = {};
+(function() {
+    "use strict";
+    var API = window.location.origin;
+    if (window.location.hostname === 'localhost') API = 'http://localhost:3000';
 
-const API = '';  // relative to same origin
+    // STATE
+    var socket = null,
+        me = null,
+        token = localStorage.getItem('gt_token') || null;
+    var cRoom = 'genel',
+        currentServer = null;
+    var servers = [{ id: 'main', name: 'Gettic', icon: '', inviteCode: 'gettic' }];
+    var rooms = [];
+    var myStatus = 'online';
 
-// ─── Utils ───────────────────────────────────────────────────────────────────
-function toast(msg, type = '') {
-  const t = document.createElement('div');
-  t.className = 'toast ' + type;
-  t.textContent = msg;
-  document.getElementById('toast-container').appendChild(t);
-  setTimeout(() => t.remove(), 3200);
-}
+    // ========== LOADING ==========
+    setTimeout(function() {
+        document.getElementById('loading-screen').classList.add('hidden');
+        if (token) {
+            try { me = JSON.parse(localStorage.getItem('gt_user'));
+                bootApp(); } catch (e) { localStorage.clear(); }
+        }
+    }, 1500);
 
-function copyText(text, msg = 'Kopyalandı!') {
-  navigator.clipboard.writeText(text.trim()).then(() => toast(msg, 'success'));
-}
-
-function fmtTime(date) {
-  return new Date(date).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
-}
-
-function fmtDate(date) {
-  return new Date(date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
-}
-
-function initials(name) {
-  return (name || '?')[0].toUpperCase();
-}
-
-async function apiFetch(path, opts = {}) {
-  const res = await fetch(API + path, {
-    ...opts,
-    headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: 'Bearer ' + token } : {}), ...(opts.headers || {}) }
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Hata');
-  return data;
-}
-
-// ─── Auth ─────────────────────────────────────────────────────────────────────
-function switchTab(tab) {
-  document.getElementById('auth-login').style.display    = tab === 'login'    ? '' : 'none';
-  document.getElementById('auth-register').style.display = tab === 'register' ? '' : 'none';
-  document.querySelectorAll('.auth-tab').forEach((t, i) => t.classList.toggle('active', (i===0) === (tab==='login')));
-}
-
-async function doLogin() {
-  const username = document.getElementById('login-user').value.trim();
-  const password = document.getElementById('login-pass').value;
-  document.getElementById('login-err').textContent = '';
-  try {
-    const data = await apiFetch('/api/login', { method: 'POST', body: JSON.stringify({ username, password }) });
-    token = data.token;
-    me = data.user;
-    localStorage.setItem('gettic_token', token);
-    bootApp();
-  } catch (e) {
-    document.getElementById('login-err').textContent = e.message;
-  }
-}
-
-async function doRegister() {
-  const username = document.getElementById('reg-user').value.trim();
-  const password = document.getElementById('reg-pass').value;
-  document.getElementById('reg-err').textContent = '';
-  try {
-    const data = await apiFetch('/api/register', { method: 'POST', body: JSON.stringify({ username, password }) });
-    token = data.token;
-    me = data.user;
-    localStorage.setItem('gettic_token', token);
-    bootApp();
-  } catch (e) {
-    document.getElementById('reg-err').textContent = e.message;
-  }
-}
-
-function logout() {
-  localStorage.removeItem('gettic_token');
-  token = null; me = null;
-  location.reload();
-}
-
-// ─── Boot ─────────────────────────────────────────────────────────────────────
-async function bootApp() {
-  try {
-    if (!me) me = await apiFetch('/api/me');
-    document.getElementById('auth-screen').classList.add('hidden');
-    document.getElementById('app').classList.remove('hidden');
-    updateUserPanel();
-    connectSocket();
-    await loadServers();
-    document.getElementById('msg-input').addEventListener('keydown', onMsgKey);
-    document.getElementById('msg-input').addEventListener('input', onMsgInput);
-  } catch (e) {
-    toast('Oturum sona erdi, tekrar giriş yap.', 'error');
-    localStorage.removeItem('gettic_token');
-    token = null;
-  }
-}
-
-function updateUserPanel() {
-  if (!me) return;
-  document.getElementById('sidebar-uname').textContent = me.username;
-  document.getElementById('sidebar-avatar-letter').textContent = initials(me.username);
-  document.getElementById('sidebar-ustatus').textContent = { online: 'Çevrimiçi', idle: 'Boşta', dnd: 'Rahatsız Etme', invisible: 'Görünmez' }[me.status] || 'Çevrimiçi';
-  const dot = document.getElementById('sidebar-status-dot');
-  dot.className = 'status-dot status-' + (me.status || 'online');
-}
-
-// ─── Socket ───────────────────────────────────────────────────────────────────
-function connectSocket() {
-  socket = io();
-  socket.emit('auth', token);
-  socket.on('auth_success', () => console.log('Socket auth OK'));
-
-  socket.on('new_message', (msg) => {
-    if (currentChannel && msg.channelId === currentChannel._id) appendMessage(msg);
-    // clear typing for sender
-    if (typingUsers[msg.senderName]) { delete typingUsers[msg.senderName]; renderTyping(); }
-  });
-
-  socket.on('message_deleted', ({ id }) => {
-    document.querySelector(`[data-msgid="${id}"]`)?.remove();
-  });
-
-  socket.on('message_edited', (msg) => {
-    const el = document.querySelector(`[data-msgid="${msg._id}"] .msg-content`);
-    if (el) { el.textContent = msg.content; el.classList.add('edited'); }
-  });
-
-  socket.on('reaction_update', ({ messageId, reactions }) => {
-    const el = document.querySelector(`[data-msgid="${messageId}"] .msg-reactions`);
-    if (el) el.innerHTML = renderReactions(reactions, messageId);
-  });
-
-  socket.on('user_typing', ({ username, channelId }) => {
-    if (!currentChannel || channelId !== currentChannel._id || username === me.username) return;
-    typingUsers[username] = Date.now();
-    renderTyping();
-    setTimeout(() => { if (typingUsers[username] && Date.now() - typingUsers[username] > 3000) { delete typingUsers[username]; renderTyping(); } }, 3500);
-  });
-
-  socket.on('channel_created', (ch) => {
-    if (currentServer && ch.serverId === currentServer._id) { channels.push(ch); renderChannels(); }
-  });
-
-  socket.on('channel_deleted', ({ id }) => {
-    channels = channels.filter(c => c._id !== id);
-    renderChannels();
-    if (currentChannel?._id === id) { currentChannel = null; showWelcome(); }
-  });
-}
-
-// ─── Servers ──────────────────────────────────────────────────────────────────
-async function loadServers() {
-  servers = await apiFetch('/api/servers');
-  renderServerList();
-}
-
-function renderServerList() {
-  const list = document.getElementById('server-list');
-  // Keep first divider and add button
-  const divider = list.querySelector('.srv-divider');
-  const addBtn = list.querySelector('.srv-add-btn');
-  list.innerHTML = '';
-  list.appendChild(divider);
-
-  servers.forEach(srv => {
-    const el = document.createElement('div');
-    el.className = 'srv-icon' + (currentServer?._id === srv._id ? ' active' : '');
-    el.title = srv.name;
-    el.onclick = () => selectServer(srv);
-    if (srv.icon) {
-      const img = document.createElement('img');
-      img.src = srv.icon;
-      el.appendChild(img);
-    } else {
-      el.textContent = initials(srv.name);
+    // ========== AUTH ==========
+    function showAuth(tab) {
+        document.getElementById('auth-screen').classList.add('show');
+        if (tab === 'register') document.getElementById('auth-form-register').style.display = '';
+        else document.getElementById('auth-form-login').style.display = '';
     }
-    list.appendChild(el);
-  });
 
-  list.appendChild(addBtn);
-}
+    function switchAuthTab(tab) {
+        document.getElementById('auth-form-login').style.display = tab === 'login' ? '' : 'none';
+        document.getElementById('auth-form-register').style.display = tab === 'register' ? '' : 'none';
+        document.querySelectorAll('.auth-tab').forEach(function(b, i) { b.classList.toggle('active', (i === 0) === (tab === 'login')); });
+    }
 
-async function selectServer(srv) {
-  currentServer = srv;
-  currentChannel = null;
-  document.getElementById('current-server-name').textContent = srv.name;
-  renderServerList();
-  channels = await apiFetch(`/api/servers/${srv._id}/channels`);
-  renderChannels();
-  socket?.emit('join_server', srv._id);
-  if (channels.length > 0) {
-    const firstText = channels.find(c => c.type === 'text');
-    if (firstText) selectChannel(firstText);
-  }
-}
+    async function doLogin() {
+        var u = document.getElementById('login-user').value.trim();
+        var p = document.getElementById('login-pass').value;
+        if (!u || !p) return document.getElementById('login-err').textContent = 'Tüm alanları doldur';
+        try {
+            var res = await fetch(API + '/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: u, password: p }) });
+            var d = await res.json();
+            if (d.error) return document.getElementById('login-err').textContent = d.error;
+            me = d.user;
+            token = d.token;
+            localStorage.setItem('gt_token', token);
+            localStorage.setItem('gt_user', JSON.stringify(me));
+            document.getElementById('auth-screen').classList.remove('show');
+            bootApp();
+        } catch (e) { document.getElementById('login-err').textContent = 'Bağlantı hatası'; }
+    }
 
-function renderChannels() {
-  const dynamic = document.getElementById('channels-dynamic');
-  const cat = document.getElementById('channels-cat');
-  if (!channels.length) { dynamic.innerHTML = ''; cat.style.display = 'none'; return; }
-  cat.style.display = '';
+    async function doRegister() {
+        var u = document.getElementById('reg-user').value.trim();
+        var p = document.getElementById('reg-pass').value;
+        if (!u || !p) return document.getElementById('reg-err').textContent = 'Tüm alanları doldur';
+        if (u.length < 3) return document.getElementById('reg-err').textContent = 'En az 3 karakter';
+        if (p.length < 6) return document.getElementById('reg-err').textContent = 'En az 6 karakter';
+        try {
+            var res = await fetch(API + '/api/auth/register', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: u, password: p }) });
+            var d = await res.json();
+            if (d.error) return document.getElementById('reg-err').textContent = d.error;
+            me = d.user;
+            token = d.token;
+            localStorage.setItem('gt_token', token);
+            localStorage.setItem('gt_user', JSON.stringify(me));
+            document.getElementById('auth-screen').classList.remove('show');
+            bootApp();
+        } catch (e) { document.getElementById('reg-err').textContent = 'Bağlantı hatası'; }
+    }
 
-  const typeIcons = { text: '💬', voice: '🔊', forum: '📋', stage: '🎙️' };
-  dynamic.innerHTML = channels.map(ch => `
-    <div class="ch-item${currentChannel?._id === ch._id ? ' active' : ''}" onclick="selectChannel(${JSON.stringify(ch).replace(/"/g,'&quot;')})">
-      <span class="ch-icon">${typeIcons[ch.type] || '💬'}</span> ${ch.name}
-    </div>
-  `).join('');
+    function doLogout() {
+        localStorage.clear();
+        me = null;
+        token = null;
+        window.location.reload();
+    }
 
-  // Add channel btn
-  const addCh = document.createElement('div');
-  addCh.className = 'ch-item';
-  addCh.style.color = 'var(--green)';
-  addCh.innerHTML = '<span class="ch-icon">＋</span> Kanal Ekle';
-  addCh.onclick = () => openModal('modal-channel');
-  dynamic.appendChild(addCh);
-}
+    // ========== BOOT ==========
+    function bootApp() {
+        if (me) {
+            document.getElementById('btn-login-nav').style.display = 'none';
+            document.getElementById('btn-register-nav').style.display = 'none';
+            document.getElementById('btn-logout-nav').style.display = '';
+            document.getElementById('sidebar-uname').textContent = me.username;
+            document.getElementById('sidebar-ava').textContent = me.username.charAt(0).toUpperCase();
+            document.getElementById('sidebar-ustatus').textContent = 'Çevrimiçi';
+        }
+        connectSocket();
+        renderServers();
+        updateWebhookServerList();
+    }
 
-async function selectChannel(ch) {
-  if (currentChannel?._id === ch._id) return;
-  if (currentChannel) socket?.emit('leave_channel', currentChannel._id);
-  currentChannel = ch;
-  socket?.emit('join_channel', ch._id);
-  showPanel('chat');
-  document.getElementById('chat-channel-name').textContent = ch.name;
-  document.getElementById('input-area').style.display = '';
-  document.getElementById('welcome-view').style.display = 'none';
+    // ========== SOCKET ==========
+    function connectSocket() {
+        if (socket) return;
+        socket = io(API, { transports: ['websocket', 'polling'] });
+        socket.on('connect', function() { if (me && socket) socket.emit('user-online', me._id); });
+        socket.on('receive-message', function(m) { showMsg(m); });
+        socket.on('room-user-count', function(c) { document.getElementById('online-count').textContent = c + ' çevrimiçi'; });
+        socket.on('user-typing', function(d) {
+            if (d.userId === me._id) return;
+            document.getElementById('typing').textContent = d.userName + ' yazıyor...';
+            setTimeout(function() { document.getElementById('typing').textContent = ''; }, 3000);
+        });
+    }
 
-  // Update channel list UI
-  document.querySelectorAll('#channels-dynamic .ch-item').forEach((el, i) => {
-    el.classList.toggle('active', channels[i]?._id === ch._id);
-  });
+    // ========== SERVERS ==========
+    function renderServers() {
+        var el = document.getElementById('user-servers');
+        el.innerHTML = '';
+        servers.forEach(function(s) {
+            if (s.id === 'main') return;
+            var div = document.createElement('div');
+            div.className = 'srv-icon';
+            div.title = s.name;
+            div.onclick = function() { selectServer(s); };
+            if (s.icon) { div.innerHTML = '<img src="' + s.icon + '" alt="' + s.name + '">'; } else { div.textContent = s
+                    .name.charAt(0).toUpperCase(); }
+            el.appendChild(div);
+        });
+    }
 
-  const messages = await apiFetch(`/api/channels/${ch._id}/messages?limit=50`);
-  const area = document.getElementById('messages-area');
-  area.innerHTML = '';
-  messages.forEach(appendMessage);
-  area.scrollTop = area.scrollHeight;
-}
+    function selectServer(s) {
+        currentServer = s;
+        document.getElementById('server-name').textContent = s.name;
+        document.querySelectorAll('.srv-icon').forEach(function(e) { e.classList.remove('active'); });
+        if (s.id === 'main') document.getElementById('srv-main').classList.add('active');
+    }
 
-// ─── Messages ─────────────────────────────────────────────────────────────────
-function appendMessage(msg) {
-  const area = document.getElementById('messages-area');
-  if (document.getElementById('welcome-view')) document.getElementById('welcome-view').style.display = 'none';
+    function createServer() {
+        var n = document.getElementById('new-srv-name').value.trim();
+        var icon = document.getElementById('new-srv-icon').value.trim();
+        if (!n) return toast('Ad gerekli');
+        var s = { id: 'srv-' + Date.now(), name: n, icon: icon || '', inviteCode: Math.random().toString(36).substring(2,
+                10) };
+        servers.push(s);
+        renderServers();
+        updateWebhookServerList();
+        closeModal('modal-server');
+        toast('Sunucu oluşturuldu!');
+    }
 
-  const div = document.createElement('div');
-  div.className = 'msg-group';
-  div.setAttribute('data-msgid', msg._id);
+    // ========== CHANNELS ==========
+    function createChannel() {
+        var n = document.getElementById('new-ch-name').value.trim();
+        var t = document.getElementById('new-ch-type').value;
+        if (!n) return toast('Ad gerekli');
+        rooms.push({ name: n, type: t, id: 'ch-' + Date.now() });
+        renderRooms();
+        closeModal('modal-channel');
+        toast('Kanal oluşturuldu!');
+    }
 
-  const isMe = msg.senderId === me?._id || msg.senderName === me?.username;
-  const isBot = msg.isBot;
-  const avatarClass = isBot ? 'msg-avatar bot' : 'msg-avatar';
-  const nameClass = isBot ? 'msg-name bot' : 'msg-name';
+    function renderRooms() {
+        var rl = document.getElementById('room-list'),
+            vl = document.getElementById('voice-list'),
+            fl = document.getElementById('forum-list');
+        rl.innerHTML = '';
+        vl.innerHTML = '';
+        fl.innerHTML = '';
+        rooms.forEach(function(r) {
+            var d = document.createElement('div');
+            d.className = 'ch-item';
+            d.innerHTML = '<span class="ch-prefix">' + (r.type === 'voice' ? '♦' : r.type === 'forum' ? '▢' : '#') +
+                '</span> ' + r.name;
+            d.onclick = function() { joinRoom(r.id, r.name, r.type); };
+            if (r.type === 'voice') vl.appendChild(d);
+            else if (r.type === 'forum') fl.appendChild(d);
+            else rl.appendChild(d);
+        });
+    }
 
-  div.innerHTML = `
-    <div class="${avatarClass}">${initials(isBot ? msg.botName || msg.senderName : msg.senderName)}</div>
-    <div class="msg-body">
-      <div class="msg-header">
-        <span class="${nameClass}">${msg.senderName}</span>
-        <span class="msg-time">${fmtTime(msg.createdAt)}</span>
-      </div>
-      <div class="msg-content${msg.editedAt ? ' edited' : ''}">${escapeHtml(msg.content)}</div>
-      <div class="msg-reactions">${renderReactions(msg.reactions || [], msg._id)}</div>
-      <div class="msg-actions">
-        <button class="msg-action-btn" onclick="reactMsg('${msg._id}', '👍')">👍</button>
-        <button class="msg-action-btn" onclick="reactMsg('${msg._id}', '❤️')">❤️</button>
-        <button class="msg-action-btn" onclick="reactMsg('${msg._id}', '😂')">😂</button>
-        ${isMe ? `<button class="msg-action-btn" onclick="deleteMsg('${msg._id}')">🗑️</button>` : ''}
-      </div>
-    </div>
-  `;
-  area.appendChild(div);
-  area.scrollTop = area.scrollHeight;
-}
+    function joinRoom(id, name, type) {
+        cRoom = id;
+        document.getElementById('room-name').textContent = name;
+        document.getElementById('messages').innerHTML = '<div class="welcome"><h2>#' + name +
+            '</h2><p>Sohbete başla!</p></div>';
+        if (socket) socket.emit('join-room', id);
+    }
 
-function renderReactions(reactions, msgId) {
-  if (!reactions?.length) return '';
-  return reactions.filter(r => r.users?.length > 0).map(r =>
-    `<span class="reaction-pill" onclick="reactMsg('${msgId}','${r.emoji}')">${r.emoji} ${r.users.length}</span>`
-  ).join('');
-}
+    // ========== MESSAGES ==========
+    function sendMsg() {
+        var inp = document.getElementById('msg-input');
+        var txt = inp.value.trim();
+        if (!txt || !socket || !me) return;
+        socket.emit('send-message', { content: txt, senderId: me._id, senderName: me.username, roomId: cRoom, type: 'text' });
+        inp.value = '';
+        inp.style.height = 'auto';
+    }
 
-function escapeHtml(str) {
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
+    function showMsg(m) {
+        var a = document.getElementById('messages');
+        var t = new Date(m.timestamp || Date.now()).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+        var col = stringToColor(m.senderName || '?');
+        var letter = (m.senderName || '?').charAt(0).toUpperCase();
+        var d = document.createElement('div');
+        d.className = 'msg';
+        d.innerHTML = '<div class="mhdr"><div class="mava" style="background:' + col + '">' + letter +
+            '</div><span class="muser" style="color:' + col + '">' + escapeHtml(m.senderName) +
+            '</span><span class="mtime">' + t + '</span></div><div class="mbody">' + escapeHtml(m.content) + '</div>';
+        a.appendChild(d);
+        a.scrollTop = a.scrollHeight;
+    }
 
-async function sendMessage() {
-  const input = document.getElementById('msg-input');
-  const content = input.value.trim();
-  if (!content || !currentChannel) return;
-  input.value = '';
-  input.style.height = 'auto';
-  try {
-    await apiFetch(`/api/channels/${currentChannel._id}/messages`, { method: 'POST', body: JSON.stringify({ content }) });
-  } catch (e) { toast(e.message, 'error'); }
-}
+    // ========== BOTS ==========
+    function createBot() {
+        var n = document.getElementById('new-bot-name').value.trim();
+        if (!n) return toast('Ad gerekli');
+        var tok = 'bot_' + Array.from({ length: 24 }, function() { return 'abcdefghijklmnopqrstuvwxyz0123456789' [Math.floor(
+            Math.random() * 36)]; }).join('');
+        var card = document.createElement('div');
+        card.className = 'panel-card';
+        card.innerHTML =
+            '<h3>🤖 ' + escapeHtml(n) + '</h3><div class="token-box" onclick="copyText(this.textContent)">' + tok +
+            '</div><button class="btn-sm btn-danger" onclick="this.parentElement.remove()">Sil</button>';
+        document.getElementById('bot-cards').appendChild(card);
+        document.getElementById('new-bot-name').value = '';
+        toast('Bot oluşturuldu! Token: ' + tok);
+    }
 
-async function deleteMsg(id) {
-  try {
-    await apiFetch(`/api/messages/${id}`, { method: 'DELETE' });
-  } catch (e) { toast(e.message, 'error'); }
-}
+    // ========== WEBHOOKS ==========
+    function updateWebhookServerList() {
+        var sel = document.getElementById('new-wh-server');
+        sel.innerHTML = servers.map(function(s) { return '<option value="' + s.id + '">' + s.name + ' (' + s.id +
+                ')</option>'; }).join('');
+    }
 
-async function reactMsg(id, emoji) {
-  try {
-    await apiFetch(`/api/messages/${id}/react`, { method: 'POST', body: JSON.stringify({ emoji }) });
-  } catch (e) { toast(e.message, 'error'); }
-}
+    function createWebhook() {
+        var n = document.getElementById('new-wh-name').value.trim();
+        var srvId = document.getElementById('new-wh-server').value;
+        var chId = document.getElementById('new-wh-channel').value || 'genel';
+        if (!n || !srvId) return toast('Ad ve sunucu gerekli');
+        var srv = servers.find(function(s) { return s.id === srvId; });
+        var url = API + '/api/webhook/' + Array.from({ length: 18 }, function() { return 'abcdef0123456789' [Math.floor(
+            Math.random() * 16)]; }).join('');
+        var card = document.createElement('div');
+        card.className = 'panel-card';
+        card.innerHTML = '<h3>🔗 ' + escapeHtml(n) + '</h3><small style="color:var(--t3)">Sunucu: ' + (srv ? srv.name :
+            srvId) + ' | Kanal: ' + chId +
+            '</small><div class="token-box" onclick="copyText(this.textContent)">' + url + '</div><button class="btn-sm btn-danger" onclick="this.parentElement.remove()">Sil</button>';
+        document.getElementById('webhook-cards').appendChild(card);
+        document.getElementById('new-wh-name').value = '';
+        toast('Webhook oluşturuldu!');
+    }
 
-function onMsgKey(e) {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-}
+    // ========== PANELS ==========
+    function showPanel(name) {
+        document.querySelectorAll('.nav-link').forEach(function(b) { b.classList.remove('active'); });
+        document.querySelector('.nav-link[onclick="showPanel(\'' + name + '\')"]').classList.add('active');
+        document.getElementById('chat-container').style.display = (name === 'chat') ? 'flex' : 'none';
+        document.getElementById('channel-sidebar').style.display = (name === 'chat') ? 'flex' : 'none';
+        ['bots', 'webhooks', 'docs'].forEach(function(x) {
+            var p = document.getElementById('view-' + x);
+            if (p) p.classList.toggle('active', name === x);
+        });
+        if (name === 'webhooks') updateWebhookServerList();
+    }
 
-function onMsgInput(e) {
-  const el = e.target;
-  el.style.height = 'auto';
-  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
-  if (currentChannel) socket?.emit('typing', { channelId: currentChannel._id });
-}
+    // ========== MODALS ==========
+    function openModal(id) { document.getElementById(id).classList.add('open'); }
 
-function renderTyping() {
-  const names = Object.keys(typingUsers);
-  const el = document.getElementById('typing-indicator');
-  if (!names.length) { el.textContent = ''; return; }
-  el.textContent = names.join(', ') + (names.length === 1 ? ' yazıyor...' : ' yazıyor...');
-}
+    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+    document.querySelectorAll('.modal-bg').forEach(function(bg) { bg.addEventListener('click', function() { bg
+            .parentElement.classList.remove('open'); }); });
 
-function showWelcome() {
-  document.getElementById('input-area').style.display = 'none';
-  const area = document.getElementById('messages-area');
-  area.innerHTML = '<div class="welcome-view" id="welcome-view"><div style="font-size:56px">💬</div><h2>Gettic\'e Hoş Geldin!</h2><p>Sol taraftan bir kanal seç.</p></div>';
-}
+    // ========== HELPERS ==========
+    function toast(msg) {
+        var t = document.getElementById('toast');
+        t.textContent = msg;
+        t.classList.add('show');
+        setTimeout(function() { t.classList.remove('show'); }, 2500);
+    }
 
-// ─── Server Modals ────────────────────────────────────────────────────────────
-function switchServerTab(tab) {
-  document.getElementById('srv-create-form').style.display = tab === 'create' ? '' : 'none';
-  document.getElementById('srv-join-form').style.display   = tab === 'join'   ? '' : 'none';
-  document.getElementById('stab-create').classList.toggle('active', tab === 'create');
-  document.getElementById('stab-join').classList.toggle('active',   tab === 'join');
-}
+    function copyText(t) {
+        navigator.clipboard.writeText(t.trim()).then(function() { toast('Kopyalandı!'); });
+    }
 
-async function createServer() {
-  const name = document.getElementById('new-srv-name').value.trim();
-  const template = document.getElementById('new-srv-template').value;
-  if (!name) return toast('Sunucu adı gerekli', 'error');
-  try {
-    const srv = await apiFetch('/api/servers', { method: 'POST', body: JSON.stringify({ name, template }) });
-    servers.push(srv);
-    renderServerList();
-    closeModal('modal-server');
-    toast('Sunucu oluşturuldu!', 'success');
-    await selectServer(srv);
-  } catch (e) { toast(e.message, 'error'); }
-}
+    function escapeHtml(s) { var d = document.createElement('div');
+        d.textContent = s || ''; return d.innerHTML; }
 
-async function joinServer() {
-  const inviteCode = document.getElementById('join-invite').value.trim();
-  if (!inviteCode) return toast('Davet kodu gerekli', 'error');
-  try {
-    const srv = await apiFetch('/api/servers/join', { method: 'POST', body: JSON.stringify({ inviteCode }) });
-    servers.push(srv);
-    renderServerList();
-    closeModal('modal-server');
-    toast('Sunucuya katıldın!', 'success');
-    await selectServer(srv);
-  } catch (e) { toast(e.message, 'error'); }
-}
+    function stringToColor(s) { var h = 0; for (var i = 0; i < (s || '?').length; i++) h = s.charCodeAt(i) + ((h << 5) -
+            h); var c = ['#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#a855f7', '#818cf8']; return c[Math.abs(h) % c
+            .length]; }
 
-async function deleteServer() {
-  if (!currentServer) return;
-  if (!confirm(`"${currentServer.name}" sunucusunu silmek istediğinden emin misin?`)) return;
-  try {
-    await apiFetch(`/api/servers/${currentServer._id}`, { method: 'DELETE' });
-    servers = servers.filter(s => s._id !== currentServer._id);
-    currentServer = null;
-    currentChannel = null;
-    renderServerList();
-    closeModal('modal-server-settings');
-    document.getElementById('channels-dynamic').innerHTML = '';
-    document.getElementById('current-server-name').textContent = 'Gettic';
-    showWelcome();
-    toast('Sunucu silindi', 'success');
-  } catch (e) { toast(e.message, 'error'); }
-}
+    function handleMsgKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault();
+            sendMsg(); } }
 
-async function createChannel() {
-  if (!currentServer) return toast('Önce bir sunucu seç', 'error');
-  const name = document.getElementById('new-ch-name').value.trim();
-  const type = document.getElementById('new-ch-type').value;
-  const topic = document.getElementById('new-ch-topic').value.trim();
-  if (!name) return toast('Kanal adı gerekli', 'error');
-  try {
-    await apiFetch(`/api/servers/${currentServer._id}/channels`, { method: 'POST', body: JSON.stringify({ name, type, topic }) });
-    closeModal('modal-channel');
-    toast('Kanal oluşturuldu!', 'success');
-  } catch (e) { toast(e.message, 'error'); }
-}
+    function autoResize(e) { e.style.height = 'auto';
+        e.style.height = Math.min(e.scrollHeight, 120) + 'px'; }
 
-// ─── Bot Panel ────────────────────────────────────────────────────────────────
-async function loadBots() {
-  const bots = await apiFetch('/api/bots');
-  const cards = document.getElementById('bot-cards');
-  if (!bots.length) { cards.innerHTML = '<p style="color:var(--text-3);font-size:14px">Henüz bot oluşturmadın.</p>'; return; }
-  cards.innerHTML = bots.map(bot => `
-    <div class="panel-card">
-      <div class="card-top">
-        <div class="card-icon">🤖</div>
-        <div>
-          <div class="card-name">${escapeHtml(bot.name)}</div>
-          <div class="card-sub">Prefix: ${escapeHtml(bot.prefix)} · ${bot.isOnline ? '🟢 Çevrimiçi' : '⚫ Çevrimdışı'}</div>
-        </div>
-      </div>
-      <div class="token-hint">Token (tıkla kopyala):</div>
-      <div class="token-box" onclick="copyText('${bot.token}', 'Token kopyalandı!')">${bot.token}</div>
-      <div class="card-actions">
-        <button class="btn-sm btn-ghost" onclick="regenerateBotToken('${bot._id}')">🔄 Token Yenile</button>
-        <button class="btn-sm btn-danger" onclick="deleteBot('${bot._id}')">🗑️ Sil</button>
-      </div>
-    </div>
-  `).join('');
-}
+    // ========== GLOBAL ==========
+    window.showAuth = showAuth;
+    window.doLogin = doLogin;
+    window.doRegister = doRegister;
+    window.doLogout = doLogout;
+    window.switchAuthTab = switchAuthTab;
+    window.showPanel = showPanel;
+    window.createServer = createServer;
+    window.createChannel = createChannel;
+    window.createBot = createBot;
+    window.createWebhook = createWebhook;
+    window.sendMsg = sendMsg;
+    window.handleMsgKey = handleMsgKey;
+    window.autoResize = autoResize;
+    window.copyText = copyText;
+    window.openModal = openModal;
+    window.closeModal = closeModal;
+    window.selectServer = selectServer;
 
-async function createBot() {
-  const name   = document.getElementById('new-bot-name').value.trim();
-  const prefix = document.getElementById('new-bot-prefix').value.trim() || '/';
-  const description = document.getElementById('new-bot-desc').value.trim();
-  if (!name) return toast('Bot adı gerekli', 'error');
-  try {
-    await apiFetch('/api/bots', { method: 'POST', body: JSON.stringify({ name, prefix, description }) });
-    document.getElementById('new-bot-name').value = '';
-    document.getElementById('new-bot-desc').value = '';
-    toast('Bot oluşturuldu!', 'success');
-    loadBots();
-  } catch (e) { toast(e.message, 'error'); }
-}
-
-async function deleteBot(id) {
-  if (!confirm('Bu botu silmek istediğinden emin misin?')) return;
-  try {
-    await apiFetch(`/api/bots/${id}`, { method: 'DELETE' });
-    toast('Bot silindi', 'success');
-    loadBots();
-  } catch (e) { toast(e.message, 'error'); }
-}
-
-async function regenerateBotToken(id) {
-  if (!confirm('Token yenilenecek, eski token çalışmayacak. Devam et?')) return;
-  try {
-    const data = await apiFetch(`/api/bots/${id}/regenerate`, { method: 'POST' });
-    toast('Token yenilendi!', 'success');
-    loadBots();
-  } catch (e) { toast(e.message, 'error'); }
-}
-
-// ─── Webhook Panel ────────────────────────────────────────────────────────────
-async function loadWebhooks() {
-  const webhooks = await apiFetch('/api/webhooks');
-  const cards = document.getElementById('webhook-cards');
-  if (!webhooks.length) { cards.innerHTML = '<p style="color:var(--text-3);font-size:14px">Henüz webhook oluşturmadın.</p>'; return; }
-  cards.innerHTML = webhooks.map(wh => {
-    const url = `${location.origin}/api/webhook/${wh.token}`;
-    return `
-      <div class="panel-card">
-        <div class="card-top">
-          <div class="card-icon purple">🔗</div>
-          <div>
-            <div class="card-name">${escapeHtml(wh.name)}</div>
-            <div class="card-sub">Kanal: #${wh.channelId?.name || '—'}</div>
-          </div>
-        </div>
-        <div class="token-hint">Webhook URL (tıkla kopyala):</div>
-        <div class="token-box" onclick="copyText('${url}', 'URL kopyalandı!')">${url}</div>
-        <div class="card-actions">
-          <button class="btn-sm btn-danger" onclick="deleteWebhook('${wh._id}')">🗑️ Sil</button>
-        </div>
-      </div>
-    `;
-  }).join('');
-
-  // Load servers for create form
-  const sel = document.getElementById('new-wh-server');
-  sel.innerHTML = servers.map(s => `<option value="${s._id}">${s.name}</option>`).join('');
-  loadWhChannels();
-}
-
-async function loadWhChannels() {
-  const srvId = document.getElementById('new-wh-server').value;
-  if (!srvId) return;
-  const chs = await apiFetch(`/api/servers/${srvId}/channels`);
-  const sel = document.getElementById('new-wh-channel');
-  sel.innerHTML = chs.filter(c => c.type === 'text').map(c => `<option value="${c._id}">${c.name}</option>`).join('');
-}
-
-async function createWebhook() {
-  const name      = document.getElementById('new-wh-name').value.trim();
-  const serverId  = document.getElementById('new-wh-server').value;
-  const channelId = document.getElementById('new-wh-channel').value;
-  if (!name || !serverId || !channelId) return toast('Tüm alanları doldur', 'error');
-  try {
-    await apiFetch('/api/webhooks', { method: 'POST', body: JSON.stringify({ name, serverId, channelId }) });
-    document.getElementById('new-wh-name').value = '';
-    toast('Webhook oluşturuldu!', 'success');
-    loadWebhooks();
-  } catch (e) { toast(e.message, 'error'); }
-}
-
-async function deleteWebhook(id) {
-  if (!confirm('Bu webhookı silmek istediğinden emin misin?')) return;
-  try {
-    await apiFetch(`/api/webhooks/${id}`, { method: 'DELETE' });
-    toast('Webhook silindi', 'success');
-    loadWebhooks();
-  } catch (e) { toast(e.message, 'error'); }
-}
-
-// ─── Profile ──────────────────────────────────────────────────────────────────
-async function saveProfile() {
-  const bio    = document.getElementById('profile-bio').value;
-  const status = document.getElementById('profile-status').value;
-  try {
-    me = await apiFetch('/api/me', { method: 'PATCH', body: JSON.stringify({ bio, status }) });
-    socket?.emit('status_change', { status });
-    updateUserPanel();
-    closeModal('modal-profile');
-    toast('Profil güncellendi!', 'success');
-  } catch (e) { toast(e.message, 'error'); }
-}
-
-// ─── Panel / View switching ───────────────────────────────────────────────────
-function showPanel(name) {
-  ['chat','bots','webhooks','docs'].forEach(p => {
-    document.getElementById(`view-${p}`).classList.toggle('active', p === name);
-    document.getElementById(`nav-${p}`)?.classList.toggle('active', p === name);
-  });
-  if (name === 'bots')     loadBots();
-  if (name === 'webhooks') loadWebhooks();
-}
-
-function showDoc(section) {
-  document.querySelectorAll('.docs-section').forEach(el => el.classList.toggle('active', el.id === 'doc-' + section));
-  document.querySelectorAll('.docs-nav-btn').forEach((btn, i) => {
-    const sections = ['quickstart','bot-api','webhook-api','rest-api','events','examples'];
-    btn.classList.toggle('active', sections[i] === section);
-  });
-}
-
-// ─── Modals ───────────────────────────────────────────────────────────────────
-function openModal(id) {
-  if (id === 'modal-server-settings' && currentServer) {
-    document.getElementById('ss-title').textContent = currentServer.name + ' – Ayarlar';
-    document.getElementById('ss-invite-code').textContent = currentServer.inviteCode || '—';
-  }
-  if (id === 'modal-profile') {
-    document.getElementById('profile-bio').value    = me?.bio || '';
-    document.getElementById('profile-status').value = me?.status || 'online';
-  }
-  document.getElementById(id).classList.add('open');
-}
-
-function closeModal(id) {
-  document.getElementById(id).classList.remove('open');
-}
-
-// Close modal on overlay click
-document.querySelectorAll('.modal-overlay').forEach(overlay => {
-  overlay.addEventListener('click', e => {
-    if (e.target === overlay) overlay.classList.remove('open');
-  });
-});
-
-// Enter key for auth
-['login-user','login-pass'].forEach(id => document.getElementById(id).addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); }));
-['reg-user','reg-pass'].forEach(id => document.getElementById(id).addEventListener('keydown', e => { if (e.key === 'Enter') doRegister(); }));
-
-// ─── Init ─────────────────────────────────────────────────────────────────────
-(async () => {
-  if (token) {
-    try { await bootApp(); }
-    catch { document.getElementById('auth-screen').classList.remove('hidden'); }
-  }
+    // Boot
+    setTimeout(function() {
+        renderRooms();
+        if (me) bootApp();
+    }, 500);
 })();
 </script>
 </body>
-</html>
+  </html>
