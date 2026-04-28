@@ -1075,16 +1075,42 @@ async function saveProf(){try{me=await api('/api/me',{method:'PATCH',body:JSON.s
 async function chStatus(s){socket?.emit('status_change',{status:s});me.status=s;updUP();}
 function openProfMdl(){$('mp-nm').textContent=me?.username||'';$('mp-id').textContent=me?._id||me?.id||'';const av=$('mp-av');if(me?.avatar)av.innerHTML=`<img src="${esc(me.avatar)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>`;else av.textContent=ini(me?.username);$('mp-badges').innerHTML=(me?.badges||[]).map(b=>`<span class="badge">${b}</span>`).join('');openM('m-prof');}
 
-// PROFILE POPUP
-function showPP(e,uid,uname){
-  if(!uid||uid==='undefined')return;
-  const u=mems.find(m=>m._id?.toString()===uid)||{username:uname,avatar:'',bio:'',status:'online'};
-  const pop=$('pp');
-  pop.innerHTML=`<div class="ppban"${u.banner?` style="background-image:url('${esc(u.banner)}');background-size:cover"`:''></div><div class="ppbody"><div class="ppav">${u.avatar?`<img src="${esc(u.avatar)}" style="width:100%;height:100%;object-fit:cover"/>`:ini(uname)}</div><div class="ppnm">${esc(uname)}</div><div class="ppst">${u.customStatus||{online:'Çevrimiçi',idle:'Boşta',dnd:'Rahatsız Etme',invisible:'Görünmez'}[u.status]||''}</div>${u.bio?`<div class="ppbio">${esc(u.bio)}</div>`:''}<div class="ppid" onclick="cpT('${uid}','ID kopyalandı!')">ID: ${uid}</div><div style="display:flex;gap:5px"><button class="btn ba" onclick="openDmW('${uid}');hidePP()" style="font-size:11px;padding:5px 10px"><svg width="11" height="11"><use href="#ic-dm"/></svg> Mesaj</button><button class="btn bg2" onclick="hidePP()" style="font-size:11px;padding:5px 10px">Kapat</button></div></div>`;
-  const r=e.target.getBoundingClientRect();pop.style.display='block';pop.style.left=Math.min(r.right+8,innerWidth-255)+'px';pop.style.top=Math.max(r.top-20,8)+'px';
+// PROFILE POPUP - DÜZELTİLMİŞ VERSİYON
+function showPP(e, uid, uname) {
+  if (!uid || uid === 'undefined') return;
+  const u = mems.find(m => m._id?.toString() === uid) || { username: uname, avatar: '', bio: '', status: 'online' };
+  const pop = $('pp');
+  pop.innerHTML = `
+    <div class="ppban"${u.banner ? ` style="background-image:url('${esc(u.banner)}');background-size:cover"` : ''}></div>
+    <div class="ppbody">
+      <div class="ppav">${u.avatar ? `<img src="${esc(u.avatar)}" style="width:100%;height:100%;object-fit:cover"/>` : ini(uname)}</div>
+      <div class="ppnm">${esc(uname)}</div>
+      <div class="ppst">${u.customStatus || { online: 'Çevrimiçi', idle: 'Boşta', dnd: 'Rahatsız Etme', invisible: 'Görünmez' }[u.status] || ''}</div>
+      ${u.bio ? `<div class="ppbio">${esc(u.bio)}</div>` : ''}
+      <div class="ppid" onclick="cpT('${uid}','ID kopyalandı!')">ID: ${uid}</div>
+      <div style="display:flex;gap:5px">
+        <button class="btn ba" onclick="openDmW('${uid}');hidePP()" style="font-size:11px;padding:5px 10px"><svg width="11" height="11"><use href="#ic-dm"/></svg> Mesaj</button>
+        <button class="btn bg2" onclick="hidePP()" style="font-size:11px;padding:5px 10px">Kapat</button>
+      </div>
+    </div>
+  `;
+  
+  // 🐛 BURASI DÜZELTİLDI - r değişkeni tanımlandı
+  const rect = e.target.getBoundingClientRect();
+  pop.style.display = 'block';
+  pop.style.left = Math.min(rect.right + 8, window.innerWidth - 255) + 'px';
+  pop.style.top = Math.max(rect.top - 20, 8) + 'px';
 }
-function hidePP(){$('pp').style.display='none';}
-document.addEventListener('click',e=>{if(!$('pp').contains(e.target))hidePP();});
+
+function hidePP() { 
+  $('pp').style.display = 'none'; 
+}
+
+// Popup dışına tıklayınca kapat
+document.addEventListener('click', (e) => { 
+  const pp = $('pp');
+  if (pp && !pp.contains(e.target)) hidePP(); 
+});
 
 // DM
 async function loadDms(){try{dms=await api('/api/dms');rendDmList();}catch{}}
@@ -1201,20 +1227,44 @@ function svgEmoji(char, size = 20) {
   return `<span class="svg-em" title="${char}"><img src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/${code}.svg" width="${size}" height="${size}" alt="${char}" onerror="this.parentElement.textContent='${char}'" loading="lazy" style="vertical-align:middle"/></span>`;
 }
 
-// Emoji picker'ı SVG ile yeniden yap
+// ========== BASİT EMOJI ==========
 function buildEmojiSVG() {
-  const p = document.getElementById('epick');
+  var p = document.getElementById('epick');
   if (!p) return;
-  const emojis = '😀😂🤣😊😍🥰😎🤔😢😡🤯🥳👍❤️🔥✅❌🎉🚀💯👏🙏💪😴🤗🤝🫡🫶😈💀👻👾🤖';
+  var emojis = '😀😂🤣😊😍🥰😎🤔😢😡🤯🥳👍❤️🔥✅❌🎉🚀💯👏🙏💪';
   p.innerHTML = '';
-  for (let i = 0; i < emojis.length; i++) {
-    const span = document.createElement('span');
+  for (var i = 0; i < emojis.length; i++) {
+    var span = document.createElement('span');
     span.className = 'eb';
     span.textContent = emojis[i];
-    span.onclick = function() { insEmj(emojis[i]); };
+    span.setAttribute('data-emoji', emojis[i]);
+    span.onclick = function() {
+      var inp = document.getElementById('mi');
+      if (inp) { inp.value += this.getAttribute('data-emoji'); inp.focus(); }
+      document.getElementById('epick').classList.remove('on');
+    };
     p.appendChild(span);
   }
- }
+}
+
+function insEmj(emoji) {
+  var inp = document.getElementById('mi');
+  if (inp) { inp.value += emoji; inp.focus(); }
+  var p = document.getElementById('epick');
+  if (p) p.classList.remove('on');
+}
+
+function togEmoji() {
+  var p = document.getElementById('epick');
+  if (p) p.classList.toggle('on');
+}
+
+window.buildEmoji = buildEmojiSVG;
+
+// Sayfa yüklendiğinde emoji panelini oluştur
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(buildEmojiSVG, 500);
+});
 
 // ── AUTH TAB AKTARIMI ──────────────────────────────────────
 const authTabFromStorage = localStorage.getItem('gt_auth_tab');
@@ -1276,41 +1326,31 @@ window.createWh = async function() {
     return;
   }
 
-  // Kanal ID'si seçili sunucuya ait mi?
-  const chBelongs = channels.some(c => c._id === cid && c.serverId === sid) ||
-                    (await api(`/api/servers/${sid}/channels`).catch(()=>[])).some(c => c._id === cid);
-  if (!chBelongs) {
-    toast('Seçili kanal bu sunucuya ait değil', 'err');
-    return;
-  }
+ // Kanal ID'si seçili sunucuya ait mi?
+const chBelongs = channels.some(c => c._id === cid && c.serverId === sid) ||
+                  (await api(`/api/servers/${sid}/channels`).catch(()=>[])).some(c => c._id === cid);
+if (!chBelongs) {
+  toast('Seçili kanal bu sunucuya ait değil', 'err');
+  return;
+}
 
-  try {
-    const wh = await api('/api/webhooks', { method:'POST', body: JSON.stringify({ name:n, serverId:sid, channelId:cid }) });
-    document.getElementById('nw-n').value = '';
-    toast('Webhook oluşturuldu ✓');
-    // ID bilgilerini göster
-    const url = `${location.origin}/api/webhook/${wh.token}`;
-    toast(`Kanal ID: ...${cid.slice(-6)} | Sunucu ID: ...${sid.slice(-6)}`);
-    loadWhs();
-  } catch(e) { toast(e.message, 'err'); }
+try {
+  const wh = await api('/api/webhooks', { method:'POST', body: JSON.stringify({ name:n, serverId:sid, channelId:cid }) });
+  document.getElementById('nw-n').value = '';
+  toast('Webhook oluşturuldu ✓');
+  // ID bilgilerini göster
+  const url = `${location.origin}/api/webhook/${wh.token}`;
+  toast(`Kanal ID: ...${cid.slice(-6)} | Sunucu ID: ...${sid.slice(-6)}`);
+  loadWhs();
+} catch(e) { toast(e.message, 'err'); }
 };
 
-// ── EMOJI PICKER SVG ile yeniden init ─────────────────────
-// buildEmoji'yi override et
-window.buildEmoji = buildEmojiSVG;
-
-// INIT
-(async()=>{
-  if(token){
-    try{ await boot(); }
-    catch(e){ console.error(e); localStorage.removeItem('gt_tok'); hideLoading(); document.getElementById('auth').classList.remove('hidden'); }
-  } else {
-    hideLoading();
-    // auth tab kontrolü
-    const tab = localStorage.getItem('gt_auth_tab');
-    if(tab){ localStorage.removeItem('gt_auth_tab'); setTimeout(()=>authTab(tab),100); }
-  }
-})();
+// auth tab kontrolü
+const tab = localStorage.getItem('gt_auth_tab');
+if(tab){ 
+  localStorage.removeItem('gt_auth_tab'); 
+  setTimeout(()=>authTab(tab),100); 
+}
 </script>
 </body>
-</html>
+    </html>
