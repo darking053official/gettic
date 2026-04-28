@@ -1205,12 +1205,16 @@ function svgEmoji(char, size = 20) {
 function buildEmojiSVG() {
   const p = document.getElementById('epick');
   if (!p) return;
-  const emojis = ['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😝','😜','🤪','🤨','🧐','🤓','😎','🤩','🥳','😏','😒','😞','😔','😟','😕','🙁','☹️','😣','😖','😫','😩','🥺','😢','😭','😤','😠','😡','🤬','🤯','😳','🥵','🥶','😱','😨','😰','😥','😓','🤗','🤔','🤭','🤫','🤥','😶','😐','😑','😬','🙄','😯','😦','😧','😮','😲','🥱','😴','🤤','😪','😵','🤐','🥴','🤢','🤮','🤧','🤒','🤕','🤑','🤠','😈','👿','💀','☠️','💩','🤡','👻','👽','👾','🤖','😺','😸','😹','😻','😼','😽','🙀','😿','😾','👋','🤚','🖐','✋','🖖','👌','🤌','🤏','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','👍','👎','✊','👊','🤛','🤜','👏','🙌','🤲','🤝','🙏','❤️','🔥','✅','❌','🎉','🚀','💯','⭐','💎','🎯','🏆','💪','🫡','🫶'];
-  p.innerHTML = emojis.map(em => {
-    const code = [...em].map(c => c.codePointAt(0).toString(16)).join('-');
-    return `<span class="eb" onclick="insEmj('${em}')" title="${em}" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px"><img src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/${code}.svg" width="20" height="20" alt="${em}" onerror="this.outerHTML='${em}'" loading="lazy"/></span>`;
-  }).join('');
-}
+  const emojis = '😀😂🤣😊😍🥰😎🤔😢😡🤯🥳👍❤️🔥✅❌🎉🚀💯👏🙏💪😴🤗🤝🫡🫶😈💀👻👾🤖';
+  p.innerHTML = '';
+  for (let i = 0; i < emojis.length; i++) {
+    const span = document.createElement('span');
+    span.className = 'eb';
+    span.textContent = emojis[i];
+    span.onclick = function() { insEmj(emojis[i]); };
+    p.appendChild(span);
+  }
+ }
 
 // ── AUTH TAB AKTARIMI ──────────────────────────────────────
 const authTabFromStorage = localStorage.getItem('gt_auth_tab');
