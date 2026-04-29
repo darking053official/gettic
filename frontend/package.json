@@ -2,6 +2,7 @@
   "name": "gettic-frontend",
   "private": true,
   "version": "1.0.0",
+  "homepage": "https://gettic.js.org",
   "type": "module",
   "scripts": {
     "dev": "vite",
