@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useState, useEffect, createContext, useContext, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { io } from 'socket.io-client';
@@ -8,6 +8,7 @@ const AuthContext = createContext();
 const SocketContext = createContext();
 const ThemeContext = createContext();
 const ToastContext = createContext();
+const navigate = useNavigate();
 
 function useAuth() { return useContext(AuthContext); }
 function useSocket() { return useContext(SocketContext); }
@@ -1308,30 +1309,32 @@ function App() {
       <ChannelList server={selectedServer} onSelectChannel={(ch) => { setSelectedChannel(ch); navigate('/chat'); }} selectedId={selectedChannel?._id} />
       
       <div className="flex-1 flex flex-col overflow-hidden">
-        {route === '/chat' && <ChatArea channel={selectedChannel} />}
-        {route === '/dm' && <DMPanel />}
-        {route === '/discover' && <DiscoverPanel />}
-        {route === '/settings' && <SettingsPanel />}
-        {route === '/bots' && <BotPanel />}
-        {route === '/webhooks' && <WebhookPanel />}
-        {route === '/docs' && <DocsPanel />}
-        {route === '/help-center' && <HelpCenterPanel />}
-        {route === '/terms' && <TermsPanel />}
-        {route === '/privacy-policy' && <PrivacyPanel />}
-        {route === '/npm' && <NpmPanel />}
-        {route === '/' && (
-          <div className="flex-1 flex items-center justify-center text-center">
-            <div>
-              <div className="text-7xl mb-4">🎯</div>
-              <h2 className="text-2xl font-bold font-['Syne'] mb-2">gettic.js</h2>
-              <p className="text-[#4a4a6a] max-w-md mx-auto">Sol menüden bir sunucu seçerek sohbete başla, bot panelini keşfet veya dökümantasyonu incele.</p>
+        <Routes>
+          <Route path="/" element={
+            <div className="flex-1 flex items-center justify-center text-center">
+              <div>
+                <div className="text-7xl mb-4">🎯</div>
+                <h2 className="text-2xl font-bold font-['Syne'] mb-2">gettic.js</h2>
+                <p className="text-[#4a4a6a] max-w-md mx-auto">Sol menüden bir sunucu seçerek sohbete başla, bot panelini keşfet veya dökümantasyonu incele.</p>
+              </div>
             </div>
-          </div>
-        )}
+          } />
+          <Route path="/chat/:channelId?" element={<ChatArea channel={selectedChannel} />} />
+          <Route path="/dm" element={<DMPanel />} />
+          <Route path="/discover" element={<DiscoverPanel />} />
+          <Route path="/settings" element={<SettingsPanel />} />
+          <Route path="/bots" element={<BotPanel />} />
+          <Route path="/webhooks" element={<WebhookPanel />} />
+          <Route path="/docs" element={<DocsPanel />} />
+          <Route path="/help-center" element={<HelpCenterPanel />} />
+          <Route path="/terms" element={<TermsPanel />} />
+          <Route path="/privacy-policy" element={<PrivacyPanel />} />
+          <Route path="/npm" element={<NpmPanel />} />
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
       </div>
     </div>
   );
-}
 
 // ============ ROOT APP ============
 function RootApp() {
