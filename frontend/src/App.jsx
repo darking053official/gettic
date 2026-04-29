@@ -1337,6 +1337,7 @@ function App() {
   );
 
 // ============ ROOT APP ============
+
 function RootApp() {
   return (
     <ToastProvider>
