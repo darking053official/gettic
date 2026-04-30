@@ -26,7 +26,18 @@ app.use('/api/webhooks', require('./routes/webhooks'));
 
 // Health check
 app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', timestamp: new Date() });
+    res.json({ status: 'ok', timestamp: new Date(), uptime: process.uptime() });
+});
+
+// 404 handler
+app.use('*', (req, res) => {
+    res.status(404).json({ error: 'Endpoint bulunamadı' });
+});
+
+// Error handler
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({ error: 'Sunucu hatası' });
 });
 
 // MongoDB connection
@@ -37,4 +48,5 @@ mongoose.connect(process.env.MONGODB_URI)
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`🚀 Server ${PORT} portunda çalışıyor`);
+    console.log(`📍 CORS Origin: ${process.env.CORS_ORIGIN || '*'}`);
 });
