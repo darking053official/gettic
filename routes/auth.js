@@ -65,7 +65,7 @@ router.post('/login', async (req, res) => {
     }
 });
 
-// Auth Middleware
+// AUTH MIDDLEWARE
 const authMiddleware = async (req, res, next) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) {
