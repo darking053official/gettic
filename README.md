@@ -166,6 +166,11 @@ node server.js</code></pre>
 
 <hr>
 
+<h2>🏛 Resmi arşiv</h2>
+<p>Web Archive: https://web.archive.org/web/*/gettic.js.org</p>
+
+<hr>
+
 <p align="center">
   <sub>Made with ❤️ by darking053</sub>
 </p>
