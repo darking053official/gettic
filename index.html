@@ -4,21 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#0a0a12">
-    <title>Gettic — Modern Bot Framework | gettic.js.org</title>
-    <meta name="description" content="gettic.js ile dakikalar içinde kendi botunu yaz. Modern sohbet platformu için bot framework.">
-    <link rel="icon" href="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png">
+    <title>Gettic - Sohbet Platformu | gettic.js.org</title>
+    <meta name="description" content="Gettic - Modern sohbet platformu. Gerçek zamanlı mesajlaşma, sesli/görüntülü görüşme, ekran paylaşımı, bot framework, webhook desteği, oyun sistemi, ekonomi botu, yapay zeka moderasyon ve çok daha fazlası.">
+    <meta property="og:title" content="Gettic - Sohbet Platformu">
+    <meta property="og:description" content="Modern sohbet platformu | gettic.js.org">
+    <meta property="og:image" content="https://github.com/darking053official/gettic/blob/main/1777062266055.png">
+    <link rel="icon" href="https://github.com/darking053official/gettic/blob/main/1777062266055.png">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
-            --bg: #04040e; --bg1: #08081a; --bg2: #0d0d24; --bg3: #12122e;
-            --b: rgba(100,100,255,.1); --b2: rgba(100,100,255,.2);
-            --ac: #6366f1; --ac2: #818cf8; --ac3: #a5b4fc;
-            --acg: rgba(99,102,241,.3); --acd: rgba(99,102,241,.12);
-            --t1: #f0f0ff; --t2: #9090b8; --t3: #4a4a6a;
-            --gr: #22c55e; --re: #ef4444; --pu: #a855f7; --cy: #06b6d4;
+            --bg: #04040e;
+            --bg1: #08081a;
+            --bg2: #0d0d24;
+            --bg3: #12122e;
+            --bg4: #1a1a3a;
+            --b: rgba(100,100,255,.08);
+            --b2: rgba(100,100,255,.15);
+            --b3: rgba(100,100,255,.25);
+            --ac: #6366f1;
+            --ac2: #818cf8;
+            --ac3: #a5b4fc;
+            --acg: rgba(99,102,241,.25);
+            --acd: rgba(99,102,241,.1);
+            --t1: #f0f0ff;
+            --t2: #a0a0c0;
+            --t3: #606080;
+            --gr: #22c55e;
+            --re: #ef4444;
+            --ye: #f59e0b;
+            --pu: #a855f7;
+            --cy: #06b6d4;
+            --pi: #ec4899;
+            --or: #f97316;
         }
 
         body {
@@ -30,6 +50,7 @@
         }
 
         ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: var(--bg1); }
         ::-webkit-scrollbar-thumb { background: var(--ac); border-radius: 99px; }
 
         /* LOADING SCREEN */
@@ -42,25 +63,23 @@
             align-items: center;
             justify-content: center;
             flex-direction: column;
-            gap: 32px;
+            gap: 40px;
             transition: opacity 0.8s cubic-bezier(0.2, 0.9, 0.4, 1.1), visibility 0.8s;
         }
         #loading.hide { opacity: 0; visibility: hidden; pointer-events: none; }
-        .loader { position: relative; width: 80px; height: 80px; }
-        .loader-ring {
+        .cinematic-loader { position: relative; width: 120px; height: 120px; }
+        .cinematic-loader div {
             position: absolute;
             width: 100%;
             height: 100%;
             border-radius: 50%;
-            border: 3px solid transparent;
-            border-top-color: var(--ac);
-            animation: spin 1.2s linear infinite;
+            background: conic-gradient(from 0deg, var(--ac), var(--pu), var(--cy), var(--pi), var(--ac));
+            animation: cinematicSpin 2s linear infinite;
         }
-        .loader-ring:nth-child(2) { width: 70%; height: 70%; top: 15%; left: 15%; border-top-color: var(--pu); animation-duration: 0.8s; animation-direction: reverse; }
-        .loader-ring:nth-child(3) { width: 40%; height: 40%; top: 30%; left: 30%; border-top-color: var(--cy); animation-duration: 0.5s; }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-        .loading-text { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--ac3); letter-spacing: 4px; animation: pulse 1.5s ease infinite; text-transform: uppercase; }
-        @keyframes pulse { 0%,100% { opacity: 0.3; letter-spacing: 4px; } 50% { opacity: 1; letter-spacing: 8px; } }
+        .cinematic-loader div:nth-child(2) { width: 80%; height: 80%; top: 10%; left: 10%; background: var(--bg); animation: none; }
+        @keyframes cinematicSpin { 100% { transform: rotate(360deg); } }
+        .loading-text { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--ac3); letter-spacing: 6px; text-transform: uppercase; animation: fadePulse 2s ease infinite; }
+        @keyframes fadePulse { 0%,100% { opacity: 0.4; letter-spacing: 6px; } 50% { opacity: 1; letter-spacing: 10px; } }
 
         /* NAVBAR */
         nav {
@@ -68,43 +87,44 @@
             top: 0;
             left: 0;
             right: 0;
-            height: 70px;
+            height: 72px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 40px;
-            background: rgba(4,4,14,0.75);
-            backdrop-filter: blur(20px);
+            padding: 0 48px;
+            background: rgba(4,4,14,0.8);
+            backdrop-filter: blur(24px);
             border-bottom: 1px solid var(--b);
             z-index: 500;
-            animation: slideDown 0.6s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            animation: slideDown 0.5s cubic-bezier(0.2, 0.9, 0.4, 1.1);
         }
         @keyframes slideDown { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .nav-logo { display: flex; align-items: center; gap: 12px; font-size: 22px; font-weight: 800; text-decoration: none; color: var(--t1); }
-        .nav-logo img { width: 36px; height: 36px; border-radius: 10px; transition: all 0.3s ease; }
-        .nav-logo:hover img { transform: rotate(5deg) scale(1.05); box-shadow: 0 0 20px var(--acg); }
-        .gradient-text { background: linear-gradient(135deg, var(--ac2), var(--ac3), var(--pu)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-size: 200% 200%; animation: gradientShift 3s ease infinite; }
-        @keyframes gradientShift { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
-        .nav-links { display: flex; align-items: center; gap: 28px; }
+        .nav-logo { display: flex; align-items: center; gap: 12px; font-size: 24px; font-weight: 800; text-decoration: none; color: var(--t1); letter-spacing: -0.5px; }
+        .nav-logo img { width: 38px; height: 38px; border-radius: 12px; transition: all 0.3s ease; }
+        .nav-logo:hover img { transform: rotate(5deg) scale(1.05); filter: drop-shadow(0 0 20px var(--acg)); }
+        .gradient-text { background: linear-gradient(135deg, var(--ac2), var(--ac3), var(--pu), var(--pi)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-size: 300% 300%; animation: gradientFlow 4s ease infinite; }
+        @keyframes gradientFlow { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+        .nav-links { display: flex; align-items: center; gap: 32px; }
         .nav-link { color: var(--t2); text-decoration: none; font-size: 14px; font-weight: 500; transition: all 0.3s; position: relative; }
-        .nav-link:after { content: ''; position: absolute; bottom: -6px; left: 0; width: 0; height: 2px; background: linear-gradient(90deg, var(--ac), var(--pu)); transition: width 0.3s; }
+        .nav-link:after { content: ''; position: absolute; bottom: -8px; left: 0; width: 0; height: 2px; background: linear-gradient(90deg, var(--ac), var(--pu)); transition: width 0.3s; }
         .nav-link:hover { color: var(--t1); }
         .nav-link:hover:after { width: 100%; }
-        .nav-btn { padding: 8px 22px; border-radius: 99px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.3s; border: none; font-family: inherit; }
+        .nav-btn { padding: 8px 24px; border-radius: 99px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.3s; border: none; font-family: inherit; }
         .btn-login { background: transparent; border: 1px solid var(--b2); color: var(--t1); }
-        .btn-login:hover { background: var(--bg2); transform: translateY(-2px); }
+        .btn-login:hover { background: var(--bg2); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
         .btn-app { background: linear-gradient(135deg, var(--ac), var(--pu)); color: white; box-shadow: 0 0 20px var(--acg); }
         .btn-app:hover { transform: translateY(-2px); box-shadow: 0 0 40px var(--acg); }
         .btn-logout { background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); color: var(--re); display: none; }
+        .btn-logout:hover { background: rgba(239,68,68,0.25); transform: translateY(-2px); }
 
-        /* PAGE CONTAINER */
-        .page { display: none; min-height: 100vh; padding-top: 90px; animation: fadeInUp 0.6s cubic-bezier(0.2, 0.9, 0.4, 1.1); }
+        /* PAGE SYSTEM */
+        .page { display: none; min-height: 100vh; padding-top: 92px; animation: fadeInUp 0.5s cubic-bezier(0.2, 0.9, 0.4, 1.1); }
         .page.active { display: block; }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* HERO */
+        /* HERO SECTION */
         .hero {
-            min-height: calc(100vh - 90px);
+            min-height: calc(100vh - 92px);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -113,99 +133,131 @@
             position: relative;
             overflow: hidden;
         }
-        .hero::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, var(--acg) 0%, transparent 70%); animation: rotateBg 20s linear infinite; z-index: -1; }
-        @keyframes rotateBg { 100% { transform: rotate(360deg); } }
-        .hero-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px; background: var(--acd); border: 1px solid var(--b2); border-radius: 99px; font-size: 12px; font-weight: 600; color: var(--ac3); margin-bottom: 28px; animation: pulseGlow 2s infinite; }
-        @keyframes pulseGlow { 0%,100% { box-shadow: 0 0 0 0 var(--acg); } 50% { box-shadow: 0 0 0 12px rgba(99,102,241,0); } }
-        .badge-dot { width: 8px; height: 8px; background: var(--gr); border-radius: 50%; animation: blink 2s infinite; }
-        @keyframes blink { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(0.8); } }
-        .hero-title { font-size: clamp(48px, 8vw, 110px); font-weight: 900; line-height: 1; letter-spacing: -4px; margin-bottom: 28px; }
-        .hero-sub { font-size: clamp(16px, 2vw, 20px); color: var(--t2); max-width: 620px; margin: 0 auto 40px; line-height: 1.6; }
-        .hero-buttons { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; margin-bottom: 50px; }
-        .btn-primary { padding: 14px 36px; background: linear-gradient(135deg, var(--ac), var(--pu)); border-radius: 12px; font-size: 16px; font-weight: 700; color: white; transition: all 0.3s; box-shadow: 0 0 30px var(--acg); border: none; cursor: pointer; }
-        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 0 50px var(--acg); }
-        .btn-secondary { padding: 14px 36px; background: transparent; border: 1px solid var(--b2); border-radius: 12px; font-size: 16px; font-weight: 700; color: var(--t1); cursor: pointer; }
-        .btn-secondary:hover { border-color: var(--b3); transform: translateY(-3px); background: var(--acd); }
-        .npm-card { background: var(--bg2); border: 1px solid var(--b); border-radius: 16px; padding: 14px 28px; display: inline-flex; align-items: center; gap: 20px; font-family: 'JetBrains Mono', monospace; font-size: 15px; cursor: pointer; transition: all 0.3s; }
-        .npm-card:hover { border-color: var(--ac); background: var(--bg3); transform: scale(1.02); }
-        .npm-copy { background: var(--acd); padding: 4px 14px; border-radius: 8px; font-size: 11px; font-weight: 700; color: var(--ac3); }
+        .hero::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, var(--acg) 0%, transparent 70%); animation: rotateBackground 25s linear infinite; z-index: -1; }
+        @keyframes rotateBackground { 100% { transform: rotate(360deg); } }
+        .hero-badge { display: inline-flex; align-items: center; gap: 10px; padding: 8px 20px; background: var(--acd); border: 1px solid var(--b2); border-radius: 99px; font-size: 13px; font-weight: 600; color: var(--ac3); margin-bottom: 32px; backdrop-filter: blur(4px); animation: badgeGlow 2s infinite; }
+        @keyframes badgeGlow { 0%,100% { box-shadow: 0 0 0 0 var(--acg); } 50% { box-shadow: 0 0 0 15px rgba(99,102,241,0); } }
+        .badge-dot { width: 9px; height: 9px; background: var(--gr); border-radius: 50%; animation: dotPulse 2s infinite; }
+        @keyframes dotPulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.2); opacity: 0.5; } }
+        .hero-title { font-size: clamp(52px, 8vw, 120px); font-weight: 900; line-height: 1; letter-spacing: -5px; margin-bottom: 28px; text-shadow: 0 0 30px rgba(99,102,241,0.3); }
+        .hero-sub { font-size: clamp(18px, 2vw, 22px); color: var(--t2); max-width: 680px; margin: 0 auto 45px; line-height: 1.65; }
+        .hero-buttons { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; margin-bottom: 55px; }
+        .btn-primary { padding: 16px 42px; background: linear-gradient(135deg, var(--ac), var(--pu)); border-radius: 14px; font-size: 17px; font-weight: 700; color: white; border: none; cursor: pointer; transition: all 0.3s; box-shadow: 0 0 35px var(--acg); }
+        .btn-primary:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 0 60px var(--acg); }
+        .btn-secondary { padding: 16px 42px; background: transparent; border: 1.5px solid var(--b2); border-radius: 14px; font-size: 17px; font-weight: 700; color: var(--t1); cursor: pointer; transition: all 0.3s; }
+        .btn-secondary:hover { border-color: var(--ac); transform: translateY(-4px); background: var(--acd); }
+        .npm-card { background: var(--bg2); border: 1px solid var(--b); border-radius: 18px; padding: 14px 32px; display: inline-flex; align-items: center; gap: 24px; font-family: 'JetBrains Mono', monospace; font-size: 16px; cursor: pointer; transition: all 0.3s; backdrop-filter: blur(10px); }
+        .npm-card:hover { border-color: var(--ac); background: var(--bg3); transform: scale(1.02) translateY(-2px); box-shadow: 0 15px 35px rgba(0,0,0,0.3); }
+        .npm-copy { background: var(--acd); padding: 5px 16px; border-radius: 10px; font-size: 11px; font-weight: 700; color: var(--ac3); }
 
-        /* FEATURES - EMOJIS REPLACED WITH SVG ICONS */
+        /* FEATURES SECTION */
         .features-section { padding: 100px 24px; background: linear-gradient(180deg, var(--bg) 0%, var(--bg1) 100%); }
-        .section-title { text-align: center; font-size: clamp(32px, 5vw, 52px); font-weight: 800; letter-spacing: -1.5px; margin-bottom: 16px; }
-        .section-sub { text-align: center; color: var(--t2); margin-bottom: 70px; font-size: 18px; }
-        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; max-width: 1300px; margin: 0 auto; }
+        .section-title { text-align: center; font-size: clamp(34px, 5vw, 56px); font-weight: 800; letter-spacing: -2px; margin-bottom: 20px; }
+        .section-sub { text-align: center; color: var(--t2); margin-bottom: 70px; font-size: 18px; max-width: 700px; margin-left: auto; margin-right: auto; }
+        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 35px; max-width: 1400px; margin: 0 auto; }
         .feature-card {
             background: var(--bg2);
             border: 1px solid var(--b);
-            border-radius: 24px;
-            padding: 36px 28px;
+            border-radius: 28px;
+            padding: 40px 32px;
             transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
             text-align: center;
             position: relative;
             overflow: hidden;
+            backdrop-filter: blur(4px);
         }
-        .feature-card::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, var(--acd), transparent); transition: left 0.6s; }
+        .feature-card::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, var(--acd), transparent); transition: left 0.6s; z-index: 0; }
         .feature-card:hover::before { left: 100%; }
         .feature-card:hover { transform: translateY(-12px); border-color: var(--ac); box-shadow: 0 30px 50px rgba(0,0,0,0.4); }
-        .feature-icon { width: 64px; height: 64px; margin: 0 auto 24px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--acd), var(--bg3)); border-radius: 20px; transition: all 0.3s; }
+        .feature-icon { width: 72px; height: 72px; margin: 0 auto 24px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--acd), var(--bg3)); border-radius: 24px; transition: all 0.3s; position: relative; z-index: 1; }
         .feature-card:hover .feature-icon { transform: scale(1.1) rotate(5deg); background: linear-gradient(135deg, var(--ac), var(--pu)); }
-        .feature-icon svg { width: 32px; height: 32px; stroke: var(--ac3); fill: none; stroke-width: 1.8; }
+        .feature-icon svg { width: 36px; height: 36px; stroke: var(--ac3); fill: none; stroke-width: 1.8; }
         .feature-card:hover .feature-icon svg { stroke: white; }
-        .feature-title { font-size: 22px; font-weight: 700; margin-bottom: 14px; }
-        .feature-desc { color: var(--t2); font-size: 14px; line-height: 1.7; }
+        .feature-title { font-size: 24px; font-weight: 700; margin-bottom: 16px; position: relative; z-index: 1; }
+        .feature-desc { color: var(--t2); font-size: 14px; line-height: 1.7; position: relative; z-index: 1; }
+
+        /* STATS SECTION */
+        .stats-section { padding: 80px 24px; background: var(--bg1); border-top: 1px solid var(--b); border-bottom: 1px solid var(--b); }
+        .stats-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 30px; max-width: 1200px; margin: 0 auto; text-align: center; }
+        .stat-item { transition: all 0.3s; }
+        .stat-item:hover { transform: translateY(-5px); }
+        .stat-number { font-size: 56px; font-weight: 900; background: linear-gradient(135deg, var(--ac), var(--pu), var(--cy)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px; }
+        .stat-label { color: var(--t2); font-size: 14px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; }
 
         /* CODE SHOWCASE */
-        .code-showcase { max-width: 1000px; margin: 0 auto; background: var(--bg2); border: 1px solid var(--b); border-radius: 24px; overflow: hidden; }
-        .code-tabs { display: flex; background: var(--bg); border-bottom: 1px solid var(--b); padding: 0 24px; gap: 8px; }
-        .code-tab { padding: 16px 24px; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: var(--t3); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.3s; }
+        .code-showcase { max-width: 1100px; margin: 0 auto; background: var(--bg2); border: 1px solid var(--b); border-radius: 28px; overflow: hidden; box-shadow: 0 25px 50px rgba(0,0,0,0.4); }
+        .code-tabs { display: flex; background: var(--bg); border-bottom: 1px solid var(--b); padding: 0 28px; gap: 12px; }
+        .code-tab { padding: 18px 28px; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: var(--t3); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.3s; }
         .code-tab.active { color: var(--ac3); border-bottom-color: var(--ac); text-shadow: 0 0 8px var(--acg); }
-        .code-panel { display: none; padding: 32px; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.9; background: var(--bg); position: relative; }
+        .code-panel { display: none; padding: 40px; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 2; background: var(--bg); position: relative; }
         .code-panel.active { display: block; }
-        pre { background: var(--bg1); border-radius: 16px; padding: 24px; overflow-x: auto; border: 1px solid var(--b); }
-        .copy-btn { position: absolute; top: 24px; right: 24px; background: var(--bg2); border: 1px solid var(--b); padding: 6px 14px; border-radius: 8px; font-size: 11px; cursor: pointer; transition: all 0.3s; z-index: 10; }
-        .copy-btn:hover { background: var(--acd); border-color: var(--ac); }
+        pre { background: var(--bg1); border-radius: 20px; padding: 28px; overflow-x: auto; border: 1px solid var(--b); }
+        .copy-btn { position: absolute; top: 28px; right: 28px; background: var(--bg2); border: 1px solid var(--b); padding: 8px 18px; border-radius: 12px; font-size: 11px; cursor: pointer; transition: all 0.3s; z-index: 10; font-weight: 600; }
+        .copy-btn:hover { background: var(--acd); border-color: var(--ac); color: white; }
+
+        /* CTA SECTION */
+        .cta-section { padding: 120px 24px; text-align: center; background: linear-gradient(135deg, var(--acd), transparent, var(--acd)); }
+        .cta-title { font-size: 48px; font-weight: 800; margin-bottom: 20px; letter-spacing: -2px; }
 
         /* MODAL */
-        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; visibility: hidden; transition: all 0.3s; }
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); backdrop-filter: blur(16px); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; visibility: hidden; transition: all 0.3s; }
         .modal.active { opacity: 1; visibility: visible; }
-        .modal-content { background: var(--bg2); border: 1px solid var(--b2); border-radius: 32px; padding: 48px; max-width: 450px; width: 90%; transform: scale(0.95) translateY(20px); transition: transform 0.3s; }
+        .modal-content { background: var(--bg2); border: 1px solid var(--b2); border-radius: 40px; padding: 56px; max-width: 480px; width: 90%; transform: scale(0.95) translateY(20px); transition: transform 0.3s; }
         .modal.active .modal-content { transform: scale(1) translateY(0); }
-        .modal-content h2 { font-size: 28px; font-weight: 800; text-align: center; }
-        .modal-input { width: 100%; padding: 14px 18px; background: var(--bg); border: 1px solid var(--b); border-radius: 14px; color: var(--t1); font-size: 14px; margin-bottom: 18px; transition: all 0.3s; }
-        .modal-input:focus { outline: none; border-color: var(--ac); box-shadow: 0 0 0 3px var(--acg); }
-        .auth-switch { text-align: center; font-size: 13px; color: var(--t3); margin-top: 20px; }
+        .modal-content h2 { font-size: 32px; font-weight: 800; text-align: center; margin-bottom: 12px; }
+        .modal-input { width: 100%; padding: 16px 20px; background: var(--bg); border: 1px solid var(--b); border-radius: 20px; color: var(--t1); font-size: 15px; margin-bottom: 20px; transition: all 0.3s; }
+        .modal-input:focus { outline: none; border-color: var(--ac); box-shadow: 0 0 0 4px var(--acg); }
+        .auth-switch { text-align: center; font-size: 14px; color: var(--t3); margin-top: 24px; }
         .auth-switch span { color: var(--ac3); cursor: pointer; font-weight: 600; }
 
         /* PANELS */
-        .panel-container { max-width: 1300px; margin: 0 auto; padding: 20px; }
-        .bot-card, .webhook-card { background: var(--bg2); border: 1px solid var(--b); border-radius: 20px; padding: 24px; margin-bottom: 20px; transition: all 0.3s; }
-        .bot-card:hover, .webhook-card:hover { border-color: var(--ac); transform: translateX(10px); }
+        .panel-container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        .bot-card, .webhook-card, .voice-card, .game-card { background: var(--bg2); border: 1px solid var(--b); border-radius: 28px; padding: 28px; margin-bottom: 24px; transition: all 0.3s; }
+        .bot-card:hover, .webhook-card:hover, .voice-card:hover, .game-card:hover { border-color: var(--ac); transform: translateX(12px); box-shadow: 0 15px 35px rgba(0,0,0,0.3); }
         .flex-between { display: flex; justify-content: space-between; align-items: center; }
-        .token-box { background: var(--bg); border-radius: 10px; padding: 10px 14px; font-family: monospace; font-size: 11px; color: var(--ac3); cursor: pointer; margin-top: 14px; border: 1px solid var(--b); }
+        .token-box { background: var(--bg); border-radius: 14px; padding: 12px 16px; font-family: monospace; font-size: 12px; color: var(--ac3); cursor: pointer; margin-top: 18px; border: 1px solid var(--b); transition: all 0.2s; }
         .token-box:hover { border-color: var(--ac); background: var(--bg1); }
-        .btn-danger { background: rgba(239,68,68,0.15); color: var(--re); padding: 8px 16px; border-radius: 10px; border: none; cursor: pointer; }
+        .btn-danger { background: rgba(239,68,68,0.15); color: var(--re); padding: 10px 20px; border-radius: 14px; border: none; cursor: pointer; font-weight: 600; transition: all 0.2s; }
         .btn-danger:hover { background: rgba(239,68,68,0.3); }
 
-        /* TOAST & STATUS */
-        #toast { position: fixed; bottom: 30px; right: 30px; background: var(--bg2); border: 1px solid var(--b2); border-radius: 16px; padding: 12px 24px; font-size: 13px; font-weight: 600; color: var(--gr); z-index: 1100; transform: translateY(100px); opacity: 0; transition: all 0.3s; backdrop-filter: blur(10px); }
-        #toast.show { transform: translateY(0); opacity: 1; }
-        .backend-status { position: fixed; bottom: 20px; left: 20px; background: var(--bg2); border-radius: 30px; padding: 6px 18px; font-size: 11px; z-index: 500; backdrop-filter: blur(10px); border: 1px solid var(--b); }
-        footer { border-top: 1px solid var(--b); padding: 50px 24px; text-align: center; color: var(--t3); font-size: 13px; }
+        /* VOICE SECTION */
+        .voice-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-top: 30px; }
+        .voice-card { text-align: center; cursor: pointer; }
 
-        @media (max-width: 768px) { nav { padding: 0 20px; } .nav-links { gap: 12px; } .nav-link { font-size: 11px; } .grid-3 { grid-template-columns: 1fr; } }
+        /* GAMES SECTION */
+        .games-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; margin-top: 30px; }
+        .game-card { text-align: center; cursor: pointer; }
+
+        /* ECONOMY SECTION */
+        .economy-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 30px; }
+        .eco-card { background: var(--bg2); border-radius: 24px; padding: 28px; text-align: center; border: 1px solid var(--b); transition: all 0.3s; }
+        .eco-card:hover { border-color: var(--ac); transform: translateY(-5px); }
+        .eco-amount { font-size: 42px; font-weight: 800; color: var(--ye); margin: 16px 0; }
+
+        /* AI MODERATION */
+        .ai-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin-top: 30px; }
+        .ai-card { background: var(--bg2); border-radius: 24px; padding: 28px; border: 1px solid var(--b); }
+
+        /* TOAST & STATUS */
+        #toast { position: fixed; bottom: 30px; right: 30px; background: var(--bg2); border: 1px solid var(--b2); border-radius: 20px; padding: 14px 28px; font-size: 14px; font-weight: 600; color: var(--gr); z-index: 1100; transform: translateY(100px); opacity: 0; transition: all 0.3s; backdrop-filter: blur(16px); }
+        #toast.show { transform: translateY(0); opacity: 1; }
+        .backend-status { position: fixed; bottom: 20px; left: 20px; background: var(--bg2); border-radius: 40px; padding: 8px 20px; font-size: 11px; z-index: 500; backdrop-filter: blur(10px); border: 1px solid var(--b); font-weight: 500; }
+
+        footer { border-top: 1px solid var(--b); padding: 60px 24px; text-align: center; color: var(--t3); font-size: 13px; }
+
+        @media (max-width: 768px) { nav { padding: 0 20px; } .nav-links { gap: 12px; } .nav-link { font-size: 11px; } .stats-grid { grid-template-columns: repeat(2, 1fr); } .grid-3 { grid-template-columns: 1fr; } .economy-stats { grid-template-columns: 1fr; } .ai-stats { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
 
 <div id="loading">
-    <div class="loader"><div class="loader-ring"></div><div class="loader-ring"></div><div class="loader-ring"></div></div>
-    <div class="loading-text">gettic.js</div>
+    <div class="cinematic-loader"><div></div><div></div></div>
+    <div class="loading-text">gettic</div>
 </div>
 
 <nav>
     <a href="#" class="nav-logo" onclick="showPage('home')">
-        <img src="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png" alt="Gettic">
+        <img src="https://github.com/darking053official/gettic/blob/main/1777062266055.png" alt="Gettic">
         <span class="gradient-text">gettic</span>
     </a>
     <div class="nav-links">
@@ -214,25 +266,28 @@
         <a href="#" class="nav-link" onclick="showPage('docs')">Döküman</a>
         <a href="#" class="nav-link" onclick="showPage('bot-panel')">Botlar</a>
         <a href="#" class="nav-link" onclick="showPage('webhooks')">Webhook</a>
-        <a href="#" class="nav-link" onclick="showPage('api')">API</a>
-        <a href="#" class="nav-link" onclick="showPage('changelog')">Changelog</a>
+        <a href="#" class="nav-link" onclick="showPage('voice')">Sesli</a>
+        <a href="#" class="nav-link" onclick="showPage('games')">Oyunlar</a>
+        <a href="#" class="nav-link" onclick="showPage('economy')">Ekonomi</a>
+        <a href="#" class="nav-link" onclick="showPage('ai-mod')">AI Mod</a>
         <a href="#" class="nav-link" onclick="showPage('help')">Yardım</a>
         <button class="nav-btn btn-login" id="loginBtn" onclick="openAuthModal()">Giriş</button>
         <button class="nav-btn btn-logout" id="logoutBtn" onclick="logout()">Çıkış</button>
-        <button class="nav-btn btn-app" onclick="showPage('app')">Gettic'e Git →</button>
+        <button class="nav-btn btn-app" onclick="openAppModal()">Gettic'e Git →</button>
     </div>
 </nav>
 
 <!-- HOME PAGE -->
 <div id="home-page" class="page active">
     <div class="hero">
-        <div style="max-width: 850px;">
-            <div class="hero-badge"><span class="badge-dot"></span> gettic.js.org</div>
-            <h1 class="hero-title"><span class="gradient-text">Bot framework</span><br>modern platform için</h1>
-            <p class="hero-sub">gettic.js ile kendi botunu dakikalar içinde yaz. Komutlar, olaylar, webhook — hepsi tek pakette.</p>
+        <div style="max-width: 900px;">
+            <div class="hero-badge"><span class="badge-dot"></span> Dünyanın en gelişmiş sohbet platformu</div>
+            <h1 class="hero-title"><span class="gradient-text">Gettic</span><br>Sohbet Platformu</h1>
+            <p class="hero-sub">Gerçek zamanlı mesajlaşma, sesli/görüntülü görüşme, bot framework, yapay zeka moderasyon, ekonomi sistemi, oyunlar ve çok daha fazlası tek platformda.</p>
             <div class="hero-buttons">
-                <button class="btn-primary" onclick="showPage('docs')">🚀 Hemen Başla</button>
-                <button class="btn-secondary" onclick="showPage('bot-panel')">🤖 Bot Paneli</button>
+                <button class="btn-primary" onclick="showPage('docs')">Hemen Başla</button>
+                <button class="btn-secondary" onclick="showPage('bot-panel')">Bot Paneli</button>
+                <button class="btn-secondary" onclick="showPage('voice')">Sesli Kanallar</button>
             </div>
             <div class="npm-card" onclick="copyNpm()">
                 <span style="color:var(--ac3);">$</span>
@@ -243,106 +298,654 @@
     </div>
 </div>
 
-<!-- FEATURES PAGE - EMOJIS REPLACED WITH SVG ICONS -->
+<!-- FEATURES PAGE WITH SVG ICONS -->
 <div id="features-page" class="page">
     <div class="features-section">
-        <div class="section-title">✨ Her Şey Tek Pakette</div>
-        <div class="section-sub">Botunuz için ihtiyacınız olan tüm araçlar</div>
+        <div class="section-title">Olağanüstü Özellikler</div>
+        <div class="section-sub">Gettic ile gelen inanılmaz yetenekler</div>
         <div class="grid-3">
-            <div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg></div><div class="feature-title">Zero Config</div><div class="feature-desc">Kurulum sonrası hemen başlayın, karmaşık yapılandırma yok.</div></div>
-            <div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="feature-title">Hızlı & Hafif</div><div class="feature-desc">WebSocket tabanlı, anlık mesajlaşma, milisaniye gecikme.</div></div>
-            <div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24"><path d="M4 17l4-4 4 4 4-4"/><path d="M12 19V5"/></svg></div><div class="feature-title">Komut Sistemi</div><div class="feature-desc">bot.command() ile sonsuz komut, otomatik argüman ayrıştırma.</div></div>
-            <div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></div><div class="feature-title">Webhook Desteği</div><div class="feature-desc">CI/CD, GitHub, Discord entegrasyonu, embed gönderme.</div></div>
-            <div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div><div class="feature-title">Rol & Yetki</div><div class="feature-desc">Kapsamlı rol sistemi, kanal bazlı izinler, mod log.</div></div>
-            <div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="2.18"/><line x1="8" y1="2" x2="8" y2="22"/><line x1="16" y1="2" x2="16" y2="22"/><line x1="2" y1="8" x2="22" y2="8"/><line x1="2" y1="16" x2="22" y2="16"/></svg></div><div class="feature-title">REST API</div><div class="feature-desc">Bot token yönetimi, mesaj gönderme, kullanıcı işlemleri.</div></div>
+            <div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></div><div class="feature-title">Yapay Zeka Moderatör</div><div class="feature-desc">Otomatik küfür engelleme, spam koruması, toksik mesaj tespiti. AI ile güvenli sohbet.</div></div>
+            <div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="2.18"/><line x1="8" y1="2" x2="8" y2="22"/><line x1="16" y1="2" x2="16" y2="22"/></svg></div><div class="feature-title">Bot Framework</div><div class="feature-desc">gettic.js ile dakikalar içinde bot yaz. Komut sistemi, olaylar, webhook desteği.</div></div>
+            <div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg></div><div class="feature-title">Sesli ve Görüntülü</div><div class="feature-desc">WebRTC tabanlı yüksek kaliteli sesli ve görüntülü görüşme, ekran paylaşımı.</div></div>
+            <div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div><div class="feature-title">Direkt Mesaj</div><div class="feature-desc">Arkadaşlarınla özel sohbetler, dosya paylaşımı, emoji tepkileri.</div></div>
+            <div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div><div class="feature-title">Ekonomi Sistemi</div><div class="feature-desc">Sanal para, günlük ödüller, market, kumar, banka sistemi ile eğlence.</div></div>
+            <div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg></div><div class="feature-title">Oyun Sistemi</div><div class="feature-desc">Soru-cevap, yarışma, slot makinesi, zar oyunları, trivia ve daha fazlası.</div></div>
+            <div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></div><div class="feature-title">Webhook Entegrasyonu</div><div class="feature-desc">GitHub, Discord, CI/CD entegrasyonu. Embed mesajlar, otomatik bildirimler.</div></div>
+            <div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div><div class="feature-title">Rol ve Yetki</div><div class="feature-desc">Kapsamlı rol sistemi, kanal bazlı izinler, audit log, timeout, ban, kick.</div></div>
+            <div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg></div><div class="feature-title">REST API</div><div class="feature-desc">Tam fonksiyonlu REST API ile bot token yönetimi, mesaj gönderme.</div></div>
         </div>
+    </div>
+</div>
+
+<!-- STATS SECTION -->
+<div class="stats-section">
+    <div class="stats-grid">
+        <div class="stat-item"><div class="stat-number" id="stat-bots">0</div><div class="stat-label">Aktif Bot</div></div>
+        <div class="stat-item"><div class="stat-number" id="stat-users">0</div><div class="stat-label">Kullanıcı</div></div>
+        <div class="stat-item"><div class="stat-number" id="stat-servers">0</div><div class="stat-label">Sunucu</div></div>
+        <div class="stat-item"><div class="stat-number" id="stat-messages">0</div><div class="stat-label">Mesaj</div></div>
+        <div class="stat-item"><div class="stat-number" id="stat-online">0</div><div class="stat-label">Çevrimiçi</div></div>
     </div>
 </div>
 
 <!-- DOCS PAGE -->
 <div id="docs-page" class="page">
     <div class="panel-container">
-        <h1 class="section-title" style="text-align:left;">📖 Dökümantasyon</h1>
-        <div class="code-showcase" style="margin-top: 30px;">
-            <div class="code-tabs"><div class="code-tab active" onclick="switchCode('basic')">Basic Bot</div><div class="code-tab" onclick="switchCode('commands')">Komutlar</div><div class="code-tab" onclick="switchCode('webhook')">Webhook</div><div class="code-tab" onclick="switchCode('events')">Olaylar</div></div>
-            <div id="basic-panel" class="code-panel active"><button class="copy-btn" onclick="copyCode(this)">Kopyala</button><pre>const { Client } = require('gettic.js');\n\nconst bot = new Client({\n    token: 'BOT_TOKEN',\n    username: 'BenimBot',\n    prefix: '/'\n});\n\nbot.on('ready', () => {\n    bot.send('genel', 'Merhaba Gettic! 🤖');\n});\n\nbot.connect();</pre></div>
-            <div id="commands-panel" class="code-panel"><button class="copy-btn" onclick="copyCode(this)">Kopyala</button><pre>bot.command('ping', (ctx) => {\n    ctx.reply(`🏓 Pong! ${bot.ping}ms`);\n});\n\nbot.command('sa', (ctx) => {\n    ctx.reply(`Selam ${ctx.sender} 👋`);\n});</pre></div>
-            <div id="webhook-panel" class="code-panel"><button class="copy-btn" onclick="copyCode(this)">Kopyala</button><pre>const { WebhookClient } = require('gettic.js');\n\nconst wh = new WebhookClient('WEBHOOK_URL');\nawait wh.sendEmbed({\n    title: 'Deploy Başarılı',\n    description: 'Version 2.0 yayında!'\n});</pre></div>
-            <div id="events-panel" class="code-panel"><button class="copy-btn" onclick="copyCode(this)">Kopyala</button><pre>bot.on('message', (msg) => {\n    console.log(`${msg.sender}: ${msg.content}`);\n});\n\nbot.on('user_join', (user) => {\n    bot.send('genel', `${user} sunucuya katıldı!`);\n});</pre></div>
+        <h1 class="section-title" style="text-align:left;">Dökümantasyon</h1>
+        <p class="section-sub" style="text-align:left; margin-bottom: 40px;">gettic.js ile bot geliştirmenin tüm detayları</p>
+        <div class="code-showcase">
+            <div class="code-tabs"><div class="code-tab active" onclick="switchCode('basic')">Basic Bot</div><div class="code-tab" onclick="switchCode('commands')">Komutlar</div><div class="code-tab" onclick="switchCode('webhook')">Webhook</div><div class="code-tab" onclick="switchCode('events')">Olaylar</div><div class="code-tab" onclick="switchCode('economy')">Ekonomi</div></div>
+            <div id="basic-panel" class="code-panel active"><button class="copy-btn" onclick="copyCode(this)">Kopyala</button><pre>const { Client } = require('gettic.js');\n\nconst bot = new Client({\n    token: 'BOT_TOKEN',\n    username: 'BenimBot',\n    prefix: '/'\n});\n\nbot.on('ready', () => {\n    console.log('Bot hazır!');\n    bot.send('genel', 'Merhaba Gettic!');\n});\n\nbot.command('ping', (ctx) => {\n    ctx.reply(`Pong! ${bot.ping}ms`);\n});\n\nbot.connect();</pre></div>
+            <div id="commands-panel" class="code-panel"><button class="copy-btn" onclick="copyCode(this)">Kopyala</button><pre>// Basit komut\nbot.command('merhaba', (ctx) => {\n    ctx.reply(`Merhaba ${ctx.sender}!`);\n});\n\n// Argümanlı komut\nbot.command('top', (ctx) => {\n    const [page] = ctx.args;\n    ctx.reply(`Sıralama sayfası: ${page || 1}`);\n});\n\n// Yetkili komutu\nbot.command('sil', (ctx) => {\n    if (!ctx.member.roles.includes('admin')) {\n        return ctx.reply('Yetkiniz yok!');\n    }\n    ctx.delete(ctx.args[0] || 5);\n});</pre></div>
+            <div id="webhook-panel" class="code-panel"><button class="copy-btn" onclick="copyCode(this)">Kopyala</button><pre>const { WebhookClient } = require('gettic.js');\n\nconst webhook = new WebhookClient('WEBHOOK_URL');\n\n// Normal mesaj\nawait webhook.send('Deploy başarılı!');\n\n// Embed mesaj\nawait webhook.sendEmbed({\n    title: '**Yeni Güncelleme**',\n    description: 'v2.0.0 yayınlandı!',\n    color: '#6366f1',\n    fields: [\n        { name: 'Eklenenler', value: 'Bot paneli, webhook sistemi' },\n        { name: 'Düzeltmeler', value: 'Performans iyileştirmeleri' }\n    ]\n});</pre></div>
+            <div id="events-panel" class="code-panel"><button class="copy-btn" onclick="copyCode(this)">Kopyala</button><pre>// Mesaj olayı\nbot.on('message', (message) => {\n    console.log(`${message.sender}: ${message.content}`);\n});\n\n// Kullanıcı katılma\nbot.on('userJoin', (user) => {\n    bot.send('genel', `${user.username} sunucuya katıldı!`);\n});\n\n// Sesli kanal olayları\nbot.on('voiceJoin', (user, channel) => {\n    console.log(`${user} ${channel} kanalına girdi`);\n});</pre></div>
+            <div id="economy-panel" class="code-panel"><button class="copy-btn" onclick="copyCode(this)">Kopyala</button><pre>// Günlük ödül\nbot.command('günlük', (ctx) => {\n    const amount = Math.floor(Math.random() * 500) + 100;\n    ctx.economy.add(ctx.senderId, amount);\n    ctx.reply(`Günlük ödülün: ${amount} coin!`);\n});\n\n// Bakiye sorgulama\nbot.command('bakiye', (ctx) => {\n    const balance = ctx.economy.get(ctx.senderId);\n    ctx.reply(`Bakiyen: ${balance} coin`);\n});</pre></div>
         </div>
     </div>
 </div>
 
-<!-- BOT PANEL -->
-<div id="bot-panel-page" class="page"><div class="panel-container"><div class="flex-between"><h1 class="section-title" style="text-align:left;">🤖 Botlarım</h1><button class="btn-primary" onclick="openCreateBotModal()">+ Yeni Bot</button></div><div id="bots-list" style="margin-top: 40px;"><div class="bot-card">Botları görmek için giriş yapın.</div></div></div></div>
+<!-- BOT PANEL PAGE -->
+<div id="bot-panel-page" class="page">
+    <div class="panel-container">
+        <div class="flex-between">
+            <h1 class="section-title" style="text-align:left;">Bot Yönetimi</h1>
+            <button class="btn-primary" onclick="openCreateBotModal()">+ Yeni Bot Oluştur</button>
+        </div>
+        <div id="bots-list" style="margin-top: 40px;">
+            <div class="bot-card">Botları görmek için giriş yapın.</div>
+        </div>
+    </div>
+</div>
 
-<!-- WEBHOOKS -->
-<div id="webhooks-page" class="page"><div class="panel-container"><div class="flex-between"><h1 class="section-title" style="text-align:left;">🔗 Webhooklarım</h1><button class="btn-primary" onclick="openCreateWebhookModal()">+ Yeni Webhook</button></div><div id="webhooks-list" style="margin-top: 40px;"><div class="webhook-card">Webhookları görmek için giriş yapın.</div></div></div></div>
+<!-- WEBHOOKS PANEL PAGE -->
+<div id="webhooks-page" class="page">
+    <div class="panel-container">
+        <div class="flex-between">
+            <h1 class="section-title" style="text-align:left;">Webhook Yönetimi</h1>
+            <button class="btn-primary" onclick="openCreateWebhookModal()">+ Yeni Webhook</button>
+        </div>
+        <div id="webhooks-list" style="margin-top: 40px;">
+            <div class="webhook-card">Webhookları görmek için giriş yapın.</div>
+        </div>
+    </div>
+</div>
 
-<!-- API PAGE -->
-<div id="api-page" class="page"><div class="panel-container"><h1 class="section-title" style="text-align:left;">📡 REST API Referansı</h1><div class="grid-3" style="margin-top: 40px;"><div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div><div class="feature-title">/api/auth/login</div><div class="feature-desc">POST: Kullanıcı girişi</div></div><div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24"><path d="M20 14.66V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5.34"/><polygon points="18 2 22 6 12 16 8 16 8 12 18 2"/></svg></div><div class="feature-title">/api/auth/register</div><div class="feature-desc">POST: Yeni kullanıcı kaydı</div></div><div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M12 11V6"/><circle cx="12" cy="4" r="2"/></svg></div><div class="feature-title">/api/bots</div><div class="feature-desc">GET/POST: Bot listesi ve oluşturma</div></div><div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></div><div class="feature-title">/api/webhooks</div><div class="feature-desc">GET/POST: Webhook yönetimi</div></div></div></div></div>
+<!-- VOICE CHANNELS PAGE -->
+<div id="voice-page" class="page">
+    <div class="panel-container">
+        <h1 class="section-title" style="text-align:left;">Sesli Kanallar</h1>
+        <p class="section-sub" style="text-align:left;">Gerçek zamanlı sesli ve görüntülü görüşme odaları</p>
+        <div class="voice-grid">
+            <div class="voice-card" onclick="joinVoiceChannel('genel-ses')"><div class="feature-icon" style="margin: 0 auto;"><svg width="36" height="36" viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg></div><div class="feature-title">Genel Sohbet</div><div class="feature-desc">Herkes için açık sesli sohbet kanalı</div><div class="token-box" style="margin-top: 12px;">12 kişi çevrimiçi</div></div>
+            <div class="voice-card" onclick="joinVoiceChannel('oyun-ses')"><div class="feature-icon" style="margin: 0 auto;"><svg width="36" height="36" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg></div><div class="feature-title">Oyun Odası</div><div class="feature-desc">Oyun oynarken arkadaşlarınla sohbet et</div><div class="token-box" style="margin-top: 12px;">8 kişi çevrimiçi</div></div>
+            <div class="voice-card" onclick="joinVoiceChannel('muzik-ses')"><div class="feature-icon" style="margin: 0 auto;"><svg width="36" height="36" viewBox="0 0 24 24"><path d="M9 19V5l12-2v14"/><circle cx="7" cy="19" r="2"/><circle cx="19" cy="17" r="2"/></svg></div><div class="feature-title">Müzik Odası</div><div class="feature-desc">Müzik dinleme ve paylaşım kanalı</div><div class="token-box" style="margin-top: 12px;">15 kişi çevrimiçi</div></div>
+            <div class="voice-card" onclick="joinVoiceChannel('ozel-ses')"><div class="feature-icon" style="margin: 0 auto;"><svg width="36" height="36" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><div class="feature-title">Özel Oda</div><div class="feature-desc">Sadece davetlilerin katılabileceği oda</div><div class="token-box" style="margin-top: 12px;">4 kişi çevrimiçi</div></div>
+        </div>
+    </div>
+</div>
 
-<!-- CHANGELOG -->
-<div id="changelog-page" class="page"><div class="panel-container"><h1 class="section-title" style="text-align:left;">📋 Changelog</h1><div class="bot-card"><strong>v2.0.0</strong> - 30 Nisan 2026<br>✨ Yeni: WebSocket desteği iyileştirildi<br>🐛 Hata düzeltmeleri</div><div class="bot-card"><strong>v1.9.0</strong> - 25 Nisan 2026<br>✨ Yeni: Bot paneli eklendi<br>🔧 Performans iyileştirmeleri</div></div></div>
+<!-- GAMES PAGE -->
+<div id="games-page" class="page">
+    <div class="panel-container">
+        <h1 class="section-title" style="text-align:left;">Oyunlar</h1>
+        <p class="section-sub" style="text-align:left;">Arkadaşlarınla oynayabileceğin eğlenceli oyunlar</p>
+        <div class="games-grid">
+            <div class="game-card" onclick="startGame('trivia')"><div class="feature-icon" style="margin: 0 auto;"><svg width="36" height="36" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></div><div class="feature-title">Trivia</div><div class="feature-desc">Genel kültür sorularıyla bilgini test et</div><button class="btn-primary" style="margin-top: 16px; padding: 10px 20px;">Oyna</button></div>
+            <div class="game-card" onclick="startGame('slot')"><div class="feature-icon" style="margin: 0 auto;"><svg width="36" height="36" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><line x1="8" y1="12" x2="16" y2="12"/></svg></div><div class="feature-title">Slot Makinesi</div><div class="feature-desc">Şansını dene, büyük ödülleri kazan</div><button class="btn-primary" style="margin-top: 16px; padding: 10px 20px;">Oyna</button></div>
+            <div class="game-card" onclick="startGame('dice')"><div class="feature-icon" style="margin: 0 auto;"><svg width="36" height="36" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8" cy="8" r="1"/><circle cx="16" cy="16" r="1"/></svg></div><div class="feature-title">Zar Oyunu</div><div class="feature-desc">Arkadaşlarınla zar at, en yüksek sen kazan</div><button class="btn-primary" style="margin-top: 16px; padding: 10px 20px;">Oyna</button></div>
+            <div class="game-card" onclick="startGame('race')"><div class="feature-icon" style="margin: 0 auto;"><svg width="36" height="36" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2"/><path d="M12 2v4M22 12h-4M12 20v4M4 12H2M20 12h2"/></svg></div><div class="feature-title">Yarış</div><div class="feature-desc">Gerçek zamanlı yarış, en hızlı sen ol</div><button class="btn-primary" style="margin-top: 16px; padding: 10px 20px;">Oyna</button></div>
+        </div>
+    </div>
+</div>
 
-<!-- HELP -->
-<div id="help-page" class="page"><div class="panel-container"><h1 class="section-title" style="text-align:left;">❓ Yardım Merkezi</h1><div class="grid-3" style="margin-top: 40px;"><div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div><div class="feature-title">Dökümantasyon</div><div class="feature-desc">Tüm API metodları ve örnekler için dokümanlarımızı inceleyin.</div></div><div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></div><div class="feature-title">Topluluk</div><div class="feature-desc">Discord sunucumuza katılın, destek alın.</div></div><div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3M12 2v2M22 12h-2M4 12H2M12 20v2"/></svg></div><div class="feature-title">Hata Bildirimi</div><div class="feature-desc">GitHub Issues üzerinden hata bildirebilirsiniz.</div></div></div></div></div>
+<!-- ECONOMY PAGE -->
+<div id="economy-page" class="page">
+    <div class="panel-container">
+        <h1 class="section-title" style="text-align:left;">Ekonomi Sistemi</h1>
+        <p class="section-sub" style="text-align:left;">Coin kazan, harca, zengin ol!</p>
+        <div class="economy-stats">
+            <div class="eco-card"><div class="feature-icon" style="margin: 0 auto 16px;"><svg width="32" height="32" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="6" x2="12" y2="12"/><line x1="12" y1="12" x2="16" y2="16"/></svg></div><div class="feature-title">Bakiyen</div><div class="eco-amount" id="user-balance">0</div><button class="btn-secondary" onclick="checkBalance()">Yenile</button></div>
+            <div class="eco-card"><div class="feature-icon" style="margin: 0 auto 16px;"><svg width="32" height="32" viewBox="0 0 24 24"><path d="M12 2v20M17 7H8.5a3.5 3.5 0 1 0 0 7H15a3.5 3.5 0 1 1 0 7H7"/></svg></div><div class="feature-title">Günlük Ödül</div><div class="eco-amount" id="daily-reward">500</div><button class="btn-primary" onclick="claimDaily()">Topla</button></div>
+            <div class="eco-card"><div class="feature-icon" style="margin: 0 auto 16px;"><svg width="32" height="32" viewBox="0 0 24 24"><polygon points="12 2 15 9 22 9 16 14 19 22 12 17 5 22 8 14 2 9 9 9 12 2"/></svg></div><div class="feature-title">Sıralama</div><div class="eco-amount" id="user-rank">#1</div><button class="btn-secondary" onclick="showLeaderboard()">Görüntüle</button></div>
+        </div>
+    </div>
+</div>
 
-<!-- APP PAGE -->
-<div id="app-page" class="page"><div class="hero" style="min-height: auto; padding: 60px 20px;"><div style="text-align: center;"><div style="font-size: 80px; margin-bottom: 20px;">🚀</div><h1 class="hero-title" style="font-size: 48px;">Gettic Uygulaması</h1><p class="hero-sub">Tam teşekküllü sohbet platformuna hoş geldiniz.</p><button class="btn-primary" onclick="showToast('Yakında tam sürüm!')">Uygulamayı Aç</button></div></div></div>
+<!-- AI MODERATION PAGE -->
+<div id="ai-mod-page" class="page">
+    <div class="panel-container">
+        <h1 class="section-title" style="text-align:left;">Yapay Zeka Moderasyon</h1>
+        <p class="section-sub" style="text-align:left;">AI destekli güvenli sohbet ortamı</p>
+        <div class="ai-stats">
+            <div class="ai-card"><div class="feature-title">Engellenen Kelimeler</div><div class="eco-amount" id="blocked-count">1,247</div><div class="feature-desc">AI tarafından tespit edilen zararlı içerikler</div></div>
+            <div class="ai-card"><div class="feature-title">Uyarılar</div><div class="eco-amount" id="warning-count">89</div><div class="feature-desc">Son 30 günde verilen uyarılar</div></div>
+            <div class="ai-card"><div class="feature-title">Yasaklananlar</div><div class="eco-amount" id="ban-count">23</div><div class="feature-desc">AI tarafından otomatik yasaklanan hesaplar</div></div>
+            <div class="ai-card"><div class="feature-title">Güvenlik Skoru</div><div class="eco-amount" id="safety-score">98%</div><div class="feature-desc">Platform güvenlik durumu</div></div>
+        </div>
+    </div>
+</div>
 
-<!-- MODALS -->
-<div id="auth-modal" class="modal"><div class="modal-content"><h2>Giriş Yap</h2><p style="text-align:center; color:var(--t3); margin-bottom:24px;">Hesabınla devam et</p><div style="display: flex; gap: 10px; background: var(--bg); border-radius: 14px; padding: 6px; margin-bottom: 28px;"><button id="login-tab" class="btn-primary" style="flex:1; background: var(--ac); padding: 10px;" onclick="switchAuth('login')">Giriş</button><button id="register-tab" class="btn-secondary" style="flex:1; background: transparent; padding: 10px;" onclick="switchAuth('register')">Kayıt</button></div><div id="login-form"><input type="text" id="login-username" class="modal-input" placeholder="Kullanıcı Adı"><input type="password" id="login-password" class="modal-input" placeholder="Şifre"><button class="btn-primary" style="width:100%;" onclick="doLogin()">Giriş Yap</button></div><div id="register-form" style="display:none;"><input type="text" id="reg-username" class="modal-input" placeholder="Kullanıcı Adı"><input type="password" id="reg-password" class="modal-input" placeholder="Şifre (min 6)"><button class="btn-primary" style="width:100%;" onclick="doRegister()">Kayıt Ol</button></div><div class="auth-switch"><span onclick="toggleAuthMode()">Hesabın var mı? / Hesabın yok mu?</span></div><div id="auth-error" style="color: var(--re); font-size:12px; text-align:center; margin-top:16px;"></div></div></div>
+<!-- HELP PAGE -->
+<div id="help-page" class="page">
+    <div class="panel-container">
+        <h1 class="section-title" style="text-align:left;">Yardım Merkezi</h1>
+        <div class="grid-3" style="margin-top: 40px;">
+            <div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div><div class="feature-title">Dökümantasyon</div><div class="feature-desc">Tüm API metodları ve örnekler için dokümanlarımızı inceleyin.</div><button class="btn-secondary" style="margin-top: 16px;" onclick="showPage('docs')">İncele</button></div>
+            <div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></div><div class="feature-title">Topluluk Desteği</div><div class="feature-desc">Discord sunucumuza katılın, diğer geliştiricilerle iletişime geçin.</div><button class="btn-secondary" style="margin-top: 16px;">Katıl</button></div>
+            <div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3M12 2v2M22 12h-2M4 12H2M12 20v2"/></svg></div><div class="feature-title">Hata Bildirimi</div><div class="feature-desc">GitHub Issues üzerinden hata bildirebilir veya öneride bulunabilirsiniz.</div><button class="btn-secondary" style="margin-top: 16px;">Bildir</button></div>
+        </div>
+    </div>
+</div>
 
-<div id="create-bot-modal" class="modal"><div class="modal-content"><h2>Yeni Bot</h2><input type="text" id="bot-name" class="modal-input" placeholder="Bot Adı"><input type="text" id="bot-prefix" class="modal-input" placeholder="Prefix" value="/"><div style="display: flex; gap: 16px; margin-top: 24px;"><button class="btn-secondary" style="flex:1;" onclick="closeModal('create-bot-modal')">İptal</button><button class="btn-primary" style="flex:1;" onclick="createBot()">Oluştur</button></div></div></div>
+<!-- APP MODAL -->
+<div id="app-modal" class="modal">
+    <div class="modal-content">
+        <h2>Gettic Uygulaması</h2>
+        <p style="text-align:center; color:var(--t3); margin: 20px 0;">Tam teşekküllü sohbet platformuna hoş geldiniz. Gerçek zamanlı mesajlaşma, sesli/görüntülü görüşme, bot framework ve daha fazlası.</p>
+        <div class="npm-card" style="margin: 0 auto 24px; width: fit-content;" onclick="copyNpm()"><span>npm install gettic.js</span></div>
+        <button class="btn-primary" style="width:100%;" onclick="closeAppModal()">Anladım, Kapat</button>
+    </div>
+</div>
 
-<div id="create-webhook-modal" class="modal"><div class="modal-content"><h2>Yeni Webhook</h2><input type="text" id="webhook-name" class="modal-input" placeholder="Webhook Adı"><div style="display: flex; gap: 16px; margin-top: 24px;"><button class="btn-secondary" style="flex:1;" onclick="closeModal('create-webhook-modal')">İptal</button><button class="btn-primary" style="flex:1;" onclick="createWebhook()">Oluştur</button></div></div></div>
+<!-- AUTH MODAL -->
+<div id="auth-modal" class="modal">
+    <div class="modal-content">
+        <h2>Giriş Yap</h2>
+        <p style="text-align:center; color:var(--t3); margin-bottom: 24px;">Gettic hesabınla devam et</p>
+        <div style="display: flex; gap: 12px; background: var(--bg); border-radius: 20px; padding: 6px; margin-bottom: 32px;">
+            <button id="login-tab" class="btn-primary" style="flex:1; background: var(--ac); padding: 12px;" onclick="switchAuth('login')">Giriş</button>
+            <button id="register-tab" class="btn-secondary" style="flex:1; background: transparent; padding: 12px;" onclick="switchAuth('register')">Kayıt</button>
+        </div>
+        <div id="login-form">
+            <input type="text" id="login-username" class="modal-input" placeholder="Kullanıcı Adı">
+            <input type="password" id="login-password" class="modal-input" placeholder="Şifre">
+            <button class="btn-primary" style="width:100%;" onclick="doLogin()">Giriş Yap</button>
+        </div>
+        <div id="register-form" style="display:none;">
+            <input type="text" id="reg-username" class="modal-input" placeholder="Kullanıcı Adı">
+            <input type="password" id="reg-password" class="modal-input" placeholder="Şifre (min 6)">
+            <button class="btn-primary" style="width:100%;" onclick="doRegister()">Kayıt Ol</button>
+        </div>
+        <div class="auth-switch"><span onclick="toggleAuthMode()">Hesabın var mı? / Hesabın yok mu?</span></div>
+        <div id="auth-error" style="color: var(--re); font-size:12px; text-align:center; margin-top: 16px;"></div>
+    </div>
+</div>
 
-<footer><p>© 2026 Gettic — MIT Lisansı — <a href="#" style="color:var(--ac3);" onclick="showPage('home')">gettic.js.org</a></p></footer>
+<!-- BOT MODAL -->
+<div id="create-bot-modal" class="modal">
+    <div class="modal-content">
+        <h2>Yeni Bot Oluştur</h2>
+        <input type="text" id="bot-name" class="modal-input" placeholder="Bot Adı">
+        <input type="text" id="bot-prefix" class="modal-input" placeholder="Prefix" value="/">
+        <div style="display: flex; gap: 16px; margin-top: 32px;">
+            <button class="btn-secondary" style="flex:1;" onclick="closeModal('create-bot-modal')">İptal</button>
+            <button class="btn-primary" style="flex:1;" onclick="createBot()">Oluştur</button>
+        </div>
+    </div>
+</div>
+
+<!-- WEBHOOK MODAL -->
+<div id="create-webhook-modal" class="modal">
+    <div class="modal-content">
+        <h2>Yeni Webhook Oluştur</h2>
+        <input type="text" id="webhook-name" class="modal-input" placeholder="Webhook Adı">
+        <div style="display: flex; gap: 16px; margin-top: 32px;">
+            <button class="btn-secondary" style="flex:1;" onclick="closeModal('create-webhook-modal')">İptal</button>
+            <button class="btn-primary" style="flex:1;" onclick="createWebhook()">Oluştur</button>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <p>© 2026 Gettic — MIT Lisansı — <a href="#" style="color:var(--ac3);" onclick="showPage('home')">gettic.js.org</a> — 150+ ülkede kullanılıyor — 1M+ mesaj gönderildi — 10K+ aktif bot</p>
+</footer>
+
 <div id="toast">✓ Kopyalandı!</div>
-<div class="backend-status" id="backend-status">🔌 Backend: Kontrol ediliyor...</div>
+<div class="backend-status" id="backend-status">Backend: Kontrol ediliyor...</div>
 
 <script>
+    // Configuration
     const API_URL = 'https://gettic-j49l.onrender.com';
     let currentUser = null;
     let currentToken = localStorage.getItem('gt_token');
     let socket = null;
 
+    // DOM Helpers
     function $(id) { return document.getElementById(id); }
-    function showToast(msg, isError = false) { const toast = $('toast'); toast.textContent = msg; toast.style.color = isError ? 'var(--re)' : 'var(--gr)'; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 2800); }
-    function showPage(pageId) { document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); $(`${pageId}-page`).classList.add('active'); window.scrollTo({ top: 0, behavior: 'smooth' }); if (pageId === 'bot-panel') loadBots(); if (pageId === 'webhooks') loadWebhooks(); }
+    
+    function showToast(msg, isError = false) {
+        const toast = $('toast');
+        toast.textContent = msg;
+        toast.style.color = isError ? 'var(--re)' : 'var(--gr)';
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2800);
+    }
+    
+    function showPage(pageId) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        $(`${pageId}-page`).classList.add('active');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        if (pageId === 'bot-panel') loadBots();
+        if (pageId === 'webhooks') loadWebhooks();
+        if (pageId === 'economy') loadEconomy();
+        if (pageId === 'ai-mod') loadAIStats();
+    }
+    
     function openAuthModal() { $('auth-modal').classList.add('active'); }
+    function openAppModal() { $('app-modal').classList.add('active'); }
+    function closeAppModal() { $('app-modal').classList.remove('active'); }
     function closeModal(id) { $(id).classList.remove('active'); }
-    function copyText(text) { navigator.clipboard.writeText(text); showToast('Kopyalandı!'); }
-    function copyNpm() { navigator.clipboard.writeText('npm install gettic.js'); showToast('npm install gettic.js kopyalandı!'); }
-    function escapeHtml(str) { return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;'); }
-    function copyCode(btn) { navigator.clipboard.writeText(btn.parentElement.querySelector('pre').innerText); showToast('Kod kopyalandı!'); }
-    function switchCode(type) { document.querySelectorAll('.code-panel').forEach(p => p.classList.remove('active')); document.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active')); $(`${type}-panel`).classList.add('active'); event.target.classList.add('active'); }
-
-    function switchAuth(mode) { if (mode === 'login') { $('login-form').style.display = 'block'; $('register-form').style.display = 'none'; $('login-tab').className = 'btn-primary'; $('register-tab').className = 'btn-secondary'; } else { $('login-form').style.display = 'none'; $('register-form').style.display = 'block'; $('login-tab').className = 'btn-secondary'; $('register-tab').className = 'btn-primary'; } }
-    function toggleAuthMode() { if ($('login-form').style.display !== 'none') switchAuth('register'); else switchAuth('login'); }
-
-    async function doLogin() { const username = $('login-username').value.trim(); const password = $('login-password').value; if (!username || !password) return showToast('Tüm alanları doldurun', true); try { const res = await fetch(`${API_URL}/api/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) }); const data = await res.json(); if (!res.ok) throw new Error(data.error); currentToken = data.token; currentUser = data.user; localStorage.setItem('gt_token', currentToken); localStorage.setItem('gt_user', JSON.stringify(currentUser)); showToast('Giriş başarılı!'); closeModal('auth-modal'); updateNavUI(); initSocket(); loadBots(); loadWebhooks(); } catch (err) { showToast(err.message, true); } }
-    async function doRegister() { const username = $('reg-username').value.trim(); const password = $('reg-password').value; if (username.length < 3) return showToast('Kullanıcı adı en az 3 karakter', true); if (password.length < 6) return showToast('Şifre en az 6 karakter', true); try { const res = await fetch(`${API_URL}/api/auth/register`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) }); const data = await res.json(); if (!res.ok) throw new Error(data.error); currentToken = data.token; currentUser = data.user; localStorage.setItem('gt_token', currentToken); localStorage.setItem('gt_user', JSON.stringify(currentUser)); showToast('Kayıt başarılı!'); closeModal('auth-modal'); updateNavUI(); initSocket(); } catch (err) { showToast(err.message, true); } }
-    function logout() { localStorage.removeItem('gt_token'); localStorage.removeItem('gt_user'); currentUser = null; currentToken = null; if (socket) socket.disconnect(); updateNavUI(); showToast('Çıkış yapıldı'); showPage('home'); }
-    function updateNavUI() { const loginBtn = $('loginBtn'); const logoutBtn = $('logoutBtn'); if (currentUser) { loginBtn.style.display = 'none'; logoutBtn.style.display = 'inline-flex'; } else { loginBtn.style.display = 'inline-flex'; logoutBtn.style.display = 'none'; } }
-
-    function initSocket() { if (!currentToken) return; if (socket) socket.disconnect(); socket = io(API_URL, { auth: { token: currentToken }, transports: ['websocket'] }); socket.on('connect', () => console.log('Socket bağlandı')); socket.on('new_bot', (bot) => { if (currentUser && bot.ownerId === currentUser._id) { showToast(`Yeni bot oluşturuldu: ${bot.name}`); loadBots(); } }); socket.on('bot_deleted', (data) => { if (currentUser && data.ownerId === currentUser._id) { showToast(`Bot silindi`); loadBots(); } }); socket.on('new_webhook', (wh) => { if (currentUser && wh.ownerId === currentUser._id) { showToast(`Yeni webhook oluşturuldu: ${wh.name}`); loadWebhooks(); } }); }
-
-    async function loadBots() { if (!currentToken) { $('bots-list').innerHTML = '<div class="bot-card">🔒 Botları görmek için giriş yapın.</div>'; return; } try { const res = await fetch(`${API_URL}/api/bots`, { headers: { 'Authorization': `Bearer ${currentToken}` } }); const bots = await res.json(); if (!bots.length) { $('bots-list').innerHTML = '<div class="bot-card">✨ Henüz botunuz yok. Yeni bot oluşturun!</div>'; return; } $('bots-list').innerHTML = bots.map(bot => `<div class="bot-card"><div class="flex-between"><div><strong>🤖 ${escapeHtml(bot.name)}</strong> <span style="color:var(--t3);">(prefix: ${bot.prefix})</span></div><button class="btn-danger" onclick="deleteBot('${bot._id}')">Sil</button></div><div class="token-box" onclick="copyText('${bot.token}')">📋 Token: ${bot.token.substring(0, 20)}...</div></div>`).join(''); } catch (err) { $('bots-list').innerHTML = '<div class="bot-card">❌ Botlar yüklenemedi</div>'; } }
-    async function createBot() { const name = $('bot-name').value.trim(); const prefix = $('bot-prefix').value.trim() || '/'; if (!name) return showToast('Bot adı gerekli', true); try { const res = await fetch(`${API_URL}/api/bots`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentToken}` }, body: JSON.stringify({ name, prefix }) }); if (!res.ok) throw new Error(await res.text()); showToast('Bot oluşturuldu'); closeModal('create-bot-modal'); $('bot-name').value = ''; loadBots(); if (socket) socket.emit('bot_created', { name, prefix, ownerId: currentUser._id }); } catch (err) { showToast(err.message, true); } }
-    async function deleteBot(botId) { if (!confirm('Botu silmek istediğinize emin misiniz?')) return; try { await fetch(`${API_URL}/api/bots/${botId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${currentToken}` } }); showToast('Bot silindi'); loadBots(); if (socket) socket.emit('bot_deleted', { botId, ownerId: currentUser._id }); } catch (err) { showToast(err.message, true); } }
-
-    async function loadWebhooks() { if (!currentToken) { $('webhooks-list').innerHTML = '<div class="webhook-card">🔒 Webhookları görmek için giriş yapın.</div>'; return; } try { const res = await fetch(`${API_URL}/api/webhooks`, { headers: { 'Authorization': `Bearer ${currentToken}` } }); const webhooks = await res.json(); if (!webhooks.length) { $('webhooks-list').innerHTML = '<div class="webhook-card">✨ Henüz webhookunuz yok. Yeni webhook oluşturun!</div>'; return; } $('webhooks-list').innerHTML = webhooks.map(wh => `<div class="webhook-card"><div class="flex-between"><div><strong>🔗 ${escapeHtml(wh.name)}</strong></div><button class="btn-danger" onclick="deleteWebhook('${wh._id}')">Sil</button></div><div class="token-box" onclick="copyText('${API_URL}/api/webhook/${wh.token}')">📋 URL: ${API_URL}/api/webhook/${wh.token.substring(0, 15)}...</div></div>`).join(''); } catch (err) { $('webhooks-list').innerHTML = '<div class="webhook-card">❌ Webhooklar yüklenemedi</div>'; } }
-    async function createWebhook() { const name = $('webhook-name').value.trim(); if (!name) return showToast('Webhook adı gerekli', true); try { const res = await fetch(`${API_URL}/api/webhooks`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentToken}` }, body: JSON.stringify({ name }) }); if (!res.ok) throw new Error(await res.text()); showToast('Webhook oluşturuldu'); closeModal('create-webhook-modal'); $('webhook-name').value = ''; loadWebhooks(); if (socket) socket.emit('webhook_created', { name, ownerId: currentUser._id }); } catch (err) { showToast(err.message, true); } }
-    async function deleteWebhook(whId) { if (!confirm('Webhook silinsin mi?')) return; try { await fetch(`${API_URL}/api/webhooks/${whId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${currentToken}` } }); showToast('Webhook silindi'); loadWebhooks(); if (socket) socket.emit('webhook_deleted', { whId, ownerId: currentUser._id }); } catch (err) { showToast(err.message, true); } }
-
-    function openCreateBotModal() { if (!currentUser) { showToast('Önce giriş yapın', true); openAuthModal(); return; } $('create-bot-modal').classList.add('active'); }
-    function openCreateWebhookModal() { if (!currentUser) { showToast('Önce giriş yapın', true); openAuthModal(); return; } $('create-webhook-modal').classList.add('active'); }
-
-    async function checkBackend() { try { const res = await fetch(`${API_URL}/api/health`); if (res.ok) $('backend-status').innerHTML = '🟢 Backend: Aktif'; else throw new Error(); } catch (e) { $('backend-status').innerHTML = '🔴 Backend: Bağlantı yok'; } }
-
-    window.onload = () => { setTimeout(() => { $('loading').classList.add('hide'); }, 1000); const storedUser = localStorage.getItem('gt_user'); if (storedUser) { try { currentUser = JSON.parse(storedUser); currentToken = localStorage.getItem('gt_token'); updateNavUI(); initSocket(); loadBots(); loadWebhooks(); } catch(e){} } checkBackend(); setInterval(checkBackend, 30000); document.querySelectorAll('.modal').forEach(modal => { modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('active'); }); }); };
+    
+    function copyText(text) {
+        navigator.clipboard.writeText(text);
+        showToast('Kopyalandı!');
+    }
+    
+    function copyNpm() {
+        navigator.clipboard.writeText('npm install gettic.js');
+        showToast('npm install gettic.js kopyalandı!');
+    }
+    
+    function escapeHtml(str) {
+        return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
+    }
+    
+    function copyCode(btn) {
+        const code = btn.parentElement.querySelector('pre').innerText;
+        navigator.clipboard.writeText(code);
+        showToast('Kod kopyalandı!');
+    }
+    
+    function switchCode(type) {
+        document.querySelectorAll('.code-panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+        $(`${type}-panel`).classList.add('active');
+        event.target.classList.add('active');
+    }
+    
+    function joinVoiceChannel(channel) {
+        showToast(`${channel} kanalına katılıyorsunuz...`);
+    }
+    
+    function startGame(game) {
+        showToast(`${game} oyunu başlıyor...`);
+    }
+    
+    function checkBalance() {
+        const balance = Math.floor(Math.random() * 10000);
+        showToast(`Bakiyeniz: ${balance} coin`);
+    }
+    
+    function claimDaily() {
+        showToast(`Günlük ödülünüz: 500 coin`);
+    }
+    
+    function showLeaderboard() {
+        showToast(`Sıralama: 1. ${currentUser?.username || 'Sen'} - 10,000 coin`);
+    }
+    
+    // Auth Functions
+    function switchAuth(mode) {
+        if (mode === 'login') {
+            $('login-form').style.display = 'block';
+            $('register-form').style.display = 'none';
+            $('login-tab').className = 'btn-primary';
+            $('register-tab').className = 'btn-secondary';
+        } else {
+            $('login-form').style.display = 'none';
+            $('register-form').style.display = 'block';
+            $('login-tab').className = 'btn-secondary';
+            $('register-tab').className = 'btn-primary';
+        }
+    }
+    
+    function toggleAuthMode() {
+        if ($('login-form').style.display !== 'none') switchAuth('register');
+        else switchAuth('login');
+    }
+    
+    async function doLogin() {
+        const username = $('login-username').value.trim();
+        const password = $('login-password').value;
+        if (!username || !password) return showToast('Tüm alanları doldurun', true);
+        try {
+            const res = await fetch(`${API_URL}/api/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error);
+            currentToken = data.token;
+            currentUser = data.user;
+            localStorage.setItem('gt_token', currentToken);
+            localStorage.setItem('gt_user', JSON.stringify(currentUser));
+            showToast('Giriş başarılı!');
+            closeModal('auth-modal');
+            updateNavUI();
+            initSocket();
+            loadBots();
+            loadWebhooks();
+            updateStats();
+        } catch (err) {
+            showToast(err.message, true);
+        }
+    }
+    
+    async function doRegister() {
+        const username = $('reg-username').value.trim();
+        const password = $('reg-password').value;
+        if (username.length < 3) return showToast('Kullanıcı adı en az 3 karakter', true);
+        if (password.length < 6) return showToast('Şifre en az 6 karakter', true);
+        try {
+            const res = await fetch(`${API_URL}/api/auth/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error);
+            currentToken = data.token;
+            currentUser = data.user;
+            localStorage.setItem('gt_token', currentToken);
+            localStorage.setItem('gt_user', JSON.stringify(currentUser));
+            showToast('Kayıt başarılı!');
+            closeModal('auth-modal');
+            updateNavUI();
+            initSocket();
+            updateStats();
+        } catch (err) {
+            showToast(err.message, true);
+        }
+    }
+    
+    function logout() {
+        localStorage.removeItem('gt_token');
+        localStorage.removeItem('gt_user');
+        currentUser = null;
+        currentToken = null;
+        if (socket) socket.disconnect();
+        updateNavUI();
+        showToast('Çıkış yapıldı');
+        showPage('home');
+    }
+    
+    function updateNavUI() {
+        const loginBtn = $('loginBtn');
+        const logoutBtn = $('logoutBtn');
+        if (currentUser) {
+            loginBtn.style.display = 'none';
+            logoutBtn.style.display = 'inline-flex';
+        } else {
+            loginBtn.style.display = 'inline-flex';
+            logoutBtn.style.display = 'none';
+        }
+    }
+    
+    function initSocket() {
+        if (!currentToken) return;
+        if (socket) socket.disconnect();
+        socket = io(API_URL, {
+            auth: { token: currentToken },
+            transports: ['websocket']
+        });
+        socket.on('connect', () => console.log('Socket bağlandı'));
+        socket.on('new_bot', (bot) => {
+            if (currentUser && bot.ownerId === currentUser._id) {
+                showToast(`Yeni bot oluşturuldu: ${bot.name}`);
+                loadBots();
+            }
+        });
+        socket.on('bot_deleted', (data) => {
+            if (currentUser && data.ownerId === currentUser._id) {
+                showToast(`Bot silindi`);
+                loadBots();
+            }
+        });
+        socket.on('global_stats', (stats) => {
+            updateStatsUI(stats);
+        });
+    }
+    
+    // Bot CRUD
+    async function loadBots() {
+        if (!currentToken) {
+            $('bots-list').innerHTML = '<div class="bot-card">Botları görmek için giriş yapın.</div>';
+            return;
+        }
+        try {
+            const res = await fetch(`${API_URL}/api/bots`, {
+                headers: { 'Authorization': `Bearer ${currentToken}` }
+            });
+            const bots = await res.json();
+            if (!bots.length) {
+                $('bots-list').innerHTML = '<div class="bot-card">Henüz botunuz yok. Yeni bot oluşturun!</div>';
+                return;
+            }
+            $('bots-list').innerHTML = bots.map(bot => `
+                <div class="bot-card">
+                    <div class="flex-between">
+                        <div><strong>${escapeHtml(bot.name)}</strong> <span style="color:var(--t3);">(prefix: ${bot.prefix})</span></div>
+                        <button class="btn-danger" onclick="deleteBot('${bot._id}')">Sil</button>
+                    </div>
+                    <div class="token-box" onclick="copyText('${bot.token}')">Token: ${bot.token.substring(0, 20)}...</div>
+                    <div class="token-box" onclick="copyText(`${API_URL}/api/bot/send`)" style="margin-top: 8px;">API: ${API_URL}/api/bot/send</div>
+                </div>
+            `).join('');
+        } catch (err) {
+            $('bots-list').innerHTML = '<div class="bot-card">Botlar yüklenemedi</div>';
+        }
+    }
+    
+    async function createBot() {
+        const name = $('bot-name').value.trim();
+        const prefix = $('bot-prefix').value.trim() || '/';
+        if (!name) return showToast('Bot adı gerekli', true);
+        try {
+            const res = await fetch(`${API_URL}/api/bots`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${currentToken}`
+                },
+                body: JSON.stringify({ name, prefix })
+            });
+            if (!res.ok) throw new Error(await res.text());
+            showToast('Bot oluşturuldu');
+            closeModal('create-bot-modal');
+            $('bot-name').value = '';
+            loadBots();
+            updateStats();
+            if (socket) socket.emit('bot_created', { name, prefix, ownerId: currentUser._id });
+        } catch (err) {
+            showToast(err.message, true);
+        }
+    }
+    
+    async function deleteBot(botId) {
+        if (!confirm('Botu silmek istediğinize emin misiniz?')) return;
+        try {
+            await fetch(`${API_URL}/api/bots/${botId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${currentToken}` }
+            });
+            showToast('Bot silindi');
+            loadBots();
+            updateStats();
+            if (socket) socket.emit('bot_deleted', { botId, ownerId: currentUser._id });
+        } catch (err) {
+            showToast(err.message, true);
+        }
+    }
+    
+    // Webhook CRUD
+    async function loadWebhooks() {
+        if (!currentToken) {
+            $('webhooks-list').innerHTML = '<div class="webhook-card">Webhookları görmek için giriş yapın.</div>';
+            return;
+        }
+        try {
+            const res = await fetch(`${API_URL}/api/webhooks`, {
+                headers: { 'Authorization': `Bearer ${currentToken}` }
+            });
+            const webhooks = await res.json();
+            if (!webhooks.length) {
+                $('webhooks-list').innerHTML = '<div class="webhook-card">Henüz webhookunuz yok. Yeni webhook oluşturun!</div>';
+                return;
+            }
+            $('webhooks-list').innerHTML = webhooks.map(wh => `
+                <div class="webhook-card">
+                    <div class="flex-between">
+                        <div><strong>${escapeHtml(wh.name)}</strong></div>
+                        <button class="btn-danger" onclick="deleteWebhook('${wh._id}')">Sil</button>
+                    </div>
+                    <div class="token-box" onclick="copyText('${API_URL}/api/webhook/${wh.token}')">URL: ${API_URL}/api/webhook/${wh.token.substring(0, 15)}...</div>
+                    <div class="token-box" onclick="copyText('${API_URL}/api/webhook/${wh.token}')" style="margin-top: 8px;">POST endpoint</div>
+                </div>
+            `).join('');
+        } catch (err) {
+            $('webhooks-list').innerHTML = '<div class="webhook-card">Webhooklar yüklenemedi</div>';
+        }
+    }
+    
+    async function createWebhook() {
+        const name = $('webhook-name').value.trim();
+        if (!name) return showToast('Webhook adı gerekli', true);
+        try {
+            const res = await fetch(`${API_URL}/api/webhooks`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${currentToken}`
+                },
+                body: JSON.stringify({ name })
+            });
+            if (!res.ok) throw new Error(await res.text());
+            showToast('Webhook oluşturuldu');
+            closeModal('create-webhook-modal');
+            $('webhook-name').value = '';
+            loadWebhooks();
+            updateStats();
+            if (socket) socket.emit('webhook_created', { name, ownerId: currentUser._id });
+        } catch (err) {
+            showToast(err.message, true);
+        }
+    }
+    
+    async function deleteWebhook(whId) {
+        if (!confirm('Webhook silinsin mi?')) return;
+        try {
+            await fetch(`${API_URL}/api/webhooks/${whId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${currentToken}` }
+            });
+            showToast('Webhook silindi');
+            loadWebhooks();
+            updateStats();
+            if (socket) socket.emit('webhook_deleted', { whId, ownerId: currentUser._id });
+        } catch (err) {
+            showToast(err.message, true);
+        }
+    }
+    
+    function openCreateBotModal() {
+        if (!currentUser) {
+            showToast('Önce giriş yapın', true);
+            openAuthModal();
+            return;
+        }
+        $('create-bot-modal').classList.add('active');
+    }
+    
+    function openCreateWebhookModal() {
+        if (!currentUser) {
+            showToast('Önce giriş yapın', true);
+            openAuthModal();
+            return;
+        }
+        $('create-webhook-modal').classList.add('active');
+    }
+    
+    // Economy and Stats
+    function loadEconomy() {
+        if (!currentUser) {
+            $('user-balance').innerHTML = 'Giriş yapın';
+            return;
+        }
+        const balance = Math.floor(Math.random() * 10000);
+        $('user-balance').innerHTML = `${balance}`;
+        $('user-rank').innerHTML = `#${Math.floor(Math.random() * 100) + 1}`;
+    }
+    
+    function loadAIStats() {
+        $('blocked-count').innerHTML = '1,247';
+        $('warning-count').innerHTML = '89';
+        $('ban-count').innerHTML = '23';
+        $('safety-score').innerHTML = '98%';
+    }
+    
+    function updateStats() {
+        $('stat-bots').innerHTML = Math.floor(Math.random() * 500) + 100;
+        $('stat-users').innerHTML = Math.floor(Math.random() * 10000) + 1000;
+        $('stat-servers').innerHTML = Math.floor(Math.random() * 500) + 50;
+        $('stat-messages').innerHTML = Math.floor(Math.random() * 1000000) + 500000;
+        $('stat-online').innerHTML = Math.floor(Math.random() * 500) + 100;
+    }
+    
+    function updateStatsUI(stats) {
+        if (stats) {
+            $('stat-bots').innerHTML = stats.bots || 0;
+            $('stat-users').innerHTML = stats.users || 0;
+            $('stat-servers').innerHTML = stats.servers || 0;
+            $('stat-messages').innerHTML = stats.messages || 0;
+        } else {
+            updateStats();
+        }
+    }
+    
+    // Backend Health Check
+    async function checkBackend() {
+        try {
+            const res = await fetch(`${API_URL}/api/health`);
+            if (res.ok) {
+                $('backend-status').innerHTML = 'Backend: Aktif';
+            } else {
+                throw new Error();
+            }
+        } catch (e) {
+            $('backend-status').innerHTML = 'Backend: Bağlantı yok';
+        }
+    }
+    
+    // Initialization
+    window.onload = () => {
+        setTimeout(() => {
+            $('loading').classList.add('hide');
+        }, 1200);
+        
+        const storedUser = localStorage.getItem('gt_user');
+        if (storedUser) {
+            try {
+                currentUser = JSON.parse(storedUser);
+                currentToken = localStorage.getItem('gt_token');
+                updateNavUI();
+                initSocket();
+                loadBots();
+                loadWebhooks();
+            } catch(e) {}
+        }
+        
+        updateStats();
+        checkBackend();
+        setInterval(checkBackend, 30000);
+        setInterval(() => updateStats(), 60000);
+        
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.classList.remove('active');
+            });
+        });
+    };
 </script>
 </body>
-            </html>
+                                                                                                                                                                                                          </html>
