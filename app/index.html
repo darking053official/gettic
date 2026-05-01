@@ -3,324 +3,268 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Gettic - Sohbet Uygulaması</title>
-    <link rel="icon" href="https://github.com/darking053official/gettic/blob/main/1777062266055.png">
+    <title>Gettic — Sohbet Platformu</title>
+    <link rel="icon" href="https://github.com/darking053official/gettic/blob/main/1777062266055.png?raw=true">
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0a0a14;
+            --bg1: #0f0f1a;
+            --bg2: #151520;
+            --bg3: #1c1c2a;
+            --b: rgba(255,255,255,.05);
+            --b2: rgba(255,255,255,.08);
+            --ac: #c084fc;
+            --ac2: #e879f9;
+            --ac3: #f0abfc;
+            --acg: rgba(192,132,252,.3);
+            --acd: rgba(192,132,252,.1);
+            --t1: #f0f0ff;
+            --t2: #a0a0c0;
+            --t3: #606080;
+            --gr: #22c55e;
+            --re: #ef4444;
+            --ye: #f59e0b;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Outfit', Roboto, sans-serif;
-            background: #0a0a12;
-            color: #f0f0ff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--t1);
             height: 100vh;
             overflow: hidden;
         }
 
-        /* Ana Uygulama Layout */
-        .app {
-            display: flex;
-            height: 100vh;
-            background: #0f0f1a;
-        }
+        /* APP LAYOUT */
+        .app { display: flex; height: 100vh; background: var(--bg1); }
 
-        /* SOL TARAF - SUNUCU LİSTESİ */
+        /* SERVER RAIL */
         .server-rail {
             width: 72px;
-            background: #080812;
+            background: var(--bg);
             display: flex;
             flex-direction: column;
             align-items: center;
             padding: 12px 0;
             gap: 12px;
             overflow-y: auto;
-            border-right: 1px solid #1a1a2e;
+            border-right: 1px solid var(--b);
             flex-shrink: 0;
         }
-
         .server-icon {
             width: 48px;
             height: 48px;
-            background: #1a1a2e;
+            background: var(--bg2);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             transition: all 0.2s ease;
-            font-weight: bold;
-            font-size: 18px;
-            color: #a0a0c0;
+            position: relative;
         }
+        .server-icon svg { width: 24px; height: 24px; stroke: var(--t2); stroke-width: 1.5; fill: none; }
+        .server-icon:hover, .server-icon.active { border-radius: 16px; background: var(--ac); }
+        .server-icon:hover svg, .server-icon.active svg { stroke: white; }
 
-        .server-icon:hover, .server-icon.active {
-            border-radius: 16px;
-            background: #5865f2;
-            color: white;
-        }
-
-        .server-icon img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: inherit;
-        }
-
-        /* SOL TARAF - KANAL LİSTESİ */
+        /* CHANNEL SIDEBAR */
         .channel-sidebar {
-            width: 240px;
-            background: #0d0d18;
+            width: 260px;
+            background: var(--bg1);
             display: flex;
             flex-direction: column;
-            border-right: 1px solid #1a1a2e;
+            border-right: 1px solid var(--b);
             flex-shrink: 0;
         }
-
         .channel-header {
             height: 48px;
             padding: 0 16px;
             display: flex;
             align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid var(--b);
             font-weight: bold;
-            border-bottom: 1px solid #1a1a2e;
-            background: #0a0a14;
-            font-size: 14px;
+            background: var(--bg);
         }
-
+        .channel-header svg { width: 20px; height: 20px; stroke: var(--t2); }
         .channel-category {
             padding: 16px 16px 4px 16px;
             font-size: 11px;
             font-weight: bold;
             text-transform: uppercase;
-            color: #6a6a8a;
+            color: var(--t3);
             letter-spacing: 1px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-
+        .channel-category button {
+            background: none;
+            border: none;
+            color: var(--t3);
+            cursor: pointer;
+            font-size: 14px;
+        }
         .channel-item {
             padding: 6px 16px;
             margin: 1px 8px;
             border-radius: 8px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             cursor: pointer;
             font-size: 14px;
-            color: #b0b0d0;
+            color: var(--t2);
             transition: all 0.1s ease;
         }
+        .channel-item svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.5; }
+        .channel-item:hover { background: var(--bg2); color: var(--t1); }
+        .channel-item.active { background: var(--acd); color: var(--ac3); }
 
-        .channel-item:hover {
-            background: #1a1a2a;
-            color: white;
-        }
-
-        .channel-item.active {
-            background: #2a2a3e;
-            color: white;
-        }
-
-        .channel-icon {
-            font-size: 16px;
-        }
-
-        /* ANA SOHBET ALANI */
+        /* CHAT AREA */
         .chat-area {
             flex: 1;
             display: flex;
             flex-direction: column;
-            background: #0f0f1a;
+            background: var(--bg1);
             min-width: 0;
         }
-
         .chat-header {
             height: 48px;
             padding: 0 20px;
             display: flex;
             align-items: center;
-            border-bottom: 1px solid #1a1a2e;
-            background: #0d0d18;
-            font-weight: bold;
-            font-size: 14px;
             gap: 12px;
+            border-bottom: 1px solid var(--b);
+            background: var(--bg);
         }
-
-        .chat-header .topic {
-            font-size: 12px;
-            color: #6a6a8a;
-            font-weight: normal;
+        .chat-header svg { width: 20px; height: 20px; stroke: var(--t2); }
+        .chat-header .channel-name { font-weight: bold; }
+        .chat-header .channel-topic { font-size: 12px; color: var(--t3); }
+        .chat-header .header-badge {
+            margin-left: auto;
+            display: flex;
+            gap: 8px;
+            align-items: center;
         }
-
         .messages-container {
             flex: 1;
             overflow-y: auto;
             padding: 16px 20px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 8px;
         }
-
+        .empty-channel {
+            text-align: center;
+            padding: 40px;
+            color: var(--t3);
+        }
+        .empty-channel svg { width: 64px; height: 64px; stroke: var(--t3); margin-bottom: 16px; }
         .message {
             display: flex;
             align-items: flex-start;
             gap: 12px;
+            padding: 4px 0;
         }
-
         .message-avatar {
             width: 36px;
             height: 36px;
-            background: #5865f2;
+            background: var(--acd);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
             flex-shrink: 0;
-            font-size: 14px;
         }
+        .message-content { flex: 1; }
+        .message-header { font-size: 13px; font-weight: bold; margin-bottom: 2px; }
+        .message-header span { font-weight: normal; font-size: 11px; margin-left: 8px; color: var(--t3); }
+        .message-text { font-size: 14px; line-height: 1.4; word-wrap: break-word; }
+        .typing-indicator { padding: 8px 20px; font-size: 12px; color: var(--t3); font-style: italic; height: 36px; }
 
-        .message-content {
-            flex: 1;
-        }
-
-        .message-header {
-            font-size: 13px;
-            font-weight: bold;
-            margin-bottom: 2px;
-        }
-
-        .message-header span {
-            font-weight: normal;
-            font-size: 11px;
-            margin-left: 8px;
-            color: #6a6a8a;
-        }
-
-        .message-text {
-            font-size: 14px;
-            line-height: 1.4;
-            word-wrap: break-word;
-        }
-
-        .typing-indicator {
-            padding: 8px 20px;
-            font-size: 12px;
-            color: #6a6a8a;
-            font-style: italic;
-            height: 36px;
-        }
-
-        /* MESAJ GÖNDERME ALANI */
+        /* INPUT AREA */
         .input-area {
             padding: 16px 20px;
-            background: #0d0d18;
-            border-top: 1px solid #1a1a2e;
+            background: var(--bg);
+            border-top: 1px solid var(--b);
             display: flex;
             gap: 12px;
             align-items: center;
         }
-
         .message-input {
             flex: 1;
-            background: #1a1a2a;
-            border: none;
+            background: var(--bg2);
+            border: 1px solid var(--b2);
             border-radius: 24px;
             padding: 10px 16px;
-            color: white;
+            color: var(--t1);
             font-size: 14px;
             outline: none;
             transition: all 0.2s;
         }
-
-        .message-input:focus {
-            background: #222236;
-        }
-
-        .emoji-btn, .send-btn {
-            background: #2a2a3e;
+        .message-input:focus { border-color: var(--ac); }
+        .icon-btn {
+            background: var(--bg2);
             border: none;
             width: 36px;
             height: 36px;
             border-radius: 50%;
             cursor: pointer;
-            font-size: 18px;
-            transition: all 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: all 0.2s;
         }
-
-        .send-btn {
-            background: #5865f2;
-            color: white;
-        }
-
-        .emoji-btn:hover, .send-btn:hover {
-            filter: brightness(1.1);
-            transform: scale(1.02);
-        }
+        .icon-btn svg { width: 18px; height: 18px; stroke: var(--t2); stroke-width: 1.5; fill: none; }
+        .icon-btn:hover { background: var(--ac); }
+        .icon-btn:hover svg { stroke: white; }
+        .send-btn { background: var(--ac); }
+        .send-btn svg { stroke: white; }
 
         /* EMOJI PICKER */
         .emoji-picker {
             position: fixed;
             bottom: 90px;
             left: 340px;
-            background: #1a1a2e;
-            border-radius: 12px;
+            background: var(--bg2);
+            border-radius: 16px;
             padding: 12px;
             display: none;
             grid-template-columns: repeat(8, 1fr);
             gap: 8px;
             z-index: 100;
-            border: 1px solid #2a2a3e;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            border: 1px solid var(--b2);
         }
+        .emoji-picker.show { display: grid; }
+        .emoji-option { font-size: 22px; cursor: pointer; padding: 4px; text-align: center; border-radius: 8px; }
+        .emoji-option:hover { background: var(--bg3); }
 
-        .emoji-picker.show {
-            display: grid;
-        }
-
-        .emoji-option {
-            font-size: 22px;
-            cursor: pointer;
-            padding: 4px;
-            text-align: center;
-            border-radius: 8px;
-            transition: all 0.1s;
-        }
-
-        .emoji-option:hover {
-            background: #2a2a3e;
-            transform: scale(1.1);
-        }
-
-        /* SAĞ TARAF - KULLANICI PANELİ */
+        /* USER PANEL */
         .user-panel {
-            width: 240px;
-            background: #0a0a14;
-            border-left: 1px solid #1a1a2e;
+            width: 260px;
+            background: var(--bg);
+            border-left: 1px solid var(--b);
             padding: 16px;
             display: flex;
             flex-direction: column;
             gap: 16px;
             flex-shrink: 0;
         }
-
         .user-profile {
             display: flex;
             gap: 12px;
             align-items: center;
             padding-bottom: 12px;
-            border-bottom: 1px solid #1a1a2e;
+            border-bottom: 1px solid var(--b);
         }
-
         .user-avatar {
-            width: 40px;
-            height: 40px;
-            background: #5865f2;
+            width: 44px;
+            height: 44px;
+            background: var(--acd);
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -328,39 +272,26 @@
             font-weight: bold;
             font-size: 16px;
         }
-
-        .user-info {
-            flex: 1;
-        }
-
-        .user-name {
-            font-weight: bold;
-            font-size: 14px;
-        }
-
-        .user-status {
-            font-size: 11px;
-            color: #22c55e;
-        }
-
-        .logout-btn {
-            background: #1a1a2e;
+        .user-info { flex: 1; }
+        .user-name { font-weight: bold; font-size: 14px; }
+        .user-status { font-size: 11px; color: var(--gr); }
+        .server-settings-btn, .logout-btn {
+            background: var(--bg2);
             border: none;
-            padding: 8px;
+            padding: 10px;
             border-radius: 8px;
-            color: #ef4444;
+            color: var(--t2);
             cursor: pointer;
-            font-weight: bold;
-            transition: all 0.2s;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
             width: 100%;
         }
+        .server-settings-btn svg, .logout-btn svg { width: 18px; height: 18px; stroke: currentColor; }
+        .server-settings-btn:hover, .logout-btn:hover { background: var(--bg3); color: var(--t1); }
 
-        .logout-btn:hover {
-            background: #ef4444;
-            color: white;
-        }
-
-        /* MODAL (GİRİŞ/KAYIT) */
+        /* MODAL */
         .modal {
             position: fixed;
             inset: 0;
@@ -372,616 +303,399 @@
             z-index: 1000;
             display: none;
         }
-
-        .modal.show {
-            display: flex;
-            animation: fadeIn 0.2s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
+        .modal.show { display: flex; }
         .modal-box {
-            background: #151528;
+            background: var(--bg2);
             border-radius: 24px;
             padding: 32px;
-            width: 400px;
+            width: 500px;
             max-width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
         }
-
-        .modal-box h2 {
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
+        .modal-box h2 { margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
         .modal-input {
             width: 100%;
             padding: 12px 16px;
-            background: #0a0a14;
-            border: 1px solid #2a2a3a;
+            background: var(--bg1);
+            border: 1px solid var(--b2);
             border-radius: 12px;
-            color: white;
+            color: var(--t1);
             margin-bottom: 16px;
-            font-size: 14px;
         }
-
-        .modal-input:focus {
-            outline: none;
-            border-color: #5865f2;
-        }
-
         .modal-btn {
             width: 100%;
             padding: 12px;
-            background: #5865f2;
+            background: var(--ac);
             border: none;
             border-radius: 12px;
             color: white;
             font-weight: bold;
             cursor: pointer;
-            font-size: 14px;
+        }
+        .color-preview {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: var(--ac);
+            margin-right: 12px;
         }
 
-        .modal-switch {
-            text-align: center;
-            margin-top: 16px;
-            font-size: 12px;
-            color: #6a6a8a;
-        }
-
-        .modal-switch span {
-            color: #5865f2;
-            cursor: pointer;
-        }
-
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #1a1a2e;
-            padding: 10px 20px;
-            border-radius: 10px;
-            font-size: 13px;
-            z-index: 2000;
-            animation: slideIn 0.2s ease;
-        }
-
-        @keyframes slideIn {
-            from { transform: translateX(100px); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-
-        /* SCROLLBAR */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #0a0a14;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #2a2a3e;
-            border-radius: 3px;
-        }
-
-        /* RESPONSIVE */
         @media (max-width: 768px) {
             .server-rail { width: 56px; }
-            .server-icon { width: 40px; height: 40px; font-size: 14px; }
-            .channel-sidebar { width: 200px; }
-            .user-panel { width: 200px; }
-            .emoji-picker { left: 280px; }
+            .channel-sidebar { position: absolute; left: -260px; transition: left 0.2s; z-index: 50; height: 100%; }
+            .channel-sidebar.open { left: 56px; }
+            .user-panel { position: absolute; right: -260px; transition: right 0.2s; z-index: 50; height: 100%; }
+            .user-panel.open { right: 0; }
         }
     </style>
 </head>
 <body>
-<div id="appRoot"></div>
+<div id="app"></div>
 
 <script>
-    // ==================== KONFIGURASYON ====================
+    // ==================== KONFIG ====================
     const API_URL = 'https://gettic-j49l.onrender.com';
     let currentUser = null;
     let currentToken = localStorage.getItem('gt_token');
     let socket = null;
-    let currentChannel = { id: 'genel-sohbet', name: 'genel-sohbet' };
+    let currentChannel = { id: 'genel-sohbet', name: 'genel-sohbet', topic: 'Sohbet odası' };
     let messages = [];
-    let typingTimeout = null;
+    let servers = [];
+    let friends = [];
+    let themeColors = { primary: '#c084fc', secondary: '#e879f9' };
 
-    // ==================== YARDIMCI FONKSİYONLAR ====================
-    function escapeHtml(str) {
-        if (!str) return '';
-        return str.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
-        });
-    }
+    // ==================== SVG ICONS ====================
+    const Icons = {
+        hash: '<svg viewBox="0 0 24 24"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>',
+        volume: '<svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>',
+        forum: '<svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+        dm: '<svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+        discover: '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+        settings: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 0 1 21 12a10 10 0 0 1-1.93 7.07M4.93 4.93A10 10 0 0 0 3 12a10 10 0 0 0 1.93 7.07M12 2v2M12 20v2M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41"/></svg>',
+        plus: '<svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
+        send: '<svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>',
+        emoji: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>',
+        add: '<svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
+        logout: '<svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>'
+    };
 
+    // ==================== UTILS ====================
+    function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;'); }
     function showToast(msg, isError = false) {
         const toast = document.createElement('div');
-        toast.className = 'toast';
+        toast.style.cssText = `position:fixed;bottom:20px;right:20px;background:#1a1a2e;padding:10px 20px;border-radius:10px;color:${isError ? '#ef4444' : '#22c55e'};z-index:2000;`;
         toast.textContent = msg;
-        toast.style.color = isError ? '#ef4444' : '#22c55e';
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 2500);
     }
 
-    // ==================== SOCKET.IO (GERÇEK ZAMANLI) ====================
-    function initSocket() {
-        if (!currentToken) return;
-        if (socket) socket.disconnect();
-        
-        socket = io(API_URL, {
-            auth: { token: currentToken },
-            transports: ['websocket'],
-            reconnection: true
-        });
-
-        socket.on('connect', () => {
-            console.log('✅ Socket bağlandı');
-            socket.emit('join_channel', currentChannel.id);
-        });
-
-        socket.on('disconnect', () => {
-            console.log('❌ Socket bağlantısı kesildi');
-        });
-
-        socket.on('new_message', (msg) => {
-            if (msg.channelId === currentChannel.id) {
-                addMessageToChat(msg);
-            }
-        });
-
-        socket.on('user_typing', ({ username, channelId }) => {
-            if (channelId === currentChannel.id && username !== currentUser?.username) {
-                showTyping(username);
-            }
-        });
-    }
-
-    // ==================== MESAJ FONKSİYONLARI ====================
-    async function loadMessages() {
-        if (!currentToken) return;
-        try {
-            const res = await fetch(`${API_URL}/api/channels/${currentChannel.id}/messages`, {
-                headers: { 'Authorization': `Bearer ${currentToken}` }
-            });
-            messages = await res.json();
-            renderMessages();
-        } catch (err) {
-            console.error('Mesajlar yüklenemedi:', err);
+    // ==================== RENDER APP ====================
+    function renderApp() {
+        const appDiv = document.getElementById('app');
+        if (!currentUser) {
+            appDiv.innerHTML = renderAuth();
+            attachAuthEvents();
+            return;
         }
-    }
-
-    function renderMessages() {
-        const container = document.getElementById('messagesContainer');
-        if (!container) return;
-        
-        container.innerHTML = messages.map(msg => `
-            <div class="message">
-                <div class="message-avatar">${msg.senderName?.charAt(0).toUpperCase() || '?'}</div>
-                <div class="message-content">
-                    <div class="message-header">${escapeHtml(msg.senderName)} <span>${new Date(msg.createdAt).toLocaleTimeString()}</span></div>
-                    <div class="message-text">${escapeHtml(msg.content)}</div>
-                </div>
-            </div>
-        `).join('');
-        
-        container.scrollTop = container.scrollHeight;
-    }
-
-    function addMessageToChat(msg) {
-        const container = document.getElementById('messagesContainer');
-        if (!container) return;
-        
-        const messageDiv = document.createElement('div');
-        messageDiv.className = 'message';
-        messageDiv.innerHTML = `
-            <div class="message-avatar">${msg.senderName?.charAt(0).toUpperCase() || '?'}</div>
-            <div class="message-content">
-                <div class="message-header">${escapeHtml(msg.senderName)} <span>${new Date(msg.createdAt).toLocaleTimeString()}</span></div>
-                <div class="message-text">${escapeHtml(msg.content)}</div>
-            </div>
-        `;
-        container.appendChild(messageDiv);
-        container.scrollTop = container.scrollHeight;
-    }
-
-    async function sendMessage(content) {
-        if (!content || !currentChannel) return;
-        try {
-            await fetch(`${API_URL}/api/channels/${currentChannel.id}/messages`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${currentToken}`
-                },
-                body: JSON.stringify({ content })
-            });
-        } catch (err) {
-            showToast(err.message, true);
-        }
-    }
-
-    function sendTyping() {
-        if (socket && currentChannel) {
-            socket.emit('typing', {
-                channelId: currentChannel.id,
-                username: currentUser?.username
-            });
-        }
-    }
-
-    function showTyping(username) {
-        const indicator = document.getElementById('typingIndicator');
-        if (indicator) {
-            indicator.textContent = `${username} yazıyor...`;
-            clearTimeout(typingTimeout);
-            typingTimeout = setTimeout(() => {
-                if (indicator) indicator.textContent = '';
-            }, 2000);
-        }
-    }
-
-    // ==================== KANAL DEĞİŞTİRME ====================
-    function switchChannel(channelId, channelName) {
-        currentChannel = { id: channelId, name: channelName };
-        
-        // Aktif kanalı vurgula
-        document.querySelectorAll('.channel-item').forEach(el => {
-            el.classList.remove('active');
-            if (el.dataset.channel === channelId) {
-                el.classList.add('active');
-            }
-        });
-        
-        // Header güncelle
-        const header = document.getElementById('chatHeader');
-        if (header) {
-            header.innerHTML = `<span># ${channelName}</span> <span class="topic">Sohbet odası</span>`;
-        }
-        
-        // Socket ile kanal değiştir
-        if (socket) {
-            socket.emit('leave_channel', currentChannel.id);
-            socket.emit('join_channel', channelId);
-        }
-        
-        // Mesajları yeniden yükle
+        appDiv.innerHTML = renderMainUI();
+        attachMainEvents();
         loadMessages();
+        initSocket();
     }
 
-    // ==================== AUTH FONKSİYONLARI ====================
-    async function doLogin(username, password) {
-        try {
-            const res = await fetch(`${API_URL}/api/auth/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || 'Giriş başarısız');
-            
-            currentToken = data.token;
-            currentUser = data.user;
-            localStorage.setItem('gt_token', currentToken);
-            localStorage.setItem('gt_user', JSON.stringify(currentUser));
-            
-            showToast('Giriş başarılı!');
-            renderApp();
-            initSocket();
-            loadMessages();
-        } catch (err) {
-            showToast(err.message, true);
-            throw err;
-        }
-    }
-
-    async function doRegister(username, password) {
-        if (username.length < 3) throw new Error('Kullanıcı adı en az 3 karakter');
-        if (password.length < 6) throw new Error('Şifre en az 6 karakter');
-        
-        try {
-            const res = await fetch(`${API_URL}/api/auth/register`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || 'Kayıt başarısız');
-            
-            currentToken = data.token;
-            currentUser = data.user;
-            localStorage.setItem('gt_token', currentToken);
-            localStorage.setItem('gt_user', JSON.stringify(currentUser));
-            
-            showToast('Kayıt başarılı!');
-            renderApp();
-            initSocket();
-            loadMessages();
-        } catch (err) {
-            showToast(err.message, true);
-            throw err;
-        }
-    }
-
-    function logout() {
-        localStorage.removeItem('gt_token');
-        localStorage.removeItem('gt_user');
-        currentUser = null;
-        currentToken = null;
-        if (socket) socket.disconnect();
-        renderApp();
-        showToast('Çıkış yapıldı');
-    }
-
-    // ==================== UI RENDER ====================
-    function renderAuthModal() {
+    function renderAuth() {
         return `
             <div class="modal show" id="authModal">
                 <div class="modal-box">
-                    <h2>Gettic</h2>
-                    <div style="display: flex; gap: 12px; margin-bottom: 20px;">
-                        <button id="loginTabBtn" style="flex:1; padding:8px; background:#5865f2; border:none; border-radius:8px; color:white; cursor:pointer;">Giriş</button>
-                        <button id="registerTabBtn" style="flex:1; padding:8px; background:#1a1a2e; border:none; border-radius:8px; color:white; cursor:pointer;">Kayıt</button>
+                    <h2>🎙️ Gettic</h2>
+                    <div style="display:flex;gap:12px;margin-bottom:20px;">
+                        <button id="loginTab" class="modal-btn" style="background:var(--ac)">Giriş</button>
+                        <button id="registerTab" class="modal-btn" style="background:var(--bg2)">Kayıt</button>
                     </div>
                     <div id="loginForm">
-                        <input type="text" id="loginUsername" class="modal-input" placeholder="Kullanıcı Adı">
-                        <input type="password" id="loginPassword" class="modal-input" placeholder="Şifre">
+                        <input type="text" id="loginUser" class="modal-input" placeholder="Kullanıcı Adı">
+                        <input type="password" id="loginPass" class="modal-input" placeholder="Şifre">
                         <button id="doLoginBtn" class="modal-btn">Giriş Yap</button>
                     </div>
-                    <div id="registerForm" style="display: none;">
-                        <input type="text" id="regUsername" class="modal-input" placeholder="Kullanıcı Adı">
-                        <input type="password" id="regPassword" class="modal-input" placeholder="Şifre (en az 6 karakter)">
-                        <button id="doRegisterBtn" class="modal-btn">Kayıt Ol</button>
+                    <div id="registerForm" style="display:none">
+                        <input type="text" id="regUser" class="modal-input" placeholder="Kullanıcı Adı">
+                        <input type="password" id="regPass" class="modal-input" placeholder="Şifre (min 6)">
+                        <button id="doRegBtn" class="modal-btn">Kayıt Ol</button>
                     </div>
-                    <div class="modal-switch"><span id="switchAuthBtn">Hesabın yok mu? Kayıt ol</span></div>
-                    <div id="authError" style="color:#ef4444; font-size:12px; text-align:center; margin-top:12px;"></div>
+                    <div id="authError" style="color:var(--re);margin-top:12px;text-align:center;"></div>
                 </div>
             </div>
         `;
     }
 
-    function renderMainApp() {
+    function renderMainUI() {
         return `
             <div class="app">
-                <!-- Sol Sunucu Listesi -->
                 <div class="server-rail">
-                    <div class="server-icon active" data-server="main">🎧</div>
+                    <div class="server-icon active" data-server="main">${Icons.hash}</div>
                     <div class="server-icon" data-server="games">🎮</div>
-                    <div class="server-icon" data-server="dev">💻</div>
+                    <div class="server-icon" onclick="openModal('addServerModal')">${Icons.plus}</div>
                 </div>
 
-                <!-- Kanal Listesi -->
-                <div class="channel-sidebar">
-                    <div class="channel-header">Gettic</div>
-                    
-                    <div class="channel-category">📁 METİN ODALARI</div>
-                    <div class="channel-item active" data-channel="genel-sohbet">
-                        <span class="channel-icon">#</span> genel-sohbet
-                    </div>
-                    <div class="channel-item" data-channel="gettic-art">
-                        <span class="channel-icon">#</span> gettic-art
-                    </div>
-                    <div class="channel-item" data-channel="reklam">
-                        <span class="channel-icon">#</span> reklam
-                    </div>
-
+                <div class="channel-sidebar" id="channelSidebar">
+                    <div class="channel-header">${Icons.hash} <span>Gettic</span></div>
+                    <div class="channel-category">📁 METİN ODALARI <button onclick="openModal('addChannelModal')">${Icons.plus}</button></div>
+                    <div class="channel-item active" data-channel="genel-sohbet">${Icons.hash} genel-sohbet</div>
+                    <div class="channel-item" data-channel="kurallar">${Icons.forum} kurallar</div>
+                    <div class="channel-category">🔊 SESLİ ODALAR</div>
+                    <div class="channel-item voice-channel" data-channel="Sesli Sohbet">${Icons.volume} Sesli Sohbet</div>
+                    <div class="channel-item voice-channel" data-channel="Müzik Odası">🎵 Müzik Odası</div>
                     <div class="channel-category">📢 GERİ BİLDİRİM</div>
-                    <div class="channel-item" data-channel="oneri">
-                        <span class="channel-icon">#</span> öneri
-                    </div>
-                    <div class="channel-item" data-channel="bug-bildirimi">
-                        <span class="channel-icon">#</span> bug-bildirimi
-                    </div>
-
-                    <div class="channel-category">🛠️ GELİŞTİRİCİLER</div>
-                    <div class="channel-item" data-channel="kod-destek">
-                        <span class="channel-icon">#</span> kod-destek
-                    </div>
-                    <div class="channel-item" data-channel="yazilim-soru-cevap">
-                        <span class="channel-icon">#</span> yazilim-soru-cevap
-                    </div>
+                    <div class="channel-item" data-channel="oneri">${Icons.forum} öneri</div>
+                    <div class="channel-item" data-channel="bug-bildirimi">🐛 bug-bildirimi</div>
                 </div>
 
-                <!-- Sohbet Alanı -->
                 <div class="chat-area">
-                    <div class="chat-header" id="chatHeader">
-                        <span># genel-sohbet</span>
-                        <span class="topic">Sohbet odası</span>
+                    <div class="chat-header">
+                        ${Icons.hash}
+                        <div class="channel-name"># ${currentChannel.name}</div>
+                        <div class="channel-topic">${currentChannel.topic}</div>
+                        <div class="header-badge">
+                            <button class="icon-btn" id="copyChannelIdBtn" title="Kanal ID">🆔</button>
+                            <button class="icon-btn" id="toggleMembersBtn" title="Üyeler">👥</button>
+                        </div>
                     </div>
-                    <div class="messages-container" id="messagesContainer">
-                        <div style="text-align:center; color:#6a6a8a; padding:40px;">Mesajlar burada görünecek</div>
-                    </div>
+                    <div class="messages-container" id="messagesContainer"></div>
                     <div class="typing-indicator" id="typingIndicator"></div>
                     <div class="input-area">
-                        <button class="emoji-btn" id="emojiBtn">😀</button>
+                        <button class="icon-btn" id="emojiBtn">${Icons.emoji}</button>
                         <div id="emojiPicker" class="emoji-picker"></div>
-                        <input type="text" class="message-input" id="messageInput" placeholder="Mesajınızı yazın..." autocomplete="off">
-                        <button class="send-btn" id="sendBtn">➤</button>
+                        <input type="text" class="message-input" id="messageInput" placeholder="Mesajınızı yazın...">
+                        <button class="icon-btn send-btn" id="sendBtn">${Icons.send}</button>
                     </div>
                 </div>
 
-                <!-- Kullanıcı Paneli -->
-                <div class="user-panel">
+                <div class="user-panel" id="userPanel">
                     <div class="user-profile">
-                        <div class="user-avatar">${currentUser?.username?.charAt(0).toUpperCase() || 'U'}</div>
+                        <div class="user-avatar">${currentUser?.username?.charAt(0)?.toUpperCase() || 'U'}</div>
                         <div class="user-info">
                             <div class="user-name">${escapeHtml(currentUser?.username || 'Kullanıcı')}</div>
                             <div class="user-status">🟢 Çevrimiçi</div>
                         </div>
                     </div>
-                    <button class="logout-btn" id="logoutBtn">Çıkış Yap</button>
+                    <button class="server-settings-btn" id="serverSettingsBtn">${Icons.settings} Sunucu Ayarları</button>
+                    <button class="server-settings-btn" id="userSettingsBtn">👤 Hesap Ayarları</button>
+                    <button class="server-settings-btn" id="discoverBtn">🔍 Sunucuları Keşfet</button>
+                    <button class="server-settings-btn" id="addFriendBtn">👥 Arkadaş Ekle</button>
+                    <button class="logout-btn" id="logoutBtn">${Icons.logout} Çıkış Yap</button>
                 </div>
             </div>
+
+            <!-- MODALLAR -->
+            <div id="serverSettingsModal" class="modal"><div class="modal-box"><h2>${Icons.settings} Sunucu Ayarları</h2><input id="serverName" class="modal-input" placeholder="Sunucu Adı"><input id="serverDesc" class="modal-input" placeholder="Açıklama"><input id="serverIcon" class="modal-input" placeholder="Icon URL"><input id="serverBanner" class="modal-input" placeholder="Banner URL"><div class="id-row">Sunucu ID: <span id="serverIdVal">-</span></div><button class="modal-btn" onclick="saveServerSettings()">Kaydet</button></div></div>
+            <div id="userSettingsModal" class="modal"><div class="modal-box"><h2>👤 Hesap Ayarları</h2><input id="userAvatar" class="modal-input" placeholder="Avatar URL"><input id="userBio" class="modal-input" placeholder="Biyografi"><select id="userStatus" class="modal-input"><option value="online">Çevrimiçi</option><option value="idle">Boşta</option><option value="dnd">Rahatsız Etme</option></select><button class="modal-btn" onclick="saveUserSettings()">Kaydet</button></div></div>
+            <div id="addServerModal" class="modal"><div class="modal-box"><h2>${Icons.plus} Sunucu Oluştur</h2><input id="newServerName" class="modal-input" placeholder="Sunucu Adı"><input id="newServerDesc" class="modal-input" placeholder="Açıklama"><button class="modal-btn" onclick="createServer()">Oluştur</button></div></div>
+            <div id="addChannelModal" class="modal"><div class="modal-box"><h2>${Icons.plus} Kanal Oluştur</h2><input id="newChannelName" class="modal-input" placeholder="Kanal Adı"><select id="channelType" class="modal-input"><option value="text">Metin</option><option value="voice">Sesli</option><option value="forum">Forum</option></select><button class="modal-btn" onclick="createChannel()">Oluştur</button></div></div>
+            <div id="discoverModal" class="modal"><div class="modal-box"><h2>🔍 Sunucuları Keşfet</h2><div id="discoverList"></div></div></div>
+            <div id="addFriendModal" class="modal"><div class="modal-box"><h2>👥 Arkadaş Ekle</h2><input id="friendUsername" class="modal-input" placeholder="Kullanıcı Adı"><button class="modal-btn" onclick="addFriend()">Ekle</button></div></div>
+            <div id="voiceModal" class="modal"><div class="modal-box"><h2>🔊 Sesli Kanal: <span id="voiceChannelName"></span></h2><button class="modal-btn" id="joinVoiceBtn">Katıl</button></div></div>
         `;
     }
 
-    function renderApp() {
-        const root = document.getElementById('appRoot');
-        if (!currentUser) {
-            root.innerHTML = renderAuthModal();
-            attachAuthEvents();
-        } else {
-            root.innerHTML = renderMainApp();
-            attachAppEvents();
-            loadMessages();
+    // ==================== AUTH EVENTS ====================
+    function attachAuthEvents() {
+        document.getElementById('loginTab')?.addEventListener('click', () => { toggleAuthForms(true); });
+        document.getElementById('registerTab')?.addEventListener('click', () => { toggleAuthForms(false); });
+        document.getElementById('doLoginBtn')?.addEventListener('click', doLogin);
+        document.getElementById('doRegBtn')?.addEventListener('click', doRegister);
+    }
+    function toggleAuthForms(isLogin) {
+        document.getElementById('loginForm').style.display = isLogin ? 'block' : 'none';
+        document.getElementById('registerForm').style.display = isLogin ? 'none' : 'block';
+        document.getElementById('loginTab').style.background = isLogin ? 'var(--ac)' : 'var(--bg2)';
+        document.getElementById('registerTab').style.background = isLogin ? 'var(--bg2)' : 'var(--ac)';
+    }
+    async function doLogin() {
+        const username = document.getElementById('loginUser').value.trim();
+        const password = document.getElementById('loginPass').value;
+        try {
+            const res = await fetch(`${API_URL}/api/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error);
+            currentToken = data.token;
+            currentUser = data.user;
+            localStorage.setItem('gt_token', currentToken);
+            localStorage.setItem('gt_user', JSON.stringify(currentUser));
+            renderApp();
             initSocket();
-        }
+        } catch (err) { document.getElementById('authError').innerText = err.message; }
+    }
+    async function doRegister() {
+        const username = document.getElementById('regUser').value.trim();
+        const password = document.getElementById('regPass').value;
+        try {
+            const res = await fetch(`${API_URL}/api/auth/register`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error);
+            currentToken = data.token;
+            currentUser = data.user;
+            localStorage.setItem('gt_token', currentToken);
+            localStorage.setItem('gt_user', JSON.stringify(currentUser));
+            renderApp();
+            initSocket();
+        } catch (err) { document.getElementById('authError').innerText = err.message; }
     }
 
-    // ==================== EVENT BAĞLANTILARI ====================
-    function attachAuthEvents() {
-        const loginTab = document.getElementById('loginTabBtn');
-        const registerTab = document.getElementById('registerTabBtn');
-        const switchBtn = document.getElementById('switchAuthBtn');
-        const loginForm = document.getElementById('loginForm');
-        const registerForm = document.getElementById('registerForm');
-
-        if (loginTab) {
-            loginTab.onclick = () => {
-                loginForm.style.display = 'block';
-                registerForm.style.display = 'none';
-                loginTab.style.background = '#5865f2';
-                registerTab.style.background = '#1a1a2e';
-            };
-        }
-        
-        if (registerTab) {
-            registerTab.onclick = () => {
-                loginForm.style.display = 'none';
-                registerForm.style.display = 'block';
-                loginTab.style.background = '#1a1a2e';
-                registerTab.style.background = '#5865f2';
-            };
-        }
-        
-        if (switchBtn) {
-            switchBtn.onclick = () => {
-                if (loginForm.style.display !== 'none') {
-                    loginForm.style.display = 'none';
-                    registerForm.style.display = 'block';
-                    loginTab.style.background = '#1a1a2e';
-                    registerTab.style.background = '#5865f2';
-                } else {
-                    loginForm.style.display = 'block';
-                    registerForm.style.display = 'none';
-                    loginTab.style.background = '#5865f2';
-                    registerTab.style.background = '#1a1a2e';
-                }
-            };
-        }
-
-        const doLoginBtn = document.getElementById('doLoginBtn');
-        if (doLoginBtn) {
-            doLoginBtn.onclick = async () => {
-                const username = document.getElementById('loginUsername')?.value.trim();
-                const password = document.getElementById('loginPassword')?.value;
-                if (!username || !password) {
-                    document.getElementById('authError').innerText = 'Tüm alanları doldurun';
+    // ==================== MAIN EVENTS ====================
+    function attachMainEvents() {
+        document.querySelectorAll('.channel-item').forEach(el => {
+            el.addEventListener('click', () => {
+                const channelId = el.dataset.channel;
+                if (el.classList.contains('voice-channel')) {
+                    document.getElementById('voiceChannelName').innerText = channelId;
+                    openModal('voiceModal');
                     return;
                 }
-                try {
-                    await doLogin(username, password);
-                } catch (err) {
-                    document.getElementById('authError').innerText = err.message;
-                }
-            };
-        }
-
-        const doRegisterBtn = document.getElementById('doRegisterBtn');
-        if (doRegisterBtn) {
-            doRegisterBtn.onclick = async () => {
-                const username = document.getElementById('regUsername')?.value.trim();
-                const password = document.getElementById('regPassword')?.value;
-                try {
-                    await doRegister(username, password);
-                } catch (err) {
-                    document.getElementById('authError').innerText = err.message;
-                }
-            };
-        }
-    }
-
-    function attachAppEvents() {
-        // Kanal tıklamaları
-        document.querySelectorAll('.channel-item').forEach(el => {
-            el.onclick = () => {
-                const channelId = el.dataset.channel;
-                const channelName = channelId.replace(/-/g, ' ');
-                switchChannel(channelId, channelName);
-            };
-        });
-
-        // Mesaj gönderme
-        const input = document.getElementById('messageInput');
-        const sendBtn = document.getElementById('sendBtn');
-        
-        const handleSend = () => {
-            const content = input?.value.trim();
-            if (content) {
-                sendMessage(content);
-                if (input) input.value = '';
-            }
-        };
-        
-        if (sendBtn) sendBtn.onclick = handleSend;
-        if (input) {
-            input.onkeypress = (e) => {
-                if (e.key === 'Enter') handleSend();
-            };
-            input.oninput = () => sendTyping();
-        }
-
-        // Emoji Picker
-        const emojiBtn = document.getElementById('emojiBtn');
-        const picker = document.getElementById('emojiPicker');
-        const emojis = ['😀', '😂', '❤️', '🔥', '🎉', '👍', '👎', '🙏', '🎮', '💻', '🐛', '📢', '✨', '⭐', '✅', '❌', '💪', '🎯', '🔧', '📦', '🚀', '💬'];
-        
-        if (picker) {
-            picker.innerHTML = emojis.map(e => `<div class="emoji-option" data-emoji="${e}">${e}</div>`).join('');
-            picker.querySelectorAll('.emoji-option').forEach(opt => {
-                opt.onclick = () => {
-                    if (input) input.value += opt.dataset.emoji;
-                    picker.classList.remove('show');
-                    input?.focus();
-                };
+                currentChannel = { id: channelId, name: channelId.replace(/-/g, ' '), topic: 'Sohbet odası' };
+                document.querySelectorAll('.channel-item').forEach(c => c.classList.remove('active'));
+                el.classList.add('active');
+                document.querySelector('.channel-name').innerHTML = `# ${currentChannel.name}`;
+                loadMessages();
+                socket?.emit('join_channel', channelId);
             });
-        }
-        
-        if (emojiBtn) {
-            emojiBtn.onclick = (e) => {
-                e.stopPropagation();
-                picker?.classList.toggle('show');
-            };
-        }
-        
-        document.addEventListener('click', (e) => {
-            if (picker && !picker.contains(e.target) && e.target !== emojiBtn) {
-                picker.classList.remove('show');
-            }
         });
-
-        // Çıkış
-        const logoutBtn = document.getElementById('logoutBtn');
-        if (logoutBtn) logoutBtn.onclick = () => logout();
+        document.getElementById('sendBtn')?.addEventListener('click', sendMessage);
+        document.getElementById('messageInput')?.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+        document.getElementById('messageInput')?.addEventListener('input', () => { socket?.emit('typing', { channelId: currentChannel.id, username: currentUser?.username }); });
+        document.getElementById('emojiBtn')?.addEventListener('click', () => document.getElementById('emojiPicker').classList.toggle('show'));
+        document.getElementById('logoutBtn')?.addEventListener('click', logout);
+        document.getElementById('copyChannelIdBtn')?.addEventListener('click', () => { navigator.clipboard.writeText(currentChannel.id); showToast('Kanal ID kopyalandı!'); });
+        document.getElementById('serverSettingsBtn')?.addEventListener('click', () => openModal('serverSettingsModal'));
+        document.getElementById('userSettingsBtn')?.addEventListener('click', () => openModal('userSettingsModal'));
+        document.getElementById('discoverBtn')?.addEventListener('click', () => { openModal('discoverModal'); loadDiscoverServers(); });
+        document.getElementById('addFriendBtn')?.addEventListener('click', () => openModal('addFriendModal'));
+        document.getElementById('joinVoiceBtn')?.addEventListener('click', () => { showToast('🎙️ Ses kanalına katılıyorsunuz... (WebRTC yakında)'); closeModal('voiceModal'); });
+        initEmojiPicker();
     }
 
-    // ==================== BAŞLATMA ====================
+    async function sendMessage() {
+        const input = document.getElementById('messageInput');
+        const content = input.value.trim();
+        if (!content) return;
+        try {
+            await fetch(`${API_URL}/api/channels/${currentChannel.id}/messages`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentToken}` },
+                body: JSON.stringify({ content })
+            });
+            input.value = '';
+        } catch (err) { showToast(err.message, true); }
+    }
+
+    async function loadMessages() {
+        try {
+            const res = await fetch(`${API_URL}/api/channels/${currentChannel.id}/messages`, { headers: { 'Authorization': `Bearer ${currentToken}` } });
+            messages = await res.json();
+            const container = document.getElementById('messagesContainer');
+            if (messages.length === 0) {
+                container.innerHTML = `<div class="empty-channel">${Icons.hash}<h3># ${currentChannel.name} doğuşu</h3><p>Bu kanalda henüz mesaj yok. İlk mesajı sen gönder!</p></div>`;
+                return;
+            }
+            container.innerHTML = messages.map(msg => `
+                <div class="message"><div class="message-avatar">${msg.senderName?.charAt(0)?.toUpperCase() || '?'}</div>
+                <div class="message-content"><div class="message-header">${escapeHtml(msg.senderName)} <span>${new Date(msg.createdAt).toLocaleTimeString()}</span></div>
+                <div class="message-text">${escapeHtml(msg.content)}</div></div></div>
+            `).join('');
+            container.scrollTop = container.scrollHeight;
+        } catch (err) { console.error(err); }
+    }
+
+    function initSocket() {
+        if (!currentToken) return;
+        if (socket) socket.disconnect();
+        socket = io(API_URL, { auth: { token: currentToken }, transports: ['websocket'] });
+        socket.on('new_message', (msg) => { if (msg.channelId === currentChannel.id) addMessageToChat(msg); });
+        socket.on('user_typing', ({ username, channelId }) => { if (channelId === currentChannel.id && username !== currentUser?.username) showTyping(username); });
+    }
+    function addMessageToChat(msg) {
+        const container = document.getElementById('messagesContainer');
+        if (container.querySelector('.empty-channel')) container.innerHTML = '';
+        container.insertAdjacentHTML('beforeend', `<div class="message"><div class="message-avatar">${msg.senderName?.charAt(0)?.toUpperCase() || '?'}</div><div class="message-content"><div class="message-header">${escapeHtml(msg.senderName)} <span>${new Date(msg.createdAt).toLocaleTimeString()}</span></div><div class="message-text">${escapeHtml(msg.content)}</div></div></div>`);
+        container.scrollTop = container.scrollHeight;
+    }
+    let typingTimeout;
+    function showTyping(username) {
+        const indicator = document.getElementById('typingIndicator');
+        indicator.textContent = `${username} yazıyor...`;
+        clearTimeout(typingTimeout);
+        typingTimeout = setTimeout(() => indicator.textContent = '', 1500);
+    }
+    function initEmojiPicker() {
+        const emojis = ['😀', '😂', '❤️', '🔥', '🎉', '👍', '👎', '🙏', '🎮', '💻', '🐛', '📢', '✨', '⭐', '✅', '❌'];
+        const picker = document.getElementById('emojiPicker');
+        picker.innerHTML = emojis.map(e => `<div class="emoji-option" data-emoji="${e}">${e}</div>`).join('');
+        picker.querySelectorAll('.emoji-option').forEach(opt => {
+            opt.addEventListener('click', () => {
+                document.getElementById('messageInput').value += opt.dataset.emoji;
+                picker.classList.remove('show');
+                document.getElementById('messageInput').focus();
+            });
+        });
+    }
+
+    // ==================== CRUD & HELPERS ====================
+    async function createServer() {
+        const name = document.getElementById('newServerName').value.trim();
+        if (!name) return showToast('Sunucu adı gerekli', true);
+        try {
+            await fetch(`${API_URL}/api/servers`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentToken}` }, body: JSON.stringify({ name, description: document.getElementById('newServerDesc').value }) });
+            showToast('Sunucu oluşturuldu');
+            closeModal('addServerModal');
+        } catch (err) { showToast(err.message, true); }
+    }
+    async function createChannel() {
+        const name = document.getElementById('newChannelName').value.trim();
+        if (!name) return showToast('Kanal adı gerekli', true);
+        showToast(`${name} kanalı oluşturuldu (demo)`);
+        closeModal('addChannelModal');
+    }
+    async function addFriend() {
+        const username = document.getElementById('friendUsername').value.trim();
+        if (!username) return;
+        showToast(`${username} arkadaşlık isteği gönderildi`);
+        closeModal('addFriendModal');
+    }
+    async function saveServerSettings() { showToast('Sunucu ayarları kaydedildi'); closeModal('serverSettingsModal'); }
+    async function saveUserSettings() { showToast('Hesap ayarları kaydedildi'); closeModal('userSettingsModal'); }
+    async function loadDiscoverServers() {
+        document.getElementById('discoverList').innerHTML = '<div style="text-align:center;">Demo sunucular yükleniyor...</div>';
+        setTimeout(() => {
+            document.getElementById('discoverList').innerHTML = '<div class="channel-item">🎮 Oyun Sunucusu</div><div class="channel-item">💻 Yazılım Topluluğu</div><div class="channel-item">🎨 Sanat ve Tasarım</div>';
+        }, 500);
+    }
+    function logout() {
+        localStorage.removeItem('gt_token');
+        localStorage.removeItem('gt_user');
+        currentUser = null;
+        if (socket) socket.disconnect();
+        renderApp();
+        showToast('Çıkış yapıldı');
+    }
+    function openModal(id) { document.getElementById(id)?.classList.add('show'); }
+    function closeModal(id) { document.getElementById(id)?.classList.remove('show'); }
+
+    // ==================== INIT ====================
     function init() {
-        const storedUser = localStorage.getItem('gt_user');
-        if (storedUser && currentToken) {
-            try {
-                currentUser = JSON.parse(storedUser);
-            } catch(e) {}
+        const stored = localStorage.getItem('gt_user');
+        if (stored && currentToken) {
+            try { currentUser = JSON.parse(stored); } catch(e) {}
         }
         renderApp();
+        document.addEventListener('click', (e) => { if (e.target.classList?.contains('modal')) e.target.classList.remove('show'); });
+        window.openModal = openModal;
+        window.closeModal = closeModal;
+        window.createServer = createServer;
+        window.createChannel = createChannel;
+        window.addFriend = addFriend;
+        window.saveServerSettings = saveServerSettings;
+        window.saveUserSettings = saveUserSettings;
+        window.loadDiscoverServers = loadDiscoverServers;
     }
-
     init();
 </script>
 </body>
