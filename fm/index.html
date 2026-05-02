@@ -21,15 +21,26 @@ body{
   height:52px;
   display:flex;
   align-items:center;
-  justify-content:center;
+  justify-content:space-between;
+  padding:0 20px;
   font-weight:900;
-  letter-spacing:5px;
-  font-size:20px;
+  letter-spacing:3px;
+  font-size:18px;
   background:linear-gradient(90deg,#ff4fd8,#7a5cff);
   -webkit-background-clip:text;
   -webkit-text-fill-color:transparent;
   background-clip:text;
   border-bottom:1px solid #220033;
+}
+
+.header .sync-status{
+  font-size:10px;
+  font-weight:400;
+  letter-spacing:1px;
+  background:linear-gradient(90deg,#4ade80,#22c55e);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
 }
 
 .layout{
@@ -171,6 +182,26 @@ button:active{transform:scale(.97)}
 
 .empty-state p{font-size:14px}
 
+.toast{
+  position:fixed;
+  bottom:20px;
+  left:50%;
+  transform:translateX(-50%);
+  background:#1a0030;
+  color:#4ade80;
+  padding:12px 24px;
+  border-radius:8px;
+  font-size:12px;
+  font-weight:500;
+  letter-spacing:1px;
+  opacity:0;
+  transition:opacity .3s;
+  z-index:100;
+  pointer-events:none;
+}
+
+.toast.show{opacity:1}
+
 /* Mobile responsive */
 @media(max-width:768px){
   .layout{grid-template-columns:1fr}
@@ -200,7 +231,10 @@ button:active{transform:scale(.97)}
 
 <body>
 
-<div class="header">GETTICFM</div>
+<div class="header">
+  <span>GETTICFM</span>
+  <span class="sync-status" id="syncStatus">🔄 SENKRONIZE</span>
+</div>
 
 <div class="layout">
 
@@ -233,7 +267,12 @@ button:active{transform:scale(.97)}
 
 <button class="mobile-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">📻</button>
 
+<div class="toast" id="toast"></div>
+
 <script>
+
+const API_URL = 'https://de1.api.radio-browser.info/json/stations/search?country=Turkey&limit=200&hidebroken=true&order=votes&reverse=true';
+const SYNC_INTERVAL = 10 * 60 * 1000; // 10 dakika
 
 let all=[];
 let currentIndex=-1;
@@ -242,6 +281,7 @@ let isPlaying=false;
 
 const audio=document.getElementById('audio');
 const playBtn=document.getElementById('playBtn');
+const syncStatus=document.getElementById('syncStatus');
 
 /* =========================
    FALLBACK (garanti liste)
@@ -260,20 +300,97 @@ const FALLBACK=[
 function valid(r){return r && r.stream && r.name}
 
 /* =========================
-   LOAD
+   LOAD (önce channels.json, yoksa API)
 ========================= */
 async function load(){
+  syncStatus.textContent = '🔄 YÜKLENİYOR...';
+  
   try{
+    // Önce channels.json'ı dene
     const res=await fetch('channels.json');
     if(!res.ok) throw new Error('channels.json not found');
     const data=await res.json();
     all=data.filter(valid);
     if(all.length===0) throw new Error('empty');
+    syncStatus.textContent = '✅ HAZIR';
+    console.log(`📻 channels.json'dan ${all.length} istasyon yüklendi`);
   }catch(e){
-    console.warn('channels.json yüklenemedi, fallback kullanılıyor');
-    all=FALLBACK;
+    // channels.json yoksa API'den çek
+    console.log('channels.json bulunamadı, API deneniyor...');
+    await fetchFromAPI();
   }
   render();
+}
+
+/* =========================
+   API'den çek
+========================= */
+async function fetchFromAPI(){
+  syncStatus.textContent = '🔄 API ÇEKİLİYOR...';
+  
+  try{
+    const res=await fetch(API_URL);
+    if(!res.ok) throw new Error('API error');
+    const data=await res.json();
+    
+    all=data
+      .filter(r => r.url_resolved && r.name && r.name.trim().length > 0)
+      .map(r => ({
+        name: r.name.trim(),
+        stream: r.url_resolved,
+        logo: r.favicon || '',
+        votes: r.votes || 0
+      }))
+      .filter((station, index, self) => 
+        index === self.findIndex(s => s.stream === station.stream)
+      )
+      .slice(0, 100);
+    
+    if(all.length===0) throw new Error('empty API');
+    
+    syncStatus.textContent = '✅ API GÜNCEL';
+    console.log(`📡 API'den ${all.length} istasyon çekildi`);
+    showToast('🔄 Radyo listesi güncellendi');
+    
+  }catch(e){
+    console.warn('API hatası:', e.message);
+    if(all.length===0){
+      all=FALLBACK;
+      syncStatus.textContent = '⚠️ FALLBACK';
+    }else{
+      syncStatus.textContent = '⚠️ GÜNCEL DEĞİL';
+    }
+    showToast('⚠️ Güncelleme başarısız, mevcut liste korundu');
+  }
+}
+
+/* =========================
+   OTO-SYNC (10 dk)
+========================= */
+function startAutoSync(){
+  console.log(`⏰ Her ${SYNC_INTERVAL/60000} dakikada bir otomatik güncelleme aktif`);
+  
+  setInterval(async () => {
+    console.log('🔄 Otomatik güncelleme başladı...');
+    const oldLength = all.length;
+    await fetchFromAPI();
+    
+    if(all.length !== oldLength){
+      render();
+      console.log(`📊 Liste güncellendi: ${oldLength} → ${all.length}`);
+      showToast(`📡 Liste güncellendi (${all.length} istasyon)`);
+    }
+  }, SYNC_INTERVAL);
+}
+
+/* =========================
+   TOAST
+========================= */
+function showToast(msg){
+  const toast=document.getElementById('toast');
+  toast.textContent=msg;
+  toast.classList.add('show');
+  setTimeout(()=>toast.classList.remove('show'),3000);
 }
 
 /* =========================
@@ -292,7 +409,7 @@ function render(){
   empty.style.display='none';
   list.innerHTML=all.map((r,i)=>`
     <div class="card${i===currentIndex?' active':''}" onclick="play(${i})">
-      <img src="${r.logo||'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 40 40%22><rect fill=%22%23333%22 width=%2240%22 height=%2240%22 rx=%2210%22/><text x=%2220%22 y=%2226%22 text-anchor=%22middle%22 fill=%22%23fff%22 font-size=%2216%22>📻</text></svg>'}" alt="${r.name}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 40 40%22><rect fill=%22%23333%22 width=%2240%22 height=%2240%22 rx=%2210%22/><text x=%2220%22 y=%2226%22 text-anchor=%22middle%22 fill=%22%23fff%22 font-size=%2216%22>📻</text></svg>'">
+      <img src="${r.logo||''}" alt="${r.name}" onerror="this.style.display='none'">
       <div class="info">
         <div class="name">${r.name}</div>
         ${r.votes?`<div class="votes">👍 ${r.votes}</div>`:''}
@@ -355,7 +472,6 @@ function play(index){
     });
   }
   
-  // Mobile: sidebar'ı kapat
   document.getElementById('sidebar').classList.remove('open');
 }
 
@@ -413,10 +529,7 @@ audio.addEventListener('error',()=>{
 document.getElementById('search').addEventListener('input',(e)=>{
   const q=e.target.value.toLowerCase().trim();
   
-  if(!q){
-    render();
-    return;
-  }
+  if(!q){render();return}
   
   const filtered=all.filter(r=>r.name.toLowerCase().includes(q));
   const list=document.getElementById('list');
@@ -429,7 +542,7 @@ document.getElementById('search').addEventListener('input',(e)=>{
   }
   
   empty.style.display='none';
-  list.innerHTML=filtered.map((r,i)=>{
+  list.innerHTML=filtered.map(r=>{
     const origIndex=all.indexOf(r);
     return `
     <div class="card${origIndex===currentIndex?' active':''}" onclick="play(${origIndex})">
@@ -455,8 +568,10 @@ document.addEventListener('keydown',(e)=>{
 /* =========================
    START
 ========================= */
-load();
+load().then(()=>{
+  startAutoSync();
+});
 
 </script>
 </body>
-  </html>
+</html>
