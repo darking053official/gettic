@@ -1,568 +1,724 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Gettic — Sohbet Platformu</title>
-  <link rel="icon" href="https://github.com/darking053official/gettic/blob/main/1777062266055.png?raw=true">
-  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Gettic — Modern Sohbet Platformu</title>
+  <meta name="description" content="Gettic - Modern sohbet ve bot platformu. Kendi sunucunu kur, arkadaşlarınla sohbet et." />
+  <link rel="icon" href="https://github.com/darking053official/gettic/blob/main/1777062266055.png?raw=true" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    :root {
-      --bg: #0a0a14; --bg1: #0f0f1a; --bg2: #151520; --bg3: #1c1c2a;
-      --b: rgba(255,255,255,.05); --b2: rgba(255,255,255,.08);
-      --ac: #c084fc; --ac2: #e879f9; --ac3: #f0abfc;
-      --acg: rgba(192,132,252,.3); --acd: rgba(192,132,252,.1);
-      --t1: #f0f0ff; --t2: #a0a0c0; --t3: #606080;
-      --gr: #22c55e; --re: #ef4444; --ye: #f59e0b;
-      --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      --transition: 0.25s cubic-bezier(0.2, 0.9, 0.4, 1);
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0a0a0f; --bg2:#12121a; --bg3:#1a1a26; --bg4:#222230;
+      --text:#f0f0f5; --text2:#9898b0; --text3:#5a5a72;
+      --accent:#c084fc; --accent2:#e879f9; --accent3:#f0abfc; --accent4:#d8b4fe;
+      --accent-glow:rgba(192,132,252,0.25); --accent-glow2:rgba(232,121,249,0.4);
+      --green:#4ade80; --red:#f87171; --yellow:#fbbf24; --blue:#60a5fa;
+      --border:rgba(255,255,255,0.06); --border2:rgba(255,255,255,0.12);
+      --radius:12px; --radius2:16px; --radius3:8px;
+      --sidebar-w:260px; --server-w:64px; --topbar-h:56px;
+      --font:'Inter',sans-serif; --mono:'JetBrains Mono',monospace;
+      --transition:0.2s cubic-bezier(0.4,0,0.2,1);
     }
-    body {
-      font-family: var(--font);
-      background: var(--bg);
-      color: var(--t1);
-      height: 100vh; height: 100dvh;
-      overflow: hidden;
-      user-select: none;
+    html{height:100%;overflow:hidden}
+    body{font-family:var(--font);background:var(--bg);color:var(--text);height:100%;display:flex;overflow:hidden;-webkit-tap-highlight-color:transparent}
+    
+    /* Loading Screen */
+    #loading-screen{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 0.5s ease,visibility 0.5s ease}
+    #loading-screen.hidden{opacity:0;visibility:hidden;pointer-events:none}
+    .loader-spinner{width:48px;height:48px;border:3px solid var(--border2);border-top-color:var(--accent2);border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:20px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .loader-logo{font-size:24px;font-weight:800;background:linear-gradient(135deg,var(--accent2),var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-1px}
+    .loader-sub{font-size:12px;color:var(--text3);margin-top:6px}
+
+    /* Sidebar - Servers */
+    .server-sidebar{width:var(--server-w);background:var(--bg2);display:flex;flex-direction:column;align-items:center;padding:12px 0;gap:8px;border-right:1px solid var(--border);overflow-y:auto;z-index:10;flex-shrink:0}
+    .server-icon{width:46px;height:46px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all var(--transition);border:2px solid transparent;position:relative;flex-shrink:0;overflow:hidden}
+    .server-icon:hover{border-radius:14px;border-color:var(--accent2);box-shadow:0 0 20px var(--accent-glow)}
+    .server-icon.active{border-radius:14px;border-color:var(--accent2);background:var(--bg4);box-shadow:0 0 20px var(--accent-glow2)}
+    .server-icon.active::before{content:'';position:absolute;left:-12px;top:50%;transform:translateY(-50%);width:6px;height:24px;background:var(--accent2);border-radius:0 4px 4px 0}
+    .server-icon img{width:100%;height:100%;object-fit:cover;border-radius:inherit}
+    .server-icon svg{width:24px;height:24px;fill:none;stroke:var(--text2);stroke-width:2;transition:all var(--transition)}
+    .server-icon:hover svg{stroke:var(--text)}
+    .server-sep{width:32px;height:2px;background:var(--border2);border-radius:1px;margin:4px 0}
+    .server-add{background:var(--bg3) !important;border:2px dashed var(--border2) !important}
+    .server-add:hover{background:var(--accent2) !important;border-color:var(--accent2) !important}
+    .server-add:hover svg{stroke:#fff}
+
+    /* Sidebar - Channels */
+    .channel-sidebar{width:var(--sidebar-w);background:var(--bg2);display:flex;flex-direction:column;border-right:1px solid var(--border);flex-shrink:0;overflow:hidden;transition:all var(--transition)}
+    .server-header{padding:16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;cursor:pointer;min-height:56px}
+    .server-header h2{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .server-header svg{width:18px;height:18px;stroke:var(--text2);flex-shrink:0;transition:transform var(--transition)}
+    .server-header.open svg{transform:rotate(180deg)}
+    .channel-list{flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:2px}
+    .channel-cat{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);padding:12px 8px 6px;display:flex;align-items:center;gap:4px;cursor:pointer}
+    .channel-cat svg{width:12px;height:12px;stroke:var(--text3);transition:transform var(--transition)}
+    .channel-cat.open svg{transform:rotate(90deg)}
+    .channel-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--radius3);cursor:pointer;font-size:13px;font-weight:500;color:var(--text2);transition:all var(--transition);position:relative}
+    .channel-item:hover{background:var(--bg3);color:var(--text)}
+    .channel-item.active{background:rgba(192,132,252,0.12);color:var(--accent3)}
+    .channel-item svg{width:18px;height:18px;stroke:currentColor;flex-shrink:0;fill:none;stroke-width:1.8}
+    .channel-item.voice svg{fill:var(--accent2);stroke:var(--accent2);opacity:0.7}
+    .user-panel{padding:12px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--bg3);min-height:56px}
+    .user-panel img{width:34px;height:34px;border-radius:50%;object-fit:cover;background:var(--bg4)}
+    .user-info{flex:1;min-width:0}
+    .user-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .user-tag{font-size:11px;color:var(--text3)}
+    .user-actions{display:flex;gap:4px}
+    .user-actions button{background:none;border:none;cursor:pointer;padding:4px;border-radius:4px;color:var(--text2);transition:all var(--transition)}
+    .user-actions button:hover{color:var(--text);background:var(--bg4)}
+    .user-actions svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8}
+
+    /* Main */
+    .main-content{flex:1;display:flex;flex-direction:column;min-width:0;background:var(--bg);position:relative}
+    .topbar{height:var(--topbar-h);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0;background:var(--bg)}
+    .topbar svg{width:20px;height:20px;stroke:var(--text2);fill:none;stroke-width:1.8;flex-shrink:0}
+    .topbar-title{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .topbar-desc{font-size:12px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-left:4px}
+    .topbar-actions{margin-left:auto;display:flex;gap:6px;align-items:center}
+    .topbar-btn{padding:6px 12px;border-radius:var(--radius3);border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:12px;cursor:pointer;font-family:var(--font);transition:all var(--transition);display:flex;align-items:center;gap:6px}
+    .topbar-btn:hover{background:var(--bg3);color:var(--text);border-color:var(--border2)}
+    .topbar-btn svg{width:15px;height:15px;stroke:currentColor}
+
+    .chat-area{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:4px}
+    .chat-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px}
+    .chat-empty svg{width:80px;height:80px;stroke:var(--text3);fill:none;stroke-width:1;opacity:0.5;margin-bottom:16px}
+    .chat-empty h3{font-size:20px;font-weight:700;margin-bottom:6px;background:linear-gradient(135deg,var(--accent2),var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .chat-empty p{font-size:13px;color:var(--text3);max-width:320px;line-height:1.6}
+    .msg-group{display:flex;gap:12px;padding:4px 0;animation:msgIn 0.3s ease}
+    @keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    .msg-avatar{width:38px;height:38px;border-radius:50%;object-fit:cover;background:var(--bg4);flex-shrink:0;background:linear-gradient(135deg,var(--accent2),#a78bfa)}
+    .msg-body{flex:1;min-width:0}
+    .msg-header{display:flex;align-items:baseline;gap:8px;margin-bottom:2px}
+    .msg-author{font-size:14px;font-weight:600;color:var(--accent3)}
+    .msg-time{font-size:11px;color:var(--text3)}
+    .msg-content{font-size:14px;line-height:1.55;color:var(--text);word-break:break-word}
+
+    .chat-input-area{padding:12px 20px 20px;border-top:1px solid var(--border);flex-shrink:0;background:var(--bg)}
+    .chat-input-wrap{display:flex;align-items:flex-end;gap:10px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:8px 16px;transition:all var(--transition)}
+    .chat-input-wrap:focus-within{border-color:var(--accent2);box-shadow:0 0 0 3px var(--accent-glow)}
+    .chat-input{flex:1;background:none;border:none;outline:none;color:var(--text);font-family:var(--font);font-size:14px;resize:none;min-height:22px;max-height:120px;line-height:1.5;padding:4px 0}
+    .chat-input::placeholder{color:var(--text3)}
+    .chat-input-btn{background:none;border:none;cursor:pointer;padding:4px;border-radius:6px;color:var(--text2);transition:all var(--transition);display:flex;align-items:center}
+    .chat-input-btn:hover{color:var(--accent3);background:rgba(192,132,252,0.1)}
+    .chat-input-btn svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8}
+    .send-btn{background:linear-gradient(135deg,var(--accent2),#a78bfa);border:none;border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all var(--transition);flex-shrink:0;box-shadow:0 4px 20px var(--accent-glow2)}
+    .send-btn:hover{transform:scale(1.05);box-shadow:0 6px 28px var(--accent-glow2)}
+    .send-btn svg{width:20px;height:20px;stroke:#fff;fill:none;stroke-width:2.5}
+
+    /* Modals */
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;display:flex;align-items:center;justify-content:center;animation:fadeIn 0.2s ease;backdrop-filter:blur(4px)}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    .modal{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius2);width:90%;max-width:480px;max-height:85vh;overflow-y:auto;padding:24px;animation:modalIn 0.3s cubic-bezier(0.4,0,0.2,1)}
+    @keyframes modalIn{from{opacity:0;transform:scale(0.95) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+    .modal h3{font-size:18px;font-weight:700;margin-bottom:6px;background:linear-gradient(135deg,var(--accent2),var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .modal p{font-size:13px;color:var(--text2);margin-bottom:20px}
+    .modal-input{width:100%;padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius3);color:var(--text);font-family:var(--font);font-size:14px;margin-bottom:12px;transition:all var(--transition)}
+    .modal-input:focus{outline:none;border-color:var(--accent2);box-shadow:0 0 0 3px var(--accent-glow)}
+    .modal-btn{width:100%;padding:10px;background:linear-gradient(135deg,var(--accent2),#a78bfa);border:none;border-radius:var(--radius3);color:#fff;font-weight:600;font-size:14px;cursor:pointer;font-family:var(--font);transition:all var(--transition)}
+    .modal-btn:hover{opacity:0.9;transform:translateY(-1px);box-shadow:0 8px 25px var(--accent-glow2)}
+    .modal-btn.secondary{background:var(--bg3);border:1px solid var(--border2);color:var(--text)}
+    .modal-close{position:absolute;top:16px;right:16px;background:none;border:none;cursor:pointer;color:var(--text2);padding:4px;border-radius:4px;transition:all var(--transition)}
+    .modal-close:hover{color:var(--text);background:var(--bg3)}
+
+    /* Settings */
+    .settings-grid{display:grid;grid-template-columns:180px 1fr;gap:0;min-height:400px}
+    .settings-nav{background:var(--bg3);border-radius:var(--radius3);overflow:hidden;display:flex;flex-direction:column}
+    .settings-nav-item{padding:10px 14px;font-size:13px;cursor:pointer;color:var(--text2);transition:all var(--transition);display:flex;align-items:center;gap:8px;border-left:2px solid transparent}
+    .settings-nav-item:hover{background:var(--bg4);color:var(--text)}
+    .settings-nav-item.active{background:rgba(192,132,252,0.1);color:var(--accent3);border-color:var(--accent2)}
+    .settings-nav-item svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8}
+    .settings-content{padding:0 20px;overflow-y:auto;max-height:450px}
+
+    /* Responsive */
+    @media(max-width:768px){
+      .server-sidebar{width:52px;padding:8px 0}
+      .server-icon{width:38px;height:38px}
+      .channel-sidebar{position:fixed;left:-100%;top:0;bottom:0;z-index:50;width:280px;transition:left var(--transition)}
+      .channel-sidebar.open{left:0}
+      .chat-input-area{padding:8px 12px 16px}
+      .settings-grid{grid-template-columns:1fr}
+      .settings-nav{flex-direction:row;overflow-x:auto;white-space:nowrap;margin-bottom:12px}
+      .settings-content{padding:0}
     }
-    /* LOADING SCREEN */
-    .loading-screen {
-      position: fixed; inset: 0; background: var(--bg); z-index: 10000;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      transition: opacity 0.5s, visibility 0.5s;
-    }
-    .loading-screen.hide { opacity: 0; visibility: hidden; }
-    .loader {
-      width: 48px; height: 48px; border: 3px solid var(--b2);
-      border-top-color: var(--ac); border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .loading-logo {
-      margin-top: 20px; font-size: 18px; font-weight: bold;
-      background: linear-gradient(135deg, var(--ac), var(--ac2));
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    }
-    /* LAYOUT */
-    .app { display: flex; height: 100vh; height: 100dvh; background: var(--bg1); position: relative; }
-    /* SERVER RAIL */
-    .server-rail {
-      width: 72px; background: var(--bg); display: flex; flex-direction: column;
-      align-items: center; padding: 12px 0; gap: 12px; overflow-y: auto;
-      border-right: 1px solid var(--b); flex-shrink: 0; z-index: 10;
-    }
-    .server-icon {
-      width: 48px; height: 48px; background: var(--bg2); border-radius: 50%;
-      display: flex; align-items: center; justify-content: center; cursor: pointer;
-      transition: all var(--transition); position: relative;
-    }
-    .server-icon svg { width: 24px; height: 24px; stroke: var(--t2); stroke-width: 1.5; fill: none; }
-    .server-icon:hover, .server-icon.active { border-radius: 16px; background: var(--ac); transform: translateY(-2px); }
-    .server-icon:hover svg, .server-icon.active svg { stroke: white; }
-    .server-icon.active::after {
-      content: ''; position: absolute; right: -8px; top: 50%; transform: translateY(-50%);
-      width: 4px; height: 20px; background: var(--ac); border-radius: 2px;
-    }
-    /* CHANNEL SIDEBAR */
-    .channel-sidebar {
-      width: 260px; background: var(--bg1); display: flex; flex-direction: column;
-      border-right: 1px solid var(--b); flex-shrink: 0; transition: transform 0.3s ease;
-      z-index: 10; overflow-y: auto;
-    }
-    .channel-header {
-      height: 48px; padding: 0 16px; display: flex; align-items: center; gap: 8px;
-      border-bottom: 1px solid var(--b); font-weight: bold; background: var(--bg);
-    }
-    .channel-header svg { width: 20px; height: 20px; stroke: var(--ac); }
-    .channel-category {
-      padding: 16px 16px 4px; font-size: 11px; font-weight: bold; text-transform: uppercase;
-      color: var(--t3); letter-spacing: 1px; display: flex; justify-content: space-between;
-    }
-    .channel-category button { background: none; border: none; color: var(--t3); cursor: pointer; }
-    .channel-category button:hover { color: var(--ac); }
-    .channel-item {
-      padding: 6px 16px; margin: 2px 8px; border-radius: 8px; display: flex;
-      align-items: center; gap: 10px; cursor: pointer; font-size: 14px; color: var(--t2);
-      transition: all var(--transition);
-    }
-    .channel-item svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.5; }
-    .channel-item:hover { background: var(--bg2); color: var(--t1); transform: translateX(4px); }
-    .channel-item.active { background: var(--acd); color: var(--ac3); }
-    /* CHAT AREA */
-    .chat-area {
-      flex: 1; display: flex; flex-direction: column; background: var(--bg1); min-width: 0;
-    }
-    .chat-header {
-      height: 48px; padding: 0 20px; display: flex; align-items: center; gap: 12px;
-      border-bottom: 1px solid var(--b); background: var(--bg); flex-shrink: 0;
-    }
-    .chat-header svg { width: 20px; height: 20px; stroke: var(--ac); }
-    .chat-header .channel-name { font-weight: bold; }
-    .chat-header .channel-topic { font-size: 12px; color: var(--t3); margin-left: 8px; }
-    .chat-header .header-badge { margin-left: auto; display: flex; gap: 8px; }
-    .icon-btn {
-      background: var(--bg2); border: none; width: 32px; height: 32px; border-radius: 8px;
-      cursor: pointer; display: flex; align-items: center; justify-content: center;
-      transition: all var(--transition);
-    }
-    .icon-btn svg { width: 16px; height: 16px; stroke: var(--t2); fill: none; stroke-width: 1.5; }
-    .icon-btn:hover { background: var(--ac); transform: scale(1.05); }
-    .icon-btn:hover svg { stroke: white; }
-    .messages-container {
-      flex: 1; overflow-y: auto; padding: 16px 20px; display: flex;
-      flex-direction: column; gap: 8px; scroll-behavior: smooth;
-    }
-    .empty-channel {
-      text-align: center; padding: 60px 20px; color: var(--t3);
-      animation: fadeIn 0.5s ease; margin: auto;
-    }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-    .empty-channel svg { width: 64px; height: 64px; stroke: var(--t3); margin-bottom: 16px; opacity: 0.6; }
-    .empty-channel h4 { font-size: 18px; margin-bottom: 8px; color: var(--t2); }
-    .message {
-      display: flex; align-items: flex-start; gap: 12px; padding: 6px 0;
-      transition: background 0.1s; border-radius: 8px;
-    }
-    .message:hover { background: var(--bg2); }
-    .message-avatar {
-      width: 36px; height: 36px; background: linear-gradient(135deg, var(--ac), var(--ac2));
-      border-radius: 50%; display: flex; align-items: center; justify-content: center;
-      font-weight: bold; flex-shrink: 0; font-size: 14px;
-    }
-    .message-content { flex: 1; }
-    .message-header { font-size: 13px; font-weight: bold; margin-bottom: 2px; }
-    .message-header span { font-weight: normal; font-size: 11px; margin-left: 8px; color: var(--t3); }
-    .message-text { font-size: 14px; line-height: 1.4; word-wrap: break-word; }
-    .typing-indicator {
-      padding: 8px 20px; font-size: 12px; color: var(--t3); font-style: italic;
-      height: 36px; transition: all 0.2s;
-    }
-    /* INPUT AREA */
-    .input-area {
-      padding: 12px 20px 16px; background: var(--bg); border-top: 1px solid var(--b);
-      display: flex; gap: 12px; align-items: center; flex-shrink: 0; z-index: 10;
-    }
-    .message-input {
-      flex: 1; background: var(--bg2); border: 1px solid var(--b2); border-radius: 24px;
-      padding: 12px 18px; color: var(--t1); font-size: 14px; outline: none;
-      transition: all var(--transition);
-    }
-    .message-input:focus { border-color: var(--ac); box-shadow: 0 0 0 3px var(--acg); }
-    .emoji-picker {
-      position: absolute; bottom: 80px; left: 320px; background: var(--bg2);
-      border-radius: 16px; padding: 12px; display: none; grid-template-columns: repeat(6, 1fr);
-      gap: 8px; z-index: 100; border: 1px solid var(--b2); animation: fadeIn 0.2s ease;
-    }
-    .emoji-picker.show { display: grid; }
-    .emoji-option { font-size: 22px; cursor: pointer; padding: 4px; text-align: center; border-radius: 8px; }
-    .emoji-option:hover { background: var(--bg3); transform: scale(1.2); }
-    /* USER PANEL */
-    .user-panel {
-      width: 280px; background: var(--bg); border-left: 1px solid var(--b);
-      padding: 16px; display: flex; flex-direction: column; gap: 12px; flex-shrink: 0;
-      z-index: 10; overflow-y: auto;
-    }
-    .user-profile { display: flex; gap: 12px; align-items: center; padding-bottom: 12px; border-bottom: 1px solid var(--b); }
-    .user-avatar {
-      width: 48px; height: 48px; background: linear-gradient(135deg, var(--ac), var(--ac2));
-      border-radius: 50%; display: flex; align-items: center; justify-content: center;
-      font-weight: bold; font-size: 18px;
-    }
-    .user-info { flex: 1; }
-    .user-name { font-weight: bold; font-size: 15px; }
-    .user-status { font-size: 11px; color: var(--gr); display: flex; align-items: center; gap: 4px; }
-    .panel-btn {
-      background: var(--bg2); border: none; padding: 10px 12px; border-radius: 10px;
-      color: var(--t2); cursor: pointer; font-weight: 500; display: flex; align-items: center;
-      gap: 12px; width: 100%; transition: all var(--transition); font-size: 14px;
-    }
-    .panel-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; }
-    .panel-btn:hover { background: var(--bg3); color: var(--t1); transform: translateX(4px); }
-    .voice-bar {
-      background: var(--bg2); border-radius: 12px; padding: 8px 12px;
-      display: flex; align-items: center; gap: 12px; margin-top: 8px;
-    }
-    .voice-bar svg { width: 20px; height: 20px; stroke: var(--ac); }
-    .voice-controls { display: flex; gap: 8px; margin-left: auto; }
-    .voice-btn {
-      background: var(--bg3); border: none; width: 32px; height: 32px; border-radius: 8px;
-      cursor: pointer; transition: all var(--transition); display: flex; align-items: center; justify-content: center;
-    }
-    .voice-btn svg { width: 16px; height: 16px; stroke: var(--t2); }
-    .voice-btn:hover { background: var(--ac); } .voice-btn:hover svg { stroke: white; }
-    .voice-btn.muted { background: var(--re); }
-    /* DISCOVER */
-    .discover-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
-    .discover-card {
-      background: var(--bg2); border-radius: 16px; padding: 16px; transition: all var(--transition);
-      cursor: pointer; border: 1px solid var(--b);
-    }
-    .discover-card:hover { transform: translateY(-4px); border-color: var(--ac); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
-    .discover-card-header { display: flex; gap: 12px; margin-bottom: 12px; }
-    .discover-card-icon { width: 48px; height: 48px; background: var(--acd); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
-    .discover-card-info h3 { font-size: 16px; margin-bottom: 4px; }
-    .discover-card-info p { font-size: 12px; color: var(--t3); }
-    .discover-card-stats { display: flex; gap: 16px; margin: 12px 0; font-size: 12px; color: var(--t2); }
-    .discover-card button { background: var(--ac); border: none; padding: 8px 16px; border-radius: 8px; color: white; cursor: pointer; width: 100%; }
-    /* DM */
-    .dm-list { display: flex; flex-direction: column; gap: 8px; }
-    .dm-item {
-      display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 12px;
-      cursor: pointer; transition: all var(--transition);
-    }
-    .dm-item:hover { background: var(--bg2); }
-    .dm-avatar { width: 40px; height: 40px; background: var(--acd); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
-    .dm-info { flex: 1; } .dm-name { font-weight: bold; margin-bottom: 2px; } .dm-last-msg { font-size: 12px; color: var(--t3); }
-    /* MODAL */
-    .modal {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.95); backdrop-filter: blur(12px);
-      display: flex; align-items: center; justify-content: center; z-index: 1000;
-      display: none; animation: fadeIn 0.2s ease;
-    }
-    .modal.show { display: flex; }
-    .modal-box {
-      background: var(--bg2); border-radius: 28px; padding: 28px; width: 500px;
-      max-width: 90%; max-height: 85vh; overflow-y: auto;
-    }
-    .modal-box h2 { margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
-    .modal-input, .modal-select {
-      width: 100%; padding: 12px 16px; background: var(--bg1); border: 1px solid var(--b2);
-      border-radius: 12px; color: var(--t1); margin-bottom: 16px; font-size: 14px;
-    }
-    .modal-input:focus, .modal-select:focus { outline: none; border-color: var(--ac); }
-    .modal-btn {
-      width: 100%; padding: 12px; background: var(--ac); border: none; border-radius: 12px;
-      color: white; font-weight: bold; cursor: pointer; transition: all var(--transition);
-    }
-    .modal-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
-    .id-row {
-      background: var(--bg1); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;
-      font-size: 12px; font-family: monospace; cursor: pointer; transition: all var(--transition);
-      display: flex; justify-content: space-between; align-items: center;
-    }
-    .id-row:hover { background: var(--acd); color: var(--ac); }
-    .profile-banner { height: 120px; background: linear-gradient(135deg, var(--ac), var(--ac2)); border-radius: 16px; margin-bottom: -40px; }
-    .profile-avatar-large { width: 80px; height: 80px; border-radius: 50%; background: var(--ac); margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; font-size: 32px; }
-    /* RESPONSIVE */
-    @media (max-width: 768px) {
-      .server-rail { width: 56px; }
-      .channel-sidebar { position: absolute; left: -260px; height: 100%; background: var(--bg1); transition: left 0.3s ease; }
-      .channel-sidebar.open { left: 56px; box-shadow: 4px 0 20px rgba(0,0,0,0.3); }
-      .user-panel { position: absolute; right: -280px; height: 100%; background: var(--bg); transition: right 0.3s ease; }
-      .user-panel.open { right: 0; box-shadow: -4px 0 20px rgba(0,0,0,0.3); }
-      .emoji-picker { left: 20px; right: 20px; grid-template-columns: repeat(8, 1fr); }
-    }
+
+    /* Badge */
+    .badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:10px;font-weight:700;margin-left:6px}
+    .badge-bot{background:rgba(192,132,252,0.2);color:var(--accent3)}
+    .badge-admin{background:rgba(250,204,21,0.2);color:var(--yellow)}
+
+    /* Scrollbar */
+    ::-webkit-scrollbar{width:4px}
+    ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px}
+    ::-webkit-scrollbar-track{background:transparent}
+
+    /* Tooltip */
+    [data-tooltip]{position:relative}
+    [data-tooltip]:hover::after{content:attr(data-tooltip);position:absolute;left:110%;top:50%;transform:translateY(-50%);background:var(--bg4);color:var(--text);font-size:12px;padding:6px 10px;border-radius:4px;white-space:nowrap;z-index:20;pointer-events:none;border:1px solid var(--border2)}
   </style>
 </head>
 <body>
-<div id="loadingScreen" class="loading-screen">
-  <div class="loader"></div>
-  <div class="loading-logo">gettic</div>
+
+<!-- Loading -->
+<div id="loading-screen">
+  <div class="loader-spinner"></div>
+  <div class="loader-logo">gettic</div>
+  <div class="loader-sub">Bağlanıyor...</div>
 </div>
-<div id="app"></div>
+
+<!-- Server Sidebar -->
+<div class="server-sidebar" id="serverSidebar">
+  <div class="server-icon active" data-tooltip="Ana Sayfa" onclick="selectServer('home')">
+    <img src="https://github.com/darking053official/gettic/blob/main/1777062266055.png?raw=true" alt="Gettic" onerror="this.style.display='none'" />
+    <svg style="display:none" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+  </div>
+  <div class="server-sep"></div>
+  <div id="serverList"></div>
+  <div class="server-icon server-add" data-tooltip="Sunucu Ekle" onclick="openModal('createServerModal')">
+    <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </div>
+  <div class="server-icon" data-tooltip="Sunucu Keşfet" onclick="openModal('discoverModal')" style="margin-top:auto">
+    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+  </div>
+</div>
+
+<!-- Channel Sidebar -->
+<div class="channel-sidebar" id="channelSidebar">
+  <div class="server-header" id="serverHeader" onclick="toggleServerMenu()">
+    <h2 id="serverNameDisplay">Gettic Ana Sayfa</h2>
+    <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+  <div class="channel-list" id="channelList">
+    <div class="channel-cat" onclick="toggleCat(this)">
+      <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg> METİN KANALLARI
+    </div>
+    <div id="textChannels"></div>
+    <div class="channel-cat" onclick="toggleCat(this)">
+      <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg> SES KANALLARI
+    </div>
+    <div id="voiceChannels"></div>
+  </div>
+  <div class="user-panel" id="userPanel">
+    <img src="https://github.com/darking053official/gettic/blob/main/1777062266055.png?raw=true" alt="Avatar" onerror="this.style.background='linear-gradient(135deg,var(--accent2),#a78bfa)'" />
+    <div class="user-info">
+      <div class="user-name" id="currentUsername">Kullanıcı</div>
+      <div class="user-tag">#gettic</div>
+    </div>
+    <div class="user-actions">
+      <button data-tooltip="Ayarlar" onclick="openModal('settingsModal')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></button>
+    </div>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="main-content" id="mainContent">
+  <div class="topbar">
+    <svg viewBox="0 0 24 24" id="channelIcon"><path d="M5.52 19c.64-2.2 1.84-3.35 3.12-4.75a6 6 0 0 1 4.36-1.97h.08a6 6 0 0 1 6 6v1.72"/><circle cx="12" cy="7" r="4"/></svg>
+    <span class="topbar-title" id="channelTitle">Genel</span>
+    <span class="topbar-desc" id="channelDesc"></span>
+    <div class="topbar-actions">
+      <button class="topbar-btn" onclick="openModal('webhookModal')"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> Webhook</button>
+      <button class="topbar-btn" onclick="openModal('friendsModal')"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Arkadaşlar</button>
+    </div>
+  </div>
+  <div class="chat-area" id="chatMessages">
+    <div class="chat-empty" id="chatEmpty">
+      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <h3 id="emptyChannelName">Genel</h3>
+      <p id="emptyChannelMsg">Genel doğuşu. Bu kanala gönderilen ilk mesajı sen yaz!</p>
+    </div>
+  </div>
+  <div class="chat-input-area">
+    <div class="chat-input-wrap">
+      <button class="chat-input-btn" data-tooltip="Dosya Ekle"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></button>
+      <textarea class="chat-input" id="chatInput" placeholder="Mesaj yaz..." rows="1" onkeydown="handleInputKey(event)"></textarea>
+      <button class="send-btn" onclick="sendMessage()"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+    </div>
+  </div>
+</div>
+
+<!-- Modals -->
+<div id="modalContainer"></div>
 
 <script>
-  // ==================== KONFIG ====================
-  const API_URL = 'https://gettic-j49l.onrender.com';
-  let currentUser = null;
-  let currentToken = localStorage.getItem('gt_token');
-  let socket = null;
-  let currentChannel = { id: 'genel-sohbet', name: 'genel-sohbet', topic: 'Sohbet odası' };
-  let messages = [];
-  let currentDMUser = null;
-  // WebRTC
-  let localStream = null, peerConnection = null, isInVoice = false, isMuted = false;
-  const rtcConfig = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+// ─── STATE ───────────────────────────────────────────
+const state = {
+  user: null,
+  token: localStorage.getItem('gt_tok') || null,
+  servers: [],
+  currentServer: 'home',
+  currentChannel: { id: 'general', name: 'Genel', type: 'text', serverId: 'home' },
+  messages: {},
+  friends: [],
+  theme: 'pink-purple',
+  voiceConnections: {}
+};
 
-  // ==================== SVG IKONLAR ====================
-  const Icons = {
-    hash: '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>',
-    volume: '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>',
-    forum: '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
-    discover: '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
-    settings: '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 0 1 21 12a10 10 0 0 1-1.93 7.07M4.93 4.93A10 10 0 0 0 3 12a10 10 0 0 0 1.93 7.07M12 2v2M12 20v2M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41"/></svg>',
-    plus: '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
-    send: '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>',
-    smile: '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>',
-    logout: '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>',
-    mic: '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>',
-    micOff: '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><line x1="23" y1="1" x2="1" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12"/><path d="M15 9.34V5a3 3 0 0 0-5.94-.6"/><path d="M17 16.95A7 7 0 0 1 5 12v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>',
-    deafen: '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>',
-    user: '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
-    webhook: '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>',
-    copy: '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
-    dm: '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
-    theme: '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>',
-    bug: '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><path d="M12 7a3 3 0 0 1 3 3v5a3 3 0 0 1-6 0v-5a3 3 0 0 1 3-3z"/><path d="M19 17v-2a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v2"/><line x1="5" y1="11" x2="3" y2="13"/><line x1="19" y1="11" x2="21" y2="13"/></svg>',
-    idea: '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.07 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/></svg>',
-    music: '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>',
-    game: '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4M8 10v4M15 13h.01M18 11h.01"/></svg>',
-    server: '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>',
-    arrow: '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><polyline points="9 18 15 12 9 6"/></svg>',
-  };
+// Sample Data
+const sampleServers = [
+  {
+    id: 'srv1', name: 'Gettic Topluluğu', icon: null,
+    channels: [
+      { id: 'rules', name: 'kurallar', type: 'rules', topic: 'Sunucu kurallarını okuyun' },
+      { id: 'general', name: 'genel', type: 'text', topic: 'Genel sohbet kanalı' },
+      { id: 'bot-komut', name: 'bot-komutları', type: 'text', topic: 'Bot komutlarını burada kullanın' },
+      { id: 'forum', name: 'forum', type: 'forum', topic: 'Tartışma ve yardımlaşma forumu' },
+      { id: 'duyuru', name: 'duyurular', type: 'text', topic: 'Önemli duyurular' },
+      { id: 'sesli-sohbet', name: 'Sesli Sohbet', type: 'voice', topic: 'Sesli sohbet odası' },
+      { id: 'muzik-odasi', name: 'Müzik Odası', type: 'voice', topic: 'Birlikte müzik dinleyin' }
+    ]
+  }
+];
 
-  // ==================== YARDIMCILAR ====================
-  function escapeHtml(s) { if (!s) return ''; return s.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;'); }
-  function showToast(msg, isErr = false) {
-    const t = document.createElement('div');
-    t.style.cssText = `position:fixed;bottom:80px;right:20px;background:var(--bg2);padding:12px 20px;border-radius:12px;color:${isErr?'#ef4444':'#22c55e'};z-index:2000;backdrop-filter:blur(10px);border:1px solid var(--b2);animation:fadeIn .2s ease`;
-    t.textContent = msg; document.body.appendChild(t);
-    setTimeout(() => t.remove(), 3000);
-  }
+const sampleFriends = [
+  { id: 'f1', username: 'DarkingBot', avatar: null, online: true },
+  { id: 'f2', username: 'ModeratorTR', avatar: null, online: true },
+  { id: 'f3', username: 'TasarimciKiz', avatar: null, online: false }
+];
 
-  // ==================== RENDER ====================
-  function renderApp() {
-    const app = document.getElementById('app');
-    if (!currentUser) { app.innerHTML = renderAuth(); attachAuthEvents(); return; }
-    app.innerHTML = renderMainUI(); attachMainEvents(); loadMessages(); initSocket(); initTheme();
+// ─── INIT ────────────────────────────────────────────
+function init() {
+  state.token = localStorage.getItem('gt_tok');
+  if (!state.token) {
+    state.user = { _id: 'guest', username: 'Misafir' };
+  } else {
+    state.user = { _id: 'user1', username: 'GetticKullanici' };
   }
-  function renderAuth() {
-    return `<div class="modal show" id="authModal"><div class="modal-box">
-      <div style="text-align:center;margin-bottom:20px;"><img src="https://github.com/darking053official/gettic/blob/main/1777062266055.png?raw=true" style="width:60px;border-radius:16px;"></div>
-      <h2 style="text-align:center;">gettic</h2>
-      <div style="display:flex;gap:12px;margin:20px 0;">
-        <button id="loginTab" class="modal-btn" style="background:var(--ac);flex:1">Giriş</button>
-        <button id="registerTab" class="modal-btn" style="background:var(--bg2);flex:1">Kayıt</button>
-      </div>
-      <div id="loginForm">
-        <input type="text" id="loginUser" class="modal-input" placeholder="Kullanıcı Adı">
-        <input type="password" id="loginPass" class="modal-input" placeholder="Şifre">
-        <button id="doLoginBtn" class="modal-btn">Giriş Yap</button>
-      </div>
-      <div id="registerForm" style="display:none">
-        <input type="text" id="regUser" class="modal-input" placeholder="Kullanıcı Adı (min 3)">
-        <input type="password" id="regPass" class="modal-input" placeholder="Şifre (min 6)">
-        <button id="doRegBtn" class="modal-btn">Kayıt Ol</button>
-      </div>
-      <div id="authError" style="color:var(--re);margin-top:12px;text-align:center;"></div>
-    </div></div>`;
+  state.servers = JSON.parse(localStorage.getItem('gt_servers') || JSON.stringify(sampleServers));
+  state.friends = JSON.parse(localStorage.getItem('gt_friends') || JSON.stringify(sampleFriends));
+  state.messages = JSON.parse(localStorage.getItem('gt_messages') || '{}');
+  
+  document.getElementById('currentUsername').textContent = state.user.username;
+  renderServers();
+  selectServer('home');
+  
+  setTimeout(() => {
+    document.getElementById('loading-screen').classList.add('hidden');
+  }, 1200);
+}
+
+// ─── RENDER SERVERS ──────────────────────────────────
+function renderServers() {
+  const list = document.getElementById('serverList');
+  list.innerHTML = state.servers.map(s => `
+    <div class="server-icon ${state.currentServer === s.id ? 'active' : ''}" data-tooltip="${s.name}" onclick="selectServer('${s.id}')">
+      ${s.icon ? `<img src="${s.icon}" alt="${s.name}" />` : `<span style="font-weight:700;font-size:18px;color:var(--accent3)">${s.name.charAt(0).toUpperCase()}</span>`}
+    </div>
+  `).join('');
+}
+
+// ─── SELECT SERVER ───────────────────────────────────
+function selectServer(serverId) {
+  state.currentServer = serverId;
+  document.querySelectorAll('.server-icon').forEach(el => el.classList.remove('active'));
+  const icons = document.querySelectorAll('#serverList .server-icon');
+  const idx = state.servers.findIndex(s => s.id === serverId);
+  if (idx >= 0 && icons[idx]) icons[idx].classList.add('active');
+  if (serverId === 'home') document.querySelector('.server-sidebar .server-icon:first-child').classList.add('active');
+  
+  const server = state.servers.find(s => s.id === serverId);
+  if (server) {
+    document.getElementById('serverNameDisplay').textContent = server.name;
+    renderChannels(server);
+  } else {
+    document.getElementById('serverNameDisplay').textContent = 'Gettic Ana Sayfa';
+    renderChannels(null);
   }
-  function renderMainUI() {
-    return `<div class="app">
-      <div class="server-rail">
-        <div class="server-icon active" data-server="main">${Icons.hash}</div>
-        <div class="server-icon" onclick="openModal('addServerModal')">${Icons.plus}</div>
-      </div>
-      <div class="channel-sidebar" id="channelSidebar">
-        <div class="channel-header">${Icons.hash}<span>Gettic</span></div>
-        <div class="channel-category">METİN ODALARI<button onclick="openModal('addChannelModal')">${Icons.plus}</button></div>
-        <div class="channel-item active" data-channel="genel-sohbet">${Icons.hash} genel-sohbet</div>
-        <div class="channel-item" data-channel="kurallar">${Icons.forum} kurallar</div>
-        <div class="channel-category">SESLİ ODALAR</div>
-        <div class="channel-item voice-channel" data-channel="Sesli Sohbet">${Icons.volume} Sesli Sohbet</div>
-        <div class="channel-item voice-channel" data-channel="Müzik Odası">${Icons.music} Müzik Odası</div>
-        <div class="channel-category">FORUM</div>
-        <div class="channel-item" data-channel="forum">${Icons.forum} forum</div>
-        <div class="channel-category">GERİ BİLDİRİM</div>
-        <div class="channel-item" data-channel="oneri">${Icons.idea} öneri</div>
-        <div class="channel-item" data-channel="bug-bildirimi">${Icons.bug} bug-bildirimi</div>
-      </div>
-      <div class="chat-area">
-        <div class="chat-header">
-          ${Icons.hash}<div class="channel-name"># ${currentChannel.name}</div>
-          <div class="channel-topic">${currentChannel.topic}</div>
-          <div class="header-badge">
-            <button class="icon-btn" id="copyChannelIdBtn" title="Kanal Bilgileri">${Icons.webhook}</button>
-            <button class="icon-btn" id="toggleSidebarBtn" title="Kanal Listesi">${Icons.hash}</button>
-            <button class="icon-btn" id="toggleUserPanelBtn" title="Kullanıcı Paneli">${Icons.user}</button>
-          </div>
+  
+  if (window.innerWidth < 768) {
+    document.getElementById('channelSidebar').classList.add('open');
+  }
+}
+
+// ─── RENDER CHANNELS ─────────────────────────────────
+function renderChannels(server) {
+  const textCh = document.getElementById('textChannels');
+  const voiceCh = document.getElementById('voiceChannels');
+  
+  if (!server || server.id === 'home') {
+    textCh.innerHTML = `
+      <div class="channel-item active" onclick="selectChannel('general','Genel','text','home')">
+        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> genel
+      </div>`;
+    voiceCh.innerHTML = '';
+    return;
+  }
+  
+  const textChannels = server.channels.filter(c => c.type === 'text' || c.type === 'rules' || c.type === 'forum');
+  const voiceChannels = server.channels.filter(c => c.type === 'voice');
+  
+  textCh.innerHTML = textChannels.map(c => `
+    <div class="channel-item ${state.currentChannel.id === c.id ? 'active' : ''}" onclick="selectChannel('${c.id}','${c.name}','${c.type}','${server.id}')">
+      ${c.type === 'rules' ? '<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>' 
+        : c.type === 'forum' ? '<svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>'
+        : '<svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>'}
+      ${c.name}
+      ${c.type === 'rules' ? '<span class="badge badge-admin">KURALLAR</span>' : ''}
+    </div>
+  `).join('');
+  
+  voiceCh.innerHTML = voiceChannels.map(c => `
+    <div class="channel-item voice ${state.currentChannel.id === c.id ? 'active' : ''}" onclick="selectChannel('${c.id}','${c.name}','voice','${server.id}')">
+      <svg viewBox="0 0 24 24"><path d="M12 1a2 2 0 0 0-2 2v8a2 2 0 0 0 4 0V3a2 2 0 0 0-2-2z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+      ${c.name}
+    </div>
+  `).join('');
+}
+
+// ─── SELECT CHANNEL ───────────────────────────────────
+function selectChannel(id, name, type, serverId) {
+  state.currentChannel = { id, name, type, serverId };
+  document.getElementById('channelTitle').textContent = name;
+  document.getElementById('channelDesc').textContent = '';
+  document.getElementById('emptyChannelName').textContent = name;
+  document.getElementById('emptyChannelMsg').textContent = `${name} doğuşu. Bu kanala gönderilen ilk mesajı sen yaz!`;
+  
+  const iconEl = document.getElementById('channelIcon');
+  if (type === 'voice') {
+    iconEl.innerHTML = '<path d="M12 1a2 2 0 0 0-2 2v8a2 2 0 0 0 4 0V3a2 2 0 0 0-2-2z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>';
+  } else if (type === 'rules') {
+    iconEl.innerHTML = '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>';
+  } else {
+    iconEl.innerHTML = '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>';
+  }
+  
+  renderMessages();
+  renderChannels(state.servers.find(s => s.id === serverId));
+  document.querySelectorAll('.channel-item').forEach(el => el.classList.remove('active'));
+  
+  if (window.innerWidth < 768) {
+    document.getElementById('channelSidebar').classList.remove('open');
+  }
+}
+
+// ─── MESSAGES ─────────────────────────────────────────
+function renderMessages() {
+  const container = document.getElementById('chatMessages');
+  const empty = document.getElementById('chatEmpty');
+  const key = `${state.currentChannel.serverId}:${state.currentChannel.id}`;
+  const msgs = state.messages[key] || [];
+  
+  if (msgs.length === 0) {
+    empty.style.display = 'flex';
+    container.querySelectorAll('.msg-group').forEach(el => el.remove());
+    return;
+  }
+  
+  empty.style.display = 'none';
+  container.innerHTML = msgs.map(m => `
+    <div class="msg-group">
+      <div class="msg-avatar">${m.author.charAt(0).toUpperCase()}</div>
+      <div class="msg-body">
+        <div class="msg-header">
+          <span class="msg-author">${m.author}</span>
+          <span class="msg-time">${m.time}</span>
         </div>
-        <div class="messages-container" id="messagesContainer"></div>
-        <div class="typing-indicator" id="typingIndicator"></div>
-        <div class="input-area">
-          <button class="icon-btn" id="emojiBtn">${Icons.smile}</button>
-          <div id="emojiPicker" class="emoji-picker"></div>
-          <input type="text" class="message-input" id="messageInput" placeholder="Mesajınızı yazın..." autocomplete="off">
-          <button class="icon-btn" id="sendBtn" style="background:var(--ac);">${Icons.send}</button>
-        </div>
-      </div>
-      <div class="user-panel" id="userPanel">
-        <div class="user-profile">
-          <div class="user-avatar">${currentUser?.username?.charAt(0)?.toUpperCase() || 'U'}</div>
-          <div class="user-info"><div class="user-name">${escapeHtml(currentUser?.username || 'Kullanıcı')}</div><div class="user-status">🟢 Çevrimiçi</div></div>
-        </div>
-        <div class="voice-bar" id="voiceBar" style="display:none;">${Icons.volume}<span>Sesli Kanal</span><div class="voice-controls"><button class="voice-btn" id="muteBtn">${Icons.mic}</button><button class="voice-btn" id="deafenBtn">${Icons.deafen}</button><button class="voice-btn" id="leaveVoiceBtn" style="background:var(--re);">${Icons.logout}</button></div></div>
-        <button class="panel-btn" id="serverSettingsBtn">${Icons.settings} Sunucu Ayarları</button>
-        <button class="panel-btn" id="profileBtn">${Icons.user} Profilim</button>
-        <button class="panel-btn" id="themeSettingsBtn">${Icons.theme} Tema Ayarları</button>
-        <button class="panel-btn" id="discoverBtn">${Icons.discover} Sunucuları Keşfet</button>
-        <button class="panel-btn" id="dmBtn">${Icons.dm} Direkt Mesajlar</button>
-        <button class="panel-btn" id="addFriendBtn">${Icons.plus} Arkadaş Ekle</button>
-        <button class="panel-btn" id="webhookInfoBtn">${Icons.webhook} Webhook Bilgileri</button>
-        <button class="panel-btn" id="logoutBtn" style="color:var(--re);">${Icons.logout} Çıkış Yap</button>
+        <div class="msg-content">${escapeHtml(m.content)}</div>
       </div>
     </div>
-    <div id="serverSettingsModal" class="modal"><div class="modal-box"><h2>${Icons.settings} Sunucu Ayarları</h2><input id="serverName" class="modal-input" placeholder="Sunucu Adı"><input id="serverDesc" class="modal-input" placeholder="Açıklama"><input id="serverIconUrl" class="modal-input" placeholder="Logo URL"><input id="serverBannerUrl" class="modal-input" placeholder="Banner URL"><div class="id-row" onclick="copyId('serverIdVal')">Sunucu ID: <span id="serverIdVal">srv_${Math.random().toString(36).substring(2, 10)}</span>${Icons.copy}</div><button class="modal-btn" onclick="saveServerSettings()">Kaydet</button></div></div>
-    <div id="profileModal" class="modal"><div class="modal-box"><h2>${Icons.user} Profilim</h2><div class="profile-banner"></div><div class="profile-avatar-large">${currentUser?.username?.charAt(0)?.toUpperCase() || 'U'}</div><div class="id-row" onclick="copyId('userIdVal')">Kullanıcı ID: <span id="userIdVal">usr_${Math.random().toString(36).substring(2, 10)}</span>${Icons.copy}</div><input id="profileDisplayName" class="modal-input" placeholder="Görünen Ad" value="${escapeHtml(currentUser?.username || '')}"><textarea id="profileBio" class="modal-input" rows="3" placeholder="Hakkımda"></textarea><input id="profileAvatarUrl" class="modal-input" placeholder="Avatar URL"><div class="id-row">Hesap Oluşturuldu: ${new Date().toLocaleDateString()}</div><button class="modal-btn" onclick="saveProfile()">Kaydet</button></div></div>
-    <div id="themeSettingsModal" class="modal"><div class="modal-box"><h2>${Icons.theme} Tema Ayarları</h2><div class="theme-option" onclick="setTheme('#c084fc','#e879f9')" style="padding:12px;cursor:pointer;border-radius:8px;margin-bottom:8px;"><div style="width:32px;height:32px;border-radius:8px;background:#c084fc;display:inline-block;margin-right:12px;"></div>Pembe Mor (Varsayılan)</div><div class="theme-option" onclick="setTheme('#6366f1','#818cf8')" style="padding:12px;cursor:pointer;border-radius:8px;margin-bottom:8px;"><div style="width:32px;height:32px;border-radius:8px;background:#6366f1;display:inline-block;margin-right:12px;"></div>Mavi</div><div class="theme-option" onclick="setTheme('#22c55e','#4ade80')" style="padding:12px;cursor:pointer;border-radius:8px;margin-bottom:8px;"><div style="width:32px;height:32px;border-radius:8px;background:#22c55e;display:inline-block;margin-right:12px;"></div>Yeşil</div><button class="modal-btn" onclick="closeModal('themeSettingsModal')">Kapat</button></div></div>
-    <div id="addServerModal" class="modal"><div class="modal-box"><h2>${Icons.plus} Sunucu Oluştur</h2><input id="newServerName" class="modal-input" placeholder="Sunucu Adı"><button class="modal-btn" onclick="createServer()">Oluştur</button></div></div>
-    <div id="addChannelModal" class="modal"><div class="modal-box"><h2>${Icons.plus} Kanal Oluştur</h2><input id="newChannelName" class="modal-input" placeholder="Kanal Adı"><button class="modal-btn" onclick="createChannel()">Oluştur</button></div></div>
-    <div id="discoverModal" class="modal"><div class="modal-box"><h2>${Icons.discover} Toplulukları Keşfet</h2><div id="discoverList" class="discover-grid"></div></div></div>
-    <div id="dmModal" class="modal"><div class="modal-box"><h2>${Icons.dm} Direkt Mesajlar</h2><div id="dmList" class="dm-list"></div><div id="dmChatArea" style="margin-top:16px;display:none;"><div id="dmMessages" style="height:200px;overflow-y:auto;margin-bottom:12px;border:1px solid var(--b);border-radius:12px;padding:12px;"></div><div style="display:flex;gap:8px;"><input type="text" id="dmInput" class="modal-input" style="margin:0;" placeholder="Mesajınız..."><button class="modal-btn" id="sendDmBtn" style="width:auto;padding:12px 20px;">${Icons.send}</button></div></div></div></div>
-    <div id="addFriendModal" class="modal"><div class="modal-box"><h2>${Icons.plus} Arkadaş Ekle</h2><input id="friendUsername" class="modal-input" placeholder="Kullanıcı Adı"><button class="modal-btn" onclick="addFriend()">Ekle</button></div></div>
-    <div id="webhookModal" class="modal"><div class="modal-box"><h2>${Icons.webhook} Webhook Bilgileri</h2><div class="id-row" onclick="copyId('channelIdVal')">Kanal ID: <span id="channelIdVal">${currentChannel.id}</span>${Icons.copy}</div><div class="id-row" onclick="copyId('messageIdVal')">Mesaj ID: <span id="messageIdVal">-</span>${Icons.copy}</div><div class="id-row" onclick="copyId('webhookUrlVal')">Webhook URL: <span id="webhookUrlVal">${API_URL}/api/webhook/demo</span>${Icons.copy}</div><button class="modal-btn" onclick="closeModal('webhookModal')">Kapat</button></div></div>`;
-  }
+  `).join('');
+  
+  container.scrollTop = container.scrollHeight;
+}
 
-  // ==================== AUTH ====================
-  function attachAuthEvents() {
-    document.getElementById('loginTab')?.addEventListener('click', () => { document.getElementById('loginForm').style.display='block'; document.getElementById('registerForm').style.display='none'; });
-    document.getElementById('registerTab')?.addEventListener('click', () => { document.getElementById('loginForm').style.display='none'; document.getElementById('registerForm').style.display='block'; });
-    document.getElementById('doLoginBtn')?.addEventListener('click', doLogin);
-    document.getElementById('doRegBtn')?.addEventListener('click', doRegister);
-  }
-  async function doLogin() {
-    const u = document.getElementById('loginUser').value.trim(), p = document.getElementById('loginPass').value;
-    try {
-      const r = await fetch(`${API_URL}/api/auth/login`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:u,password:p}) });
-      const d = await r.json(); if(!r.ok) throw new Error(d.error);
-      currentToken=d.token; currentUser=d.user; localStorage.setItem('gt_token',currentToken); localStorage.setItem('gt_user',JSON.stringify(currentUser));
-      renderApp(); initSocket(); document.getElementById('loadingScreen')?.classList.add('hide');
-    } catch(e) { document.getElementById('authError').innerText=e.message; }
-  }
-  async function doRegister() {
-    const u = document.getElementById('regUser').value.trim(), p = document.getElementById('regPass').value;
-    if(p.length<6) return document.getElementById('authError').innerText='Şifre en az 6 karakter';
-    try {
-      const r = await fetch(`${API_URL}/api/auth/register`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:u,password:p}) });
-      const d = await r.json(); if(!r.ok) throw new Error(d.error);
-      currentToken=d.token; currentUser=d.user; localStorage.setItem('gt_token',currentToken); localStorage.setItem('gt_user',JSON.stringify(currentUser));
-      renderApp(); initSocket(); document.getElementById('loadingScreen')?.classList.add('hide');
-    } catch(e) { document.getElementById('authError').innerText=e.message; }
-  }
+function sendMessage() {
+  const input = document.getElementById('chatInput');
+  const content = input.value.trim();
+  if (!content) return;
+  
+  const key = `${state.currentChannel.serverId}:${state.currentChannel.id}`;
+  if (!state.messages[key]) state.messages[key] = [];
+  
+  state.messages[key].push({
+    id: Date.now().toString(),
+    author: state.user.username,
+    content,
+    time: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
+    channelId: state.currentChannel.id,
+    serverId: state.currentChannel.serverId
+  });
+  
+  localStorage.setItem('gt_messages', JSON.stringify(state.messages));
+  input.value = '';
+  input.style.height = 'auto';
+  renderMessages();
+}
 
-  // ==================== MAIN ====================
-  function attachMainEvents() {
-    document.querySelectorAll('.channel-item').forEach(el => el.addEventListener('click', () => {
-      if(el.classList.contains('voice-channel')) { joinVoiceChannel(el.dataset.channel); return; }
-      currentChannel={ id:el.dataset.channel, name:el.dataset.channel.replace(/-/g,' '), topic:'Sohbet odası' };
-      document.querySelectorAll('.channel-item').forEach(c=>c.classList.remove('active')); el.classList.add('active');
-      document.querySelector('.channel-name').innerHTML=`# ${currentChannel.name}`;
-      loadMessages(); socket?.emit('join_channel', currentChannel.id);
-    }));
-    document.getElementById('sendBtn')?.addEventListener('click', sendMessage);
-    document.getElementById('messageInput')?.addEventListener('keypress', e=>{ if(e.key==='Enter') sendMessage(); });
-    document.getElementById('emojiBtn')?.addEventListener('click', ()=>document.getElementById('emojiPicker').classList.toggle('show'));
-    document.getElementById('logoutBtn')?.addEventListener('click', logout);
-    document.getElementById('copyChannelIdBtn')?.addEventListener('click', ()=>openModal('webhookModal'));
-    document.getElementById('serverSettingsBtn')?.addEventListener('click', ()=>openModal('serverSettingsModal'));
-    document.getElementById('profileBtn')?.addEventListener('click', ()=>openModal('profileModal'));
-    document.getElementById('themeSettingsBtn')?.addEventListener('click', ()=>openModal('themeSettingsModal'));
-    document.getElementById('discoverBtn')?.addEventListener('click', ()=>{ openModal('discoverModal'); loadDiscover(); });
-    document.getElementById('dmBtn')?.addEventListener('click', ()=>{ openModal('dmModal'); loadDMList(); });
-    document.getElementById('addFriendBtn')?.addEventListener('click', ()=>openModal('addFriendModal'));
-    document.getElementById('webhookInfoBtn')?.addEventListener('click', ()=>openModal('webhookModal'));
-    document.getElementById('toggleSidebarBtn')?.addEventListener('click', ()=>document.getElementById('channelSidebar').classList.toggle('open'));
-    document.getElementById('toggleUserPanelBtn')?.addEventListener('click', ()=>document.getElementById('userPanel').classList.toggle('open'));
-    initEmojiPicker();
+function handleInputKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
   }
-  async function sendMessage() {
-    const inp = document.getElementById('messageInput'), content = inp.value.trim();
-    if(!content) return;
-    try {
-      const r = await fetch(`${API_URL}/api/channels/${currentChannel.id}/messages`, {method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${currentToken}`},body:JSON.stringify({content})});
-      const d = await r.json(); document.getElementById('messageIdVal').innerText = d._id; inp.value = '';
-    } catch(e) { showToast(e.message, true); }
-  }
-  async function loadMessages() {
-    try {
-      const r = await fetch(`${API_URL}/api/channels/${currentChannel.id}/messages`, {headers:{'Authorization':`Bearer ${currentToken}`}});
-      messages = await r.json(); const c = document.getElementById('messagesContainer');
-      if(!messages.length) { c.innerHTML = `<div class="empty-channel">${Icons.hash}<h4># ${currentChannel.name} doğuşu</h4><p>Bu kanalda henüz mesaj yok. İlk mesajı sen gönder!</p></div>`; return; }
-      c.innerHTML = messages.map(m=>`<div class="message"><div class="message-avatar">${m.senderName?.charAt(0)?.toUpperCase()||'?'}</div><div class="message-content"><div class="message-header">${escapeHtml(m.senderName)}<span>${new Date(m.createdAt).toLocaleTimeString()}</span></div><div class="message-text">${escapeHtml(m.content)}</div></div></div>`).join('');
-      c.scrollTop = c.scrollHeight;
-    } catch(e) {}
-  }
-  function initSocket() {
-    if(!currentToken) return; if(socket) socket.disconnect();
-    socket = io(API_URL, {auth:{token:currentToken}, transports:['websocket']});
-    socket.on('new_message', m => { if(m.channelId===currentChannel.id) addMsg(m); });
-    socket.on('user_typing', ({username,channelId}) => { if(channelId===currentChannel.id && username!==currentUser?.username) showTyping(username); });
-  }
-  function addMsg(m) {
-    const c = document.getElementById('messagesContainer'); if(c.querySelector('.empty-channel')) c.innerHTML='';
-    c.insertAdjacentHTML('beforeend', `<div class="message"><div class="message-avatar">${m.senderName?.charAt(0)?.toUpperCase()||'?'}</div><div class="message-content"><div class="message-header">${escapeHtml(m.senderName)}<span>${new Date(m.createdAt).toLocaleTimeString()}</span></div><div class="message-text">${escapeHtml(m.content)}</div></div></div>`);
-    c.scrollTop = c.scrollHeight;
-  }
-  let tt;
-  function showTyping(u) { const i=document.getElementById('typingIndicator'); i.textContent=`${u} yazıyor...`; clearTimeout(tt); tt=setTimeout(()=>i.textContent='',1500); }
-  function initEmojiPicker() {
-    const emojis = ['😀','😂','❤️','🔥','🎉','👍','👎','🙏','🎮','💻','✨','✅'];
-    const p = document.getElementById('emojiPicker'); p.innerHTML = emojis.map(e=>`<div class="emoji-option">${e}</div>`).join('');
-    p.querySelectorAll('.emoji-option').forEach(o=>o.addEventListener('click',()=>{document.getElementById('messageInput').value+=o.textContent;p.classList.remove('show');document.getElementById('messageInput').focus();}));
-  }
+}
 
-  // ==================== WEBRTC ====================
-  async function joinVoiceChannel(name) {
-    showToast(`🎙️ ${name} kanalına bağlanılıyor...`);
-    try {
-      localStream = await navigator.mediaDevices.getUserMedia({audio:true});
-      document.getElementById('voiceBar').style.display='flex'; isInVoice=true;
-      setupVoice(name); showToast(`✅ ${name} kanalına katıldınız!`);
-    } catch(e) { showToast('Mikrofon erişimi reddedildi!', true); }
+// ─── MODALS ───────────────────────────────────────────
+function openModal(type) {
+  const container = document.getElementById('modalContainer');
+  let html = '';
+  
+  switch(type) {
+    case 'createServerModal':
+      html = `
+        <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+          <div class="modal">
+            <h3>Sunucu Oluştur</h3>
+            <p>Yeni bir sunucu oluştur ve arkadaşlarınla sohbet et.</p>
+            <input class="modal-input" id="serverNameInput" placeholder="Sunucu Adı" />
+            <input class="modal-input" id="serverDescInput" placeholder="Açıklama (opsiyonel)" />
+            <button class="modal-btn" onclick="createServer()">Sunucu Oluştur</button>
+            <button class="modal-btn secondary" style="margin-top:8px" onclick="closeModal()">İptal</button>
+          </div>
+        </div>`;
+      break;
+      
+    case 'webhookModal':
+      html = `
+        <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+          <div class="modal">
+            <h3>Webhook Oluştur</h3>
+            <p>Webhook URL'i ile dış sistemlerden mesaj gönderebilirsiniz.</p>
+            <input class="modal-input" id="webhookNameInput" placeholder="Webhook Adı" />
+            <input class="modal-input" id="webhookChannelInput" placeholder="Kanal ID" value="${state.currentChannel.id}" />
+            <button class="modal-btn" onclick="createWebhook()">Webhook Oluştur</button>
+            <div id="webhookResult" style="margin-top:12px;display:none">
+              <p style="font-size:12px;color:var(--green)">Webhook URL:</p>
+              <code id="webhookUrlDisplay" style="word-break:break-all;font-size:12px;background:var(--bg3);padding:8px;border-radius:6px;display:block;color:var(--accent3)"></code>
+            </div>
+            <button class="modal-btn secondary" style="margin-top:8px" onclick="closeModal()">Kapat</button>
+          </div>
+        </div>`;
+      break;
+      
+    case 'settingsModal':
+      html = `
+        <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+          <div class="modal" style="max-width:600px">
+            <h3>Ayarlar</h3>
+            <div class="settings-grid">
+              <div class="settings-nav">
+                <div class="settings-nav-item active" onclick="switchSettingsTab('account',this)">
+                  <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Hesap
+                </div>
+                <div class="settings-nav-item" onclick="switchSettingsTab('server',this)">
+                  <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg> Sunucu
+                </div>
+                <div class="settings-nav-item" onclick="switchSettingsTab('theme',this)">
+                  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/></svg> Tema
+                </div>
+              </div>
+              <div class="settings-content" id="settingsContent">
+                <h4 style="margin-bottom:12px;color:var(--accent3)">Hesap Ayarları</h4>
+                <p style="font-size:13px;color:var(--text2)">Kullanıcı Adı: <strong>${state.user.username}</strong></p>
+                <p style="font-size:13px;color:var(--text2)">ID: <code style="font-size:11px">${state.user._id}</code></p>
+                <p style="font-size:13px;color:var(--text2)">Token: <code style="font-size:10px;word-break:break-all">${state.token || 'Yok'}</code></p>
+                <button class="modal-btn secondary" style="margin-top:12px;width:auto" onclick="logout()">Çıkış Yap</button>
+              </div>
+            </div>
+            <button class="modal-btn secondary" style="margin-top:12px" onclick="closeModal()">Kapat</button>
+          </div>
+        </div>`;
+      break;
+      
+    case 'friendsModal':
+      html = `
+        <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+          <div class="modal">
+            <h3>Arkadaşlar</h3>
+            <div id="friendsList" style="max-height:300px;overflow-y:auto">
+              ${state.friends.map(f => `
+                <div style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:8px;background:var(--bg3);margin-bottom:6px">
+                  <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),#a78bfa);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff">${f.username.charAt(0).toUpperCase()}</div>
+                  <div style="flex:1"><strong>${f.username}</strong><br><span style="font-size:11px;color:${f.online?'var(--green)':'var(--text3)'}">${f.online?'Çevrimiçi':'Çevrimdışı'}</span></div>
+                  <button class="topbar-btn" onclick="startDM('${f.id}','${f.username}')">DM</button>
+                </div>
+              `).join('')}
+            </div>
+            <input class="modal-input" id="friendAddInput" placeholder="Arkadaş ekle (kullanıcı adı)" style="margin-top:12px" />
+            <button class="modal-btn" onclick="addFriend()">Arkadaş Ekle</button>
+            <button class="modal-btn secondary" style="margin-top:8px" onclick="closeModal()">Kapat</button>
+          </div>
+        </div>`;
+      break;
+      
+    case 'discoverModal':
+      html = `
+        <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+          <div class="modal">
+            <h3>Sunucu Keşfet</h3>
+            <p>Popüler sunucuları keşfedin.</p>
+            <div style="display:grid;gap:8px">
+              ${state.servers.map(s => `
+                <div style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--bg3);border-radius:var(--radius3);cursor:pointer;transition:all var(--transition)" onclick="selectServer('${s.id}');closeModal()">
+                  <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),#a78bfa);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:#fff">${s.name.charAt(0)}</div>
+                  <div><strong>${s.name}</strong><br><span style="font-size:12px;color:var(--text3)">${s.channels.length} kanal</span></div>
+                </div>
+              `).join('')}
+            </div>
+            <button class="modal-btn secondary" style="margin-top:12px" onclick="closeModal()">Kapat</button>
+          </div>
+        </div>`;
+      break;
   }
-  function setupVoice(ch) {
-    socket.emit('voice_join',{channel:ch});
-    peerConnection = new RTCPeerConnection(rtcConfig);
-    localStream.getTracks().forEach(t=>peerConnection.addTrack(t,localStream));
-    peerConnection.onicecandidate = e => { if(e.candidate) socket.emit('voice_candidate',{candidate:e.candidate,channel:ch}); };
-    socket.on('voice_answer', async d=>{ if(d.sdp) await peerConnection.setRemoteDescription(new RTCSessionDescription(d.sdp)); });
-    socket.on('voice_candidate', d=>{ if(d.candidate) peerConnection.addIceCandidate(new RTCIceCandidate(d.candidate)); });
-    peerConnection.createOffer().then(o=>{peerConnection.setLocalDescription(o);socket.emit('voice_offer',{sdp:o,channel:ch});});
-    document.getElementById('muteBtn').onclick = () => {
-      isMuted=!isMuted; localStream.getAudioTracks().forEach(t=>t.enabled=!isMuted);
-      document.getElementById('muteBtn').innerHTML = isMuted ? Icons.micOff : Icons.mic;
-      document.getElementById('muteBtn').classList.toggle('muted', isMuted);
-    };
-    document.getElementById('leaveVoiceBtn').onclick = () => {
-      localStream.getTracks().forEach(t=>t.stop()); peerConnection.close();
-      socket.emit('voice_leave',{channel:ch}); document.getElementById('voiceBar').style.display='none'; isInVoice=false;
-      showToast('Sesli kanaldan ayrıldınız');
-    };
-  }
+  
+  container.innerHTML = html;
+}
 
-  // ==================== CRUD ====================
-  function createServer() { const n=document.getElementById('newServerName').value.trim(); if(!n) return showToast('Sunucu adı gerekli',true); showToast('Sunucu oluşturuldu (demo)'); closeModal('addServerModal'); }
-  function createChannel() { const n=document.getElementById('newChannelName').value.trim(); if(!n) return showToast('Kanal adı gerekli',true); showToast(`${n} kanalı oluşturuldu`); closeModal('addChannelModal'); }
-  function addFriend() { const u=document.getElementById('friendUsername').value.trim(); if(!u) return; showToast(`${u} arkadaşlık isteği gönderildi`); closeModal('addFriendModal'); }
-  function saveServerSettings() { showToast('Sunucu ayarları kaydedildi'); closeModal('serverSettingsModal'); }
-  function saveProfile() { showToast('Profil güncellendi'); closeModal('profileModal'); }
-  function loadDiscover() {
-    document.getElementById('discoverList').innerHTML = `
-      <div class="discover-card" onclick="joinDiscover('Oyun Sunucusu')"><div class="discover-card-header"><div class="discover-card-icon">${Icons.game}</div><div class="discover-card-info"><h3>MLBB - ML88</h3><p>Mobile Legends topluluğu</p></div></div><div class="discover-card-stats"><span>🟢 7 Çevrimiçi</span><span>👥 75 Üye</span></div><button>Topluluğa Katıl</button></div>
-      <div class="discover-card" onclick="joinDiscover('Müzik Sunucusu')"><div class="discover-card-header"><div class="discover-card-icon">${Icons.music}</div><div class="discover-card-info"><h3>Müzik Odası</h3><p>Müzik paylaşım ve dinleti</p></div></div><div class="discover-card-stats"><span>🟢 12 Çevrimiçi</span><span>👥 230 Üye</span></div><button>Topluluğa Katıl</button></div>
-      <div class="discover-card" onclick="joinDiscover('Teknoloji')"><div class="discover-card-header"><div class="discover-card-icon">💻</div><div class="discover-card-info"><h3>Teknoloji Topluluğu</h3><p>Yazılım, donanım, yapay zeka</p></div></div><div class="discover-card-stats"><span>🟢 23 Çevrimiçi</span><span>👥 1.7K Üye</span></div><button>Topluluğa Katıl</button></div>`;
-  }
-  function joinDiscover(n) { showToast(`${n} sunucusuna katılıyorsunuz...`); closeModal('discoverModal'); }
-  function loadDMList() {
-    const friends = [{id:'1',username:'Alysas',last:'Görüşürüz',time:'17:46'},{id:'2',username:'Lewira',last:'Tamam hocam',time:'17:24'},{id:'3',username:'thedrk',last:'Bora amin...',time:'Dün'}];
-    document.getElementById('dmList').innerHTML = friends.map(f=>`<div class="dm-item" onclick="openDM('${f.id}','${f.username}')"><div class="dm-avatar">${f.username.charAt(0)}</div><div class="dm-info"><div class="dm-name">${f.username}</div><div class="dm-last-msg">${f.last}</div></div><div style="font-size:11px;color:var(--t3);">${f.time}</div></div>`).join('');
-    window.openDM = (id,uname) => { currentDMUser={_id:id,username:uname}; document.getElementById('dmChatArea').style.display='block'; document.getElementById('dmMessages').innerHTML='<div style="text-align:center;padding:20px;color:var(--t3);">Mesajlar burada görünecek</div>';
-      document.getElementById('sendDmBtn').onclick = () => { const inp=document.getElementById('dmInput'); if(inp.value.trim()){ const div=document.getElementById('dmMessages'); const m=document.createElement('div'); m.className='message'; m.innerHTML=`<div class="message-avatar">${currentUser.username.charAt(0).toUpperCase()}</div><div class="message-content"><div class="message-header">${currentUser.username}<span>${new Date().toLocaleTimeString()}</span></div><div class="message-text">${escapeHtml(inp.value)}</div></div>`; div.appendChild(m); div.scrollTop=div.scrollHeight; inp.value=''; } };
-    };
-  }
-  function setTheme(p,s) { document.documentElement.style.setProperty('--ac',p); document.documentElement.style.setProperty('--ac2',s); document.documentElement.style.setProperty('--acg',`${p}30`); document.documentElement.style.setProperty('--acd',`${p}1A`); localStorage.setItem('gt_theme_primary',p); localStorage.setItem('gt_theme_secondary',s); showToast('Tema değiştirildi!'); closeModal('themeSettingsModal'); }
-  function initTheme() { const p=localStorage.getItem('gt_theme_primary'),s=localStorage.getItem('gt_theme_secondary'); if(p&&s) setTheme(p,s); }
-  function copyId(id) { const t=document.getElementById(id)?.innerText; if(t&&t!=='-') { navigator.clipboard.writeText(t); showToast('Kopyalandı!'); } }
-  function logout() { localStorage.removeItem('gt_token'); localStorage.removeItem('gt_user'); currentUser=null; if(socket) socket.disconnect(); renderApp(); showToast('Çıkış yapıldı'); }
-  function openModal(id) { document.getElementById(id)?.classList.add('show'); }
-  function closeModal(id) { document.getElementById(id)?.classList.remove('show'); }
+function closeModal() {
+  document.getElementById('modalContainer').innerHTML = '';
+}
 
-  // ==================== INIT ====================
-  function init() {
-    setTimeout(() => document.getElementById('loadingScreen')?.classList.add('hide'), 800);
-    const stored = localStorage.getItem('gt_user');
-    if (stored && currentToken) { try { currentUser = JSON.parse(stored); } catch(e) {} }
-    renderApp();
-    document.addEventListener('click', e => { if (e.target.classList?.contains('modal')) e.target.classList.remove('show'); });
-    window.openModal = openModal; window.closeModal = closeModal;
-    window.createServer = createServer; window.createChannel = createChannel;
-    window.addFriend = addFriend; window.saveServerSettings = saveServerSettings;
-    window.saveProfile = saveProfile; window.loadDiscover = loadDiscover;
-    window.joinDiscover = joinDiscover; window.setTheme = setTheme; window.copyId = copyId;
-    window.joinVoiceChannel = joinVoiceChannel; window.openDM = () => {};
+function createServer() {
+  const name = document.getElementById('serverNameInput').value.trim();
+  if (!name) return alert('Sunucu adı gerekli!');
+  const desc = document.getElementById('serverDescInput')?.value.trim() || '';
+  const newServer = {
+    id: 'srv' + Date.now(),
+    name,
+    description: desc,
+    channels: [
+      { id: 'general-' + Date.now(), name: 'genel', type: 'text', topic: 'Genel sohbet kanalı' },
+      { id: 'kurallar-' + Date.now(), name: 'kurallar', type: 'rules', topic: 'Sunucu kuralları' },
+      { id: 'sesli-' + Date.now(), name: 'Sesli Sohbet', type: 'voice', topic: 'Sesli sohbet odası' }
+    ]
+  };
+  state.servers.push(newServer);
+  localStorage.setItem('gt_servers', JSON.stringify(state.servers));
+  renderServers();
+  selectServer(newServer.id);
+  closeModal();
+}
+
+function createWebhook() {
+  const name = document.getElementById('webhookNameInput').value.trim();
+  const channel = document.getElementById('webhookChannelInput').value.trim();
+  if (!name || !channel) return alert('Ad ve kanal gerekli!');
+  const token = 'wh_' + Math.random().toString(36).substring(2, 18);
+  const url = `https://gettic.js.org/api/webhook/${token}`;
+  document.getElementById('webhookResult').style.display = 'block';
+  document.getElementById('webhookUrlDisplay').textContent = url;
+  showToast('Webhook oluşturuldu!');
+}
+
+function switchSettingsTab(tab, el) {
+  document.querySelectorAll('.settings-nav-item').forEach(e => e.classList.remove('active'));
+  el.classList.add('active');
+  const content = document.getElementById('settingsContent');
+  switch(tab) {
+    case 'account':
+      content.innerHTML = `<h4 style="margin-bottom:12px;color:var(--accent3)">Hesap Ayarları</h4>
+        <p style="font-size:13px;color:var(--text2)">Kullanıcı Adı: <strong>${state.user.username}</strong></p>
+        <p style="font-size:13px;color:var(--text2)">ID: <code style="font-size:11px">${state.user._id}</code></p>
+        <p style="font-size:13px;color:var(--text2)">Sunucu ID: <code style="font-size:11px">${state.currentServer}</code></p>
+        <p style="font-size:13px;color:var(--text2)">Kanal ID: <code style="font-size:11px">${state.currentChannel.id}</code></p>
+        <button class="modal-btn secondary" style="margin-top:12px;width:auto" onclick="logout()">Çıkış Yap</button>`;
+      break;
+    case 'server':
+      content.innerHTML = `<h4 style="margin-bottom:12px;color:var(--accent3)">Sunucu Ayarları</h4>
+        <p style="font-size:13px;color:var(--text2)">Sunucu logosu, banner ve açıklama ayarları.</p>
+        <input class="modal-input" id="serverLogoInput" placeholder="Logo URL" />
+        <input class="modal-input" id="serverBannerInput" placeholder="Banner URL" />
+        <input class="modal-input" id="serverDescEditInput" placeholder="Açıklama" />
+        <button class="modal-btn" onclick="updateServer()" style="width:auto">Kaydet</button>`;
+      break;
+    case 'theme':
+      content.innerHTML = `<h4 style="margin-bottom:12px;color:var(--accent3)">Tema Ayarları</h4>
+        <p style="font-size:13px;color:var(--text2)">Aktif Tema: <strong>Pembe-Mor</strong></p>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <div onclick="setTheme('pink-purple')" style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#c084fc,#e879f9);cursor:pointer;border:3px solid var(--accent3)"></div>
+          <div onclick="setTheme('dark')" style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#333,#555);cursor:pointer;border:3px solid transparent"></div>
+          <div onclick="setTheme('ocean')" style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#0ea5e9,#38bdf8);cursor:pointer;border:3px solid transparent"></div>
+        </div>`;
+      break;
   }
-  init();
+}
+
+function setTheme(t) {
+  state.theme = t;
+  showToast('Tema güncellendi (demo)');
+}
+
+function updateServer() {
+  showToast('Sunucu ayarları kaydedildi (demo)');
+}
+
+function addFriend() {
+  const input = document.getElementById('friendAddInput');
+  const name = input.value.trim();
+  if (!name) return;
+  state.friends.push({ id: 'f' + Date.now(), username: name, avatar: null, online: false });
+  localStorage.setItem('gt_friends', JSON.stringify(state.friends));
+  closeModal();
+  showToast('Arkadaş eklendi!');
+}
+
+function startDM(friendId, friendName) {
+  closeModal();
+  selectChannel('dm-' + friendId, friendName, 'text', 'dm');
+  showToast('DM başlatıldı');
+}
+
+function logout() {
+  localStorage.removeItem('gt_tok');
+  state.token = null;
+  state.user = { _id: 'guest', username: 'Misafir' };
+  window.location.href = '/';
+}
+
+// ─── HELPERS ──────────────────────────────────────────
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function toggleServerMenu() {
+  document.getElementById('serverHeader').classList.toggle('open');
+}
+
+function toggleCat(el) {
+  el.classList.toggle('open');
+}
+
+function showToast(msg) {
+  let toast = document.getElementById('toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'toast';
+    toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--bg4);color:var(--green);padding:10px 24px;border-radius:99px;font-weight:600;font-size:13px;z-index:200;border:1px solid var(--border2);pointer-events:none;transition:all 0.3s ease;opacity:0';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.style.opacity = '1';
+  toast.style.transform = 'translateX(-50%) translateY(0)';
+  clearTimeout(toast._timeout);
+  toast._timeout = setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(-50%) translateY(10px)';
+  }, 2000);
+}
+
+// Responsive handler
+function handleResize() {
+  if (window.innerWidth >= 768) {
+    document.getElementById('channelSidebar').classList.remove('open');
+  }
+}
+window.addEventListener('resize', handleResize);
+
+// Auto-resize textarea
+document.addEventListener('input', function(e) {
+  if (e.target.id === 'chatInput') {
+    e.target.style.height = 'auto';
+    e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
+  }
+});
+
+// Init
+init();
+console.log('✅ Gettic App - Tüm özellikler yüklendi');
 </script>
 </body>
-</html>
+  </html>
