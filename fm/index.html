@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>GETTICFM</title>
+<title>GetticFM</title>
 
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
@@ -347,10 +347,10 @@ button:disabled{
 <body>
 
 <div class="header">
-  <span>GETTICFM</span>
+  <span>GetticFM</span>
   <span class="sync-status" id="syncStatus">
     <span class="sync-dot" id="syncDot"></span>
-    <span id="syncText">YUKLENIYOR</span>
+    <span id="syncText">YÜKLENIYOR</span>
   </span>
 </div>
 
@@ -366,12 +366,12 @@ button:disabled{
   
   <div class="sectionTitle">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" x2="12" y1="2" y2="22"/></svg>
-    TUM ISTASYONLAR
+    TÜM İSTASYONLAR
   </div>
   <div id="list"></div>
   <div id="empty" class="empty-state" style="display:none">
     <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
-    <p>Istasyon bulunamadi</p>
+    <p>İstasyon bulunamadı</p>
   </div>
 </div>
 
@@ -380,8 +380,8 @@ button:disabled{
     <div class="icon-large">
       <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
     </div>
-    <div class="station-name">Radyo Secin</div>
-    <div class="status">Dinlemeye baslamak icin bir istasyon secin</div>
+    <div class="station-name">Radyo seçin</div>
+    <div class="status">Dinlemeye başlamak için radyo kanalı seçin</div>
   </div>
   
   <audio id="audio" controls></audio>
@@ -389,7 +389,7 @@ button:disabled{
   <div class="controls">
     <button onclick="prev()" id="prevBtn">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg>
-      Onceki
+      Önceki
     </button>
     <button onclick="togglePlay()" id="playBtn" class="btn-icon">
       <svg id="playIcon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
@@ -467,13 +467,13 @@ function setSyncStatus(status){
   switch(status){
     case 'loading':
       syncDot.classList.add('warning');
-      syncText.textContent='YUKLENIYOR';
+      syncText.textContent='YÜKLENIYOR';
       break;
     case 'ready':
       syncText.textContent='HAZIR';
       break;
     case 'api':
-      syncText.textContent='API GUNCEL';
+      syncText.textContent='API GÜNCEL';
       break;
     case 'fallback':
       syncDot.classList.add('error');
@@ -481,7 +481,7 @@ function setSyncStatus(status){
       break;
     case 'error':
       syncDot.classList.add('warning');
-      syncText.textContent='GUNCELLENEMEDI';
+      syncText.textContent='GÜNCELLENEMEDİ';
       break;
   }
 }
@@ -540,14 +540,14 @@ async function fetchFromAPI(silent=false){
     }
     
   }catch(e){
-    console.warn('API hatasi:', e.message);
+    console.warn('API hatası:', e.message);
     if(all.length===0){
       all=FALLBACK;
       setSyncStatus('fallback');
     }else{
       if(!silent) setSyncStatus('error');
     }
-    if(!silent) showToast('Guncelleme basarisiz', 'warning');
+    if(!silent) showToast('Güncelleme başarısız', 'warning');
   }
 }
 
@@ -555,7 +555,7 @@ async function fetchFromAPI(silent=false){
    OTO-SYNC
 ========================= */
 function startAutoSync(){
-  console.log('Otomatik guncelleme aktif:', SYNC_INTERVAL/60000+'dk');
+  console.log('Otomatik güncelleme:', SYNC_INTERVAL/60000+'dk');
   setInterval(()=>fetchFromAPI(true), SYNC_INTERVAL);
 }
 
@@ -642,7 +642,7 @@ function handleStreamError(msg){
   const r=all[currentIndex];
   if(r) updateNowPlaying(r, 'error');
   
-  console.warn('Stream hatasi:', msg);
+  console.warn('Stream hatası:', msg);
   
   if(retryCount < MAX_RETRIES){
     retryCount++;
@@ -655,7 +655,7 @@ function handleStreamError(msg){
   }else{
     retryBtn.classList.add('show');
     updatePlayBtn();
-    showToast('Baglanamadi, sonraki istasyon deneniyor', 'warning');
+    showToast('Bağlanamadı, sonraki istasyon deneniyor', 'warning');
     setTimeout(()=>{
       if(!isPlaying) next();
     },4000);
