@@ -1,0 +1,62 @@
+[
+  {
+    "name": "Kral FM",
+    "stream": "https://playerservices.streamtheworld.com/api/livestream-redirect/KRAL_FM.mp3",
+    "logo": "",
+    "votes": 1240
+  },
+  {
+    "name": "Power FM",
+    "stream": "https://listen.powerapp.com.tr/powerfm/mpeg/icecast.audio",
+    "logo": "",
+    "votes": 980
+  },
+  {
+    "name": "Joy FM",
+    "stream": "https://playerservices.streamtheworld.com/api/livestream-redirect/JOY_FM.mp3",
+    "logo": "",
+    "votes": 756
+  },
+  {
+    "name": "Virgin Radio Türkiye",
+    "stream": "https://playerservices.streamtheworld.com/api/livestream-redirect/VIRGIN_RADIO.mp3",
+    "logo": "",
+    "votes": 612
+  },
+  {
+    "name": "Radyo Voyage",
+    "stream": "https://playerservices.streamtheworld.com/api/livestream-redirect/VOYAGE_FM.mp3",
+    "logo": "",
+    "votes": 445
+  },
+  {
+    "name": "Metro FM",
+    "stream": "https://playerservices.streamtheworld.com/api/livestream-redirect/METRO_FM.mp3",
+    "logo": "",
+    "votes": 890
+  },
+  {
+    "name": "Süper FM",
+    "stream": "https://playerservices.streamtheworld.com/api/livestream-redirect/SUPER_FM.mp3",
+    "logo": "",
+    "votes": 567
+  },
+  {
+    "name": "Radyo D",
+    "stream": "https://playerservices.streamtheworld.com/api/livestream-redirect/RADYO_D.mp3",
+    "logo": "",
+    "votes": 723
+  },
+  {
+    "name": "TRT FM",
+    "stream": "https://radio-trtfm.live.trt.com.tr/master.m3u8",
+    "logo": "",
+    "votes": 1500
+  },
+  {
+    "name": "Alem FM",
+    "stream": "https://playerservices.streamtheworld.com/api/livestream-redirect/ALEM_FM.mp3",
+    "logo": "",
+    "votes": 534
+  }
+]
