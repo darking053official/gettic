@@ -58,6 +58,29 @@ const authMiddleware = (req, res, next) => {
 
 // ==================== API ROUTES ====================
 
+// Ana sayfa (API bilgilendirme)
+app.get('/', (req, res) => {
+    res.json({
+        name: 'Gettic API',
+        version: '2.0.0',
+        endpoints: {
+            auth: '/api/auth',
+            bots: '/api/bots',
+            webhooks: '/api/webhooks',
+            health: '/api/health'
+        },
+        frontend: 'https://gettic.js.org'
+    });
+});
+
+// CORS headers for frontend
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', 'https://gettic.js.org');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    next();
+});
+
 // Auth
 app.post('/api/auth/register', async (req, res) => {
     try {
@@ -190,7 +213,7 @@ mongoose.connect(process.env.MONGODB_URI)
     .then(() => {
         console.log('✅ MongoDB bağlantısı başarılı');
         httpServer.listen(PORT, () => {
-            console.log(`🚀 Server ${PORT} portunda çalışıyor`);
+            console.log(`🚀 Gettic API ${PORT} portunda çalışıyor`);
         });
     })
     .catch(err => console.error('❌ MongoDB bağlantı hatası:', err));
