@@ -208,19 +208,65 @@ io.on('connection', (socket) => {
 });
 
 // ==================== CEREBRAS AI ENDPOINT ====================
-// AI sayfası route'u
+// ============================= AI ====================
+
+// AI sayfası
 app.get('/ai', (req, res) => {
     res.sendFile(path.join(__dirname, 'ai', 'index.html'));
 });
 
+// Debug/test endpoint'i
+app.get('/api/ai/test', async (req, res) => {
+    try {
+        console.log('🔍 AI Test Başladı');
+        console.log('🔑 API Key var mı:', !!process.env.AI_API_KEY);
+        console.log('🔑 API Key ilk 10 karakter:', process.env.AI_API_KEY?.substring(0, 10) + '...');
+        
+        const response = await fetch('https://api.cerebras.ai/v1/models', {
+            headers: { 
+                'Authorization': `Bearer ${process.env.AI_API_KEY}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        console.log('✅ API Yanıtı:', response.status);
+        
+        res.json({ 
+            success: response.ok,
+            status: response.status,
+            keyExists: !!process.env.AI_API_KEY,
+            keyPrefix: process.env.AI_API_KEY?.substring(0, 10) + '...',
+            data 
+        });
+    } catch (error) {
+        console.error('❌ Test Hatası:', error.message);
+        res.json({ 
+            success: false, 
+            error: error.message,
+            keyExists: !!process.env.AI_API_KEY,
+            keyPrefix: process.env.AI_API_KEY?.substring(0, 10) + '...'
+        });
+    }
+});
+
 // AI sohbet endpoint'i
-app.post('/api/ai/chat', authMiddleware, async (req, res) => {
+app.post('/api/ai/chat', async (req, res) => {
     try {
         const { message } = req.body;
-        if (!message || message.trim() === '') {
+        console.log('💬 Gelen mesaj:', message);
+        
+        if (!message?.trim()) {
+            console.log('❌ Boş mesaj');
             return res.status(400).json({ error: 'Mesaj gerekli' });
         }
 
+        if (!process.env.AI_API_KEY) {
+            console.log('❌ API Key bulunamadı!');
+            return res.status(500).json({ error: 'AI_API_KEY environment variable bulunamadı' });
+        }
+
+        console.log('🔄 Cerebras API çağrılıyor...');
         const response = await fetch('https://api.cerebras.ai/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -230,25 +276,36 @@ app.post('/api/ai/chat', authMiddleware, async (req, res) => {
             body: JSON.stringify({
                 model: 'llama3.1-8b',
                 messages: [
-                    { role: 'system', content: 'Sen Gettic AI asistanısın. Kullanıcılara yardım et, kısa ve öz cevaplar ver.' },
+                    { role: 'system', content: 'Sen Gettic AI asistanısın. Kısa ve öz, en fazla 2-3 cümle cevaplar ver. Türkçe konuş.' },
                     { role: 'user', content: message }
                 ],
-                max_tokens: 500,
+                max_tokens: 300,
                 temperature: 0.7
             })
         });
 
+        console.log('📡 API Yanıt Status:', response.status);
+        
+        const data = await response.json();
+        
         if (!response.ok) {
-            const errorData = await response.json();
-            return res.status(response.status).json({ error: 'AI API hatası', details: errorData });
+            console.error('❌ API Hatası:', JSON.stringify(data));
+            return res.status(response.status).json({ 
+                error: 'AI API hatası', 
+                details: data 
+            });
         }
 
-        const data = await response.json();
-        res.json({ reply: data.choices[0].message.content, model: data.model, usage: data.usage });
+        console.log('✅ AI Yanıtı:', data.choices?.[0]?.message?.content?.substring(0, 50) + '...');
+        res.json({ reply: data.choices[0].message.content });
 
     } catch (error) {
-        console.error('AI Endpoint Hatası:', error);
-        res.status(500).json({ error: 'AI servisine bağlanılamadı' });
+        console.error('💥 AI Endpoint Hatası:', error.message);
+        console.error('💥 Stack:', error.stack);
+        res.status(500).json({ 
+            error: 'AI servisine bağlanılamadı', 
+            details: error.message 
+        });
     }
 });
 
