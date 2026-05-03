@@ -435,11 +435,12 @@ app.post('/api/ai/chat', async (req, res) => {
 });
 
 // ==================== SERVER START ====================
+// SADECE BU OLMALI:
 mongoose.connect(process.env.MONGODB_URI)
     .then(() => {
         console.log('✅ MongoDB bağlantısı başarılı');
-        httpServer.listen(PORT, () => {
-            console.log(`🚀 Gettic API ${PORT} portunda çalışıyor`);
+        httpServer.listen(process.env.PORT || 3000, () => {
+            console.log(`🚀 Gettic API ${process.env.PORT || 3000} portunda çalışıyor`);
         });
     })
     .catch(err => console.error('❌ MongoDB bağlantı hatası:', err));
