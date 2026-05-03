@@ -107,16 +107,24 @@
             max-width: 90vw;
         }
 
-        .login-icon {
-            width: 80px;
-            height: 80px;
+        .login-logo {
+            width: 100px;
+            height: 100px;
+            border-radius: 20px;
             margin: 0 auto 20px;
-            animation: pulse 2s infinite;
+            display: block;
+            object-fit: cover;
+            box-shadow: 0 8px 32px rgba(139,92,246,0.3);
+            animation: logoFloat 3s ease-in-out infinite;
         }
 
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+        @keyframes logoFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+
+        .login-icon {
+            display: none;
         }
 
         .login-card h1 {
@@ -457,14 +465,17 @@
     <!-- LOGIN EKRANI -->
     <div class="login-screen active" id="loginScreen">
         <div class="login-card">
-            <svg class="login-icon" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="40" cy="40" r="36" stroke="url(#grad)" stroke-width="2" fill="none"/>
-                <path d="M24 40h8l6-12 4 24 6-12h8" stroke="#8b5cf6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-                <defs><linearGradient id="grad" x1="0" y1="0" x2="80" y2="80"><stop stop-color="#8b5cf6"/><stop offset="1" stop-color="#6366f1"/></linearGradient></defs>
-            </svg>
+            <img src="https://github.com/darking053official/gettic/blob/main/1777062266055.png?raw=true" 
+                 alt="Gettic Logo" 
+                 class="login-logo"
+                 onerror="this.style.display='none'" />
+            
             <h1>Gettic AI</h1>
             <p>Akıllı sohbet asistanına hoş geldiniz</p>
-            <input type="text" id="usernameInput" placeholder="Kullanıcı adınızı yazın..." autocomplete="off" />
+            
+            <input type="text" id="usernameInput" placeholder="Kullanıcı adınız" autocomplete="off" />
+            <input type="password" id="passwordInput" placeholder="Şifreniz" autocomplete="off" />
+            
             <button class="login-btn" id="loginBtn" onclick="startChat()">Sohbete Başla</button>
             <p class="login-limit" id="loginLimit">Kalan sohbet hakkı: 15</p>
         </div>
@@ -558,9 +569,15 @@
 
         async function startChat() {
             const name = document.getElementById('usernameInput').value.trim();
+            const password = document.getElementById('passwordInput').value.trim();
+            
             if (!name) return alert('Kullanıcı adı girin!');
+            if (!password) return alert('Şifre girin!');
+            if (password.length < 4) return alert('Şifre en az 4 karakter olmalı!');
 
             username = name;
+            localStorage.setItem('ai_password', password);
+            
             await checkRemaining();
 
             if (remainingChats <= 0) {
@@ -594,7 +611,7 @@
         function logout() {
             document.getElementById('chatScreen').classList.remove('active');
             document.getElementById('loginScreen').classList.add('active');
-            document.getElementById('usernameInput').value = '';
+            document.getElementById('passwordInput').value = '';
             username = '';
             currentChatId = null;
             isFirstMessage = true;
@@ -709,8 +726,12 @@
 
         // Enter ile login
         document.getElementById('usernameInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') document.getElementById('passwordInput').focus();
+        });
+        
+        document.getElementById('passwordInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') startChat();
         });
     </script>
 </body>
-    </html>
+                    </html>
