@@ -163,18 +163,9 @@
             background: rgba(0,0,0,0.15);
         }
 
-        .chat-box::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .chat-box::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .chat-box::-webkit-scrollbar-thumb {
-            background: var(--border);
-            border-radius: 3px;
-        }
+        .chat-box::-webkit-scrollbar { width: 6px; }
+        .chat-box::-webkit-scrollbar-track { background: transparent; }
+        .chat-box::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
         .empty-state {
             display: flex;
@@ -214,9 +205,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .message.user {
-            flex-direction: row-reverse;
-        }
+        .message.user { flex-direction: row-reverse; }
 
         .msg-avatar {
             width: 32px;
@@ -229,14 +218,9 @@
             background: var(--border);
         }
 
-        .message.user .msg-avatar {
-            background: var(--gradient);
-        }
+        .message.user .msg-avatar { background: var(--gradient); }
 
-        .msg-avatar svg {
-            width: 18px;
-            height: 18px;
-        }
+        .msg-avatar svg { width: 18px; height: 18px; }
 
         .msg-bubble {
             max-width: 75%;
@@ -271,7 +255,6 @@
             padding: 8px 12px;
             background: var(--ai-bg);
             border-radius: 18px;
-            width: fit-content;
         }
 
         .typing-dots span {
@@ -315,9 +298,7 @@
             box-shadow: 0 0 20px rgba(192,38,211,0.15);
         }
 
-        .input-area input::placeholder {
-            color: var(--muted);
-        }
+        .input-area input::placeholder { color: var(--muted); }
 
         .send-btn {
             width: 46px;
@@ -343,38 +324,17 @@
             box-shadow: 0 0 35px rgba(192,38,211,0.6);
         }
 
-        .send-btn:active {
-            transform: scale(0.95);
-        }
+        .send-btn:active { transform: scale(0.95); }
 
-        .send-btn svg {
-            width: 20px;
-            height: 20px;
-        }
+        .send-btn svg { width: 20px; height: 20px; }
 
         @media (max-width: 600px) {
-            .container {
-                width: 95%;
-                border-radius: 16px;
-            }
-            .chat-box {
-                height: 350px;
-                padding: 12px;
-            }
-            .msg-bubble {
-                max-width: 85%;
-                font-size: 0.9rem;
-            }
-            .header {
-                padding: 14px 16px;
-            }
-            .header-text h1 {
-                font-size: 1.2rem;
-            }
-            .input-area {
-                padding: 10px 12px;
-                gap: 8px;
-            }
+            .container { width: 95%; border-radius: 16px; }
+            .chat-box { height: 350px; padding: 12px; }
+            .msg-bubble { max-width: 85%; font-size: 0.9rem; }
+            .header { padding: 14px 16px; }
+            .header-text h1 { font-size: 1.2rem; }
+            .input-area { padding: 10px 12px; gap: 8px; }
         }
     </style>
 </head>
@@ -480,9 +440,7 @@
             typingDiv.className = 'typing-indicator';
             typingDiv.id = 'typingIndicator';
             typingDiv.innerHTML = `
-                <div class="msg-avatar">
-                    ${aiAvatarSVG}
-                </div>
+                <div class="msg-avatar">${aiAvatarSVG}</div>
                 <div class="typing-dots">
                     <span></span><span></span><span></span>
                 </div>`;
@@ -502,21 +460,18 @@
             addMessage('user', message);
             userInput.value = '';
             userInput.focus();
-
             showTyping();
 
             try {
-                const response = await fetch('/api/ai/chat', {
+                const response = await fetch('/api/chat', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ message: message })
                 });
 
                 const text = await response.text();
-                
                 let data;
+                
                 try {
                     data = JSON.parse(text);
                 } catch (e) {
@@ -530,7 +485,7 @@
                 if (response.ok && data.reply) {
                     addMessage('ai', data.reply);
                 } else {
-                    addMessage('ai', '❌ ' + (data.error || data.details?.error?.message || 'Bilinmeyen hata'));
+                    addMessage('ai', '❌ ' + (data.error || 'Bilinmeyen hata'));
                 }
             } catch (error) {
                 hideTyping();
