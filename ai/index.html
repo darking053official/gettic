@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gettic AI | Yapay Zeka Asistanı</title>
+    <style>
+        :root {
+            --bg: #0d0614;
+            --card: #1a0f2e;
+            --accent: #c026d3;
+            --accent2: #ec4899;
+            --accent3: #a855f7;
+            --text: #f5f0ff;
+            --muted: #c4b5e3;
+            --border: #2d1f4e;
+            --user-bg: #2d1050;
+            --ai-bg: #1f0a2e;
+            --gradient: linear-gradient(135deg, #c026d3, #ec4899, #a855f7);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+        }
+
+        /* Arkaplan Animasyonları */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            animation: float 20s infinite ease-in-out;
+        }
+
+        .orb-1 {
+            width: 450px;
+            height: 450px;
+            background: radial-gradient(circle, rgba(192,38,211,0.25) 0%, transparent 70%);
+            top: -120px;
+            left: -120px;
+            animation-delay: 0s;
+        }
+
+        .orb-2 {
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(236,72,153,0.25) 0%, transparent 70%);
+            bottom: -120px;
+            right: -120px;
+            animation-delay: -7s;
+        }
+
+        .orb-3 {
+            width: 350px;
+            height: 350px;
+            background: radial-gradient(circle, rgba(168,85,247,0.2) 0%, transparent 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation-delay: -14s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(120px, -60px) scale(1.15); }
+            50% { transform: translate(-60px, -120px) scale(0.85); }
+            75% { transform: translate(-120px, 60px) scale(1.1); }
+        }
+
+        /* Ana Konteyner */
+        .container {
+            position: relative;
+            z-index: 1;
+            width: 90%;
+            max-width: 800px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 25px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(192,38,211,0.1) inset;
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow: hidden;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Header */
+        .header {
+            background: var(--gradient);
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20px;
+            width: 150px;
+            height: 200%;
+            background: rgba(255,255,255,0.08);
+            transform: rotate(25deg);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { transform: rotate(25deg) translateX(-100%); }
+            50% { transform: rotate(25deg) translateX(100%); }
+        }
+
+        .ai-icon {
+            width: 40px;
+            height: 40px;
+            flex-shrink: 0;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .header-text h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .header-text p {
+            font-size: 0.8rem;
+            opacity: 0.85;
+        }
+
+        /* Chat Box */
+        .chat-box {
+            height: 450px;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            background: rgba(0,0,0,0.15);
+        }
+
+        .chat-box::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-box::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .chat-box::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        /* Boş Durum */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            gap: 16px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .empty-icon {
+            width: 80px;
+            height: 80px;
+            opacity: 0.6;
+            animation: floatSmall 3s infinite ease-in-out;
+        }
+
+        @keyframes floatSmall {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Mesaj Baloncukları */
+        .message {
+            display: flex;
+            gap: 10px;
+            animation: messageIn 0.3s ease;
+        }
+
+        @keyframes messageIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .msg-avatar {
+            width: 32px;
+            height: 32px;
+            flex-shrink: 0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--border);
+        }
+
+        .message.user .msg-avatar {
+            background: var(--gradient);
+        }
+
+        .msg-avatar svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .msg-bubble {
+            max-width: 75%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            line-height: 1.5;
+            font-size: 0.95rem;
+            word-wrap: break-word;
+        }
+
+        .message.user .msg-bubble {
+            background: var(--user-bg);
+            border-bottom-right-radius: 4px;
+            border: 1px solid rgba(192,38,211,0.2);
+        }
+
+        .message.ai .msg-bubble {
+            background: var(--ai-bg);
+            border-bottom-left-radius: 4px;
+            border: 1px solid rgba(236,72,153,0.2);
+        }
+
+        /* Typing Indicator */
+        .typing-indicator {
+            display: none;
+            padding: 0 0 0 42px;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+            padding: 8px 12px;
+            background: var(--ai-bg);
+            border-radius: 18px;
+            width: fit-content;
+        }
+
+        .typing-dots span {
+            width: 8px;
+            height: 8px;
+            background: var(--accent3);
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 60%, 100% { opacity: 0.3; transform: scale(0.8); }
+            30% { opacity: 1; transform: scale(1.2); }
+        }
+
+        /* Input Alanı */
+        .input-area {
+            display: flex;
+            gap: 10px;
+            padding: 16px 20px;
+            background: rgba(0,0,0,0.2);
+            border-top: 1px solid var(--border);
+        }
+
+        .input-area input {
+            flex: 1;
+            padding: 12px 18px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 25px;
+            color: var(--text);
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .input-area input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 20px rgba(192,38,211,0.15);
+        }
+
+        .input-area input::placeholder {
+            color: var(--muted);
+        }
+
+        .send-btn {
+            width: 46px;
+            height: 46px;
+            background: var(--gradient);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            animation: glow 2s infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 15px rgba(192,38,211,0.3); }
+            50% { box-shadow: 0 0 30px rgba(236,72,153,0.5); }
+        }
+
+        .send-btn:hover {
+            transform: scale(1.08);
+            box-shadow: 0 0 35px rgba(192,38,211,0.6);
+        }
+
+        .send-btn:active {
+            transform: scale(0.95);
+        }
+
+        .send-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .container {
+                width: 95%;
+                border-radius: 16px;
+            }
+            .chat-box {
+                height: 350px;
+                padding: 12px;
+            }
+            .msg-bubble {
+                max-width: 85%;
+                font-size: 0.9rem;
+            }
+            .header {
+                padding: 14px 16px;
+            }
+            .header-text h1 {
+                font-size: 1.2rem;
+            }
+            .input-area {
+                padding: 10px 12px;
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Arkaplan Animasyonları -->
+    <div class="bg-animation">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <!-- Ana Konteyner -->
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <!-- AI İkon SVG -->
+            <svg class="ai-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="20" cy="20" r="18" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
+                <path d="M12 20h4l3-6 2 12 3-6h4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                <circle cx="28" cy="20" r="1.5" fill="white"/>
+                <circle cx="12" cy="20" r="1.5" fill="white"/>
+            </svg>
+            <div class="header-text">
+                <h1>Gettic AI</h1>
+                <p>Yapay Zeka Asistanı · Cerebras Llama 3.1</p>
+            </div>
+        </div>
+
+        <!-- Chat Box -->
+        <div class="chat-box" id="chatBox">
+            <div class="empty-state">
+                <!-- Boş durum SVG ikon -->
+                <svg class="empty-icon" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="40" cy="40" r="35" stroke="rgba(192,38,211,0.3)" stroke-width="1.5" fill="none"/>
+                    <circle cx="40" cy="40" r="28" stroke="rgba(236,72,153,0.2)" stroke-width="1" fill="none" stroke-dasharray="4 4"/>
+                    <path d="M30 35h20M30 42h14M30 49h18" stroke="rgba(168,85,247,0.4)" stroke-width="1.5" stroke-linecap="round"/>
+                    <circle cx="55" cy="35" r="3" fill="rgba(192,38,211,0.5)"/>
+                    <circle cx="50" cy="42" r="3" fill="rgba(236,72,153,0.5)"/>
+                    <circle cx="58" cy="49" r="3" fill="rgba(168,85,247,0.5)"/>
+                </svg>
+                <p style="color: var(--muted); font-size: 0.9rem;">Bir soru sor, sohbet başlasın...</p>
+            </div>
+        </div>
+
+        <!-- Input Alanı -->
+        <div class="input-area">
+            <input 
+                type="text" 
+                id="userInput" 
+                placeholder="Mesajınızı yazın..."
+                onkeypress="if(event.key==='Enter') sendMessage()"
+                autocomplete="off"
+            />
+            <button class="send-btn" onclick="sendMessage()" title="Gönder">
+                <!-- Gönder İkonu SVG -->
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M5 12h14M12 5l7 7-7 7" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const chatBox = document.getElementById('chatBox');
+        const userInput = document.getElementById('userInput');
+        const token = localStorage.getItem('gettic_token') || 'demo';
+        let isFirstMessage = true;
+
+        // Kullanıcı SVG Avatar
+        const userAvatarSVG = `
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="8" r="4" stroke="white" stroke-width="1.5" fill="none"/>
+                <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="white" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+            </svg>`;
+
+        // AI SVG Avatar
+        const aiAvatarSVG = `
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="9" stroke="white" stroke-width="1.5" fill="none"/>
+                <path d="M7 12h3l2-4 1 8 2-4h3" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            </svg>`;
+
+        function addMessage(sender, text) {
+            // İlk mesajda boş durumu kaldır
+            if (isFirstMessage) {
+                chatBox.innerHTML = '';
+                isFirstMessage = false;
+            }
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+
+            const avatar = document.createElement('div');
+            avatar.className = 'msg-avatar';
+            avatar.innerHTML = sender === 'user' ? userAvatarSVG : aiAvatarSVG;
+
+            const bubble = document.createElement('div');
+            bubble.className = 'msg-bubble';
+            bubble.textContent = text;
+
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(bubble);
+            chatBox.appendChild(messageDiv);
+
+            // Scroll to bottom
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function showTyping() {
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'typing-indicator';
+            typingDiv.id = 'typingIndicator';
+            typingDiv.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
+            chatBox.appendChild(typingDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function hideTyping() {
+            const typing = document.getElementById('typingIndicator');
+            if (typing) typing.remove();
+        }
+
+        async function sendMessage() {
+            const message = userInput.value.trim();
+            if (!message) return;
+
+            // Kullanıcı mesajını göster
+            addMessage('user', message);
+            userInput.value = '';
+            userInput.focus();
+
+            // Typing animasyonu
+            showTyping();
+
+            try {
+                const response = await fetch('/api/ai/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ message })
+                });
+
+                const data = await response.json();
+                hideTyping();
+
+                if (response.ok) {
+                    addMessage('ai', data.reply);
+                } else {
+                    addMessage('ai', '❌ ' + (data.error || 'Bir hata oluştu'));
+                }
+            } catch (error) {
+                hideTyping();
+                addMessage('ai', '❌ AI servisine bağlanılamadı');
+            }
+        }
+
+        // Sayfa yüklendiğinde input'a odaklan
+        userInput.focus();
+    </script>
+</body>
+      </html>
