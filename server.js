@@ -435,8 +435,6 @@ app.post('/api/ai/chat', async (req, res) => {
 });
 
 // ==================== SERVER START ====================
-const PORT = process.env.PORT || 3000;
-
 mongoose.connect(process.env.MONGODB_URI)
     .then(() => {
         console.log('✅ MongoDB bağlantısı başarılı');
