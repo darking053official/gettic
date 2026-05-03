@@ -78,6 +78,7 @@ app.post('/api/chat', async (req, res) => {
             body: JSON.stringify({
                 model: 'llama3.1-8b',
                 messages: [
+                    { role: 'system', content: 'Sen Türkçe konuşan bir Gettic AI asistansın. Her zaman Türkçe cevap ver. Kısa ve öz ol. En iyi performansı vermeye çalış.' },
                     { role: 'user', content: message }
                 ],
                 max_tokens: 300
