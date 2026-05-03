@@ -57,17 +57,73 @@ const authMiddleware = (req, res, next) => {
     }
 };
 
+// AI Chat Schema
+const ChatSchema = new mongoose.Schema({
+    username: { type: String, required: true, index: true },
+    sessionId: { type: String, required: true },
+    messages: [{
+        role: { type: String, enum: ['user', 'assistant', 'system'], required: true },
+        content: { type: String, required: true },
+        timestamp: { type: Date, default: Date.now }
+    }],
+    chatCount: { type: Number, default: 1 },
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now }
+});
+
+const Chat = mongoose.model('Chat', ChatSchema);
+
+// ==================== AI ENDPOINTS ====================
 // ==================== AI ENDPOINTS ====================
 
-// AI sohbet endpoint'i
 app.post('/api/chat', async (req, res) => {
-    console.log('📥 AI isteği alındı:', req.body);
     try {
-        const { message } = req.body;
+        const { message, sessionId, history } = req.body;
         
         if (!message?.trim()) {
             return res.status(400).json({ error: 'Mesaj gerekli' });
         }
+        if (!sessionId) {
+            return res.status(400).json({ error: 'Kullanıcı adı gerekli' });
+        }
+
+        const username = sessionId;
+
+        // Kullanıcının bugünkü sohbet sayısını kontrol et
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const todayChats = await Chat.countDocuments({
+            username: username,
+            createdAt: { $gte: today }
+        });
+
+        if (todayChats >= 15) {
+            return res.status(429).json({ error: 'Günlük sohbet limitiniz doldu (15/15)' });
+        }
+
+        // Mevcut sohbeti bul veya yeni oluştur
+        let chat = await Chat.findOne({ 
+            username: username,
+            updatedAt: { $gte: today }
+        }).sort({ updatedAt: -1 });
+
+        if (!chat) {
+            chat = new Chat({
+                username: username,
+                sessionId: sessionId,
+                messages: [{ role: 'system', content: 'Sen Türkçe konuşan akıllı bir asistansın. Kullanıcıya adıyla hitap et. Kısa, öz ve samimi cevaplar ver.' }]
+            });
+        }
+
+        // Kullanıcı mesajını ekle
+        chat.messages.push({ role: 'user', content: message, timestamp: new Date() });
+
+        // Cerebras API çağrısı
+        const messagesToSend = chat.messages.slice(-20).map(m => ({
+            role: m.role,
+            content: m.content
+        }));
 
         const response = await fetch('https://api.cerebras.ai/v1/chat/completions', {
             method: 'POST',
@@ -77,25 +133,73 @@ app.post('/api/chat', async (req, res) => {
             },
             body: JSON.stringify({
                 model: 'llama3.1-8b',
-                messages: [
-                    { role: 'system', content: 'Sen Türkçe konuşan bir Gettic AI asistansın. Her zaman Türkçe cevap ver. Kısa ve öz ol. En iyi performansı vermeye çalış.' },
-                    { role: 'user', content: message }
-                ],
-                max_tokens: 300
+                messages: messagesToSend,
+                max_tokens: 500
             })
         });
 
         const data = await response.json();
-        console.log('📤 AI yanıtı:', response.status, data.choices?.[0]?.message?.content?.substring(0, 30));
 
-        if (response.ok) {
-            return res.json({ reply: data.choices[0].message.content });
-        } else {
-            return res.status(500).json({ error: 'API hatası', details: data });
+        if (!response.ok) {
+            return res.status(500).json({ error: 'AI API hatası', details: data });
         }
 
+        const reply = data.choices[0].message.content;
+
+        // AI yanıtını kaydet
+        chat.messages.push({ role: 'assistant', content: reply, timestamp: new Date() });
+        chat.updatedAt = new Date();
+        await chat.save();
+
+        res.json({ 
+            reply: reply,
+            chatId: chat._id,
+            messageCount: chat.messages.length,
+            remainingChats: 15 - todayChats
+        });
+
     } catch (error) {
-        console.error('💥 AI hatası:', error.message);
+        console.error('AI Hatası:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Kullanıcının sohbet geçmişini getir
+app.get('/api/chats/:username', async (req, res) => {
+    try {
+        const chats = await Chat.find({ 
+            username: req.params.username 
+        }).sort({ updatedAt: -1 }).limit(10);
+        
+        res.json(chats.map(c => ({
+            id: c._id,
+            messageCount: c.messages.length,
+            lastMessage: c.messages[c.messages.length - 1]?.content?.substring(0, 50),
+            createdAt: c.createdAt,
+            updatedAt: c.updatedAt
+        })));
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Belirli sohbeti getir
+app.get('/api/chat/:id', async (req, res) => {
+    try {
+        const chat = await Chat.findById(req.params.id);
+        if (!chat) return res.status(404).json({ error: 'Sohbet bulunamadı' });
+        res.json(chat);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Sohbet sil
+app.delete('/api/chat/:id', async (req, res) => {
+    try {
+        await Chat.findByIdAndDelete(req.params.id);
+        res.json({ success: true });
+    } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
