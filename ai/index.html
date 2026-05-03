@@ -32,7 +32,6 @@
             overflow-x: hidden;
         }
 
-        /* Arkaplan Animasyonları */
         .bg-animation {
             position: fixed;
             top: 0;
@@ -85,7 +84,6 @@
             75% { transform: translate(-120px, 60px) scale(1.1); }
         }
 
-        /* Ana Konteyner */
         .container {
             position: relative;
             z-index: 1;
@@ -105,7 +103,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Header */
         .header {
             background: var(--gradient);
             padding: 20px 24px;
@@ -156,7 +153,6 @@
             opacity: 0.85;
         }
 
-        /* Chat Box */
         .chat-box {
             height: 450px;
             overflow-y: auto;
@@ -180,7 +176,6 @@
             border-radius: 3px;
         }
 
-        /* Boş Durum */
         .empty-state {
             display: flex;
             flex-direction: column;
@@ -208,7 +203,6 @@
             50% { transform: translateY(-10px); }
         }
 
-        /* Mesaj Baloncukları */
         .message {
             display: flex;
             gap: 10px;
@@ -265,9 +259,8 @@
             border: 1px solid rgba(236,72,153,0.2);
         }
 
-        /* Typing Indicator */
         .typing-indicator {
-            display: none;
+            display: flex;
             padding: 0 0 0 42px;
         }
 
@@ -296,7 +289,6 @@
             30% { opacity: 1; transform: scale(1.2); }
         }
 
-        /* Input Alanı */
         .input-area {
             display: flex;
             gap: 10px;
@@ -359,7 +351,6 @@
             height: 20px;
         }
 
-        /* Responsive */
         @media (max-width: 600px) {
             .container {
                 width: 95%;
@@ -388,18 +379,14 @@
 </head>
 <body>
 
-    <!-- Arkaplan Animasyonları -->
     <div class="bg-animation">
         <div class="orb orb-1"></div>
         <div class="orb orb-2"></div>
         <div class="orb orb-3"></div>
     </div>
 
-    <!-- Ana Konteyner -->
     <div class="container">
-        <!-- Header -->
         <div class="header">
-            <!-- AI İkon SVG -->
             <svg class="ai-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="20" cy="20" r="18" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
                 <path d="M12 20h4l3-6 2 12 3-6h4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
@@ -412,10 +399,8 @@
             </div>
         </div>
 
-        <!-- Chat Box -->
         <div class="chat-box" id="chatBox">
-            <div class="empty-state">
-                <!-- Boş durum SVG ikon -->
+            <div class="empty-state" id="emptyState">
                 <svg class="empty-icon" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <circle cx="40" cy="40" r="35" stroke="rgba(192,38,211,0.3)" stroke-width="1.5" fill="none"/>
                     <circle cx="40" cy="40" r="28" stroke="rgba(236,72,153,0.2)" stroke-width="1" fill="none" stroke-dasharray="4 4"/>
@@ -428,7 +413,6 @@
             </div>
         </div>
 
-        <!-- Input Alanı -->
         <div class="input-area">
             <input 
                 type="text" 
@@ -438,7 +422,6 @@
                 autocomplete="off"
             />
             <button class="send-btn" onclick="sendMessage()" title="Gönder">
-                <!-- Gönder İkonu SVG -->
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M5 12h14M12 5l7 7-7 7" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
@@ -449,17 +432,15 @@
     <script>
         const chatBox = document.getElementById('chatBox');
         const userInput = document.getElementById('userInput');
-        const token = localStorage.getItem('gettic_token') || 'demo';
+        const emptyState = document.getElementById('emptyState');
         let isFirstMessage = true;
 
-        // Kullanıcı SVG Avatar
         const userAvatarSVG = `
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="12" cy="8" r="4" stroke="white" stroke-width="1.5" fill="none"/>
                 <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="white" stroke-width="1.5" stroke-linecap="round" fill="none"/>
             </svg>`;
 
-        // AI SVG Avatar
         const aiAvatarSVG = `
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="12" cy="12" r="9" stroke="white" stroke-width="1.5" fill="none"/>
@@ -467,9 +448,8 @@
             </svg>`;
 
         function addMessage(sender, text) {
-            // İlk mesajda boş durumu kaldır
             if (isFirstMessage) {
-                chatBox.innerHTML = '';
+                emptyState.style.display = 'none';
                 isFirstMessage = false;
             }
 
@@ -482,21 +462,29 @@
 
             const bubble = document.createElement('div');
             bubble.className = 'msg-bubble';
-            bubble.textContent = text;
+            bubble.innerHTML = text;
 
             messageDiv.appendChild(avatar);
             messageDiv.appendChild(bubble);
             chatBox.appendChild(messageDiv);
-
-            // Scroll to bottom
             chatBox.scrollTop = chatBox.scrollHeight;
         }
 
         function showTyping() {
+            if (isFirstMessage) {
+                emptyState.style.display = 'none';
+                isFirstMessage = false;
+            }
             const typingDiv = document.createElement('div');
             typingDiv.className = 'typing-indicator';
             typingDiv.id = 'typingIndicator';
-            typingDiv.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
+            typingDiv.innerHTML = `
+                <div class="msg-avatar">
+                    ${aiAvatarSVG}
+                </div>
+                <div class="typing-dots">
+                    <span></span><span></span><span></span>
+                </div>`;
             chatBox.appendChild(typingDiv);
             chatBox.scrollTop = chatBox.scrollHeight;
         }
@@ -510,20 +498,17 @@
             const message = userInput.value.trim();
             if (!message) return;
 
-            // Kullanıcı mesajını göster
             addMessage('user', message);
             userInput.value = '';
             userInput.focus();
 
-            // Typing animasyonu
             showTyping();
 
             try {
                 const response = await fetch('/api/ai/chat', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({ message })
                 });
@@ -531,19 +516,19 @@
                 const data = await response.json();
                 hideTyping();
 
-                if (response.ok) {
+                if (response.ok && data.reply) {
                     addMessage('ai', data.reply);
                 } else {
-                    addMessage('ai', '❌ ' + (data.error || 'Bir hata oluştu'));
+                    const errorMsg = typeof data.error === 'string' ? data.error : 'Bir hata oluştu';
+                    addMessage('ai', '❌ ' + errorMsg);
                 }
             } catch (error) {
                 hideTyping();
-                addMessage('ai', '❌ AI servisine bağlanılamadı');
+                addMessage('ai', '❌ Bağlantı hatası: ' + error.message);
             }
         }
 
-        // Sayfa yüklendiğinde input'a odaklan
         userInput.focus();
     </script>
 </body>
-      </html>
+        </html>
