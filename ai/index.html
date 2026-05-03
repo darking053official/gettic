@@ -93,6 +93,13 @@
             padding: 8px;
         }
 
+        .chat-list-section {
+            font-size: 0.7rem;
+            color: var(--muted);
+            padding: 8px 12px 4px;
+            font-weight: 600;
+        }
+
         .chat-list-item {
             padding: 10px 12px;
             border-radius: 8px;
@@ -140,6 +147,7 @@
             display: flex;
             flex-direction: column;
             height: 100vh;
+            min-width: 0;
         }
 
         .chat-header {
@@ -147,7 +155,8 @@
             border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            justify-content: center;
+            flex-shrink: 0;
         }
 
         .mode-selector {
@@ -320,12 +329,15 @@
             30% { opacity: 1; }
         }
 
+        /* INPUT - Sabit altta */
         .chat-input-area {
             padding: 16px 24px;
             border-top: 1px solid var(--border);
             display: flex;
             gap: 10px;
             align-items: center;
+            flex-shrink: 0;
+            background: var(--bg);
         }
 
         .mode-label {
@@ -376,6 +388,7 @@
         .send-btn:hover { background: var(--accent2); }
         .send-btn svg { width: 18px; height: 18px; }
 
+        /* LOGIN */
         .login-screen {
             display: none;
             position: fixed;
@@ -484,7 +497,8 @@
             Yeni Sohbet
         </button>
         <div class="chat-list" id="chatList">
-            <div class="chat-list-item" style="color: var(--text);">📝 Bugünkü sohbet</div>
+            <div class="chat-list-section">Bugün</div>
+            <div class="chat-list-item">Yeni sohbet</div>
         </div>
         <div class="sidebar-footer">
             <div class="user-info">
@@ -529,7 +543,6 @@
         let currentChatId = null;
         let isFirstMessage = true;
         let remainingChats = 15;
-        let msgCount = 0;
 
         function timeNow() {
             return new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
@@ -560,8 +573,10 @@
             try {
                 const res = await fetch(`https://gettic-j49l.onrender.com/api/chats/${encodeURIComponent(username)}`);
                 const chats = await res.json();
-                if (Array.isArray(chats)) remainingChats = 15 - chats.length;
-                if (remainingChats < 0) remainingChats = 0;
+                if (Array.isArray(chats)) {
+                    remainingChats = 15 - chats.length;
+                    if (remainingChats < 0) remainingChats = 0;
+                }
                 updateUI();
             } catch (e) {}
         }
@@ -584,7 +599,6 @@
         function newChat() {
             currentChatId = null;
             isFirstMessage = true;
-            msgCount = 0;
             document.getElementById('chatBox').innerHTML = `
                 <div class="empty-chat" id="emptyState">
                     <h2>Gettic AI</h2>
@@ -608,7 +622,6 @@
                 </div>`;
             box.appendChild(div);
             box.scrollTop = box.scrollHeight;
-            msgCount++;
         }
 
         function showTyping() {
@@ -680,4 +693,4 @@
         });
     </script>
 </body>
-    </html>
+                </html>
