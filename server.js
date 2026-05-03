@@ -112,7 +112,7 @@ app.post('/api/chat', async (req, res) => {
             chat = new Chat({
                 username: username,
                 sessionId: sessionId,
-                messages: [{ role: 'system', content: 'Sen Türkçe konuşan akıllı bir asistansın. Kullanıcıya adıyla hitap et. Kısa, öz ve samimi cevaplar ver.' }]
+                messages: [{ role: 'system', content: 'Sen hatasız Türkçe konuşan akıllı bir asistansın. İsmin Gettic AI. Kullanıcıya adıyla hitap et. Kısa, öz ve samimi cevaplar ver.' }]
             });
         }
 
