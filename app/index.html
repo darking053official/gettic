@@ -1,777 +1,697 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>Gettic — Modern Sohbet Platformu</title>
-  <meta name="description" content="Gettic - Gerçek zamanlı sohbet ve bot platformu" />
-  <link rel="icon" href="https://github.com/darking053official/gettic/blob/main/1777062266055.png?raw=true" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Gettic — Sohbet Platformu</title>
+  <link rel="icon" href="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#c084fc">
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   <style>
     :root {
-      --bg: #0b0b12; --bg2: #111119; --bg3: #16161f; --bg4: #1c1c28;
-      --text: #eeeef5; --text2: #9494a8; --text3: #55556e;
-      --pink: #e879f9; --purple: #a855f7; --accent: #c084fc; --accent2: #d8b4fe;
-      --glow: rgba(192,132,252,0.25); --glow2: rgba(232,121,249,0.35);
-      --green: #4ade80; --red: #f87171; --yellow: #facc15; --blue: #60a5fa;
-      --border: rgba(255,255,255,0.05); --border2: rgba(255,255,255,0.1);
-      --radius: 10px; --radius2: 14px;
-      --sidebar: 260px; --serverbar: 60px; --topbar: 54px;
-      --font: 'Inter', sans-serif; --mono: 'JetBrains Mono', monospace;
+      --bg: #0a0a14; --bg1: #0f0f1a; --bg2: #151520; --bg3: #1c1c2a;
+      --b: rgba(255,255,255,.05); --b2: rgba(255,255,255,.08);
+      --ac: #c084fc; --ac2: #e879f9; --ac3: #f0abfc;
+      --acg: rgba(192,132,252,.3); --acd: rgba(192,132,252,.1);
+      --t1: #f0f0ff; --t2: #a0a0c0; --t3: #606080;
+      --gr: #22c55e; --re: #ef4444; --ye: #f59e0b;
+      --radius: 12px; --transition: .2s cubic-bezier(.2,.9,.4,1);
+      --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --mono: 'JetBrains Mono', 'Fira Code', monospace;
+      --sidebar-w: 250px; --userpanel-w: 260px; --serverrail-w: 68px;
     }
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--bg);color:var(--text);-webkit-tap-highlight-color:transparent}
-    
-    /* Loading */
-    #app-loading{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 0.5s,visibility 0.5s}
-    #app-loading.hidden{opacity:0;visibility:hidden;pointer-events:none}
-    .load-ring{width:44px;height:44px;border:3px solid var(--border2);border-top-color:var(--pink);border-radius:50%;animation:spin 0.7s linear infinite}
-    @keyframes spin{to{transform:rotate(360deg)}}
-    .load-logo{font-size:26px;font-weight:800;background:linear-gradient(135deg,var(--pink),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-top:18px;letter-spacing:-1px}
-    .load-sub{font-size:12px;color:var(--text3);margin-top:6px}
-
-    /* Login Screen */
-    #login-screen{position:fixed;inset:0;background:var(--bg);z-index:100;display:flex;align-items:center;justify-content:center;transition:transform 0.5s cubic-bezier(0.4,0,0.2,1),opacity 0.5s}
-    #login-screen.hidden{transform:scale(1.1);opacity:0;pointer-events:none}
-    .login-card{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius2);padding:36px 28px;width:90%;max-width:400px;text-align:center;animation:cardIn 0.6s cubic-bezier(0.4,0,0.2,1)}
-    @keyframes cardIn{from{opacity:0;transform:translateY(30px) scale(0.96)}to{opacity:1;transform:translateY(0) scale(1)}}
-    .login-card img{width:56px;height:56px;border-radius:14px;margin-bottom:16px}
-    .login-card h1{font-size:22px;font-weight:800;margin-bottom:4px;background:linear-gradient(135deg,var(--pink),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-0.5px}
-    .login-card p{font-size:13px;color:var(--text2);margin-bottom:24px}
-    .login-input{width:100%;padding:11px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:14px;font-family:var(--font);margin-bottom:10px;transition:all 0.2s}
-    .login-input:focus{outline:none;border-color:var(--pink);box-shadow:0 0 0 3px var(--glow)}
-    .login-btn{width:100%;padding:11px;background:linear-gradient(135deg,var(--pink),var(--purple));border:none;border-radius:var(--radius);color:#fff;font-weight:700;font-size:14px;cursor:pointer;font-family:var(--font);transition:all 0.25s;margin-top:4px}
-    .login-btn:hover{transform:translateY(-1px);box-shadow:0 8px 30px var(--glow2)}
-    .login-switch{font-size:12px;color:var(--text3);margin-top:14px;cursor:pointer;transition:color 0.2s}
-    .login-switch:hover{color:var(--pink)}
-    .login-switch span{color:var(--accent2);font-weight:600}
-
-    /* App Layout */
-    #app-layout{display:flex;height:100%;opacity:0;transition:opacity 0.5s}
-    #app-layout.visible{opacity:1}
-    
-    /* Server Bar */
-    #server-bar{width:var(--serverbar);background:var(--bg2);display:flex;flex-direction:column;align-items:center;padding:10px 0;gap:6px;border-right:1px solid var(--border);overflow-y:auto;flex-shrink:0;z-index:10}
-    .s-icon{width:42px;height:42px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.25s;border:2px solid transparent;position:relative;flex-shrink:0;overflow:hidden}
-    .s-icon:hover{border-radius:12px;border-color:var(--accent);box-shadow:0 0 18px var(--glow)}
-    .s-icon.active{border-radius:12px;border-color:var(--pink);background:var(--bg4);box-shadow:0 0 22px var(--glow2)}
-    .s-icon.active::after{content:'';position:absolute;left:-10px;top:50%;transform:translateY(-50%);width:5px;height:20px;background:var(--pink);border-radius:0 3px 3px 0}
-    .s-icon img{width:100%;height:100%;object-fit:cover;border-radius:inherit}
-    .s-icon svg{width:22px;height:22px;stroke:var(--text2);fill:none;stroke-width:1.8;transition:stroke 0.2s}
-    .s-icon:hover svg{stroke:var(--text)}
-    .s-sep{width:28px;height:1.5px;background:var(--border2);border-radius:1px;margin:5px 0}
-    .s-add{background:var(--bg3)!important;border:2px dashed var(--border2)!important}
-    .s-add:hover{background:var(--pink)!important;border-color:var(--pink)!important}
-    .s-add:hover svg{stroke:#fff}
-    .s-discover{margin-top:auto}
-    .s-discover svg{stroke:var(--green)}
-
-    /* Channel Sidebar */
-    #channel-bar{width:var(--sidebar);background:var(--bg2);display:flex;flex-direction:column;border-right:1px solid var(--border);flex-shrink:0;overflow:hidden;transition:all 0.3s}
-    #server-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;cursor:pointer;min-height:50px;transition:background 0.2s}
-    #server-header:hover{background:var(--bg3)}
-    #server-header h2{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
-    #server-header svg{width:16px;height:16px;stroke:var(--text2);flex-shrink:0;transition:transform 0.3s}
-    #server-header.open svg{transform:rotate(180deg)}
-    #server-actions{display:flex;gap:4px;padding:8px 12px;flex-wrap:wrap;border-bottom:1px solid var(--border)}
-    .act-btn{padding:5px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text2);font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all 0.2s;display:flex;align-items:center;gap:5px;white-space:nowrap}
-    .act-btn:hover{background:var(--bg4);color:var(--text);border-color:var(--border2)}
-    .act-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2}
-    #channel-list{flex:1;overflow-y:auto;padding:4px 8px}
-    .cat-header{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);padding:14px 8px 6px;display:flex;align-items:center;gap:5px;cursor:pointer}
-    .cat-header svg{width:11px;height:11px;stroke:var(--text3)}
-    .cat-header.open svg{transform:rotate(90deg)}
-    .ch-item{display:flex;align-items:center;gap:7px;padding:7px 10px;border-radius:6px;cursor:pointer;font-size:12.5px;font-weight:500;color:var(--text2);transition:all 0.2s;position:relative}
-    .ch-item:hover{background:var(--bg3);color:var(--text)}
-    .ch-item.active{background:rgba(192,132,252,0.1);color:var(--accent2)}
-    .ch-item svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.7;flex-shrink:0}
-    .ch-item.voice svg{stroke:var(--green)}
-    #user-panel{padding:10px 14px;border-top:1px solid var(--border);display:flex;align-items:center;gap:9px;background:var(--bg3);min-height:52px}
-    #user-panel img,#user-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--pink),var(--purple));object-fit:cover}
-    #user-info{flex:1;min-width:0}
-    #user-name{font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    #user-tag{font-size:10.5px;color:var(--text3)}
-    #user-btns{display:flex;gap:2px}
-    #user-btns button{background:none;border:none;cursor:pointer;padding:5px;border-radius:4px;color:var(--text2);transition:all 0.2s}
-    #user-btns button:hover{color:var(--text);background:var(--bg4)}
-    #user-btns svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.8}
-
-    /* Main Area */
-    #main-area{flex:1;display:flex;flex-direction:column;min-width:0;background:var(--bg)}
-    #top-bar{height:var(--topbar);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 18px;gap:10px;flex-shrink:0;background:var(--bg)}
-    #channel-icon{width:20px;height:20px;stroke:var(--text2);fill:none;stroke-width:1.8;flex-shrink:0}
-    #top-title{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    #top-desc{font-size:11px;color:var(--text3);margin-left:4px}
-    #top-actions{margin-left:auto;display:flex;gap:6px}
-    .top-btn{padding:6px 11px;border-radius:5px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:11px;cursor:pointer;font-family:var(--font);transition:all 0.2s;display:flex;align-items:center;gap:5px}
-    .top-btn:hover{background:var(--bg3);color:var(--text)}
-    .top-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8}
-
-    /* Messages */
-    #msg-area{flex:1;overflow-y:auto;overflow-x:hidden;padding:16px 20px;display:flex;flex-direction:column;gap:2px}
-    #msg-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px}
-    #msg-empty svg{width:70px;height:70px;stroke:var(--text3);fill:none;stroke-width:1.2;opacity:0.4;margin-bottom:14px}
-    #msg-empty h3{font-size:18px;font-weight:700;margin-bottom:4px;background:linear-gradient(135deg,var(--pink),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-    #msg-empty p{font-size:12.5px;color:var(--text3);max-width:300px;line-height:1.5}
-    .msg-row{display:flex;gap:10px;padding:6px 4px;animation:msgIn 0.35s cubic-bezier(0.4,0,0.2,1);transition:background 0.2s;border-radius:6px}
-    .msg-row:hover{background:rgba(255,255,255,0.015)}
-    @keyframes msgIn{from{opacity:0;transform:translateX(-10px) scale(0.98)}to{opacity:1;transform:translateX(0) scale(1)}}
-    .msg-av{width:36px;height:36px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff;background:linear-gradient(135deg,var(--pink),var(--purple))}
-    .msg-body{flex:1;min-width:0}
-    .msg-head{display:flex;align-items:baseline;gap:8px;margin-bottom:1px}
-    .msg-auth{font-size:13px;font-weight:700;color:var(--accent2)}
-    .msg-time{font-size:10.5px;color:var(--text3)}
-    .msg-text{font-size:13.5px;line-height:1.55;color:var(--text);word-break:break-word;white-space:pre-wrap}
-
-    /* Input */
-    #input-zone{padding:10px 18px 16px;border-top:1px solid var(--border);flex-shrink:0;background:var(--bg)}
-    #input-wrap{display:flex;align-items:flex-end;gap:8px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:8px 14px;transition:all 0.25s}
-    #input-wrap:focus-within{border-color:var(--pink);box-shadow:0 0 0 3px var(--glow)}
-    #msg-input{flex:1;background:none;border:none;outline:none;color:var(--text);font-family:var(--font);font-size:13.5px;resize:none;min-height:20px;max-height:100px;line-height:1.5;padding:2px 0}
-    #msg-input::placeholder{color:var(--text3)}
-    .input-icon{background:none;border:none;cursor:pointer;padding:3px;border-radius:4px;color:var(--text2);transition:all 0.2s;display:flex}
-    .input-icon:hover{color:var(--accent2);background:rgba(192,132,252,0.08)}
-    .input-icon svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8}
-    #send-btn{background:linear-gradient(135deg,var(--pink),var(--purple));border:none;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.25s;flex-shrink:0;box-shadow:0 4px 18px var(--glow2)}
-    #send-btn:hover{transform:scale(1.08)}#send-btn:active{transform:scale(0.95)}
-    #send-btn svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2.5}
-
-    /* Modals */
-    .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:200;display:flex;align-items:center;justify-content:center;animation:fadeIn 0.2s;backdrop-filter:blur(3px)}
-    @keyframes fadeIn{from{opacity:0}}
-    .modal{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius2);width:92%;max-width:520px;max-height:82vh;overflow-y:auto;padding:24px;animation:modIn 0.35s cubic-bezier(0.4,0,0.2,1);position:relative}
-    @keyframes modIn{from{opacity:0;transform:scale(0.94) translateY(15px)}}
-    .modal h3{font-size:17px;font-weight:700;margin-bottom:6px;background:linear-gradient(135deg,var(--pink),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-    .modal p{font-size:12.5px;color:var(--text2);margin-bottom:16px}
-    .modal-inp{width:100%;padding:10px 13px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:var(--font);margin-bottom:10px;transition:all 0.2s}
-    .modal-inp:focus{outline:none;border-color:var(--pink);box-shadow:0 0 0 3px var(--glow)}
-    .modal-btn{width:100%;padding:10px;background:linear-gradient(135deg,var(--pink),var(--purple));border:none;border-radius:8px;color:#fff;font-weight:700;font-size:13px;cursor:pointer;font-family:var(--font);transition:all 0.25s}
-    .modal-btn:hover{opacity:0.9;transform:translateY(-1px);box-shadow:0 6px 22px var(--glow2)}
-    .modal-btn.sec{background:var(--bg3);border:1px solid var(--border2);color:var(--text);margin-top:6px}
-    .modal-btn.danger{background:linear-gradient(135deg,var(--red),#dc2626)}
-    .modal-close{position:absolute;top:12px;right:12px;background:none;border:none;cursor:pointer;color:var(--text2);padding:4px;border-radius:4px;transition:0.2s}
-    .modal-close:hover{color:var(--text);background:var(--bg4)}
-    .modal-close svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2}
-
-    /* Settings */
-    .set-grid{display:grid;grid-template-columns:170px 1fr;gap:0;min-height:350px}
-    .set-nav{background:var(--bg3);border-radius:8px;overflow:hidden;display:flex;flex-direction:column}
-    .set-nav-i{padding:10px 14px;font-size:12px;cursor:pointer;color:var(--text2);transition:0.2s;display:flex;align-items:center;gap:7px;border-left:2px solid transparent}
-    .set-nav-i:hover{background:var(--bg4);color:var(--text)}
-    .set-nav-i.on{background:rgba(192,132,252,0.08);color:var(--accent2);border-color:var(--pink)}
-    .set-nav-i svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8}
-    .set-cont{padding:0 16px;overflow-y:auto;max-height:400px}
-    .set-cont h4{font-size:13px;color:var(--accent2);margin-bottom:10px}
-    .set-cont p,.set-cont label{font-size:12px;color:var(--text2);margin-bottom:6px;display:block}
-    .theme-dot{width:36px;height:36px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:0.2s;display:inline-block;margin:4px}
-    .theme-dot:hover{transform:scale(1.1)}
-    .theme-dot.active{border-color:var(--accent2);box-shadow:0 0 14px var(--glow2)}
-
-    /* Toast */
-    #toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--bg4);color:var(--green);padding:10px 22px;border-radius:99px;font-weight:600;font-size:12px;z-index:300;border:1px solid var(--border2);pointer-events:none;transition:all 0.3s;opacity:0}
-    #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-
-    /* Scroll */
-    ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px}
-
-    /* Tooltip */
-    [data-tip]{position:relative}[data-tip]:hover::after{content:attr(data-tip);position:absolute;left:115%;top:50%;transform:translateY(-50%);background:var(--bg4);color:var(--text);font-size:10px;padding:5px 9px;border-radius:4px;white-space:nowrap;z-index:20;pointer-events:none;border:1px solid var(--border2)}
-
-    /* Responsive */
-    @media(max-width:768px){
-      #server-bar{width:48px;padding:8px 0}
-      .s-icon{width:36px;height:36px}.s-icon.active::after{left:-7px;width:4px;height:14px}
-      #channel-bar{position:fixed;left:-100%;top:0;bottom:0;z-index:50;width:275px;transition:left 0.3s}
-      #channel-bar.open{left:0}
-      #main-area{width:100%}
-      .set-grid{grid-template-columns:1fr}.set-nav{flex-direction:row;overflow-x:auto;margin-bottom:10px}.set-nav-i{white-space:nowrap}
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family:var(--font); background:var(--bg); color:var(--t1);
+      height:100vh; height:100dvh; overflow:hidden; user-select:none;
+      -webkit-tap-highlight-color:transparent;
+    }
+    ::-webkit-scrollbar { width:3px; } ::-webkit-scrollbar-thumb { background:var(--ac); border-radius:3px; }
+    .loading-screen {
+      position:fixed; inset:0; background:var(--bg); z-index:99999;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      transition:opacity .4s,visibility .4s;
+    }
+    .loading-screen.hide { opacity:0; visibility:hidden; pointer-events:none; }
+    .loader { width:44px; height:44px; border:3px solid var(--b2); border-top-color:var(--ac); border-radius:50%; animation:spin .7s linear infinite; }
+    @keyframes spin { to{transform:rotate(360deg);} }
+    .loading-logo { margin-top:16px; font-size:18px; font-weight:700; background:linear-gradient(135deg,var(--ac),var(--ac2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; letter-spacing:-.5px; }
+    .app { display:flex; height:100vh; height:100dvh; background:var(--bg1); position:relative; }
+    .server-rail { width:var(--serverrail-w); background:var(--bg); display:flex; flex-direction:column; align-items:center; padding:12px 0; gap:10px; overflow-y:auto; border-right:1px solid var(--b); flex-shrink:0; z-index:10; }
+    .server-icon { width:46px; height:46px; background:var(--bg2); border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all var(--transition); position:relative; }
+    .server-icon svg { width:22px; height:22px; stroke:var(--t2); stroke-width:1.5; fill:none; }
+    .server-icon:hover,.server-icon.active { border-radius:14px; background:var(--ac); transform:translateY(-2px); }
+    .server-icon:hover svg,.server-icon.active svg { stroke:#fff; }
+    .server-icon.active::after { content:''; position:absolute; right:-7px; top:50%; transform:translateY(-50%); width:3px; height:18px; background:var(--ac); border-radius:2px; }
+    .channel-sidebar { width:var(--sidebar-w); background:var(--bg1); display:flex; flex-direction:column; border-right:1px solid var(--b); flex-shrink:0; z-index:10; overflow-y:auto; transition:transform .25s ease; }
+    .channel-header { height:48px; padding:0 14px; display:flex; align-items:center; gap:8px; border-bottom:1px solid var(--b); font-weight:700; background:var(--bg); font-size:15px; flex-shrink:0; }
+    .channel-header svg { width:18px; height:18px; stroke:var(--ac); }
+    .channel-category { padding:14px 14px 4px; font-size:11px; font-weight:700; text-transform:uppercase; color:var(--t3); letter-spacing:.8px; display:flex; justify-content:space-between; align-items:center; }
+    .channel-category button { background:none; border:none; color:var(--t3); cursor:pointer; font-size:15px; padding:2px 4px; border-radius:4px; transition:color .15s; }
+    .channel-category button:hover { color:var(--ac); }
+    .channel-item { padding:7px 14px; margin:1px 6px; border-radius:7px; display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px; color:var(--t2); transition:all .15s; position:relative; }
+    .channel-item svg { width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:1.5; flex-shrink:0; }
+    .channel-item:hover { background:var(--bg2); color:var(--t1); }
+    .channel-item.active { background:var(--acd); color:var(--ac3); font-weight:600; }
+    .channel-item .ch-actions { display:none; margin-left:auto; gap:4px; }
+    .channel-item:hover .ch-actions { display:flex; }
+    .ch-actions button { background:none; border:none; color:var(--t3); cursor:pointer; padding:2px; font-size:12px; } .ch-actions button:hover { color:var(--re); }
+    .add-category-btn { padding:8px 14px; font-size:11px; color:var(--t3); cursor:pointer; background:none; border:none; text-align:left; width:100%; margin-top:4px; font-weight:600; transition:color .15s; } .add-category-btn:hover { color:var(--ac); }
+    .chat-area { flex:1; display:flex; flex-direction:column; background:var(--bg1); min-width:0; }
+    .chat-header { height:48px; padding:0 18px; display:flex; align-items:center; gap:10px; border-bottom:1px solid var(--b); background:var(--bg); flex-shrink:0; }
+    .chat-header svg { width:18px; height:18px; stroke:var(--ac); flex-shrink:0; }
+    .channel-name { font-weight:700; font-size:15px; }
+    .channel-topic { font-size:11px; color:var(--t3); margin-left:6px; }
+    .header-badge { margin-left:auto; display:flex; gap:6px; }
+    .icon-btn { background:var(--bg2); border:none; width:30px; height:30px; border-radius:7px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all var(--transition); }
+    .icon-btn svg { width:15px; height:15px; stroke:var(--t2); fill:none; stroke-width:1.5; }
+    .icon-btn:hover { background:var(--ac); transform:scale(1.05); } .icon-btn:hover svg { stroke:#fff; }
+    .messages-container { flex:1; overflow-y:auto; padding:14px 18px; display:flex; flex-direction:column; gap:4px; scroll-behavior:smooth; }
+    .empty-channel { text-align:center; padding:50px 20px; color:var(--t3); animation:fadeIn .4s ease; margin:auto; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+    .empty-channel svg { width:56px; height:56px; stroke:var(--t3); margin-bottom:14px; opacity:.5; }
+    .empty-channel h4 { font-size:16px; margin-bottom:6px; color:var(--t2); font-weight:700; }
+    .empty-channel p { font-size:13px; }
+    .message { display:flex; align-items:flex-start; gap:10px; padding:5px 8px; border-radius:7px; transition:background .1s; position:relative; }
+    .message:hover { background:var(--bg2); }
+    .message:hover .msg-actions { display:flex; }
+    .message-avatar { width:34px; height:34px; background:linear-gradient(135deg,var(--ac),var(--ac2)); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; flex-shrink:0; font-size:13px; color:#fff; cursor:pointer; }
+    .message-content { flex:1; min-width:0; }
+    .message-header { font-size:12px; font-weight:700; margin-bottom:1px; display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+    .message-header .role-badge { font-size:9px; padding:1px 5px; border-radius:4px; font-weight:600; }
+    .message-header span { font-weight:400; font-size:10px; margin-left:4px; color:var(--t3); }
+    .message-text { font-size:13px; line-height:1.45; word-wrap:break-word; color:var(--t2); }
+    .message-text b { color:var(--t1); } .message-text i { font-style:italic; } .message-text code { background:var(--bg3); padding:1px 4px; border-radius:3px; font-family:var(--mono); font-size:11px; }
+    .message-text pre { background:var(--bg); border:1px solid var(--b); border-radius:6px; padding:8px; overflow-x:auto; font-family:var(--mono); font-size:11px; margin:4px 0; }
+    .msg-actions { display:none; position:absolute; right:8px; top:-8px; background:var(--bg3); border-radius:6px; padding:2px; gap:2px; box-shadow:0 4px 12px rgba(0,0,0,.3); z-index:5; }
+    .msg-actions button { background:none; border:none; color:var(--t2); cursor:pointer; padding:4px 6px; border-radius:4px; font-size:13px; } .msg-actions button:hover { background:var(--bg2); color:var(--t1); }
+    .msg-reactions { display:flex; gap:4px; margin-top:3px; flex-wrap:wrap; }
+    .msg-reaction { background:var(--bg3); border-radius:6px; padding:1px 6px; font-size:12px; cursor:pointer; transition:all .1s; border:1px solid transparent; }
+    .msg-reaction:hover { border-color:var(--b2); }
+    .msg-reaction.me { background:var(--acd); border-color:var(--ac); }
+    .typing-indicator { padding:4px 18px; font-size:11px; color:var(--t3); font-style:italic; height:24px; flex-shrink:0; }
+    .input-area { padding:10px 18px 14px; background:var(--bg); border-top:1px solid var(--b); display:flex; gap:10px; align-items:center; flex-shrink:0; }
+    .message-input { flex:1; background:var(--bg2); border:1px solid var(--b2); border-radius:22px; padding:10px 16px; color:var(--t1); font-size:13px; outline:none; transition:all var(--transition); font-family:var(--font); }
+    .message-input:focus { border-color:var(--ac); box-shadow:0 0 0 3px var(--acg); }
+    .message-input::placeholder { color:var(--t3); }
+    .emoji-picker { position:absolute; bottom:70px; left:310px; background:var(--bg2); border-radius:14px; padding:10px; display:none; grid-template-columns:repeat(8,1fr); gap:4px; z-index:100; border:1px solid var(--b2); animation:fadeIn .15s ease; box-shadow:0 8px 32px rgba(0,0,0,.4); max-height:250px; overflow-y:auto; }
+    .emoji-picker.show { display:grid; }
+    .emoji-option { font-size:18px; cursor:pointer; padding:4px; text-align:center; border-radius:6px; transition:all .1s; }
+    .emoji-option:hover { background:var(--bg3); transform:scale(1.2); }
+    .user-panel { width:var(--userpanel-w); background:var(--bg); border-left:1px solid var(--b); padding:14px; display:flex; flex-direction:column; gap:8px; flex-shrink:0; z-index:10; overflow-y:auto; }
+    .user-profile { display:flex; gap:10px; align-items:center; padding-bottom:12px; border-bottom:1px solid var(--b); cursor:pointer; }
+    .user-avatar { width:44px; height:44px; background:linear-gradient(135deg,var(--ac),var(--ac2)); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:16px; color:#fff; position:relative; }
+    .user-avatar .status-dot { position:absolute; bottom:0; right:0; width:12px; height:12px; border-radius:50%; border:3px solid var(--bg); }
+    .status-dot.online { background:var(--gr); } .status-dot.idle { background:var(--ye); } .status-dot.dnd { background:var(--re); } .status-dot.offline { background:var(--t3); }
+    .user-info { flex:1; } .user-name { font-weight:700; font-size:14px; } .user-status { font-size:10px; color:var(--t3); margin-top:1px; }
+    .panel-btn { background:var(--bg2); border:none; padding:9px 10px; border-radius:9px; color:var(--t2); cursor:pointer; font-weight:500; display:flex; align-items:center; gap:10px; width:100%; transition:all .15s; font-size:13px; font-family:var(--font); }
+    .panel-btn svg { width:16px; height:16px; stroke:currentColor; fill:none; flex-shrink:0; }
+    .panel-btn:hover { background:var(--bg3); color:var(--t1); }
+    .voice-bar { background:var(--bg2); border-radius:10px; padding:7px 10px; display:none; align-items:center; gap:8px; font-size:12px; font-weight:600; }
+    .voice-bar svg { width:18px; height:18px; stroke:var(--ac); }
+    .voice-controls { display:flex; gap:5px; margin-left:auto; }
+    .voice-btn { background:var(--bg3); border:none; width:28px; height:28px; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .15s; }
+    .voice-btn svg { width:14px; height:14px; stroke:var(--t2); }
+    .voice-btn:hover { background:var(--ac); } .voice-btn:hover svg { stroke:#fff; } .voice-btn.muted { background:var(--re); }
+    .modal { position:fixed; inset:0; background:rgba(0,0,0,.9); backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; z-index:1000; display:none; animation:fadeIn .2s ease; }
+    .modal.show { display:flex; }
+    .modal-box { background:var(--bg2); border-radius:20px; padding:24px; width:500px; max-width:92%; max-height:82vh; overflow-y:auto; }
+    .modal-box h2 { margin-bottom:16px; display:flex; align-items:center; gap:8px; font-size:18px; }
+    .modal-input,.modal-select,.modal-textarea { width:100%; padding:10px 14px; background:var(--bg1); border:1px solid var(--b2); border-radius:10px; color:var(--t1); margin-bottom:12px; font-size:13px; font-family:var(--font); outline:none; }
+    .modal-textarea { resize:vertical; min-height:60px; }
+    .modal-input:focus,.modal-select:focus,.modal-textarea:focus { border-color:var(--ac); }
+    .modal-btn { width:100%; padding:10px; background:var(--ac); border:none; border-radius:10px; color:#fff; font-weight:700; cursor:pointer; font-size:14px; font-family:var(--font); transition:all .15s; }
+    .modal-btn:hover { filter:brightness(1.1); }
+    .modal-btn.secondary { background:var(--bg3); color:var(--t2); } .modal-btn.secondary:hover { background:var(--acd); color:var(--t1); }
+    .modal-btn.danger { background:var(--re); }
+    .id-row { background:var(--bg1); padding:8px 12px; border-radius:8px; margin-bottom:10px; font-size:11px; font-family:var(--mono); cursor:pointer; display:flex; justify-content:space-between; align-items:center; color:var(--t3); transition:all .15s; }
+    .id-row:hover { background:var(--acd); color:var(--ac3); }
+    .profile-banner { height:100px; background:linear-gradient(135deg,var(--ac),var(--ac2)); border-radius:14px; margin-bottom:-30px; }
+    .profile-avatar-large { width:72px; height:72px; border-radius:50%; background:var(--ac); margin:0 auto 12px; display:flex; align-items:center; justify-content:center; font-size:28px; color:#fff; font-weight:700; border:4px solid var(--bg2); }
+    .dm-item,.role-item,.user-item { display:flex; align-items:center; gap:10px; padding:10px; border-radius:9px; cursor:pointer; transition:all .15s; }
+    .dm-item:hover,.role-item:hover,.user-item:hover { background:var(--bg3); }
+    .dm-avatar { width:38px; height:38px; background:var(--acd); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px; color:var(--ac3); flex-shrink:0; }
+    .dm-info,.role-info,.user-item-info { flex:1; min-width:0; } .dm-name,.role-name { font-weight:600; font-size:13px; } .dm-last-msg,.role-desc { font-size:11px; color:var(--t3); }
+    .theme-option { padding:10px; cursor:pointer; border-radius:8px; margin-bottom:6px; display:flex; align-items:center; gap:10px; font-weight:500; transition:all .15s; font-size:13px; } .theme-option:hover { background:var(--bg3); }
+    .context-menu { position:fixed; background:var(--bg2); border:1px solid var(--b2); border-radius:10px; padding:6px; z-index:2000; display:none; min-width:180px; box-shadow:0 8px 32px rgba(0,0,0,.5); }
+    .context-menu.show { display:block; animation:fadeIn .1s ease; }
+    .context-menu button { display:flex; align-items:center; gap:8px; width:100%; padding:8px 12px; background:none; border:none; color:var(--t2); cursor:pointer; border-radius:6px; font-size:12px; font-family:var(--font); }
+    .context-menu button:hover { background:var(--bg3); color:var(--t1); }
+    .context-menu button.danger { color:var(--re); }
+    .badge { display:inline-block; padding:2px 7px; border-radius:5px; font-size:10px; font-weight:700; }
+    .badge.admin { background:rgba(239,68,68,.2); color:#ef4444; } .badge.mod { background:rgba(99,102,241,.2); color:#6366f1; } .badge.vip { background:rgba(168,85,247,.2); color:#a855f7; } .badge.boost { background:rgba(245,158,11,.2); color:#f59e0b; }
+    .toggle-switch { position:relative; width:44px; height:24px; background:var(--bg3); border-radius:12px; cursor:pointer; transition:all .2s; display:inline-block; }
+    .toggle-switch.on { background:var(--ac); }
+    .toggle-switch::after { content:''; position:absolute; top:2px; left:2px; width:20px; height:20px; background:#fff; border-radius:50%; transition:all .2s; }
+    .toggle-switch.on::after { left:22px; }
+    @media (max-width:768px) {
+      .server-rail { width:52px; } .server-icon { width:40px; height:40px; } .server-icon svg { width:18px; height:18px; }
+      .channel-sidebar { position:absolute; left:-250px; top:0; bottom:0; height:100%; z-index:50; }
+      .channel-sidebar.open { left:52px; box-shadow:4px 0 20px rgba(0,0,0,.5); }
+      .user-panel { position:absolute; right:-260px; top:0; bottom:0; height:100%; z-index:50; }
+      .user-panel.open { right:0; box-shadow:-4px 0 20px rgba(0,0,0,.5); }
+      .emoji-picker { left:10px; right:10px; bottom:65px; }
     }
   </style>
 </head>
 <body>
-
-<!-- Loading -->
-<div id="app-loading">
-  <div class="load-ring"></div>
-  <div class="load-logo">gettic</div>
-  <div class="load-sub">Bağlanıyor...</div>
-</div>
-
-<!-- Login Screen -->
-<div id="login-screen">
-  <div class="login-card">
-    <img src="https://github.com/darking053official/gettic/blob/main/1777062266055.png?raw=true" alt="Gettic" onerror="this.style.display='none'" />
-    <h1>Gettic'e Hoş Geldin</h1>
-    <p>Gerçek zamanlı sohbet platformuna katıl</p>
-    <input class="login-input" id="login-user" placeholder="Kullanıcı adı" />
-    <input class="login-input" id="login-pass" type="password" placeholder="Şifre" />
-    <button class="login-btn" id="login-btn" onclick="handleLogin()">Giriş Yap</button>
-    <div class="login-switch">Hesabın yok mu? <span onclick="toggleLoginMode()" id="login-switch-text">Kayıt Ol</span></div>
-  </div>
-</div>
-
-<!-- App Layout -->
-<div id="app-layout">
-  <!-- Server Bar -->
-  <div id="server-bar">
-    <div class="s-icon active" data-tip="Ana Sayfa" onclick="selectServer('home')">
-      <img src="https://github.com/darking053official/gettic/blob/main/1777062266055.png?raw=true" alt="G" onerror="this.style.display='none'" style="display:none" />
-      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-    </div>
-    <div class="s-sep"></div>
-    <div id="server-icons"></div>
-    <div class="s-icon s-add" data-tip="Sunucu Oluştur" onclick="openModal('createServer')">
-      <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-    </div>
-    <div class="s-icon s-discover" data-tip="Sunucu Keşfet" onclick="openModal('discover')">
-      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-    </div>
-  </div>
-
-  <!-- Channel Bar -->
-  <div id="channel-bar">
-    <div id="server-header" onclick="toggleServerHeader()">
-      <h2 id="server-name">Gettic Ana Sayfa</h2>
-      <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-    </div>
-    <div id="server-actions">
-      <button class="act-btn" onclick="openModal('addChannel')"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Kanal</button>
-      <button class="act-btn" onclick="openModal('addCategory')"><svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg> Kategori</button>
-      <button class="act-btn" onclick="sortChannels()"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg> Sırala</button>
-      <button class="act-btn" onclick="openModal('roleCreate')"><svg viewBox="0 0 24 24"><path d="M12 1a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h8z"/><circle cx="17" cy="12" r="3"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg> Rol</button>
-    </div>
-    <div id="channel-list"></div>
-    <div id="user-panel">
-      <div id="user-avatar"></div>
-      <div id="user-info">
-        <div id="user-name">Kullanıcı</div>
-        <div id="user-tag">#gettic</div>
-      </div>
-      <div id="user-btns">
-        <button data-tip="Ayarlar" onclick="openModal('settings')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Main Area -->
-  <div id="main-area">
-    <div id="top-bar">
-      <svg id="channel-icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-      <span id="top-title">Genel</span>
-      <span id="top-desc"></span>
-      <div id="top-actions">
-        <button class="top-btn" onclick="openModal('webhookModal')"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> Webhook</button>
-        <button class="top-btn" onclick="openModal('friendsModal')"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Arkadaşlar</button>
-      </div>
-    </div>
-    <div id="msg-area">
-      <div id="msg-empty">
-        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-        <h3 id="empty-name">Genel</h3>
-        <p id="empty-msg">Genel doğuşu. Bu kanala ilk mesajı sen yaz!</p>
-      </div>
-    </div>
-    <div id="input-zone">
-      <div id="input-wrap">
-        <button class="input-icon" data-tip="Dosya"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></button>
-        <textarea id="msg-input" placeholder="Mesaj yaz..." rows="1" onkeydown="handleMsgKey(event)"></textarea>
-        <button id="send-btn" onclick="sendMsg()"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Modal Container -->
-<div id="modal-box"></div>
-
-<!-- Toast -->
-<div id="toast"></div>
+<div id="loadingScreen" class="loading-screen"><div class="loader"></div><div class="loading-logo">gettic</div></div>
+<div id="app"></div>
+<div id="contextMenu" class="context-menu"></div>
 
 <script>
-// ─── GLOBAL STATE ───────────────────────────────────
-const S = {
-  user: null, token: null, loginMode: 'login',
-  servers: [], currentServer: 'home',
-  currentChannel: { id: 'genel', name: 'Genel', type: 'text', serverId: 'home' },
-  messages: {}, friends: [], theme: 'pink-purple', roles: []
+(function(){
+const API_URL = 'https://gettic-j49l.onrender.com';
+let currentUser=null, currentToken=localStorage.getItem('gt_token'), socket=null;
+let currentChannel={id:'genel-sohbet',name:'genel-sohbet',topic:'Sohbet odası'};
+let localStream=null, peerConnection=null, isInVoice=false, isMuted=false;
+const rtcConfig={iceServers:[{urls:'stun:stun.l.google.com:19302'}]};
+let channels=[
+  {id:'genel-sohbet',name:'genel-sohbet',type:'text',category:'METİN ODALARI',permissions:{}},
+  {id:'kurallar',name:'kurallar',type:'forum',category:'METİN ODALARI',permissions:{}},
+  {id:'genel-ses',name:'Genel Ses',type:'voice',category:'SESLİ ODALAR',permissions:{}},
+  {id:'muzik-odasi',name:'Müzik Odası',type:'voice',category:'SESLİ ODALAR',permissions:{}},
+  {id:'forum',name:'forum',type:'forum',category:'FORUM',permissions:{}},
+  {id:'oneri',name:'öneri',type:'text',category:'GERİ BİLDİRİM',permissions:{}},
+  {id:'bug-bildirimi',name:'bug-bildirimi',type:'text',category:'GERİ BİLDİRİM',permissions:{}}
+];
+let categories=['METİN ODALARI','SESLİ ODALAR','FORUM','GERİ BİLDİRİM'];
+let dmFriends=[];
+let roles=[
+  {id:'r1',name:'Kurucu',color:'#fbbf24',permissions:{all:true},position:0},
+  {id:'r2',name:'Admin',color:'#ef4444',permissions:{manageServer:true,manageRoles:true,manageChannels:true,kick:true,ban:true,deleteMsg:true},position:1},
+  {id:'r3',name:'Moderatör',color:'#6366f1',permissions:{kick:true,deleteMsg:true,manageMessages:true},position:2},
+  {id:'r4',name:'VIP',color:'#a855f7',permissions:{specialChannels:true},position:3},
+  {id:'r5',name:'Üye',color:'#9ca3af',permissions:{sendMsg:true,addReactions:true},position:4}
+];
+let userRoles={};
+let serverSettings={name:'Gettic',description:'',icon:'',banner:''};
+let pinnedMessages={};
+let userStatuses={};
+let notifications=[];
+let searchIndex=[];
+
+const Icons={
+  hash:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>',
+  volume:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>',
+  forum:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+  plus:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
+  send:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>',
+  smile:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>',
+  logout:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>',
+  mic:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>',
+  micOff:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><line x1="23" y1="1" x2="1" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V5a3 3 0 0 0-5.94-.6M17 16.95A7 7 0 0 1 5 12v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>',
+  deafen:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>',
+  user:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+  webhook:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>',
+  copy:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
+  dm:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+  theme:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>',
+  search:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+  music:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>',
+  settings:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>',
+  trash:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>',
+  edit:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>',
+  pin:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/></svg>',
+  bell:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>',
+  shield:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+  calendar:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
+  link:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>',
+  image:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>',
+  video:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>',
+  screen:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>',
+  export:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
+  backup:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>',
+  poll:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>',
+  check:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><polyline points="20 6 9 17 4 12"/></svg>',
+  x:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+  more:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>',
 };
 
-const icons = {
-  text: '<svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
-  rules: '<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',
-  voice: '<svg viewBox="0 0 24 24"><path d="M12 1a2 2 0 0 0-2 2v8a2 2 0 0 0 4 0V3a2 2 0 0 0-2-2z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>',
-  forum: '<svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>'
-};
-
-// ─── INIT ────────────────────────────────────────────
-function initApp() {
-  S.token = localStorage.getItem('gt_tok');
-  if (S.token) {
-    S.user = { _id: 'u1', username: localStorage.getItem('gt_user') || 'GetticKullanici' };
-    showApp();
-  } else {
-    document.getElementById('login-screen').classList.remove('hidden');
-  }
-  S.servers = JSON.parse(localStorage.getItem('gt_servers') || '[]');
-  if (S.servers.length === 0) {
-    S.servers = [{
-      id: 'srv1', name: 'Gettic Topluluğu', icon: '', banner: '', description: 'Resmi Gettic sunucusu',
-      roles: [{ id: 'r1', name: 'Admin', color: '#f87171' }, { id: 'r2', name: 'Moderatör', color: '#60a5fa' }],
-      channels: [
-        { id: 'kurallar', name: 'kurallar', type: 'rules', category: 'BİLGİ', position: 1 },
-        { id: 'genel', name: 'genel', type: 'text', category: 'METİN KANALLARI', position: 2 },
-        { id: 'bot-komut', name: 'bot-komutları', type: 'text', category: 'METİN KANALLARI', position: 3 },
-        { id: 'forum', name: 'forum', type: 'forum', category: 'TOPLULUK', position: 4 },
-        { id: 'sesli', name: 'Sesli Sohbet', type: 'voice', category: 'SES KANALLARI', position: 5 },
-        { id: 'muzik', name: 'Müzik Odası', type: 'voice', category: 'SES KANALLARI', position: 6 }
-      ]
-    }];
-    localStorage.setItem('gt_servers', JSON.stringify(S.servers));
-  }
-  S.friends = JSON.parse(localStorage.getItem('gt_friends') || '[]');
-  if (S.friends.length === 0) {
-    S.friends = [
-      { id: 'f1', username: 'DarkingBot', online: true },
-      { id: 'f2', username: 'ModeratorTR', online: true },
-      { id: 'f3', username: 'TasarimciKiz', online: false }
-    ];
-    localStorage.setItem('gt_friends', JSON.stringify(S.friends));
-  }
-  S.messages = JSON.parse(localStorage.getItem('gt_msgs') || '{}');
-  S.theme = localStorage.getItem('gt_theme') || 'pink-purple';
-  applyTheme(S.theme);
-  
-  setTimeout(() => {
-    document.getElementById('app-loading').classList.add('hidden');
-  }, 800);
+function esc(s){if(!s)return'';return String(s).replace(/[&<>]/g,m=>m==='&'?'&amp;':m==='<'?'&lt;':'&gt;');}
+function toast(msg,err=false){
+  const t=document.createElement('div');
+  t.style.cssText=`position:fixed;bottom:60px;right:16px;background:var(--bg2);padding:10px 16px;border-radius:10px;color:${err?'#ef4444':'#22c55e'};z-index:2000;border:1px solid var(--b2);font-size:13px;font-weight:600;animation:fadeIn .2s ease;`;
+  t.textContent=msg;document.body.appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .3s';setTimeout(()=>t.remove(),300);},2500);
 }
+function openModal(id){const el=document.getElementById(id);if(el)el.classList.add('show');}
+function closeModal(id){const el=document.getElementById(id);if(el)el.classList.remove('show');}
+function genId(){return Date.now().toString(36)+Math.random().toString(36).substr(2,6);}
+function getUserRoles(uid){return userRoles[uid]||['r5'];}
+function getHighestRole(uid){const rids=getUserRoles(uid);let highest=roles[roles.length-1];rids.forEach(rid=>{const r=roles.find(x=>x.id===rid);if(r&&r.position<highest.position)highest=r;});return highest;}
+function hasPermission(uid,perm){const rids=getUserRoles(uid);for(const rid of rids){const r=roles.find(x=>x.id===rid);if(r&&(r.permissions.all||r.permissions[perm]))return true;}return false;}
 
-// ─── LOGIN ───────────────────────────────────────────
-function toggleLoginMode() {
-  S.loginMode = S.loginMode === 'login' ? 'register' : 'login';
-  document.getElementById('login-btn').textContent = S.loginMode === 'login' ? 'Giriş Yap' : 'Kayıt Ol';
-  document.getElementById('login-switch-text').textContent = S.loginMode === 'login' ? 'Kayıt Ol' : 'Giriş Yap';
+function renderApp(){
+  const app=document.getElementById('app');
+  if(!currentUser){app.innerHTML=renderAuth();bindAuth();return;}
+  app.innerHTML=renderUI();bindUI();renderChannels();loadMessages();connectSocket();loadTheme();
 }
-
-function handleLogin() {
-  const u = document.getElementById('login-user').value.trim();
-  const p = document.getElementById('login-pass').value.trim();
-  if (!u || !p) return toast('Lütfen tüm alanları doldurun', 'var(--red)');
-  if (u.length < 3) return toast('Kullanıcı adı en az 3 karakter', 'var(--red)');
-  if (p.length < 6) return toast('Şifre en az 6 karakter', 'var(--red)');
-  
-  S.user = { _id: 'u' + Date.now(), username: u };
-  S.token = 'tok_' + Math.random().toString(36).substring(2, 20);
-  localStorage.setItem('gt_tok', S.token);
-  localStorage.setItem('gt_user', u);
-  toast('Hoş geldin, ' + u + '! 🚀');
-  showApp();
-}
-
-function showApp() {
-  document.getElementById('login-screen').classList.add('hidden');
-  document.getElementById('app-layout').classList.add('visible');
-  document.getElementById('user-name').textContent = S.user.username;
-  document.getElementById('user-avatar').textContent = S.user.username.charAt(0).toUpperCase();
-  renderServers();
-  selectServer('home');
-}
-
-// ─── SERVERS ─────────────────────────────────────────
-function renderServers() {
-  const c = document.getElementById('server-icons');
-  c.innerHTML = S.servers.map(s => `
-    <div class="s-icon ${S.currentServer===s.id?'active':''}" data-tip="${s.name}" onclick="selectServer('${s.id}')">
-      ${s.icon?`<img src="${s.icon}" alt="${s.name}"/>`:`<span style="font-weight:700;font-size:16px;color:var(--accent2)">${s.name.charAt(0).toUpperCase()}</span>`}
+function renderAuth(){
+  return `<div class="modal show" id="authModal"><div class="modal-box">
+    <div style="text-align:center;margin-bottom:14px;"><img src="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png" style="width:52px;border-radius:14px;" alt="Gettic"></div>
+    <h2 style="text-align:center;font-size:20px;">gettic</h2>
+    <div style="display:flex;gap:8px;margin:16px 0;">
+      <button id="loginTab" class="modal-btn" style="flex:1;">Giriş</button>
+      <button id="registerTab" class="modal-btn secondary" style="flex:1;">Kayıt</button>
     </div>
-  `).join('');
+    <div id="loginForm"><input type="text" id="loginUser" class="modal-input" placeholder="Kullanıcı Adı"><input type="password" id="loginPass" class="modal-input" placeholder="Şifre"><button id="doLoginBtn" class="modal-btn">Giriş Yap</button></div>
+    <div id="registerForm" style="display:none;"><input type="text" id="regUser" class="modal-input" placeholder="Kullanıcı Adı (en az 3)"><input type="password" id="regPass" class="modal-input" placeholder="Şifre (en az 6)"><button id="doRegBtn" class="modal-btn">Kayıt Ol</button></div>
+    <div id="authError" style="color:var(--re);margin-top:10px;text-align:center;font-size:12px;"></div>
+  </div></div>`;
 }
-
-function selectServer(sid) {
-  S.currentServer = sid;
-  document.querySelectorAll('#server-icons .s-icon').forEach(el=>el.classList.remove('active'));
-  document.querySelector('.s-icon:first-child').classList.toggle('active', sid==='home');
-  const idx = S.servers.findIndex(s=>s.id===sid);
-  if(idx>=0){ const ic = document.querySelectorAll('#server-icons .s-icon'); if(ic[idx]) ic[idx].classList.add('active'); }
-  
-  const srv = S.servers.find(s=>s.id===sid);
-  document.getElementById('server-name').textContent = srv ? srv.name : 'Gettic Ana Sayfa';
-  renderChannels(srv);
-  if(window.innerWidth<768) document.getElementById('channel-bar').classList.add('open');
-}
-
-function renderChannels(srv) {
-  const list = document.getElementById('channel-list');
-  if (!srv || sid==='home') {
-    list.innerHTML = `
-      <div class="cat-header">METİN KANALLARI</div>
-      <div class="ch-item active" onclick="selCh('genel','Genel','text','home')">${icons.text} genel</div>
-      <div class="cat-header">SES KANALLARI</div>
-      <div class="ch-item voice" onclick="selCh('sesli','Sesli Sohbet','voice','home')">${icons.voice} Sesli Sohbet</div>`;
-    return;
-  }
-  
-  const cats = [...new Set(srv.channels.map(c=>c.category||'DİĞER'))];
-  list.innerHTML = cats.map(cat => {
-    const chs = srv.channels.filter(c=>(c.category||'DİĞER')===cat).sort((a,b)=>(a.position||99)-(b.position||99));
-    return `<div class="cat-header" onclick="this.classList.toggle('open')"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg> ${cat}</div>` +
-      chs.map(ch => `
-        <div class="ch-item ${ch.type==='voice'?'voice':''} ${S.currentChannel.id===ch.id?'active':''}" onclick="selCh('${ch.id}','${ch.name}','${ch.type}','${srv.id}')">
-          ${icons[ch.type]||icons.text} ${ch.name}
-          ${ch.type==='rules'?'<span style="font-size:9px;background:rgba(248,113,113,0.15);color:var(--red);padding:2px 7px;border-radius:99px;margin-left:auto;font-weight:700">KURALLAR</span>':''}
-        </div>`).join('');
-  }).join('');
-}
-
-function selCh(id, name, type, serverId) {
-  S.currentChannel = { id, name, type, serverId };
-  document.getElementById('top-title').textContent = name;
-  document.getElementById('empty-name').textContent = name;
-  document.getElementById('empty-msg').textContent = `${name} doğuşu. Bu kanala ilk mesajı sen yaz!`;
-  document.getElementById('channel-icon').innerHTML = icons[type] || icons.text;
-  renderMsgs();
-  renderChannels(S.servers.find(s=>s.id===S.currentServer));
-}
-
-// ─── MESSAGES ────────────────────────────────────────
-function renderMsgs() {
-  const area = document.getElementById('msg-area');
-  const empty = document.getElementById('msg-empty');
-  const key = `${S.currentChannel.serverId}:${S.currentChannel.id}`;
-  const msgs = S.messages[key] || [];
-  
-  if (msgs.length === 0) {
-    empty.style.display = 'flex';
-    area.querySelectorAll('.msg-row').forEach(el=>el.remove());
-    return;
-  }
-  empty.style.display = 'none';
-  area.innerHTML = msgs.map((m,i) => {
-    const showAuthor = i===0 || msgs[i-1].author !== m.author;
-    return `<div class="msg-row">
-      <div class="msg-av">${m.author.charAt(0).toUpperCase()}</div>
-      <div class="msg-body">
-        ${showAuthor ? `<div class="msg-head"><span class="msg-auth">${m.author}</span><span class="msg-time">${m.time}</span></div>` : ''}
-        <div class="msg-text">${escHtml(m.content)}</div>
+function renderUI(){
+  return `<div class="app">
+    <div class="server-rail">
+      <div class="server-icon active" data-server="main">${Icons.hash}</div>
+      <div class="server-icon" id="addServerBtn" title="Sunucu Ekle">${Icons.plus}</div>
+      <div class="server-icon" id="discoverBtn" title="Keşfet">${Icons.search}</div>
+    </div>
+    <div class="channel-sidebar" id="channelSidebar">
+      <div class="channel-header">${Icons.hash}<span>${esc(serverSettings.name)}</span></div>
+      <div id="channelCategories"></div>
+      <button class="add-category-btn" id="addCategoryBtn">+ Kategori Ekle</button>
+    </div>
+    <div class="chat-area">
+      <div class="chat-header">
+        ${Icons.hash}<div class="channel-name"># ${esc(currentChannel.name)}</div>
+        <div class="channel-topic">${esc(currentChannel.topic)}</div>
+        <div class="header-badge">
+          <button class="icon-btn" id="searchBtn" title="Ara">${Icons.search}</button>
+          <button class="icon-btn" id="notifBtn" title="Bildirimler">${Icons.bell}</button>
+          <button class="icon-btn" id="webhookInfoBtn" title="Kanal Bilgileri">${Icons.webhook}</button>
+          <button class="icon-btn" id="toggleSidebarBtn" title="Kanal Listesi">${Icons.hash}</button>
+          <button class="icon-btn" id="toggleUserPanelBtn" title="Kullanıcı Paneli">${Icons.user}</button>
+        </div>
       </div>
-    </div>`;
-  }).join('');
-  area.scrollTop = area.scrollHeight;
-}
-
-function sendMsg() {
-  const inp = document.getElementById('msg-input');
-  const txt = inp.value.trim();
-  if (!txt) return;
-  
-  const key = `${S.currentChannel.serverId}:${S.currentChannel.id}`;
-  if (!S.messages[key]) S.messages[key] = [];
-  S.messages[key].push({
-    id: 'm'+Date.now(), author: S.user.username, content: txt,
-    time: new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'}),
-    channelId: S.currentChannel.id, serverId: S.currentChannel.serverId
-  });
-  localStorage.setItem('gt_msgs', JSON.stringify(S.messages));
-  inp.value = ''; inp.style.height = 'auto';
-  renderMsgs();
-}
-
-function handleMsgKey(e) {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
-}
-
-function escHtml(s) { const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
-
-// ─── MODALS ──────────────────────────────────────────
-function openModal(type) {
-  const box = document.getElementById('modal-box');
-  let h = '';
-  const srv = S.servers.find(s=>s.id===S.currentServer);
-  
-  switch(type) {
-    case 'settings': h = settingsHTML(srv); break;
-    case 'createServer': h = createServerHTML(); break;
-    case 'discover': h = discoverHTML(); break;
-    case 'addChannel': h = addChannelHTML(srv); break;
-    case 'addCategory': h = addCategoryHTML(srv); break;
-    case 'roleCreate': h = roleCreateHTML(srv); break;
-    case 'webhookModal': h = webhookHTML(); break;
-    case 'friendsModal': h = friendsHTML(); break;
-  }
-  box.innerHTML = h;
-}
-
-function closeModal() { document.getElementById('modal-box').innerHTML = ''; }
-
-function settingsHTML(srv) {
-  return `<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal" style="max-width:620px">
-    <button class="modal-close" onclick="closeModal()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-    <h3>Ayarlar</h3>
-    <div class="set-grid">
-      <div class="set-nav">
-        <div class="set-nav-i on" onclick="switchSetTab('account',this)"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Hesap</div>
-        <div class="set-nav-i" onclick="switchSetTab('server',this)"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg> Sunucu</div>
-        <div class="set-nav-i" onclick="switchSetTab('theme',this)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2"/></svg> Tema</div>
-        <div class="set-nav-i" onclick="switchSetTab('privacy',this)"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Gizlilik</div>
-        <div class="set-nav-i" onclick="switchSetTab('danger',this)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Tehlike</div>
-      </div>
-      <div class="set-cont" id="set-content">
-        <h4>Hesap Ayarları</h4>
-        <p>Kullanıcı Adı: <strong>${S.user.username}</strong></p>
-        <p>ID: <code>${S.user._id}</code></p>
-        <p>Sunucu ID: <code>${S.currentServer}</code></p>
-        <p>Kanal ID: <code>${S.currentChannel.id}</code></p>
-        <button class="modal-btn sec" style="width:auto;margin-top:8px" onclick="logout()">Çıkış Yap</button>
+      <div id="pinnedBar" style="display:none;background:var(--bg);padding:6px 18px;border-bottom:1px solid var(--b);font-size:12px;color:var(--t3);"></div>
+      <div class="messages-container" id="messagesContainer"></div>
+      <div class="typing-indicator" id="typingIndicator"></div>
+      <div class="input-area">
+        <button class="icon-btn" id="uploadBtn" title="Dosya Gönder">${Icons.image}</button>
+        <button class="icon-btn" id="emojiBtn">${Icons.smile}</button>
+        <div id="emojiPicker" class="emoji-picker"></div>
+        <input type="text" class="message-input" id="messageInput" placeholder="Mesaj yaz..." autocomplete="off">
+        <button class="icon-btn" id="sendBtn" style="background:var(--ac);">${Icons.send}</button>
       </div>
     </div>
-  </div></div>`;
+    <div class="user-panel" id="userPanel">
+      <div class="user-profile" id="statusProfile">
+        <div class="user-avatar">${(currentUser?.username||'U').charAt(0).toUpperCase()}<div class="status-dot online" id="userStatusDot"></div></div>
+        <div class="user-info"><div class="user-name">${esc(currentUser?.username||'Kullanıcı')}</div><div class="user-status" id="userStatusText">🟢 Çevrimiçi</div></div>
+      </div>
+      <div class="voice-bar" id="voiceBar">${Icons.volume}<span id="voiceChannelName">Sesli Kanal</span><div class="voice-controls"><button class="voice-btn" id="muteBtn">${Icons.mic}</button><button class="voice-btn" id="deafenBtn">${Icons.deafen}</button><button class="voice-btn" id="leaveVoiceBtn" style="background:var(--re);">${Icons.logout}</button></div></div>
+      <button class="panel-btn" id="serverSettingsBtn">${Icons.settings} Sunucu Ayarları</button>
+      <button class="panel-btn" id="rolesBtn">${Icons.shield} Roller & İzinler</button>
+      <button class="panel-btn" id="profileBtn">${Icons.user} Profilim</button>
+      <button class="panel-btn" id="themeSettingsBtn">${Icons.theme} Tema Ayarları</button>
+      <button class="panel-btn" id="dmBtn">${Icons.dm} Direkt Mesajlar</button>
+      <button class="panel-btn" id="addFriendBtn">${Icons.plus} Arkadaş Ekle</button>
+      <button class="panel-btn" id="exportBtn">${Icons.export} Dışa Aktar</button>
+      <button class="panel-btn" id="logoutBtn" style="color:var(--re);">${Icons.logout} Çıkış Yap</button>
+    </div>
+  </div>
+  ${renderModals()}`;
+}
+function renderModals(){
+  return `
+  <div id="serverSettingsModal" class="modal"><div class="modal-box"><h2>${Icons.settings} Sunucu Ayarları</h2><input id="serverName" class="modal-input" placeholder="Sunucu Adı" value="${esc(serverSettings.name)}"><input id="serverDesc" class="modal-input" placeholder="Açıklama" value="${esc(serverSettings.description)}"><input id="serverIconUrl" class="modal-input" placeholder="Logo URL"><input id="serverBannerUrl" class="modal-input" placeholder="Banner URL"><button class="modal-btn" onclick="saveServerSettings()">Kaydet</button><button class="modal-btn danger" onclick="deleteServer()" style="margin-top:8px;">${Icons.trash} Sunucuyu Sil</button></div></div>
+  <div id="profileModal" class="modal"><div class="modal-box"><h2>${Icons.user} Profilim</h2><div class="profile-banner"></div><div class="profile-avatar-large">${(currentUser?.username||'U').charAt(0).toUpperCase()}</div><input id="profileDisplayName" class="modal-input" placeholder="Görünen Ad" value="${esc(currentUser?.username||'')}"><textarea id="profileBio" class="modal-textarea" placeholder="Hakkımda"></textarea><input id="profileAvatarUrl" class="modal-input" placeholder="Avatar URL"><select id="profileStatus" class="modal-select"><option value="online">🟢 Çevrimiçi</option><option value="idle">🟡 Boşta</option><option value="dnd">🔴 Rahatsız Etmeyin</option><option value="offline">⚫ Görünmez</option></select><button class="modal-btn" onclick="saveProfile()">Kaydet</button></div></div>
+  <div id="themeSettingsModal" class="modal"><div class="modal-box"><h2>${Icons.theme} Tema Ayarları</h2><div class="theme-option" onclick="setTheme('#c084fc','#e879f9')"><div style="width:28px;height:28px;border-radius:7px;background:#c084fc;"></div>Pembe Mor</div><div class="theme-option" onclick="setTheme('#6366f1','#818cf8')"><div style="width:28px;height:28px;border-radius:7px;background:#6366f1;"></div>Mavi</div><div class="theme-option" onclick="setTheme('#22c55e','#4ade80')"><div style="width:28px;height:28px;border-radius:7px;background:#22c55e;"></div>Yeşil</div><div class="theme-option" onclick="openModal('customThemeModal')">🎨 Özel Tema</div><button class="modal-btn secondary" onclick="closeModal('themeSettingsModal')">Kapat</button></div></div>
+  <div id="customThemeModal" class="modal"><div class="modal-box"><h2>🎨 Özel Tema</h2><label style="font-size:12px;color:var(--t3);">Ana Renk</label><input type="color" id="customPrimary" class="modal-input" value="#c084fc"><label style="font-size:12px;color:var(--t3);">İkincil Renk</label><input type="color" id="customSecondary" class="modal-input" value="#e879f9"><button class="modal-btn" onclick="applyCustomTheme()">Uygula</button></div></div>
+  <div id="addServerModal" class="modal"><div class="modal-box"><h2>${Icons.plus} Sunucu Oluştur</h2><input id="newServerName" class="modal-input" placeholder="Sunucu Adı"><button class="modal-btn" onclick="createServer()">Oluştur</button></div></div>
+  <div id="addChannelModal" class="modal"><div class="modal-box"><h2>${Icons.plus} Kanal Oluştur</h2><input id="newChannelName" class="modal-input" placeholder="Kanal Adı"><select id="channelType" class="modal-select"><option value="text">💬 Metin</option><option value="voice">🔊 Ses</option><option value="forum">📋 Forum</option></select><select id="channelCategory" class="modal-select"><option value="">Kategori</option></select><button class="modal-btn" onclick="createChannel()">Oluştur</button></div></div>
+  <div id="editChannelModal" class="modal"><div class="modal-box"><h2>${Icons.edit} Kanal Düzenle</h2><input id="editChannelId" type="hidden"><input id="editChannelName" class="modal-input" placeholder="Kanal Adı"><select id="editChannelType" class="modal-select"><option value="text">💬 Metin</option><option value="voice">🔊 Ses</option><option value="forum">📋 Forum</option></select><select id="editChannelCategory" class="modal-select"><option value="">Kategori</option></select><button class="modal-btn" onclick="saveChannelEdit()">Kaydet</button><button class="modal-btn danger" onclick="deleteChannel()" style="margin-top:8px;">${Icons.trash} Kanalı Sil</button></div></div>
+  <div id="addCategoryModal" class="modal"><div class="modal-box"><h2>${Icons.plus} Kategori Ekle</h2><input id="newCategoryName" class="modal-input" placeholder="Kategori Adı"><button class="modal-btn" onclick="addCategoryConfirm()">Ekle</button></div></div>
+  <div id="discoverModal" class="modal"><div class="modal-box"><h2>${Icons.search} Toplulukları Keşfet</h2><div id="discoverList"></div></div></div>
+  <div id="dmModal" class="modal"><div class="modal-box"><h2>${Icons.dm} Direkt Mesajlar</h2><button class="modal-btn" onclick="openDMNew()" style="margin-bottom:12px;">${Icons.plus} Yeni DM</button><button class="modal-btn secondary" onclick="openGroupDM()" style="margin-bottom:12px;">👥 Grup DM</button><div id="dmList"></div><div id="dmChatArea" style="display:none;margin-top:12px;"><div id="dmMessages" style="height:180px;overflow-y:auto;margin-bottom:8px;border:1px solid var(--b);border-radius:10px;padding:8px;"></div><div style="display:flex;gap:6px;"><input type="text" id="dmInput" class="modal-input" style="margin:0;flex:1;" placeholder="Mesaj..."><button class="modal-btn" id="sendDmBtn" style="width:auto;padding:10px 16px;">${Icons.send}</button></div></div></div></div>
+  <div id="dmNewModal" class="modal"><div class="modal-box"><h2>${Icons.plus} Yeni DM</h2><input id="dmNewUsername" class="modal-input" placeholder="Kullanıcı Adı"><button class="modal-btn" onclick="startDM()">Başlat</button></div></div>
+  <div id="groupDMModal" class="modal"><div class="modal-box"><h2>👥 Grup DM</h2><input id="groupDMUsers" class="modal-input" placeholder="Kullanıcı adları (virgülle ayır)"><button class="modal-btn" onclick="startGroupDM()">Oluştur</button></div></div>
+  <div id="addFriendModal" class="modal"><div class="modal-box"><h2>${Icons.plus} Arkadaş Ekle</h2><input id="friendUsername" class="modal-input" placeholder="Kullanıcı Adı"><button class="modal-btn" onclick="addFriend()">Ekle</button></div></div>
+  <div id="webhookModal" class="modal"><div class="modal-box"><h2>${Icons.webhook} Webhook Bilgileri</h2><div class="id-row"><span>Kanal ID:</span><span id="channelIdVal">${currentChannel.id}</span></div><div class="id-row"><span>Sunucu ID:</span><span id="serverIdVal">srv_demo</span></div><div class="id-row"><span>Webhook URL:</span><span id="webhookUrlVal">${API_URL}/api/webhook/demo</span></div><button class="modal-btn secondary" onclick="closeModal('webhookModal')">Kapat</button></div></div>
+  <div id="rolesModal" class="modal"><div class="modal-box" style="width:600px;"><h2>${Icons.shield} Roller & İzinler</h2><div id="rolesList"></div><button class="modal-btn" onclick="openModal('addRoleModal')" style="margin-top:8px;">${Icons.plus} Rol Ekle</button></div></div>
+  <div id="addRoleModal" class="modal"><div class="modal-box"><h2>${Icons.plus} Rol Ekle</h2><input id="newRoleName" class="modal-input" placeholder="Rol Adı"><input type="color" id="newRoleColor" class="modal-input" value="#9ca3af"><button class="modal-btn" onclick="addRole()">Ekle</button></div></div>
+  <div id="editRoleModal" class="modal"><div class="modal-box" style="width:550px;"><h2>${Icons.edit} Rol Düzenle</h2><input id="editRoleId" type="hidden"><input id="editRoleName" class="modal-input" placeholder="Rol Adı"><input type="color" id="editRoleColor" class="modal-input" value="#9ca3af"><label style="font-size:11px;color:var(--t3);display:block;margin-bottom:4px;">Yetkiler</label><div id="rolePerms"></div><button class="modal-btn" onclick="saveRoleEdit()">Kaydet</button><button class="modal-btn danger" onclick="deleteRole()" style="margin-top:8px;">${Icons.trash} Rolü Sil</button></div></div>
+  <div id="userRolesModal" class="modal"><div class="modal-box"><h2>${Icons.shield} Kullanıcı Rolleri</h2><div id="userRolesList"></div><button class="modal-btn" onclick="closeModal('userRolesModal')">Kapat</button></div></div>
+  <div id="searchModal" class="modal"><div class="modal-box" style="width:600px;"><h2>${Icons.search} Ara</h2><input id="searchInput" class="modal-input" placeholder="Mesaj, kullanıcı veya kanal ara..."><div id="searchResults"></div></div></div>
+  <div id="inviteModal" class="modal"><div class="modal-box"><h2>${Icons.link} Davet Linki</h2><div class="id-row"><span>Davet Linki:</span><span id="inviteLink">https://gettic.js.org/invite/demo</span></div><button class="modal-btn" onclick="copyId('inviteLink')">Kopyala</button></div></div>
+  <div id="backupModal" class="modal"><div class="modal-box"><h2>${Icons.backup} Yedekleme</h2><button class="modal-btn" onclick="exportBackup()">Yedeği İndir</button><input type="file" id="backupFile" class="modal-input" accept=".json" style="margin-top:8px;"><button class="modal-btn secondary" onclick="importBackup()">Yedekten Geri Yükle</button></div></div>
+  <div id="exportModal" class="modal"><div class="modal-box"><h2>${Icons.export} Dışa Aktar</h2><button class="modal-btn" onclick="exportChat('json')">JSON olarak indir</button><button class="modal-btn secondary" onclick="exportChat('csv')">CSV olarak indir</button></div></div>
+  <div id="pollModal" class="modal"><div class="modal-box"><h2>${Icons.poll} Anket Başlat</h2><input id="pollQuestion" class="modal-input" placeholder="Soru"><input id="pollOption1" class="modal-input" placeholder="Seçenek 1"><input id="pollOption2" class="modal-input" placeholder="Seçenek 2"><input id="pollOption3" class="modal-input" placeholder="Seçenek 3 (opsiyonel)"><input id="pollOption4" class="modal-input" placeholder="Seçenek 4 (opsiyonel)"><button class="modal-btn" onclick="createPoll()">Başlat</button></div></div>
+  <div id="notifModal" class="modal"><div class="modal-box"><h2>${Icons.bell} Bildirimler</h2><div id="notifList"></div></div></div>`;
 }
 
-function switchSetTab(tab, el) {
-  document.querySelectorAll('.set-nav-i').forEach(e=>e.classList.remove('on'));
-  el.classList.add('on');
-  const c = document.getElementById('set-content');
-  const srv = S.servers.find(s=>s.id===S.currentServer);
-  switch(tab) {
-    case 'account': c.innerHTML = `<h4>Hesap Ayarları</h4><p>Kullanıcı Adı: <strong>${S.user.username}</strong></p><p>ID: <code>${S.user._id}</code></p><p>Sunucu ID: <code>${S.currentServer}</code></p><p>Kanal ID: <code>${S.currentChannel.id}</code></p><button class="modal-btn sec" style="width:auto;margin-top:8px" onclick="logout()">Çıkış Yap</button>`; break;
-    case 'server': c.innerHTML = `<h4>Sunucu Ayarları</h4><label>Logo URL</label><input class="modal-inp" id="srvLogo" placeholder="Logo URL" value="${srv?.icon||''}"/><label>Banner URL</label><input class="modal-inp" id="srvBanner" placeholder="Banner URL" value="${srv?.banner||''}"/><label>Açıklama</label><input class="modal-inp" id="srvDesc" placeholder="Açıklama" value="${srv?.description||''}"/><button class="modal-btn" style="width:auto" onclick="updateServer()">Kaydet</button>`; break;
-    case 'theme': c.innerHTML = `<h4>Tema</h4><p>Aktif: <strong>${S.theme==='pink-purple'?'Pembe-Mor':S.theme==='dark'?'Koyu':S.theme==='ocean'?'Okyanus':'Varsayılan'}</strong></p><div><span class="theme-dot ${S.theme==='pink-purple'?'active':''}" style="background:linear-gradient(135deg,#e879f9,#a855f7)" onclick="setTheme('pink-purple')"></span><span class="theme-dot ${S.theme==='dark'?'active':''}" style="background:linear-gradient(135deg,#333,#555)" onclick="setTheme('dark')"></span><span class="theme-dot ${S.theme==='ocean'?'active':''}" style="background:linear-gradient(135deg,#0ea5e9,#38bdf8)" onclick="setTheme('ocean')"></span></div>`; break;
-    case 'privacy': c.innerHTML = `<h4>Gizlilik & Güvenlik</h4><p>Şifre değiştirme, 2FA, oturum yönetimi.</p><input class="modal-inp" type="password" placeholder="Yeni şifre"/><button class="modal-btn" style="width:auto" onclick="toast('Şifre değiştirildi (demo)')">Şifreyi Güncelle</button><p style="margin-top:12px">Hesap Devretme</p><input class="modal-inp" placeholder="Devredilecek kullanıcı adı"/><button class="modal-btn sec" style="width:auto" onclick="toast('Hesap devredildi (demo)')">Hesabı Devret</button>`; break;
-    case 'danger': c.innerHTML = `<h4>Tehlike Bölgesi</h4><p style="color:var(--red)">Bu işlemler geri alınamaz!</p><button class="modal-btn danger" style="width:auto" onclick="deleteServer()">Sunucuyu Sil</button><button class="modal-btn danger" style="width:auto;margin-top:8px" onclick="deleteAccount()">Hesabı Sil</button>`; break;
-  }
-}
-
-function createServerHTML() {
-  return `<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal">
-    <button class="modal-close" onclick="closeModal()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-    <h3>Sunucu Oluştur</h3><p>Yeni bir sunucu oluştur ve topluluğunu başlat.</p>
-    <input class="modal-inp" id="newSrvName" placeholder="Sunucu Adı"/>
-    <input class="modal-inp" id="newSrvDesc" placeholder="Açıklama (opsiyonel)"/>
-    <button class="modal-btn" onclick="createServer()">Sunucu Oluştur</button>
-    <button class="modal-btn sec" onclick="closeModal()">İptal</button>
-  </div></div>`;
-}
-
-function discoverHTML() {
-  return `<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal">
-    <button class="modal-close" onclick="closeModal()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-    <h3>Sunucu Keşfet</h3><p>Popüler sunucuları keşfedin.</p>
-    ${S.servers.map(s=>`<div style="display:flex;align-items:center;gap:10px;padding:12px;background:var(--bg3);border-radius:8px;margin-bottom:6px;cursor:pointer;transition:all 0.2s" onclick="selectServer('${s.id}');closeModal()"><div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--pink),var(--purple));display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff">${s.name.charAt(0)}</div><div><strong>${s.name}</strong><br><span style="font-size:11px;color:var(--text3)">${s.channels.length} kanal</span></div></div>`).join('')}
-    <button class="modal-btn sec" onclick="closeModal()">Kapat</button>
-  </div></div>`;
-}
-
-function addChannelHTML(srv) {
-  return `<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal">
-    <button class="modal-close" onclick="closeModal()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-    <h3>Kanal Oluştur</h3>
-    <input class="modal-inp" id="chName" placeholder="Kanal adı"/>
-    <select class="modal-inp" id="chType"><option value="text">Metin</option><option value="voice">Ses</option><option value="rules">Kurallar</option><option value="forum">Forum</option></select>
-    <input class="modal-inp" id="chCat" placeholder="Kategori (opsiyonel)"/>
-    <button class="modal-btn" onclick="addChannel()">Oluştur</button>
-    <button class="modal-btn sec" onclick="closeModal()">İptal</button>
-  </div></div>`;
-}
-
-function addCategoryHTML(srv) {
-  return `<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal">
-    <button class="modal-close" onclick="closeModal()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-    <h3>Kategori Oluştur</h3>
-    <input class="modal-inp" id="catName" placeholder="Kategori adı"/>
-    <button class="modal-btn" onclick="addCategory()">Oluştur</button>
-    <button class="modal-btn sec" onclick="closeModal()">İptal</button>
-  </div></div>`;
-}
-
-function roleCreateHTML(srv) {
-  return `<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal">
-    <button class="modal-close" onclick="closeModal()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-    <h3>Rol Oluştur</h3>
-    <input class="modal-inp" id="roleName" placeholder="Rol adı"/>
-    <input class="modal-inp" id="roleColor" type="color" value="#c084fc"/>
-    <button class="modal-btn" onclick="addRole()">Oluştur</button>
-    <button class="modal-btn sec" onclick="closeModal()">İptal</button>
-  </div></div>`;
-}
-
-function webhookHTML() {
-  return `<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal">
-    <button class="modal-close" onclick="closeModal()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-    <h3>Webhook Oluştur</h3><p>Kanal ID: <code>${S.currentChannel.id}</code> | Sunucu ID: <code>${S.currentServer}</code></p>
-    <input class="modal-inp" id="whName" placeholder="Webhook adı"/>
-    <button class="modal-btn" onclick="createWebhook()">Oluştur</button>
-    <div id="whResult" style="margin-top:10px;display:none"><p style="color:var(--green);font-size:12px">URL:</p><code id="whUrl" style="word-break:break-all;font-size:11px;background:var(--bg3);padding:8px;border-radius:6px;display:block;color:var(--accent2)"></code></div>
-    <button class="modal-btn sec" onclick="closeModal()">Kapat</button>
-  </div></div>`;
-}
-
-function friendsHTML() {
-  return `<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal">
-    <button class="modal-close" onclick="closeModal()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-    <h3>Arkadaşlar</h3>
-    ${S.friends.map(f=>`<div style="display:flex;align-items:center;gap:8px;padding:10px;background:var(--bg3);border-radius:6px;margin-bottom:4px"><div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--pink),var(--purple));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#fff">${f.username.charAt(0)}</div><div style="flex:1"><strong>${f.username}</strong><br><span style="font-size:10px;color:${f.online?'var(--green)':'var(--text3)'}">${f.online?'Çevrimiçi':'Çevrimdışı'}</span></div><button class="top-btn" onclick="startDM('${f.id}','${f.username}')">DM</button></div>`).join('')}
-    <input class="modal-inp" id="friendAdd" placeholder="Kullanıcı adı ile ekle" style="margin-top:10px"/>
-    <button class="modal-btn" onclick="addFriend()">Ekle</button>
-    <button class="modal-btn sec" onclick="closeModal()">Kapat</button>
-  </div></div>`;
-}
-
-// ─── ACTIONS ─────────────────────────────────────────
-function createServer() {
-  const n = document.getElementById('newSrvName').value.trim();
-  if(!n) return toast('Sunucu adı gerekli','var(--red)');
-  const d = document.getElementById('newSrvDesc')?.value.trim()||'';
-  S.servers.push({
-    id:'srv'+Date.now(), name:n, description:d, icon:'', banner:'', roles:[],
-    channels:[
-      {id:'genel-'+Date.now(),name:'genel',type:'text',category:'METİN KANALLARI',position:1},
-      {id:'kurallar-'+Date.now(),name:'kurallar',type:'rules',category:'BİLGİ',position:0},
-      {id:'sesli-'+Date.now(),name:'Sesli Sohbet',type:'voice',category:'SES KANALLARI',position:2}
-    ]
+function bindAuth(){
+  document.getElementById('loginTab')?.addEventListener('click',()=>{document.getElementById('loginForm').style.display='block';document.getElementById('registerForm').style.display='none';});
+  document.getElementById('registerTab')?.addEventListener('click',()=>{document.getElementById('loginForm').style.display='none';document.getElementById('registerForm').style.display='block';});
+  document.getElementById('doLoginBtn')?.addEventListener('click',async()=>{
+    const u=document.getElementById('loginUser')?.value.trim(),p=document.getElementById('loginPass')?.value;
+    if(!u||!p)return toast('Tüm alanları doldurun',true);
+    try{
+      const res=await fetch(`${API_URL}/api/auth/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})});
+      const data=await res.json();if(!res.ok)throw new Error(data.error||'Giriş başarısız');
+      currentToken=data.token;currentUser=data.user;userRoles[currentUser._id]=['r5'];
+      localStorage.setItem('gt_token',currentToken);localStorage.setItem('gt_user',JSON.stringify(currentUser));
+      document.getElementById('loadingScreen')?.classList.add('hide');renderApp();
+    }catch(e){document.getElementById('authError').textContent=e.message;}
   });
-  localStorage.setItem('gt_servers',JSON.stringify(S.servers));
-  renderServers(); selectServer(S.servers[S.servers.length-1].id); closeModal();
-  toast('Sunucu oluşturuldu! 🎉');
+  document.getElementById('doRegBtn')?.addEventListener('click',async()=>{
+    const u=document.getElementById('regUser')?.value.trim(),p=document.getElementById('regPass')?.value;
+    if(!u||!p)return toast('Tüm alanları doldurun',true);
+    if(u.length<3)return toast('Kullanıcı adı en az 3 karakter',true);
+    if(p.length<6)return toast('Şifre en az 6 karakter',true);
+    try{
+      const res=await fetch(`${API_URL}/api/auth/register`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})});
+      const data=await res.json();if(!res.ok)throw new Error(data.error||'Kayıt başarısız');
+      currentToken=data.token;currentUser=data.user;userRoles[currentUser._id]=['r5'];
+      localStorage.setItem('gt_token',currentToken);localStorage.setItem('gt_user',JSON.stringify(currentUser));
+      document.getElementById('loadingScreen')?.classList.add('hide');renderApp();
+    }catch(e){document.getElementById('authError').textContent=e.message;}
+  });
+}
+function bindUI(){
+  document.getElementById('sendBtn')?.addEventListener('click',sendMessage);
+  document.getElementById('messageInput')?.addEventListener('keypress',e=>{if(e.key==='Enter')sendMessage();});
+  document.getElementById('emojiBtn')?.addEventListener('click',()=>document.getElementById('emojiPicker')?.classList.toggle('show'));
+  document.getElementById('logoutBtn')?.addEventListener('click',logout);
+  document.getElementById('webhookInfoBtn')?.addEventListener('click',()=>openModal('webhookModal'));
+  document.getElementById('serverSettingsBtn')?.addEventListener('click',()=>openModal('serverSettingsModal'));
+  document.getElementById('profileBtn')?.addEventListener('click',()=>openModal('profileModal'));
+  document.getElementById('themeSettingsBtn')?.addEventListener('click',()=>openModal('themeSettingsModal'));
+  document.getElementById('dmBtn')?.addEventListener('click',()=>{openModal('dmModal');loadDMList();});
+  document.getElementById('addFriendBtn')?.addEventListener('click',()=>openModal('addFriendModal'));
+  document.getElementById('addServerBtn')?.addEventListener('click',()=>openModal('addServerModal'));
+  document.getElementById('addCategoryBtn')?.addEventListener('click',()=>openModal('addCategoryModal'));
+  document.getElementById('toggleSidebarBtn')?.addEventListener('click',()=>document.getElementById('channelSidebar')?.classList.toggle('open'));
+  document.getElementById('toggleUserPanelBtn')?.addEventListener('click',()=>document.getElementById('userPanel')?.classList.toggle('open'));
+  document.getElementById('rolesBtn')?.addEventListener('click',()=>{openModal('rolesModal');renderRoles();});
+  document.getElementById('searchBtn')?.addEventListener('click',()=>openModal('searchModal'));
+  document.getElementById('notifBtn')?.addEventListener('click',()=>{openModal('notifModal');renderNotifications();});
+  document.getElementById('exportBtn')?.addEventListener('click',()=>openModal('exportModal'));
+  document.getElementById('statusProfile')?.addEventListener('click',()=>openModal('profileModal'));
+  document.getElementById('uploadBtn')?.addEventListener('click',()=>{
+    const inp=document.createElement('input');inp.type='file';inp.accept='image/*,video/*,.pdf,.txt,.zip';
+    inp.onchange=()=>{if(inp.files[0])toast('Dosya yükleme hazır: '+inp.files[0].name);};
+    inp.click();
+  });
+  initEmojiPicker();
+  document.getElementById('searchInput')?.addEventListener('input',performSearch);
+  document.addEventListener('click',e=>{if(e.target.classList?.contains('modal'))e.target.classList.remove('show');});
+  document.addEventListener('contextmenu',e=>{e.preventDefault();showContextMenu(e);});
+  document.addEventListener('click',()=>{document.getElementById('contextMenu')?.classList.remove('show');});
 }
 
-function addChannel() {
-  const srv = S.servers.find(s=>s.id===S.currentServer);
-  if(!srv) return toast('Önce sunucu seçin','var(--red)');
-  const n = document.getElementById('chName').value.trim();
-  if(!n) return toast('Kanal adı gerekli','var(--red)');
-  const t = document.getElementById('chType').value;
-  const c = document.getElementById('chCat').value.trim()||'DİĞER';
-  srv.channels.push({id:n.toLowerCase().replace(/\s/g,'-')+'-'+Date.now(), name:n, type:t, category:c, position:srv.channels.length+1});
-  localStorage.setItem('gt_servers',JSON.stringify(S.servers));
-  renderChannels(srv); closeModal();
-  toast('Kanal oluşturuldu!');
+function renderChannels(){
+  const container=document.getElementById('channelCategories');if(!container)return;
+  let html='';
+  categories.forEach(cat=>{
+    const catChannels=channels.filter(c=>c.category===cat);
+    html+=`<div class="channel-category">${cat}<button data-cat="${cat}">${Icons.plus}</button></div>`;
+    catChannels.forEach(ch=>{
+      const icon=ch.type==='voice'?Icons.volume:ch.type==='forum'?Icons.forum:Icons.hash;
+      const cls=ch.id===currentChannel.id?' active':'';
+      html+=`<div class="channel-item${cls}" data-id="${ch.id}" data-type="${ch.type}" data-cat="${ch.category}">${icon}${esc(ch.name)}<div class="ch-actions"><button data-action="edit" title="Düzenle">${Icons.edit}</button><button data-action="delete" title="Sil">${Icons.trash}</button></div></div>`;
+    });
+  });
+  container.innerHTML=html;bindChannelClicks();
+}
+function bindChannelClicks(){
+  document.querySelectorAll('.channel-category button').forEach(btn=>{btn.addEventListener('click',e=>{e.stopPropagation();setupChannelCatSelect(btn.dataset.cat);openModal('addChannelModal');});});
+  document.querySelectorAll('.channel-item').forEach(el=>{el.addEventListener('click',e=>{if(e.target.closest('.ch-actions'))return;const id=el.dataset.id,type=el.dataset.type;if(type==='voice'){joinVoiceChannel(id);return;}switchChannel(id);});});
+  document.querySelectorAll('.ch-actions button[data-action="edit"]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();const chId=e.target.closest('.channel-item')?.dataset.id;openEditChannel(chId);}));
+  document.querySelectorAll('.ch-actions button[data-action="delete"]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();const chId=e.target.closest('.channel-item')?.dataset.id;deleteChannelById(chId);}));
+}
+function openEditChannel(chId){
+  const ch=channels.find(c=>c.id===chId);if(!ch)return;
+  document.getElementById('editChannelId').value=ch.id;
+  document.getElementById('editChannelName').value=ch.name;
+  document.getElementById('editChannelType').value=ch.type;
+  const sel=document.getElementById('editChannelCategory');sel.innerHTML='<option value="">Kategori</option>'+categories.map(c=>`<option value="${c}" ${c===ch.category?'selected':''}>${c}</option>`).join('');
+  openModal('editChannelModal');
+}
+function saveChannelEdit(){
+  const id=document.getElementById('editChannelId').value;
+  const name=document.getElementById('editChannelName').value.trim();
+  const type=document.getElementById('editChannelType').value;
+  const cat=document.getElementById('editChannelCategory').value||'METİN ODALARI';
+  if(!name)return toast('Kanal adı gerekli',true);
+  const ch=channels.find(c=>c.id===id);if(!ch)return;
+  ch.name=name;ch.type=type;ch.category=cat;
+  if(!categories.includes(cat))categories.push(cat);
+  renderChannels();closeModal('editChannelModal');toast('Kanal güncellendi');
+}
+function deleteChannel(){const id=document.getElementById('editChannelId').value;deleteChannelById(id);closeModal('editChannelModal');}
+function deleteChannelById(chId){
+  if(!hasPermission(currentUser._id,'manageChannels'))return toast('Yetkiniz yok',true);
+  channels=channels.filter(c=>c.id!==chId);
+  if(currentChannel.id===chId){const first=channels.find(c=>c.type!=='voice');if(first)switchChannel(first.id);}
+  renderChannels();toast('Kanal silindi');
+}
+function setupChannelCatSelect(cat){const sel=document.getElementById('channelCategory');if(sel)sel.innerHTML='<option value="">Kategori (opsiyonel)</option>'+categories.map(c=>`<option value="${c}" ${c===cat?'selected':''}>${c}</option>`).join('');}
+function switchChannel(id){
+  const ch=channels.find(c=>c.id===id);if(!ch)return;
+  currentChannel={id:ch.id,name:ch.name,topic:'Sohbet odası'};
+  document.querySelector('.channel-name').textContent='# '+ch.name;
+  renderChannels();loadMessages();
+  if(socket)socket.emit('join_channel',ch.id);
+  if(isInVoice)leaveVoiceChannel();
+  updatePinnedBar();
+}
+function createChannel(){
+  const name=document.getElementById('newChannelName')?.value.trim();
+  const type=document.getElementById('channelType')?.value||'text';
+  const cat=document.getElementById('channelCategory')?.value||'METİN ODALARI';
+  if(!name)return toast('Kanal adı gerekli',true);
+  const id=name.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
+  if(channels.find(c=>c.id===id))return toast('Bu kanal zaten var',true);
+  channels.push({id,name,type,category:cat,permissions:{}});
+  if(!categories.includes(cat))categories.push(cat);
+  renderChannels();closeModal('addChannelModal');toast(`${name} kanalı oluşturuldu`);
+}
+function createServer(){
+  const name=document.getElementById('newServerName')?.value.trim();
+  if(!name)return toast('Sunucu adı gerekli',true);
+  serverSettings.name=name;channels=[{id:'genel-sohbet',name:'genel-sohbet',type:'text',category:'METİN ODALARI',permissions:{}},{id:'genel-ses',name:'Genel Ses',type:'voice',category:'SESLİ ODALAR',permissions:{}}];
+  categories=['METİN ODALARI','SESLİ ODALAR'];currentChannel={id:'genel-sohbet',name:'genel-sohbet',topic:'Sohbet odası'};
+  renderChannels();loadMessages();closeModal('addServerModal');toast(`${name} sunucusu oluşturuldu`);
+}
+function deleteServer(){if(confirm('Sunucuyu silmek istediğinize emin misiniz?')){serverSettings={name:'Gettic',description:'',icon:'',banner:''};channels=[{id:'genel-sohbet',name:'genel-sohbet',type:'text',category:'METİN ODALARI',permissions:{}}];categories=['METİN ODALARI'];renderChannels();closeModal('serverSettingsModal');toast('Sunucu silindi');}}
+function addCategoryConfirm(){const name=document.getElementById('newCategoryName')?.value.trim();if(!name)return toast('Kategori adı gerekli',true);if(categories.includes(name))return toast('Bu kategori zaten var',true);categories.push(name);renderChannels();closeModal('addCategoryModal');toast('Kategori eklendi');}
+function saveServerSettings(){serverSettings.name=document.getElementById('serverName')?.value||'Gettic';serverSettings.description=document.getElementById('serverDesc')?.value||'';document.querySelector('.channel-header span').textContent=serverSettings.name;closeModal('serverSettingsModal');toast('Sunucu ayarları kaydedildi');}
+function saveProfile(){const name=document.getElementById('profileDisplayName')?.value;if(name&&currentUser)currentUser.username=name;const status=document.getElementById('profileStatus')?.value;if(status){userStatuses[currentUser._id]=status;updateStatusUI(status);}closeModal('profileModal');toast('Profil güncellendi');}
+function updateStatusUI(status){const dot=document.getElementById('userStatusDot');const txt=document.getElementById('userStatusText');const map={online:['online','🟢 Çevrimiçi'],idle:['idle','🟡 Boşta'],dnd:['dnd','🔴 Rahatsız Etmeyin'],offline:['offline','⚫ Görünmez']};if(dot){dot.className='status-dot '+map[status][0];}if(txt)txt.textContent=map[status][1];}
+
+async function sendMessage(){
+  const input=document.getElementById('messageInput');if(!input)return;
+  const content=input.value.trim();if(!content)return;
+  if(!currentToken)return toast('Önce giriş yapın',true);
+  if(!hasPermission(currentUser._id,'sendMsg'))return toast('Mesaj gönderme yetkiniz yok',true);
+  input.value='';
+  try{
+    const res=await fetch(`${API_URL}/api/channels/${currentChannel.id}/messages`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${currentToken}`},body:JSON.stringify({content})});
+    if(res.ok){const data=await res.json();searchIndex.push({id:data._id,content,channelId:currentChannel.id,senderName:currentUser.username,createdAt:new Date().toISOString()});}
+  }catch(e){toast('Mesaj gönderilemedi',true);input.value=content;}
+}
+async function loadMessages(){
+  const container=document.getElementById('messagesContainer');if(!container)return;
+  if(!currentToken){container.innerHTML=`<div class="empty-channel">${Icons.hash}<h4># ${esc(currentChannel.name)} doğuşu</h4><p>Giriş yaparak mesajları görebilirsin</p></div>`;return;}
+  try{
+    const res=await fetch(`${API_URL}/api/channels/${currentChannel.id}/messages`,{headers:{'Authorization':`Bearer ${currentToken}`}});
+    if(!res.ok)throw new Error('Yüklenemedi');
+    const msgs=await res.json();
+    if(!msgs.length){container.innerHTML=`<div class="empty-channel">${Icons.hash}<h4># ${esc(currentChannel.name)} doğuşu</h4><p>Bu kanalda henüz mesaj yok. İlk mesajı sen gönder!</p></div>`;return;}
+    container.innerHTML=(pinnedMessages[currentChannel.id]?[pinnedMessages[currentChannel.id]]:[]).concat(msgs).map(m=>renderMessage(m)).join('');
+    container.scrollTop=container.scrollHeight;
+  }catch(e){container.innerHTML=`<div class="empty-channel">${Icons.hash}<h4># ${esc(currentChannel.name)} doğuşu</h4><p>Mesajlar yüklenemedi</p></div>`;}
+}
+function renderMessage(m,isPinned=false){
+  const role=getHighestRole(m.senderId||'');const roleBadge=role&&role.id!=='r5'?`<span class="role-badge" style="background:${role.color}20;color:${role.color};">${role.name}</span>`:'';
+  const reactions=m.reactions||{};const reactHtml=Object.entries(reactions).map(([emoji,users])=>`<span class="msg-reaction ${users.includes(currentUser?._id)?'me':''}" data-emoji="${emoji}" data-msg="${m._id}">${emoji} ${users.length}</span>`).join('');
+  return `<div class="message" data-id="${m._id}"${isPinned?' style="background:var(--acd);border-left:3px solid var(--ye);"':''}>
+    <div class="message-avatar">${esc(m.senderName?.charAt(0)?.toUpperCase()||'?')}</div>
+    <div class="message-content">
+      <div class="message-header">${esc(m.senderName||'Bilinmeyen')}${roleBadge}<span>${new Date(m.createdAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span></div>
+      <div class="message-text">${formatMessage(esc(m.content))}</div>
+      ${reactHtml?`<div class="msg-reactions">${reactHtml}</div>`:''}
+    </div>
+    <div class="msg-actions">
+      <button data-action="react" title="Tepki">${Icons.smile}</button>
+      <button data-action="edit" title="Düzenle">${Icons.edit}</button>
+      <button data-action="delete" title="Sil">${Icons.trash}</button>
+      <button data-action="pin" title="Sabitle">${Icons.pin}</button>
+    </div>
+  </div>`;
+}
+function formatMessage(text){
+  return text.replace(/\*\*(.*?)\*\*/g,'<b>$1</b>').replace(/\*(.*?)\*/g,'<i>$1</i>').replace(/`(.*?)`/g,'<code>$1</code>');
+}
+function updatePinnedBar(){
+  const bar=document.getElementById('pinnedBar');const pinned=pinnedMessages[currentChannel.id];
+  if(pinned){bar.style.display='block';bar.innerHTML=`${Icons.pin} Sabitlenmiş: <b>${esc(pinned.senderName)}</b> - ${esc(pinned.content).substring(0,50)}...`;}else{bar.style.display='none';}
+}
+function showContextMenu(e){
+  e.preventDefault();const menu=document.getElementById('contextMenu');const msgEl=e.target.closest('.message');
+  if(msgEl){
+    const msgId=msgEl.dataset.id;menu.innerHTML=`
+      <button onclick="addReaction('${msgId}','👍')">👍 Beğen</button>
+      <button onclick="addReaction('${msgId}','❤️')">❤️ Kalp</button>
+      <button onclick="addReaction('${msgId}','😂')">😂 Gül</button>
+      <button onclick="addReaction('${msgId}','😮')">😮 Şaşır</button>
+      <button onclick="editMessage('${msgId}')">${Icons.edit} Düzenle</button>
+      <button onclick="deleteMessage('${msgId}')" class="danger">${Icons.trash} Sil</button>
+      <button onclick="pinMessage('${msgId}')">${Icons.pin} Sabitle</button>`;
+  }else{
+    menu.innerHTML=`<button onclick="openModal('addChannelModal')">${Icons.plus} Kanal Oluştur</button><button onclick="openModal('addCategoryModal')">📁 Kategori Ekle</button><button onclick="openModal('inviteModal')">${Icons.link} Davet Linki</button>`;
+  }
+  menu.style.left=e.clientX+'px';menu.style.top=e.clientY+'px';menu.classList.add('show');
+}
+function addReaction(msgId,emoji){
+  const msgs=document.querySelectorAll('.message');msgs.forEach(m=>{if(m.dataset.id===msgId){const reactDiv=m.querySelector('.msg-reactions');if(reactDiv){const existing=reactDiv.querySelector(`[data-emoji="${emoji}"]`);if(existing){existing.textContent=`${emoji} ${parseInt(existing.textContent.slice(2))+1}`;existing.classList.add('me');}else{reactDiv.innerHTML+=`<span class="msg-reaction me" data-emoji="${emoji}">${emoji} 1</span>`;}}}});
+  document.getElementById('contextMenu')?.classList.remove('show');
+}
+function deleteMessage(msgId){if(confirm('Mesajı silmek istiyor musunuz?')){document.querySelector(`.message[data-id="${msgId}"]`)?.remove();toast('Mesaj silindi');}}
+function editMessage(msgId){const newContent=prompt('Yeni mesaj:');if(newContent){const el=document.querySelector(`.message[data-id="${msgId}"] .message-text`);if(el)el.innerHTML=formatMessage(esc(newContent));toast('Mesaj düzenlendi');}}
+function pinMessage(msgId){
+  const el=document.querySelector(`.message[data-id="${msgId}"]`);if(!el)return;
+  const content=el.querySelector('.message-text')?.textContent||'';
+  const sender=el.querySelector('.message-header')?.textContent?.split(' ')[0]||'';
+  pinnedMessages[currentChannel.id]={_id:msgId,content,senderName:sender,createdAt:new Date().toISOString()};
+  updatePinnedBar();loadMessages();toast('Mesaj sabitlendi');
 }
 
-function addCategory() {
-  const srv = S.servers.find(s=>s.id===S.currentServer);
-  if(!srv) return toast('Önce sunucu seçin','var(--red)');
-  const n = document.getElementById('catName').value.trim();
-  if(!n) return toast('Kategori adı gerekli','var(--red)');
-  srv.channels.push({id:'cat-'+Date.now(), name:n, type:'text', category:n, position:999});
-  localStorage.setItem('gt_servers',JSON.stringify(S.servers));
-  renderChannels(srv); closeModal();
-  toast('Kategori eklendi!');
+let typingTimer;function showTyping(username){const el=document.getElementById('typingIndicator');if(el){el.textContent=`${username} yazıyor...`;clearTimeout(typingTimer);typingTimer=setTimeout(()=>{if(el)el.textContent='';},1500);}}
+
+function connectSocket(){
+  if(!currentToken)return;if(socket){socket.disconnect();socket=null;}
+  socket=io(API_URL,{auth:{token:currentToken},transports:['websocket','polling']});
+  socket.on('connect',()=>{socket.emit('join_channel',currentChannel.id);});
+  socket.on('new_message',msg=>{if(msg.channelId===currentChannel.id)addMessageToChat(msg);});
+  socket.on('user_typing',({username,channelId})=>{if(channelId===currentChannel.id&&username!==currentUser?.username)showTyping(username);});
+}
+function addMessageToChat(msg){
+  const container=document.getElementById('messagesContainer');if(!container)return;
+  if(container.querySelector('.empty-channel'))container.innerHTML='';
+  container.insertAdjacentHTML('beforeend',renderMessage(msg));container.scrollTop=container.scrollHeight;
 }
 
-function sortChannels() {
-  const srv = S.servers.find(s=>s.id===S.currentServer);
-  if(!srv) return;
-  srv.channels.sort((a,b)=>(a.category||'').localeCompare(b.category||'')||(a.position||99)-(b.position||99));
-  localStorage.setItem('gt_servers',JSON.stringify(S.servers));
-  renderChannels(srv);
-  toast('Kanallar sıralandı');
+async function joinVoiceChannel(chId){
+  const ch=channels.find(c=>c.id===chId);if(!ch)return;toast(`🎙️ ${ch.name} kanalına bağlanılıyor...`);
+  try{localStream=await navigator.mediaDevices.getUserMedia({audio:true});document.getElementById('voiceBar').style.display='flex';document.getElementById('voiceChannelName').textContent=ch.name;isInVoice=true;setupVoice(chId);toast(`✅ ${ch.name} kanalına katıldınız`);}catch(e){toast('Mikrofon erişimi reddedildi',true);}
+}
+function setupVoice(chId){
+  socket.emit('voice_join',{channel:chId});peerConnection=new RTCPeerConnection(rtcConfig);
+  localStream.getTracks().forEach(t=>peerConnection.addTrack(t,localStream));
+  peerConnection.onicecandidate=e=>{if(e.candidate)socket.emit('voice_candidate',{candidate:e.candidate,channel:chId});};
+  socket.on('voice_answer',async d=>{if(d.sdp)await peerConnection.setRemoteDescription(new RTCSessionDescription(d.sdp));});
+  socket.on('voice_candidate',d=>{if(d.candidate)peerConnection.addIceCandidate(new RTCIceCandidate(d.candidate));});
+  peerConnection.createOffer().then(o=>{peerConnection.setLocalDescription(o);socket.emit('voice_offer',{sdp:o,channel:chId});});
+  document.getElementById('muteBtn').onclick=()=>{if(!localStream)return;isMuted=!isMuted;localStream.getAudioTracks().forEach(t=>t.enabled=!isMuted);const btn=document.getElementById('muteBtn');btn.innerHTML=isMuted?Icons.micOff:Icons.mic;btn.classList.toggle('muted',isMuted);};
+  document.getElementById('leaveVoiceBtn').onclick=()=>leaveVoiceChannel();
+}
+function leaveVoiceChannel(){
+  if(localStream){localStream.getTracks().forEach(t=>t.stop());localStream=null;}if(peerConnection){peerConnection.close();peerConnection=null;}
+  if(socket)socket.emit('voice_leave',{channel:currentChannel.id});document.getElementById('voiceBar').style.display='none';isInVoice=false;isMuted=false;
+  const muteBtn=document.getElementById('muteBtn');if(muteBtn){muteBtn.innerHTML=Icons.mic;muteBtn.classList.remove('muted');}toast('Sesli kanaldan ayrıldınız');
 }
 
-function addRole() {
-  const srv = S.servers.find(s=>s.id===S.currentServer);
-  if(!srv) return toast('Önce sunucu seçin','var(--red)');
-  const n = document.getElementById('roleName').value.trim();
-  const c = document.getElementById('roleColor').value;
-  if(!n) return toast('Rol adı gerekli','var(--red)');
-  if(!srv.roles) srv.roles = [];
-  srv.roles.push({id:'r'+Date.now(), name:n, color:c});
-  localStorage.setItem('gt_servers',JSON.stringify(S.servers));
-  closeModal();
-  toast('Rol oluşturuldu!');
+function renderRoles(){
+  const container=document.getElementById('rolesList');if(!container)return;
+  container.innerHTML=roles.sort((a,b)=>a.position-b.position).map(r=>`<div class="role-item"><div style="width:24px;height:24px;border-radius:50%;background:${r.color};flex-shrink:0;"></div><div class="role-info"><div class="role-name">${esc(r.name)}</div><div class="role-desc">${Object.keys(r.permissions).filter(k=>r.permissions[k]).length||(r.permissions.all?'Tüm yetkiler':'0')} yetki</div></div><button class="icon-btn" onclick="openEditRole('${r.id}')">${Icons.edit}</button></div>`).join('');
+}
+function openEditRole(rid){
+  const r=roles.find(x=>x.id===rid);if(!r)return;
+  document.getElementById('editRoleId').value=r.id;document.getElementById('editRoleName').value=r.name;document.getElementById('editRoleColor').value=r.color;
+  const perms=['sendMsg','deleteMsg','kick','ban','manageChannels','manageRoles','manageServer','manageMessages','addReactions','specialChannels','uploadFiles'];
+  document.getElementById('rolePerms').innerHTML=perms.map(p=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--b);"><span style="font-size:12px;">${p}</span><div class="toggle-switch ${r.permissions[p]||r.permissions.all?'on':''}" data-perm="${p}"></div></div>`).join('');
+  document.querySelectorAll('#rolePerms .toggle-switch').forEach(t=>t.addEventListener('click',()=>t.classList.toggle('on')));
+  openModal('editRoleModal');
+}
+function saveRoleEdit(){
+  const id=document.getElementById('editRoleId').value;const r=roles.find(x=>x.id===id);if(!r)return;
+  r.name=document.getElementById('editRoleName').value;r.color=document.getElementById('editRoleColor').value;
+  r.permissions={};document.querySelectorAll('#rolePerms .toggle-switch').forEach(t=>{r.permissions[t.dataset.perm]=t.classList.contains('on');});
+  closeModal('editRoleModal');renderRoles();toast('Rol güncellendi');
+}
+function deleteRole(){const id=document.getElementById('editRoleId').value;roles=roles.filter(r=>r.id!==id);closeModal('editRoleModal');renderRoles();toast('Rol silindi');}
+function addRole(){
+  const name=document.getElementById('newRoleName')?.value.trim();const color=document.getElementById('newRoleColor')?.value||'#9ca3af';
+  if(!name)return toast('Rol adı gerekli',true);
+  roles.push({id:genId(),name,color,permissions:{sendMsg:true},position:roles.length});closeModal('addRoleModal');renderRoles();toast('Rol eklendi');
 }
 
-function updateServer() {
-  const srv = S.servers.find(s=>s.id===S.currentServer);
-  if(!srv) return;
-  srv.icon = document.getElementById('srvLogo')?.value||'';
-  srv.banner = document.getElementById('srvBanner')?.value||'';
-  srv.description = document.getElementById('srvDesc')?.value||'';
-  localStorage.setItem('gt_servers',JSON.stringify(S.servers));
-  renderServers(); closeModal();
-  toast('Sunucu güncellendi!');
+function loadDMList(){
+  const container=document.getElementById('dmList');if(!container)return;
+  if(!dmFriends.length){container.innerHTML='<div style="text-align:center;padding:20px;color:var(--t3);">Henüz DM yok</div>';return;}
+  container.innerHTML=dmFriends.map(f=>`<div class="dm-item" onclick="openDM('${f.id}','${esc(f.username)}')"><div class="dm-avatar">${f.username.charAt(0).toUpperCase()}</div><div class="dm-info"><div class="dm-name">${esc(f.username)}</div><div class="dm-last-msg">${esc(f.last||'')}</div></div></div>`).join('');
 }
+function openDMNew(){closeModal('dmModal');openModal('dmNewModal');}
+function openGroupDM(){closeModal('dmModal');openModal('groupDMModal');}
+function startDM(){const u=document.getElementById('dmNewUsername')?.value.trim();if(!u)return toast('Kullanıcı adı gerekli',true);dmFriends.push({id:genId(),username:u,last:'',time:'Şimdi'});loadDMList();closeModal('dmNewModal');openModal('dmModal');toast(`${u} ile DM başladı`);}
+function startGroupDM(){const users=document.getElementById('groupDmUsers')?.value.split(',').map(s=>s.trim()).filter(Boolean);if(!users.length)return toast('En az bir kullanıcı gerekli',true);const name=users.join(', ');dmFriends.push({id:genId(),username:name,last:'Grup DM',time:'Şimdi',isGroup:true});loadDMList();closeModal('groupDMModal');openModal('dmModal');toast('Grup DM oluşturuldu');}
+window.openDM=(id,uname)=>{document.getElementById('dmChatArea').style.display='block';document.getElementById('dmMessages').innerHTML='';document.getElementById('sendDmBtn').onclick=()=>{const inp=document.getElementById('dmInput');if(!inp||!inp.value.trim())return;const div=document.getElementById('dmMessages');div.innerHTML+=`<div style="padding:4px 0;"><b>${esc(currentUser?.username||'Sen')}:</b> ${esc(inp.value)}</div>`;div.scrollTop=div.scrollHeight;inp.value='';};};
+function addFriend(){const u=document.getElementById('friendUsername')?.value.trim();if(!u)return toast('Kullanıcı adı gerekli',true);dmFriends.push({id:genId(),username:u,last:'Arkadaş eklendi',time:'Şimdi'});closeModal('addFriendModal');toast(`${u} eklendi`);}
+function loadDiscover(){document.getElementById('discoverList').innerHTML=['MLBB Topluluğu','Müzik Odası','Teknoloji'].map(n=>`<div class="dm-item" onclick="joinDiscover('${n}')"><div class="dm-avatar">${n.charAt(0)}</div><div class="dm-info"><div class="dm-name">${n}</div></div></div>`).join('');}
+window.joinDiscover=(n)=>{toast(`${n} sunucusuna katılıyorsunuz...`);closeModal('discoverModal');};
 
-function createWebhook() {
-  const n = document.getElementById('whName').value.trim();
-  if(!n) return toast('Webhook adı gerekli','var(--red)');
-  const tok = 'wh_'+Math.random().toString(36).substring(2,18);
-  document.getElementById('whResult').style.display='block';
-  document.getElementById('whUrl').textContent = `https://gettic.js.org/api/webhook/${tok}`;
-  toast('Webhook oluşturuldu!');
+function performSearch(){const q=document.getElementById('searchInput')?.value.toLowerCase();const results=document.getElementById('searchResults');if(!results)return;if(!q){results.innerHTML='';return;}
+  const found=searchIndex.filter(m=>m.content.toLowerCase().includes(q)||m.senderName.toLowerCase().includes(q)).slice(0,10);
+  results.innerHTML=found.length?found.map(m=>`<div class="dm-item" onclick="switchChannel('${m.channelId}');closeModal('searchModal');"><div class="dm-avatar">${m.senderName.charAt(0).toUpperCase()}</div><div class="dm-info"><div class="dm-name">${esc(m.senderName)}</div><div class="dm-last-msg">${esc(m.content.substring(0,60))}</div></div></div>`).join(''):'<div style="text-align:center;padding:20px;color:var(--t3);">Sonuç bulunamadı</div>';
 }
-
-function addFriend() {
-  const n = document.getElementById('friendAdd').value.trim();
-  if(!n) return;
-  S.friends.push({id:'f'+Date.now(),username:n,online:false});
-  localStorage.setItem('gt_friends',JSON.stringify(S.friends));
-  closeModal();
-  toast('Arkadaş eklendi!');
+function renderNotifications(){document.getElementById('notifList').innerHTML=notifications.length?notifications.map(n=>`<div style="padding:8px;border-bottom:1px solid var(--b);font-size:12px;">${n.text}</div>`).join(''):'<div style="text-align:center;padding:20px;color:var(--t3);">Bildirim yok</div>';}
+function createPoll(){
+  const q=document.getElementById('pollQuestion')?.value;const opts=[document.getElementById('pollOption1')?.value,document.getElementById('pollOption2')?.value,document.getElementById('pollOption3')?.value,document.getElementById('pollOption3')?.value].filter(Boolean);
+  if(!q||opts.length<2)return toast('Soru ve en az 2 seçenek gerekli',true);
+  const pollText=`📊 **Anket:** ${q}\n`+opts.map((o,i)=>`${i+1}️⃣ ${o}`).join('\n');
+  const inp=document.getElementById('messageInput');if(inp)inp.value=pollText;closeModal('pollModal');toast('Anket hazır, gönder tuşuna basın');
 }
-
-function startDM(fid, fname) { closeModal(); selCh('dm-'+fid, fname, 'text', 'dm'); toast('DM başlatıldı'); }
-
-function deleteServer() {
-  if(!confirm('Sunucuyu silmek istediğine emin misin? Bu işlem geri alınamaz!')) return;
-  S.servers = S.servers.filter(s=>s.id!==S.currentServer);
-  localStorage.setItem('gt_servers',JSON.stringify(S.servers));
-  S.currentServer = 'home';
-  renderServers(); selectServer('home'); closeModal();
-  toast('Sunucu silindi');
+function exportChat(format){
+  const msgs=Array.from(document.querySelectorAll('.message')).map(m=>({sender:m.querySelector('.message-header')?.textContent?.split(' ')[0]||'',content:m.querySelector('.message-text')?.textContent||'',time:m.querySelector('span')?.textContent||''}));
+  let data=format==='json'?JSON.stringify(msgs,null,2):'sender,content,time\n'+msgs.map(m=>`"${m.sender}","${m.content}","${m.time}"`).join('\n');
+  const blob=new Blob([data],{type:format==='json'?'application/json':'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`chat-export.${format}`;a.click();closeModal('exportModal');toast('Dışa aktarıldı');
 }
-
-function deleteAccount() {
-  if(!confirm('Hesabını silmek istediğine emin misin? TÜM VERİLERİN SİLİNECEK!')) return;
-  localStorage.clear();
-  setTimeout(()=>location.reload(),500);
+function exportBackup(){
+  const backup={serverSettings,channels,categories,roles,pinnedMessages,userRoles};
+  const blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='gettic-backup.json';a.click();toast('Yedek indirildi');
 }
-
-function setTheme(t) {
-  S.theme = t; localStorage.setItem('gt_theme',t);
-  applyTheme(t);
-  document.querySelectorAll('.theme-dot').forEach(d=>d.classList.remove('active'));
-  const dots = document.querySelectorAll('.theme-dot');
-  const themes = ['pink-purple','dark','ocean'];
-  const idx = themes.indexOf(t);
-  if(idx>=0 && dots[idx]) dots[idx].classList.add('active');
-  toast('Tema değiştirildi!');
+function importBackup(){
+  const file=document.getElementById('backupFile')?.files[0];if(!file)return;
+  const reader=new FileReader();reader.onload=()=>{try{const data=JSON.parse(reader.result);Object.assign(serverSettings,data.serverSettings||{});channels=data.channels||channels;categories=data.categories||categories;roles=data.roles||roles;Object.assign(pinnedMessages,data.pinnedMessages||{});Object.assign(userRoles,data.userRoles||{});renderChannels();closeModal('backupModal');toast('Yedek geri yüklendi');}catch(e){toast('Geçersiz yedek dosyası',true);}};reader.readAsText(file);
 }
+function applyCustomTheme(){const p=document.getElementById('customPrimary')?.value||'#c084fc';const s=document.getElementById('customSecondary')?.value||'#e879f9';setTheme(p,s);closeModal('customThemeModal');}
 
-function applyTheme(t) {
-  const r = document.documentElement;
-  if(t==='dark'){ r.style.setProperty('--pink','#888'); r.style.setProperty('--purple','#666'); r.style.setProperty('--accent','#999'); r.style.setProperty('--accent2','#bbb'); }
-  else if(t==='ocean'){ r.style.setProperty('--pink','#0ea5e9'); r.style.setProperty('--purple','#38bdf8'); r.style.setProperty('--accent','#7dd3fc'); r.style.setProperty('--accent2','#bae6fd'); }
-  else{ r.style.setProperty('--pink','#e879f9'); r.style.setProperty('--purple','#a855f7'); r.style.setProperty('--accent','#c084fc'); r.style.setProperty('--accent2','#d8b4fe'); }
+function setTheme(p,s){document.documentElement.style.setProperty('--ac',p);document.documentElement.style.setProperty('--ac2',s);document.documentElement.style.setProperty('--acg',p+'4D');document.documentElement.style.setProperty('--acd',p+'1A');localStorage.setItem('gt_theme_primary',p);localStorage.setItem('gt_theme_secondary',s);toast('Tema değiştirildi');}
+function loadTheme(){const p=localStorage.getItem('gt_theme_primary'),s=localStorage.getItem('gt_theme_secondary');if(p&&s){document.documentElement.style.setProperty('--ac',p);document.documentElement.style.setProperty('--ac2',s);document.documentElement.style.setProperty('--acg',p+'4D');document.documentElement.style.setProperty('--acd',p+'1A');}}
+function initEmojiPicker(){
+  const picker=document.getElementById('emojiPicker');if(!picker)return;
+  const emojis=['😀','😂','❤️','🔥','🎉','👍','👎','🙏','🎮','💻','✨','✅','❌','🎵','😮','😢','😡','🥳','🤖','👑','🛡️','🔨','💎','📌','🔗','📊','📁'];
+  picker.innerHTML=emojis.map(e=>`<div class="emoji-option">${e}</div>`).join('');
+  picker.querySelectorAll('.emoji-option').forEach(o=>o.addEventListener('click',()=>{const inp=document.getElementById('messageInput');if(inp){inp.value+=o.textContent;inp.focus();}picker.classList.remove('show');}));
+  document.addEventListener('click',e=>{if(!picker.contains(e.target)&&e.target.id!=='emojiBtn')picker.classList.remove('show');});
 }
+function copyId(id){const el=document.getElementById(id);if(el){navigator.clipboard.writeText(el.textContent);toast('Kopyalandı!');}}
+function logout(){localStorage.removeItem('gt_token');localStorage.removeItem('gt_user');currentUser=null;currentToken=null;if(socket){socket.disconnect();socket=null;}if(localStream){localStream.getTracks().forEach(t=>t.stop());localStream=null;}if(peerConnection){peerConnection.close();peerConnection=null;}renderApp();toast('Çıkış yapıldı');}
 
-function deleteChannel(chId) {
-  const srv = S.servers.find(s=>s.id===S.currentServer);
-  if(!srv) return;
-  srv.channels = srv.channels.filter(c=>c.id!==chId);
-  localStorage.setItem('gt_servers',JSON.stringify(S.servers));
-  if(S.currentChannel.id===chId) selCh('genel','Genel','text','home');
-  renderChannels(srv);
-  toast('Kanal silindi');
+function init(){
+  setTimeout(()=>document.getElementById('loadingScreen')?.classList.add('hide'),600);
+  const stored=localStorage.getItem('gt_user');if(stored&&currentToken){try{currentUser=JSON.parse(stored);userRoles[currentUser._id]=['r5'];}catch(e){currentUser=null;currentToken=null;}}
+  renderApp();
+  window.setTheme=setTheme;window.openModal=openModal;window.closeModal=closeModal;
+  window.createServer=createServer;window.createChannel=createChannel;window.addCategoryConfirm=addCategoryConfirm;
+  window.saveServerSettings=saveServerSettings;window.saveProfile=saveProfile;window.addFriend=addFriend;
+  window.openDMNew=openDMNew;window.startDM=startDM;window.openGroupDM=openGroupDM;window.startGroupDM=startGroupDM;
+  window.joinVoiceChannel=joinVoiceChannel;window.openDM=window.openDM||(()=>{});window.joinDiscover=window.joinDiscover||(()=>{});
+  window.addReaction=addReaction;window.deleteMessage=deleteMessage;window.editMessage=editMessage;window.pinMessage=pinMessage;
+  window.openEditRole=openEditRole;window.deleteRole=deleteRole;window.addRole=addRole;window.saveRoleEdit=saveRoleEdit;
+  window.deleteServer=deleteServer;window.deleteChannel=deleteChannel;window.saveChannelEdit=saveChannelEdit;
+  window.openEditChannel=openEditChannel;window.deleteChannelById=deleteChannelById;
+  window.switchChannel=switchChannel;window.copyId=copyId;
+  window.exportChat=exportChat;window.exportBackup=exportBackup;window.importBackup=importBackup;
+  window.createPoll=createPoll;window.applyCustomTheme=applyCustomTheme;
+  if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(()=>{});}
 }
-
-// ─── HELPERS ─────────────────────────────────────────
-function toggleServerHeader() { document.getElementById('server-header').classList.toggle('open'); }
-function logout() { localStorage.removeItem('gt_tok'); localStorage.removeItem('gt_user'); location.reload(); }
-function toast(msg, color='var(--green)') {
-  const t=document.getElementById('toast'); t.textContent=msg; t.style.color=color;
-  t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2000);
-}
-
-document.addEventListener('input',e=>{if(e.target.id==='msg-input'){e.target.style.height='auto';e.target.style.height=Math.min(e.target.scrollHeight,100)+'px';}});
-document.getElementById('modal-box').addEventListener('click',e=>{if(e.target.classList.contains('modal-bg'))closeModal();});
-window.addEventListener('resize',()=>{if(window.innerWidth>=768)document.getElementById('channel-bar').classList.remove('open');});
-
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
-
-// Init
-initApp();
-console.log('✅ Gettic App v2 - Tüm özellikler aktif');
+init();
+})();
 </script>
 </body>
-                                                                                              </html>
+  </html>
