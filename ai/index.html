@@ -2,23 +2,27 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Gettic AI</title>
     <style>
         :root {
-            --bg: #0d0d0d;
-            --sidebar: #111111;
-            --card: #1a1a1a;
-            --accent: #7c3aed;
-            --accent2: #a78bfa;
-            --text: #ffffff;
-            --muted: #a1a1aa;
-            --border: #27272a;
-            --user-bg: #1e1b4b;
-            --ai-bg: #18181b;
-            --hover: #27272a;
+            --bg: #0f0a1a;
+            --sidebar: #120d24;
+            --card: #1a1030;
+            --accent: #c026d3;
+            --accent2: #ec4899;
+            --accent3: #a855f7;
+            --text: #f5f0ff;
+            --muted: #c4b5e3;
+            --border: #2d1f4e;
+            --user-bg: #3d1a5c;
+            --ai-bg: #1f0a2e;
+            --hover: #2d1f4e;
             --fast: #10b981;
             --think: #f59e0b;
+            --image: #ec4899;
+            --gradient: linear-gradient(135deg, #c026d3, #ec4899, #a855f7);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -28,6 +32,7 @@
             background: var(--bg);
             color: var(--text);
             height: 100vh;
+            height: 100dvh;
             display: flex;
             overflow: hidden;
         }
@@ -41,6 +46,7 @@
             display: flex;
             flex-direction: column;
             height: 100vh;
+            height: 100dvh;
         }
 
         .sidebar-header {
@@ -52,14 +58,15 @@
         }
 
         .sidebar-logo {
-            width: 32px; height: 32px;
-            border-radius: 8px;
-            background: var(--accent);
+            width: 34px; height: 34px;
+            border-radius: 10px;
+            background: var(--gradient);
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
+            box-shadow: 0 4px 15px rgba(192,38,211,0.3);
         }
 
         .sidebar-header h2 {
@@ -69,10 +76,10 @@
 
         .new-chat-btn {
             margin: 12px;
-            padding: 10px;
+            padding: 10px 14px;
             background: var(--card);
             border: 1px solid var(--border);
-            border-radius: 8px;
+            border-radius: 10px;
             color: var(--text);
             cursor: pointer;
             font-size: 0.85rem;
@@ -96,8 +103,9 @@
         .chat-list-section {
             font-size: 0.7rem;
             color: var(--muted);
-            padding: 8px 12px 4px;
+            padding: 12px 12px 6px;
             font-weight: 600;
+            letter-spacing: 0.5px;
         }
 
         .chat-list-item {
@@ -133,7 +141,7 @@
         .user-avatar {
             width: 28px; height: 28px;
             border-radius: 50%;
-            background: var(--accent);
+            background: var(--gradient);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -147,7 +155,9 @@
             display: flex;
             flex-direction: column;
             height: 100vh;
+            height: 100dvh;
             min-width: 0;
+            position: relative;
         }
 
         .chat-header {
@@ -157,19 +167,20 @@
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
+            gap: 12px;
         }
 
         .mode-selector {
             display: flex;
             gap: 4px;
             background: var(--card);
-            border-radius: 20px;
-            padding: 3px;
+            border-radius: 25px;
+            padding: 4px;
         }
 
         .mode-btn {
             padding: 8px 16px;
-            border-radius: 18px;
+            border-radius: 22px;
             border: none;
             cursor: pointer;
             font-size: 0.8rem;
@@ -180,37 +191,32 @@
             display: flex;
             align-items: center;
             gap: 6px;
+            white-space: nowrap;
         }
 
         .mode-btn.active {
-            background: var(--accent);
             color: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
-
-        .mode-btn.fast.active {
-            background: var(--fast);
+        .mode-btn.fast.active { background: var(--fast); }
+        .mode-btn.think.active { background: var(--think); }
+        .mode-btn.image-btn {
+            background: transparent;
+            border: 1px dashed var(--border);
         }
-
-        .mode-btn.think.active {
-            background: var(--think);
+        .mode-btn.image-btn:hover {
+            border-color: var(--image);
+            color: var(--image);
         }
-
-        .mode-dot {
-            width: 8px; height: 8px;
-            border-radius: 50%;
-            background: currentColor;
-        }
-
-        .mode-dot.fast { background: var(--fast); }
-        .mode-dot.think { background: var(--think); }
 
         .chat-box {
             flex: 1;
             overflow-y: auto;
-            padding: 24px;
+            padding: 20px 24px;
             display: flex;
             flex-direction: column;
             gap: 20px;
+            padding-bottom: 16px;
         }
 
         .chat-box::-webkit-scrollbar { width: 4px; }
@@ -226,17 +232,36 @@
             gap: 16px;
             color: var(--muted);
             text-align: center;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .empty-chat svg {
+            width: 70px;
+            height: 70px;
+            opacity: 0.5;
+            animation: floatIcon 3s ease-in-out infinite;
+        }
+
+        @keyframes floatIcon {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
         }
 
         .empty-chat h2 {
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             color: var(--text);
             font-weight: 600;
         }
 
         .empty-chat p {
             font-size: 0.9rem;
-            max-width: 400px;
+            max-width: 350px;
+            line-height: 1.5;
         }
 
         .message {
@@ -254,7 +279,7 @@
 
         .msg-avatar {
             width: 32px; height: 32px;
-            border-radius: 50%;
+            border-radius: 10px;
             flex-shrink: 0;
             display: flex;
             align-items: center;
@@ -263,16 +288,21 @@
             font-weight: 600;
         }
 
-        .message.user .msg-avatar { background: var(--accent); }
-        .message.ai .msg-avatar { background: var(--border); color: var(--accent2); }
+        .message.user .msg-avatar { background: var(--gradient); }
+        .message.ai .msg-avatar { background: var(--border); color: var(--accent3); }
+
+        .msg-avatar svg {
+            width: 16px; height: 16px;
+        }
 
         .msg-content {
             max-width: 70%;
+            min-width: 0;
         }
 
         .msg-bubble {
             padding: 12px 16px;
-            border-radius: 16px;
+            border-radius: 18px;
             line-height: 1.6;
             font-size: 0.9rem;
             word-wrap: break-word;
@@ -281,13 +311,20 @@
 
         .message.user .msg-bubble {
             background: var(--user-bg);
-            border-bottom-right-radius: 4px;
+            border-bottom-right-radius: 6px;
         }
 
         .message.ai .msg-bubble {
             background: var(--ai-bg);
             border: 1px solid var(--border);
-            border-bottom-left-radius: 4px;
+            border-bottom-left-radius: 6px;
+        }
+
+        .msg-bubble img {
+            max-width: 100%;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
         }
 
         .msg-time {
@@ -307,16 +344,16 @@
 
         .typing-dots {
             display: flex;
-            gap: 3px;
+            gap: 4px;
             padding: 12px 16px;
             background: var(--ai-bg);
-            border-radius: 16px;
+            border-radius: 18px;
             border: 1px solid var(--border);
         }
 
         .typing-dots span {
-            width: 6px; height: 6px;
-            background: var(--accent);
+            width: 7px; height: 7px;
+            background: var(--accent3);
             border-radius: 50%;
             animation: typingBounce 1.2s infinite;
         }
@@ -325,32 +362,24 @@
         .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
 
         @keyframes typingBounce {
-            0%, 60%, 100% { opacity: 0.3; }
-            30% { opacity: 1; }
+            0%, 60%, 100% { opacity: 0.3; transform: scale(0.7); }
+            30% { opacity: 1; transform: scale(1); }
         }
 
-        /* INPUT - Sabit altta */
-        .chat-input-area {
-            padding: 16px 24px;
-            border-top: 1px solid var(--border);
-            display: flex;
-            gap: 10px;
-            align-items: center;
+        /* INPUT AREA - DİNAMİK */
+        .chat-input-container {
             flex-shrink: 0;
+            border-top: 1px solid var(--border);
             background: var(--bg);
+            padding: 12px 20px;
+            padding-bottom: calc(12px + var(--safe-bottom));
         }
 
-        .mode-label {
-            font-size: 0.75rem;
-            color: var(--muted);
-            padding: 6px 12px;
-            background: var(--card);
-            border-radius: 16px;
-            white-space: nowrap;
+        .chat-input-area {
+            display: flex;
+            gap: 8px;
+            align-items: flex-end;
         }
-
-        .mode-label.fast { color: var(--fast); }
-        .mode-label.think { color: var(--think); }
 
         .chat-input-area input {
             flex: 1;
@@ -362,21 +391,30 @@
             font-size: 0.9rem;
             outline: none;
             transition: all 0.3s;
+            min-width: 0;
         }
 
         .chat-input-area input:focus {
             border-color: var(--accent);
+            box-shadow: 0 0 20px rgba(192,38,211,0.1);
         }
 
         .chat-input-area input::placeholder {
             color: var(--muted);
         }
 
-        .send-btn {
+        .input-actions {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .icon-btn {
             width: 40px; height: 40px;
-            background: var(--accent);
-            border: none;
             border-radius: 50%;
+            border: 1px solid var(--border);
+            background: var(--card);
+            color: var(--muted);
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -385,8 +423,76 @@
             flex-shrink: 0;
         }
 
-        .send-btn:hover { background: var(--accent2); }
+        .icon-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent3);
+        }
+
+        .icon-btn.image-btn {
+            border-color: rgba(236,72,153,0.3);
+            color: var(--image);
+        }
+        .icon-btn.image-btn:hover {
+            background: var(--image);
+            color: white;
+            border-color: var(--image);
+            box-shadow: 0 4px 15px rgba(236,72,153,0.3);
+        }
+
+        .icon-btn svg {
+            width: 18px; height: 18px;
+        }
+
+        .send-btn {
+            width: 40px; height: 40px;
+            background: var(--gradient);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            flex-shrink: 0;
+            box-shadow: 0 4px 15px rgba(192,38,211,0.3);
+        }
+
+        .send-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(236,72,153,0.4);
+        }
+        .send-btn:active { transform: scale(0.95); }
         .send-btn svg { width: 18px; height: 18px; }
+
+        .image-prompt-bar {
+            display: none;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            background: var(--card);
+            border-radius: 12px;
+            border: 1px solid rgba(236,72,153,0.3);
+            align-items: center;
+            gap: 8px;
+        }
+
+        .image-prompt-bar.active { display: flex; }
+
+        .image-prompt-bar input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text);
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+        .image-prompt-bar .cancel-btn {
+            background: none;
+            border: none;
+            color: var(--muted);
+            cursor: pointer;
+            padding: 4px;
+        }
 
         /* LOGIN */
         .login-screen {
@@ -400,47 +506,51 @@
             flex-direction: column;
         }
 
-        .login-screen.active {
-            display: flex;
-        }
+        .login-screen.active { display: flex; }
 
         .login-card {
             background: var(--card);
             border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 40px;
+            border-radius: 24px;
+            padding: 44px 36px;
             text-align: center;
-            width: 380px;
+            width: 400px;
             max-width: 90vw;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.6);
         }
 
         .login-card img {
-            width: 80px; height: 80px;
-            border-radius: 16px;
-            margin-bottom: 16px;
+            width: 90px; height: 90px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 30px rgba(192,38,211,0.3);
         }
 
         .login-card h1 {
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             margin-bottom: 8px;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .login-card p {
             color: var(--muted);
             font-size: 0.9rem;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
 
         .login-card input {
             width: 100%;
-            padding: 12px;
+            padding: 14px 16px;
             background: var(--bg);
             border: 1px solid var(--border);
-            border-radius: 10px;
+            border-radius: 12px;
             color: var(--text);
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             margin-bottom: 10px;
             outline: none;
+            transition: all 0.3s;
         }
 
         .login-card input:focus {
@@ -449,25 +559,38 @@
 
         .login-card button {
             width: 100%;
-            padding: 12px;
-            background: var(--accent);
+            padding: 14px;
+            background: var(--gradient);
             border: none;
-            border-radius: 10px;
+            border-radius: 12px;
             color: white;
             font-weight: 600;
             cursor: pointer;
-            font-size: 0.95rem;
+            font-size: 1rem;
+            margin-top: 6px;
         }
 
         .login-card .limit {
-            margin-top: 10px;
-            font-size: 0.75rem;
+            margin-top: 14px;
+            font-size: 0.8rem;
             color: var(--muted);
         }
 
         @media (max-width: 768px) {
             .sidebar { display: none; }
             .msg-content { max-width: 85%; }
+            .chat-header { padding: 10px 12px; }
+            .mode-btn { padding: 6px 12px; font-size: 0.75rem; }
+            .chat-box { padding: 14px 12px; }
+            .chat-input-container { padding: 10px 12px; }
+            .icon-btn { width: 36px; height: 36px; }
+            .send-btn { width: 36px; height: 36px; }
+        }
+
+        @media (max-width: 480px) {
+            .mode-btn { padding: 6px 10px; font-size: 0.7rem; gap: 3px; }
+            .msg-content { max-width: 90%; }
+            .msg-bubble { font-size: 0.85rem; padding: 10px 14px; }
         }
     </style>
 </head>
@@ -478,7 +601,7 @@
         <div class="login-card">
             <img src="https://github.com/darking053official/gettic/blob/main/1777062266055.png?raw=true" alt="Logo" onerror="this.style.display='none'" />
             <h1>Gettic AI</h1>
-            <p>Hızlı ve düşünen mod ile akıllı sohbet</p>
+            <p>Yapay zeka ile sohbet ve görsel oluşturma</p>
             <input type="text" id="usernameInput" placeholder="Kullanıcı adı" />
             <input type="password" id="passwordInput" placeholder="Şifre" />
             <button onclick="startChat()">Sohbete Başla</button>
@@ -513,27 +636,51 @@
         <div class="chat-header">
             <div class="mode-selector">
                 <button class="mode-btn fast active" id="fastModeBtn" onclick="setMode('fast')">
-                    <span class="mode-dot fast"></span> Hızlı mod
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                    Hızlı
                 </button>
                 <button class="mode-btn think" id="thinkModeBtn" onclick="setMode('think')">
-                    <span class="mode-dot think"></span> Düşünen mod
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>
+                    Düşünen
                 </button>
             </div>
         </div>
 
         <div class="chat-box" id="chatBox">
             <div class="empty-chat" id="emptyState">
+                <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="40" cy="40" r="36" stroke="url(#grad)" stroke-width="1.5" fill="none"/>
+                    <path d="M28 40h6l4-10 3 16 4-10h6" stroke="url(#grad2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                    <defs>
+                        <linearGradient id="grad" x1="0" y1="0" x2="80" y2="80"><stop stop-color="#c026d3"/><stop offset="1" stop-color="#ec4899"/></linearGradient>
+                        <linearGradient id="grad2" x1="0" y1="0" x2="80" y2="80"><stop stop-color="#a855f7"/><stop offset="1" stop-color="#ec4899"/></linearGradient>
+                    </defs>
+                </svg>
                 <h2>Gettic AI</h2>
-                <p>Hızlı modda anında yanıtlar, düşünen modda derinlemesine cevaplar alın.</p>
+                <p>Hızlı modda anında yanıtlar, düşünen modda derinlemesine cevaplar. Görsel de oluşturabilirsin!</p>
             </div>
         </div>
 
-        <div class="chat-input-area">
-            <span class="mode-label fast" id="modeLabel">⚡ Hızlı</span>
-            <input type="text" id="userInput" placeholder="Mesaj yazın..." onkeypress="if(event.key==='Enter') sendMessage()" autocomplete="off" />
-            <button class="send-btn" onclick="sendMessage()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-            </button>
+        <div class="chat-input-container">
+            <div class="image-prompt-bar" id="imagePromptBar">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ec4899" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                <input type="text" id="imagePromptInput" placeholder="Görsel için açıklama yazın..." onkeypress="if(event.key==='Enter') generateImage()" />
+                <button class="cancel-btn" onclick="closeImageBar()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <div class="chat-input-area">
+                <input type="text" id="userInput" placeholder="Mesaj yazın..." onkeypress="if(event.key==='Enter') sendMessage()" autocomplete="off" />
+                <div class="input-actions">
+                    <button class="icon-btn image-btn" onclick="openImageBar()" title="Görsel Oluştur">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                    </button>
+                </div>
+                <button class="send-btn" onclick="sendMessage()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -558,15 +705,6 @@
             currentMode = mode;
             document.getElementById('fastModeBtn').classList.toggle('active', mode === 'fast');
             document.getElementById('thinkModeBtn').classList.toggle('active', mode === 'think');
-            
-            const label = document.getElementById('modeLabel');
-            if (mode === 'fast') {
-                label.textContent = '⚡ Hızlı';
-                label.className = 'mode-label fast';
-            } else {
-                label.textContent = '🧠 Düşünen';
-                label.className = 'mode-label think';
-            }
         }
 
         async function checkRemaining() {
@@ -574,8 +712,7 @@
                 const res = await fetch(`https://gettic-j49l.onrender.com/api/chats/${encodeURIComponent(username)}`);
                 const chats = await res.json();
                 if (Array.isArray(chats)) {
-                    remainingChats = 15 - chats.length;
-                    if (remainingChats < 0) remainingChats = 0;
+                    remainingChats = Math.max(0, 15 - chats.length);
                 }
                 updateUI();
             } catch (e) {}
@@ -601,12 +738,16 @@
             isFirstMessage = true;
             document.getElementById('chatBox').innerHTML = `
                 <div class="empty-chat" id="emptyState">
-                    <h2>Gettic AI</h2>
-                    <p>${currentMode === 'fast' ? 'Hızlı yanıtlar için hazırım!' : 'Derin düşünüyorum...'}</p>
+                    <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="40" cy="40" r="36" stroke="#c026d3" stroke-width="1.5" fill="none" opacity="0.3"/>
+                        <path d="M28 40h6l4-10 3 16 4-10h6" stroke="#ec4899" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.4"/>
+                    </svg>
+                    <h2>Yeni Sohbet</h2>
+                    <p>${currentMode === 'fast' ? 'Hızlı yanıtlar için hazır!' : 'Derin düşünmeye hazır!'}</p>
                 </div>`;
         }
 
-        function addMessage(sender, text) {
+        function addMessage(sender, text, isImage = false) {
             if (isFirstMessage) {
                 document.getElementById('emptyState')?.remove();
                 isFirstMessage = false;
@@ -617,11 +758,17 @@
             div.innerHTML = `
                 <div class="msg-avatar">${sender === 'user' ? username.charAt(0).toUpperCase() : 'AI'}</div>
                 <div class="msg-content">
-                    <div class="msg-bubble">${text}</div>
+                    <div class="msg-bubble">${isImage ? text : escapeHtml(text)}</div>
                     <div class="msg-time">${timeNow()}</div>
                 </div>`;
             box.appendChild(div);
             box.scrollTop = box.scrollHeight;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
 
         function showTyping() {
@@ -643,10 +790,76 @@
             document.getElementById('typingIndicator')?.remove();
         }
 
+        function openImageBar() {
+            document.getElementById('imagePromptBar').classList.add('active');
+            document.getElementById('imagePromptInput').focus();
+            document.getElementById('userInput').style.display = 'none';
+        }
+
+        function closeImageBar() {
+            document.getElementById('imagePromptBar').classList.remove('active');
+            document.getElementById('imagePromptInput').value = '';
+            document.getElementById('userInput').style.display = '';
+            document.getElementById('userInput').focus();
+        }
+
+        async function generateImage() {
+            const prompt = document.getElementById('imagePromptInput').value.trim();
+            if (!prompt) return;
+
+            addMessage('user', '🎨 ' + prompt);
+            closeImageBar();
+            showTyping();
+
+            try {
+                const res = await fetch('https://gettic-j49l.onrender.com/api/image', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt })
+                });
+                const data = await res.json();
+                hideTyping();
+
+                if (data.image) {
+                    addMessage('ai', `<img src="${data.image}" alt="${prompt}" loading="lazy" /><div style="margin-top:6px;font-size:0.8rem;color:var(--muted);">${prompt}</div>`, true);
+                } else {
+                    addMessage('ai', '❌ ' + (data.error || 'Görsel oluşturulamadı'));
+                }
+            } catch (e) {
+                hideTyping();
+                addMessage('ai', '❌ Bağlantı hatası');
+            }
+        }
+
         async function sendMessage() {
             const input = document.getElementById('userInput');
             const msg = input.value.trim();
             if (!msg) return;
+
+            if (msg.startsWith('/image ') || msg.startsWith('/resim ')) {
+                const prompt = msg.replace('/image ', '').replace('/resim ', '');
+                addMessage('user', '🎨 ' + prompt);
+                input.value = '';
+                showTyping();
+                try {
+                    const res = await fetch('https://gettic-j49l.onrender.com/api/image', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ prompt })
+                    });
+                    const data = await res.json();
+                    hideTyping();
+                    if (data.image) {
+                        addMessage('ai', `<img src="${data.image}" alt="${prompt}" loading="lazy" /><div style="margin-top:6px;font-size:0.8rem;color:var(--muted);">${prompt}</div>`, true);
+                    } else {
+                        addMessage('ai', '❌ ' + (data.error || 'Görsel oluşturulamadı'));
+                    }
+                } catch (e) {
+                    hideTyping();
+                    addMessage('ai', '❌ Bağlantı hatası');
+                }
+                return;
+            }
 
             addMessage('user', msg);
             input.value = '';
@@ -691,6 +904,9 @@
         document.getElementById('passwordInput').addEventListener('keypress', e => {
             if (e.key === 'Enter') startChat();
         });
+
+        // Mobil için safe area
+        document.documentElement.style.setProperty('--safe-bottom', 'env(safe-area-inset-bottom, 0px)');
     </script>
 </body>
-                </html>
+    </html>
