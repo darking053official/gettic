@@ -60,7 +60,7 @@ const authMiddleware = (req, res, next) => {
 // ==================== AI ENDPOINTS ====================
 
 // AI sohbet endpoint'i
-app.post('/api/ai/chat', async (req, res) => {
+app.post('/api/chat', async (req, res) => {
     console.log('📥 AI isteği alındı:', req.body);
     try {
         const { message } = req.body;
@@ -99,7 +99,7 @@ app.post('/api/ai/chat', async (req, res) => {
     }
 });
 
-// AI sayfası - EN SONDA
+// AI sayfası
 app.get('/ai', (req, res) => {
     res.sendFile(path.join(__dirname, 'ai', 'index.html'));
 });
