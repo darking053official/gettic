@@ -312,7 +312,6 @@ app.get('/api/health', (req, res) => {
 });
 
 // ==================== GÖRSEL OLUŞTURMA ====================
-
 app.post('/api/image', async (req, res) => {
     try {
         const { prompt } = req.body;
@@ -321,10 +320,13 @@ app.post('/api/image', async (req, res) => {
             return res.status(400).json({ error: 'Prompt gerekli' });
         }
 
+        console.log('🎨 Görsel isteği:', prompt);
+        console.log('🔑 API Key var mı:', !!process.env.TOGETHER_API_KEY);
+
         const response = await fetch('https://api.together.xyz/v1/images/generations', {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${process.env.TOGETHER_API_KEY || 'key_Cafn5UN4LbFq2hSWqreBg'}`,
+                'Authorization': `Bearer ${process.env.TOGETHER_API_KEY}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
@@ -339,6 +341,8 @@ app.post('/api/image', async (req, res) => {
         });
 
         const data = await response.json();
+        console.log('📸 API Yanıt status:', response.status);
+        console.log('📸 API Yanıt:', JSON.stringify(data).substring(0, 200));
 
         if (response.ok && data.data?.[0]?.b64_json) {
             res.json({ 
@@ -354,6 +358,7 @@ app.post('/api/image', async (req, res) => {
         }
 
     } catch (error) {
+        console.error('💥 Görsel hatası:', error.message);
         res.status(500).json({ error: error.message });
     }
 });
