@@ -208,8 +208,6 @@ io.on('connection', (socket) => {
 });
 
 // ==================== CEREBRAS AI ENDPOINT ====================
-const fetch = require('node-fetch');
-
 // AI sayfası route'u
 app.get('/ai', (req, res) => {
     res.sendFile(path.join(__dirname, 'ai', 'index.html'));
