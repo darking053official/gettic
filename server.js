@@ -58,10 +58,10 @@ const authMiddleware = (req, res, next) => {
 };
 
 // ==================== AI ENDPOINTS ====================
-// ÖNCE API endpoint'leri gelsin
 
 // AI sohbet endpoint'i
 app.post('/api/ai/chat', async (req, res) => {
+    console.log('📥 AI isteği alındı:', req.body);
     try {
         const { message } = req.body;
         
@@ -85,6 +85,7 @@ app.post('/api/ai/chat', async (req, res) => {
         });
 
         const data = await response.json();
+        console.log('📤 AI yanıtı:', response.status, data.choices?.[0]?.message?.content?.substring(0, 30));
 
         if (response.ok) {
             return res.json({ reply: data.choices[0].message.content });
@@ -93,11 +94,12 @@ app.post('/api/ai/chat', async (req, res) => {
         }
 
     } catch (error) {
+        console.error('💥 AI hatası:', error.message);
         res.status(500).json({ error: error.message });
     }
 });
 
-// AI sayfası (SONRA bu gelsin)
+// AI sayfası - EN SONDA
 app.get('/ai', (req, res) => {
     res.sendFile(path.join(__dirname, 'ai', 'index.html'));
 });
