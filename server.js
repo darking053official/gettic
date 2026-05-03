@@ -311,6 +311,53 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date() });
 });
 
+// ==================== GÖRSEL OLUŞTURMA ====================
+
+app.post('/api/image', async (req, res) => {
+    try {
+        const { prompt } = req.body;
+        
+        if (!prompt?.trim()) {
+            return res.status(400).json({ error: 'Prompt gerekli' });
+        }
+
+        const response = await fetch('https://api.together.xyz/v1/images/generations', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${process.env.TOGETHER_API_KEY || 'key_Cafn5UN4LbFq2hSWqreBg'}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                model: 'black-forest-labs/FLUX.1-schnell-Free',
+                prompt: prompt,
+                width: 1024,
+                height: 1024,
+                steps: 4,
+                n: 1,
+                response_format: 'b64_json'
+            })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.data?.[0]?.b64_json) {
+            res.json({ 
+                success: true,
+                image: `data:image/png;base64,${data.data[0].b64_json}`,
+                prompt: prompt
+            });
+        } else {
+            res.status(500).json({ 
+                error: 'Görsel oluşturulamadı', 
+                details: data 
+            });
+        }
+
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // ==================== SOCKET.IO ====================
 io.on('connection', (socket) => {
     console.log('🔌 Yeni socket bağlantısı:', socket.id);
