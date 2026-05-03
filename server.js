@@ -6,7 +6,6 @@ const jwt = require('jsonwebtoken');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
-const fetch = require('node-fetch');
 
 const app = express();
 const httpServer = createServer(app);
