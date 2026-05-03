@@ -206,6 +206,53 @@ io.on('connection', (socket) => {
     });
 });
 
+// ==================== CEREBRAS AI ENDPOINT ====================
+const fetch = require('node-fetch');
+
+// AI sayfası route'u
+app.get('/ai', (req, res) => {
+    res.sendFile(path.join(__dirname, 'ai', 'index.html'));
+});
+
+// AI sohbet endpoint'i
+app.post('/api/ai/chat', authMiddleware, async (req, res) => {
+    try {
+        const { message } = req.body;
+        if (!message || message.trim() === '') {
+            return res.status(400).json({ error: 'Mesaj gerekli' });
+        }
+
+        const response = await fetch('https://api.cerebras.ai/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.AI_API_KEY}`
+            },
+            body: JSON.stringify({
+                model: 'llama3.1-8b',
+                messages: [
+                    { role: 'system', content: 'Sen Gettic AI asistanısın. Kullanıcılara yardım et, kısa ve öz cevaplar ver.' },
+                    { role: 'user', content: message }
+                ],
+                max_tokens: 500,
+                temperature: 0.7
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            return res.status(response.status).json({ error: 'AI API hatası', details: errorData });
+        }
+
+        const data = await response.json();
+        res.json({ reply: data.choices[0].message.content, model: data.model, usage: data.usage });
+
+    } catch (error) {
+        console.error('AI Endpoint Hatası:', error);
+        res.status(500).json({ error: 'AI servisine bağlanılamadı' });
+    }
+});
+
 // ==================== SERVER START ====================
 const PORT = process.env.PORT || 3000;
 
