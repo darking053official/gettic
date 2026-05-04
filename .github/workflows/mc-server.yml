@@ -20,26 +20,19 @@ jobs:
       - name: Setup Ngrok
         run: ngrok config add-authtoken ${{ secrets.NGROK_AUTH_TOKEN }}
       
-      - name: Start Ngrok
-        run: ngrok udp 19132 --log stdout &
-        shell: bash
-      
-      - name: Wait for Ngrok
-        run: sleep 3
-      
-      - name: Get Ngrok URL
-        run: curl -s http://localhost:4040/api/tunnels | jq -r '.tunnels[0].public_url'
-      
       - name: Merge parts
         run: |
           cd mc/minecraft
-          ls -la
           cat bedrock_server_part_* > bedrock_server
           chmod +x bedrock_server
-          rm bedrock_server_part_*
-          ls -la bedrock_server
       
-      - name: Start Minecraft
+      - name: Start Ngrok and Minecraft
         run: |
           cd mc/minecraft
+          ngrok udp 19132 > /dev/null &
+          sleep 3
+          NGROK_URL=$(curl -s http://localhost:4040/api/tunnels | jq -r '.tunnels[0].public_url')
+          echo "NGROK_URL=$NGROK_URL" >> $GITHUB_ENV
+          echo "Minecraft sunucusu bu adreste: $NGROK_URL"
+          echo "HATIRLATMA: 6 saat sonra kapanir!"
           ./bedrock_server
