@@ -2,380 +2,379 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover, maximum-scale=1.0">
   <title>Gettic — Sohbet Platformu</title>
   <link rel="icon" href="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png">
-  <link rel="manifest" href="/manifest.json">
+  <link rel="manifest" href="data:application/json,{'name':'Gettic','short_name':'Gettic','start_url':'/','display':'standalone','background_color':'#0a0a14','theme_color':'#c084fc','icons':[{'src':'https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png','sizes':'192x192','type':'image/png'}]}">
   <meta name="theme-color" content="#c084fc">
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   <style>
     :root {
-      --bg: #0a0a14; --bg1: #0f0f1a; --bg2: #151520; --bg3: #1c1c2a;
-      --b: rgba(255,255,255,.05); --b2: rgba(255,255,255,.08);
-      --ac: #c084fc; --ac2: #e879f9; --ac3: #f0abfc;
-      --acg: rgba(192,132,252,.3); --acd: rgba(192,132,252,.1);
-      --t1: #f0f0ff; --t2: #a0a0c0; --t3: #606080;
-      --gr: #22c55e; --re: #ef4444; --ye: #f59e0b;
-      --radius: 12px; --transition: .2s cubic-bezier(.2,.9,.4,1);
-      --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      --mono: 'JetBrains Mono', 'Fira Code', monospace;
-      --sidebar-w: 250px; --userpanel-w: 260px; --serverrail-w: 68px;
+      --bg:#0a0a14;--bg1:#0f0f1a;--bg2:#151520;--bg3:#1c1c2a;--b:rgba(255,255,255,.05);--b2:rgba(255,255,255,.08);
+      --ac:#c084fc;--ac2:#e879f9;--ac3:#f0abfc;--acg:rgba(192,132,252,.3);--acd:rgba(192,132,252,.1);
+      --t1:#f0f0ff;--t2:#a0a0c0;--t3:#606080;--gr:#22c55e;--re:#ef4444;--ye:#f59e0b;
+      --radius:12px;--transition:.2s cubic-bezier(.2,.9,.4,1);--font:'Segoe UI',system-ui,sans-serif;--mono:'JetBrains Mono',monospace;
+      --sidebar-w:250px;--userpanel-w:260px;--serverrail-w:68px;--msg-density:1;--safe-bottom:0px;
     }
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body {
-      font-family:var(--font); background:var(--bg); color:var(--t1);
-      height:100vh; height:100dvh; overflow:hidden; user-select:none;
-      -webkit-tap-highlight-color:transparent;
-    }
-    ::-webkit-scrollbar { width:3px; } ::-webkit-scrollbar-thumb { background:var(--ac); border-radius:3px; }
-    .loading-screen {
-      position:fixed; inset:0; background:var(--bg); z-index:99999;
-      display:flex; flex-direction:column; align-items:center; justify-content:center;
-      transition:opacity .4s,visibility .4s;
-    }
-    .loading-screen.hide { opacity:0; visibility:hidden; pointer-events:none; }
-    .loader { width:44px; height:44px; border:3px solid var(--b2); border-top-color:var(--ac); border-radius:50%; animation:spin .7s linear infinite; }
-    @keyframes spin { to{transform:rotate(360deg);} }
-    .loading-logo { margin-top:16px; font-size:18px; font-weight:700; background:linear-gradient(135deg,var(--ac),var(--ac2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; letter-spacing:-.5px; }
-    .app { display:flex; height:100vh; height:100dvh; background:var(--bg1); position:relative; }
-    .server-rail { width:var(--serverrail-w); background:var(--bg); display:flex; flex-direction:column; align-items:center; padding:12px 0; gap:10px; overflow-y:auto; border-right:1px solid var(--b); flex-shrink:0; z-index:10; }
-    .server-icon { width:46px; height:46px; background:var(--bg2); border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all var(--transition); position:relative; }
-    .server-icon svg { width:22px; height:22px; stroke:var(--t2); stroke-width:1.5; fill:none; }
-    .server-icon:hover,.server-icon.active { border-radius:14px; background:var(--ac); transform:translateY(-2px); }
-    .server-icon:hover svg,.server-icon.active svg { stroke:#fff; }
-    .server-icon.active::after { content:''; position:absolute; right:-7px; top:50%; transform:translateY(-50%); width:3px; height:18px; background:var(--ac); border-radius:2px; }
-    .channel-sidebar { width:var(--sidebar-w); background:var(--bg1); display:flex; flex-direction:column; border-right:1px solid var(--b); flex-shrink:0; z-index:10; overflow-y:auto; transition:transform .25s ease; }
-    .channel-header { height:48px; padding:0 14px; display:flex; align-items:center; gap:8px; border-bottom:1px solid var(--b); font-weight:700; background:var(--bg); font-size:15px; flex-shrink:0; }
-    .channel-header svg { width:18px; height:18px; stroke:var(--ac); }
-    .channel-category { padding:14px 14px 4px; font-size:11px; font-weight:700; text-transform:uppercase; color:var(--t3); letter-spacing:.8px; display:flex; justify-content:space-between; align-items:center; }
-    .channel-category button { background:none; border:none; color:var(--t3); cursor:pointer; font-size:15px; padding:2px 4px; border-radius:4px; transition:color .15s; }
-    .channel-category button:hover { color:var(--ac); }
-    .channel-item { padding:7px 14px; margin:1px 6px; border-radius:7px; display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px; color:var(--t2); transition:all .15s; position:relative; }
-    .channel-item svg { width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:1.5; flex-shrink:0; }
-    .channel-item:hover { background:var(--bg2); color:var(--t1); }
-    .channel-item.active { background:var(--acd); color:var(--ac3); font-weight:600; }
-    .channel-item .ch-actions { display:none; margin-left:auto; gap:4px; }
-    .channel-item:hover .ch-actions { display:flex; }
-    .ch-actions button { background:none; border:none; color:var(--t3); cursor:pointer; padding:2px; font-size:12px; } .ch-actions button:hover { color:var(--re); }
-    .add-category-btn { padding:8px 14px; font-size:11px; color:var(--t3); cursor:pointer; background:none; border:none; text-align:left; width:100%; margin-top:4px; font-weight:600; transition:color .15s; } .add-category-btn:hover { color:var(--ac); }
-    .chat-area { flex:1; display:flex; flex-direction:column; background:var(--bg1); min-width:0; }
-    .chat-header { height:48px; padding:0 18px; display:flex; align-items:center; gap:10px; border-bottom:1px solid var(--b); background:var(--bg); flex-shrink:0; }
-    .chat-header svg { width:18px; height:18px; stroke:var(--ac); flex-shrink:0; }
-    .channel-name { font-weight:700; font-size:15px; }
-    .channel-topic { font-size:11px; color:var(--t3); margin-left:6px; }
-    .header-badge { margin-left:auto; display:flex; gap:6px; }
-    .icon-btn { background:var(--bg2); border:none; width:30px; height:30px; border-radius:7px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all var(--transition); }
-    .icon-btn svg { width:15px; height:15px; stroke:var(--t2); fill:none; stroke-width:1.5; }
-    .icon-btn:hover { background:var(--ac); transform:scale(1.05); } .icon-btn:hover svg { stroke:#fff; }
-    .messages-container { flex:1; overflow-y:auto; padding:14px 18px; display:flex; flex-direction:column; gap:4px; scroll-behavior:smooth; }
-    .empty-channel { text-align:center; padding:50px 20px; color:var(--t3); animation:fadeIn .4s ease; margin:auto; }
-    @keyframes fadeIn { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
-    .empty-channel svg { width:56px; height:56px; stroke:var(--t3); margin-bottom:14px; opacity:.5; }
-    .empty-channel h4 { font-size:16px; margin-bottom:6px; color:var(--t2); font-weight:700; }
-    .empty-channel p { font-size:13px; }
-    .message { display:flex; align-items:flex-start; gap:10px; padding:5px 8px; border-radius:7px; transition:background .1s; position:relative; }
-    .message:hover { background:var(--bg2); }
-    .message:hover .msg-actions { display:flex; }
-    .message-avatar { width:34px; height:34px; background:linear-gradient(135deg,var(--ac),var(--ac2)); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; flex-shrink:0; font-size:13px; color:#fff; cursor:pointer; }
-    .message-content { flex:1; min-width:0; }
-    .message-header { font-size:12px; font-weight:700; margin-bottom:1px; display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
-    .message-header .role-badge { font-size:9px; padding:1px 5px; border-radius:4px; font-weight:600; }
-    .message-header span { font-weight:400; font-size:10px; margin-left:4px; color:var(--t3); }
-    .message-text { font-size:13px; line-height:1.45; word-wrap:break-word; color:var(--t2); }
-    .message-text b { color:var(--t1); } .message-text i { font-style:italic; } .message-text code { background:var(--bg3); padding:1px 4px; border-radius:3px; font-family:var(--mono); font-size:11px; }
-    .message-text pre { background:var(--bg); border:1px solid var(--b); border-radius:6px; padding:8px; overflow-x:auto; font-family:var(--mono); font-size:11px; margin:4px 0; }
-    .msg-actions { display:none; position:absolute; right:8px; top:-8px; background:var(--bg3); border-radius:6px; padding:2px; gap:2px; box-shadow:0 4px 12px rgba(0,0,0,.3); z-index:5; }
-    .msg-actions button { background:none; border:none; color:var(--t2); cursor:pointer; padding:4px 6px; border-radius:4px; font-size:13px; } .msg-actions button:hover { background:var(--bg2); color:var(--t1); }
-    .msg-reactions { display:flex; gap:4px; margin-top:3px; flex-wrap:wrap; }
-    .msg-reaction { background:var(--bg3); border-radius:6px; padding:1px 6px; font-size:12px; cursor:pointer; transition:all .1s; border:1px solid transparent; }
-    .msg-reaction:hover { border-color:var(--b2); }
-    .msg-reaction.me { background:var(--acd); border-color:var(--ac); }
-    .typing-indicator { padding:4px 18px; font-size:11px; color:var(--t3); font-style:italic; height:24px; flex-shrink:0; }
-    .input-area { padding:10px 18px 14px; background:var(--bg); border-top:1px solid var(--b); display:flex; gap:10px; align-items:center; flex-shrink:0; }
-    .message-input { flex:1; background:var(--bg2); border:1px solid var(--b2); border-radius:22px; padding:10px 16px; color:var(--t1); font-size:13px; outline:none; transition:all var(--transition); font-family:var(--font); }
-    .message-input:focus { border-color:var(--ac); box-shadow:0 0 0 3px var(--acg); }
-    .message-input::placeholder { color:var(--t3); }
-    .emoji-picker { position:absolute; bottom:70px; left:310px; background:var(--bg2); border-radius:14px; padding:10px; display:none; grid-template-columns:repeat(8,1fr); gap:4px; z-index:100; border:1px solid var(--b2); animation:fadeIn .15s ease; box-shadow:0 8px 32px rgba(0,0,0,.4); max-height:250px; overflow-y:auto; }
-    .emoji-picker.show { display:grid; }
-    .emoji-option { font-size:18px; cursor:pointer; padding:4px; text-align:center; border-radius:6px; transition:all .1s; }
-    .emoji-option:hover { background:var(--bg3); transform:scale(1.2); }
-    .user-panel { width:var(--userpanel-w); background:var(--bg); border-left:1px solid var(--b); padding:14px; display:flex; flex-direction:column; gap:8px; flex-shrink:0; z-index:10; overflow-y:auto; }
-    .user-profile { display:flex; gap:10px; align-items:center; padding-bottom:12px; border-bottom:1px solid var(--b); cursor:pointer; }
-    .user-avatar { width:44px; height:44px; background:linear-gradient(135deg,var(--ac),var(--ac2)); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:16px; color:#fff; position:relative; }
-    .user-avatar .status-dot { position:absolute; bottom:0; right:0; width:12px; height:12px; border-radius:50%; border:3px solid var(--bg); }
-    .status-dot.online { background:var(--gr); } .status-dot.idle { background:var(--ye); } .status-dot.dnd { background:var(--re); } .status-dot.offline { background:var(--t3); }
-    .user-info { flex:1; } .user-name { font-weight:700; font-size:14px; } .user-status { font-size:10px; color:var(--t3); margin-top:1px; }
-    .panel-btn { background:var(--bg2); border:none; padding:9px 10px; border-radius:9px; color:var(--t2); cursor:pointer; font-weight:500; display:flex; align-items:center; gap:10px; width:100%; transition:all .15s; font-size:13px; font-family:var(--font); }
-    .panel-btn svg { width:16px; height:16px; stroke:currentColor; fill:none; flex-shrink:0; }
-    .panel-btn:hover { background:var(--bg3); color:var(--t1); }
-    .voice-bar { background:var(--bg2); border-radius:10px; padding:7px 10px; display:none; align-items:center; gap:8px; font-size:12px; font-weight:600; }
-    .voice-bar svg { width:18px; height:18px; stroke:var(--ac); }
-    .voice-controls { display:flex; gap:5px; margin-left:auto; }
-    .voice-btn { background:var(--bg3); border:none; width:28px; height:28px; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .15s; }
-    .voice-btn svg { width:14px; height:14px; stroke:var(--t2); }
-    .voice-btn:hover { background:var(--ac); } .voice-btn:hover svg { stroke:#fff; } .voice-btn.muted { background:var(--re); }
-    .modal { position:fixed; inset:0; background:rgba(0,0,0,.9); backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; z-index:1000; display:none; animation:fadeIn .2s ease; }
-    .modal.show { display:flex; }
-    .modal-box { background:var(--bg2); border-radius:20px; padding:24px; width:500px; max-width:92%; max-height:82vh; overflow-y:auto; }
-    .modal-box h2 { margin-bottom:16px; display:flex; align-items:center; gap:8px; font-size:18px; }
-    .modal-input,.modal-select,.modal-textarea { width:100%; padding:10px 14px; background:var(--bg1); border:1px solid var(--b2); border-radius:10px; color:var(--t1); margin-bottom:12px; font-size:13px; font-family:var(--font); outline:none; }
-    .modal-textarea { resize:vertical; min-height:60px; }
-    .modal-input:focus,.modal-select:focus,.modal-textarea:focus { border-color:var(--ac); }
-    .modal-btn { width:100%; padding:10px; background:var(--ac); border:none; border-radius:10px; color:#fff; font-weight:700; cursor:pointer; font-size:14px; font-family:var(--font); transition:all .15s; }
-    .modal-btn:hover { filter:brightness(1.1); }
-    .modal-btn.secondary { background:var(--bg3); color:var(--t2); } .modal-btn.secondary:hover { background:var(--acd); color:var(--t1); }
-    .modal-btn.danger { background:var(--re); }
-    .id-row { background:var(--bg1); padding:8px 12px; border-radius:8px; margin-bottom:10px; font-size:11px; font-family:var(--mono); cursor:pointer; display:flex; justify-content:space-between; align-items:center; color:var(--t3); transition:all .15s; }
-    .id-row:hover { background:var(--acd); color:var(--ac3); }
-    .profile-banner { height:100px; background:linear-gradient(135deg,var(--ac),var(--ac2)); border-radius:14px; margin-bottom:-30px; }
-    .profile-avatar-large { width:72px; height:72px; border-radius:50%; background:var(--ac); margin:0 auto 12px; display:flex; align-items:center; justify-content:center; font-size:28px; color:#fff; font-weight:700; border:4px solid var(--bg2); }
-    .dm-item,.role-item,.user-item { display:flex; align-items:center; gap:10px; padding:10px; border-radius:9px; cursor:pointer; transition:all .15s; }
-    .dm-item:hover,.role-item:hover,.user-item:hover { background:var(--bg3); }
-    .dm-avatar { width:38px; height:38px; background:var(--acd); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px; color:var(--ac3); flex-shrink:0; }
-    .dm-info,.role-info,.user-item-info { flex:1; min-width:0; } .dm-name,.role-name { font-weight:600; font-size:13px; } .dm-last-msg,.role-desc { font-size:11px; color:var(--t3); }
-    .theme-option { padding:10px; cursor:pointer; border-radius:8px; margin-bottom:6px; display:flex; align-items:center; gap:10px; font-weight:500; transition:all .15s; font-size:13px; } .theme-option:hover { background:var(--bg3); }
-    .context-menu { position:fixed; background:var(--bg2); border:1px solid var(--b2); border-radius:10px; padding:6px; z-index:2000; display:none; min-width:180px; box-shadow:0 8px 32px rgba(0,0,0,.5); }
-    .context-menu.show { display:block; animation:fadeIn .1s ease; }
-    .context-menu button { display:flex; align-items:center; gap:8px; width:100%; padding:8px 12px; background:none; border:none; color:var(--t2); cursor:pointer; border-radius:6px; font-size:12px; font-family:var(--font); }
-    .context-menu button:hover { background:var(--bg3); color:var(--t1); }
-    .context-menu button.danger { color:var(--re); }
-    .badge { display:inline-block; padding:2px 7px; border-radius:5px; font-size:10px; font-weight:700; }
-    .badge.admin { background:rgba(239,68,68,.2); color:#ef4444; } .badge.mod { background:rgba(99,102,241,.2); color:#6366f1; } .badge.vip { background:rgba(168,85,247,.2); color:#a855f7; } .badge.boost { background:rgba(245,158,11,.2); color:#f59e0b; }
-    .toggle-switch { position:relative; width:44px; height:24px; background:var(--bg3); border-radius:12px; cursor:pointer; transition:all .2s; display:inline-block; }
-    .toggle-switch.on { background:var(--ac); }
-    .toggle-switch::after { content:''; position:absolute; top:2px; left:2px; width:20px; height:20px; background:#fff; border-radius:50%; transition:all .2s; }
-    .toggle-switch.on::after { left:22px; }
-    @media (max-width:768px) {
-      .server-rail { width:52px; } .server-icon { width:40px; height:40px; } .server-icon svg { width:18px; height:18px; }
-      .channel-sidebar { position:absolute; left:-250px; top:0; bottom:0; height:100%; z-index:50; }
-      .channel-sidebar.open { left:52px; box-shadow:4px 0 20px rgba(0,0,0,.5); }
-      .user-panel { position:absolute; right:-260px; top:0; bottom:0; height:100%; z-index:50; }
-      .user-panel.open { right:0; box-shadow:-4px 0 20px rgba(0,0,0,.5); }
-      .emoji-picker { left:10px; right:10px; bottom:65px; }
+    body.light {--bg:#f0f0f5;--bg1:#ffffff;--bg2:#e8e8ee;--bg3:#dddde4;--b:rgba(0,0,0,.05);--b2:rgba(0,0,0,.08);--t1:#1a1a2e;--t2:#4a4a6a;--t3:#808090;}
+    body.light .message-avatar{color:#fff;}
+    body.light .server-icon:hover,body.light .server-icon.active{background:var(--ac);}
+    body.light .server-icon:hover svg,body.light .server-icon.active svg{stroke:#fff;}
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:var(--font);background:var(--bg);color:var(--t1);height:100vh;height:100dvh;overflow:hidden;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:pan-y;}
+    body.ios-safe{padding-bottom:env(safe-area-inset-bottom,0px);}
+    @supports(padding-bottom:env(safe-area-inset-bottom)){body{padding-bottom:env(safe-area-inset-bottom);}}
+    ::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-thumb{background:var(--ac);border-radius:4px;}
+    :focus-visible{outline:2px solid var(--ac);outline-offset:2px;border-radius:4px;}
+    .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0;}
+    .loading-screen{position:fixed;inset:0;background:var(--bg);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .4s,visibility .4s;}
+    .loading-screen.hide{opacity:0;visibility:hidden;pointer-events:none;}
+    .loader{width:44px;height:44px;border:3px solid var(--b2);border-top-color:var(--ac);border-radius:50%;animation:spin .7s linear infinite;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+    .loading-logo{margin-top:16px;font-size:18px;font-weight:700;background:linear-gradient(135deg,var(--ac),var(--ac2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+    .app{display:flex;height:100vh;height:100dvh;background:var(--bg1);position:relative;}
+    .connection-bar{position:fixed;top:0;left:0;right:0;height:4px;background:var(--re);z-index:10000;transition:height .3s,opacity .3s;opacity:0;}
+    .connection-bar.offline{height:22px;opacity:1;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;gap:8px;}
+    .connection-bar.offline button{background:rgba(255,255,255,.2);border:none;color:#fff;padding:2px 8px;border-radius:4px;cursor:pointer;font-size:10px;}
+    .server-rail{width:var(--serverrail-w);background:var(--bg);display:flex;flex-direction:column;align-items:center;padding:12px 0;gap:10px;overflow-y:auto;border-right:1px solid var(--b);flex-shrink:0;z-index:10;}
+    .server-icon{width:46px;height:46px;background:var(--bg2);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all var(--transition);position:relative;}
+    .server-icon svg{width:22px;height:22px;stroke:var(--t2);stroke-width:1.5;fill:none;}
+    .server-icon:hover,.server-icon.active{border-radius:14px;background:var(--ac);transform:translateY(-2px);}.server-icon:hover svg,.server-icon.active svg{stroke:#fff;}
+    .server-icon.active::after{content:'';position:absolute;right:-7px;top:50%;transform:translateY(-50%);width:3px;height:18px;background:var(--ac);border-radius:2px;}
+    .channel-sidebar{width:var(--sidebar-w);background:var(--bg1);display:flex;flex-direction:column;border-right:1px solid var(--b);flex-shrink:0;z-index:10;overflow-y:auto;transition:transform .25s ease;}
+    .channel-header{height:48px;padding:0 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--b);font-weight:700;background:var(--bg);font-size:15px;flex-shrink:0;}
+    .channel-header svg{width:18px;height:18px;stroke:var(--ac);}
+    .channel-category{padding:14px 14px 4px;font-size:11px;font-weight:700;text-transform:uppercase;color:var(--t3);letter-spacing:.8px;display:flex;justify-content:space-between;align-items:center;}
+    .channel-category button{background:none;border:none;color:var(--t3);cursor:pointer;font-size:15px;padding:2px 4px;border-radius:4px;}.channel-category button:hover{color:var(--ac);}
+    .channel-item{padding:7px 14px;margin:1px 6px;border-radius:7px;display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--t2);transition:all .15s;position:relative;}
+    .channel-item svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.5;flex-shrink:0;}
+    .channel-item:hover,.channel-item:focus-visible{background:var(--bg2);color:var(--t1);outline:none;}
+    .channel-item.active{background:var(--acd);color:var(--ac3);font-weight:600;}
+    .channel-item .ch-actions{display:none;margin-left:auto;gap:4px;}.channel-item:hover .ch-actions,.channel-item:focus-within .ch-actions{display:flex;}
+    .ch-actions button{background:none;border:none;color:var(--t3);cursor:pointer;padding:2px;font-size:12px;}.ch-actions button:hover{color:var(--re);}
+    .channel-item .unread-badge{background:var(--re);color:#fff;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:auto;font-weight:700;min-width:18px;text-align:center;}
+    .empty-channels{text-align:center;padding:30px;color:var(--t3);font-size:13px;}
+    .chat-area{flex:1;display:flex;flex-direction:column;background:var(--bg1);min-width:0;}
+    .chat-header{height:48px;padding:0 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--b);background:var(--bg);flex-shrink:0;}
+    .chat-header svg{width:18px;height:18px;stroke:var(--ac);flex-shrink:0;}
+    .channel-name{font-weight:700;font-size:15px;}.channel-topic{font-size:11px;color:var(--t3);margin-left:6px;}
+    .header-badge{margin-left:auto;display:flex;gap:6px;}
+    .icon-btn{background:var(--bg2);border:none;width:30px;height:30px;border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all var(--transition);}
+    .icon-btn svg{width:15px;height:15px;stroke:var(--t2);fill:none;stroke-width:1.5;}.icon-btn:hover,.icon-btn:focus-visible{background:var(--ac);transform:scale(1.05);}.icon-btn:hover svg,.icon-btn:focus-visible svg{stroke:#fff;}
+    .messages-container{flex:1;overflow-y:auto;padding:14px 18px;scroll-behavior:smooth;contain:content;}
+    .messages-inner{display:flex;flex-direction:column;gap:calc(4px * var(--msg-density));}
+    .empty-channel{text-align:center;padding:50px 20px;color:var(--t3);animation:fadeIn .4s ease;margin:auto;}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+    .empty-channel svg{width:56px;height:56px;stroke:var(--t3);margin-bottom:14px;opacity:.5;}.empty-channel h4{font-size:16px;margin-bottom:6px;color:var(--t2);font-weight:700;}.empty-channel p{font-size:13px;}
+    .message{display:flex;align-items:flex-start;gap:10px;padding:calc(5px * var(--msg-density)) 8px;border-radius:7px;transition:background .1s;position:relative;}
+    .message:hover,.message:focus-within{background:var(--bg2);}.message:hover .msg-actions,.message:focus-within .msg-actions{display:flex;}
+    @media(hover:none){.message:active .msg-actions{display:flex;}}
+    .message-avatar{width:34px;height:34px;background:linear-gradient(135deg,var(--ac),var(--ac2));border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;font-size:13px;color:#fff;cursor:pointer;}
+    .message-content{flex:1;min-width:0;}.message-header{font-size:12px;font-weight:700;margin-bottom:1px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+    .message-header .role-badge{font-size:9px;padding:1px 5px;border-radius:4px;font-weight:600;}
+    .message-header span{font-weight:400;font-size:10px;margin-left:4px;color:var(--t3);}
+    .message-text{font-size:13px;line-height:1.45;word-wrap:break-word;color:var(--t2);}
+    .message-text b{color:var(--t1);}.message-text i{font-style:italic;}.message-text code{background:var(--bg3);padding:1px 4px;border-radius:3px;font-family:var(--mono);font-size:11px;}.message-text pre{background:var(--bg);border:1px solid var(--b);border-radius:6px;padding:8px;overflow-x:auto;font-family:var(--mono);font-size:11px;margin:4px 0;}
+    .msg-actions{display:none;position:absolute;right:8px;top:-8px;background:var(--bg3);border-radius:6px;padding:2px;gap:2px;box-shadow:0 4px 12px rgba(0,0,0,.3);z-index:5;}
+    .msg-actions button{background:none;border:none;color:var(--t2);cursor:pointer;padding:4px 6px;border-radius:4px;font-size:13px;}.msg-actions button:hover{background:var(--bg2);color:var(--t1);}
+    .msg-reactions{display:flex;gap:4px;margin-top:3px;flex-wrap:wrap;}.msg-reaction{background:var(--bg3);border-radius:6px;padding:1px 6px;font-size:12px;cursor:pointer;transition:all .1s;border:1px solid transparent;}.msg-reaction:hover{border-color:var(--b2);}.msg-reaction.me{background:var(--acd);border-color:var(--ac);}
+    .poll-options{display:flex;flex-direction:column;gap:4px;margin-top:4px;}.poll-option{background:var(--bg3);border-radius:6px;padding:4px 8px;cursor:pointer;font-size:12px;transition:all .1s;display:flex;align-items:center;gap:8px;}.poll-option:hover{background:var(--acd);}.poll-option .bar{height:6px;background:var(--ac);border-radius:3px;transition:width .3s;}.poll-option.voted{background:var(--acd);}
+    .typing-indicator{padding:4px 18px;font-size:11px;color:var(--t3);font-style:italic;height:24px;flex-shrink:0;}
+    .input-area{padding:10px 18px 14px;background:var(--bg);border-top:1px solid var(--b);display:flex;gap:10px;align-items:center;flex-shrink:0;}
+    .message-input{flex:1;background:var(--bg2);border:1px solid var(--b2);border-radius:22px;padding:10px 16px;color:var(--t1);font-size:13px;outline:none;transition:all var(--transition);font-family:var(--font);}
+    .message-input:focus{border-color:var(--ac);box-shadow:0 0 0 3px var(--acg);}.message-input::placeholder{color:var(--t3);}
+    .emoji-popup{position:absolute;bottom:70px;left:310px;background:var(--bg2);border-radius:14px;display:none;z-index:100;border:1px solid var(--b2);box-shadow:0 8px 32px rgba(0,0,0,.4);max-height:250px;overflow-y:auto;width:300px;padding:8px;}
+    .emoji-popup.show{display:block;animation:fadeIn .15s ease;}
+    .emoji-suggestions{display:flex;flex-wrap:wrap;gap:4px;}.emoji-suggestion{font-size:18px;cursor:pointer;padding:4px;border-radius:6px;}.emoji-suggestion:hover{background:var(--bg3);}
+    .user-panel{width:var(--userpanel-w);background:var(--bg);border-left:1px solid var(--b);padding:14px;display:flex;flex-direction:column;gap:8px;flex-shrink:0;z-index:10;overflow-y:auto;}
+    .user-profile{display:flex;gap:10px;align-items:center;padding-bottom:12px;border-bottom:1px solid var(--b);cursor:pointer;}
+    .user-avatar{width:44px;height:44px;background:linear-gradient(135deg,var(--ac),var(--ac2));border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:#fff;position:relative;}
+    .user-avatar .status-dot{position:absolute;bottom:0;right:0;width:12px;height:12px;border-radius:50%;border:3px solid var(--bg);}.status-dot.online{background:var(--gr);}.status-dot.idle{background:var(--ye);}.status-dot.dnd{background:var(--re);}.status-dot.offline{background:var(--t3);}
+    .user-info{flex:1;}.user-name{font-weight:700;font-size:14px;}.user-status{font-size:10px;color:var(--t3);margin-top:1px;}
+    .panel-btn{background:var(--bg2);border:none;padding:9px 10px;border-radius:9px;color:var(--t2);cursor:pointer;font-weight:500;display:flex;align-items:center;gap:10px;width:100%;transition:all .15s;font-size:13px;font-family:var(--font);}
+    .panel-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;flex-shrink:0;}.panel-btn:hover,.panel-btn:focus-visible{background:var(--bg3);color:var(--t1);}
+    .voice-bar{background:var(--bg2);border-radius:10px;padding:7px 10px;display:none;align-items:center;gap:8px;font-size:12px;font-weight:600;}.voice-bar svg{width:18px;height:18px;stroke:var(--ac);}
+    .voice-controls{display:flex;gap:5px;margin-left:auto;}.voice-btn{background:var(--bg3);border:none;width:28px;height:28px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;}.voice-btn svg{width:14px;height:14px;stroke:var(--t2);}.voice-btn:hover,.voice-btn:focus-visible{background:var(--ac);}.voice-btn:hover svg,.voice-btn:focus-visible svg{stroke:#fff;}.voice-btn.muted{background:var(--re);}
+    .remote-volume{width:80px;height:4px;background:var(--bg3);border-radius:2px;cursor:pointer;}.remote-volume-fill{height:100%;background:var(--gr);border-radius:2px;width:80%;}
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;z-index:1000;display:none;animation:fadeIn .2s ease;}
+    @supports not (backdrop-filter:blur(8px)){.modal{background:rgba(0,0,0,.92);}}
+    .modal.show{display:flex;}
+    .modal-box{background:var(--bg2);border-radius:20px;padding:24px;width:520px;max-width:94%;max-height:85vh;overflow-y:auto;}.modal-box h2{margin-bottom:16px;display:flex;align-items:center;gap:8px;font-size:18px;}
+    .modal-input,.modal-select,.modal-textarea{width:100%;padding:10px 14px;background:var(--bg1);border:1px solid var(--b2);border-radius:10px;color:var(--t1);margin-bottom:12px;font-size:13px;font-family:var(--font);outline:none;}.modal-textarea{resize:vertical;min-height:60px;}.modal-input:focus,.modal-select:focus,.modal-textarea:focus{border-color:var(--ac);}
+    .modal-btn{width:100%;padding:10px;background:var(--ac);border:none;border-radius:10px;color:#fff;font-weight:700;cursor:pointer;font-size:14px;font-family:var(--font);transition:all .15s;}.modal-btn:hover,.modal-btn:focus-visible{filter:brightness(1.1);}
+    .modal-btn.secondary{background:var(--bg3);color:var(--t2);}.modal-btn.secondary:hover,.modal-btn.secondary:focus-visible{background:var(--acd);color:var(--t1);}.modal-btn.danger{background:var(--re);}
+    .dm-item,.role-item,.user-item{display:flex;align-items:center;gap:10px;padding:10px;border-radius:9px;cursor:pointer;transition:all .15s;}.dm-item:hover,.role-item:hover,.user-item:hover{background:var(--bg3);}
+    .dm-avatar{width:38px;height:38px;background:var(--acd);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:var(--ac3);flex-shrink:0;}
+    .dm-info,.role-info,.user-item-info{flex:1;min-width:0;}.dm-name,.role-name{font-weight:600;font-size:13px;}.dm-last-msg,.role-desc{font-size:11px;color:var(--t3);}
+    .theme-option{padding:10px;cursor:pointer;border-radius:8px;margin-bottom:6px;display:flex;align-items:center;gap:10px;font-weight:500;transition:all .15s;font-size:13px;}.theme-option:hover{background:var(--bg3);}
+    .context-menu{position:fixed;background:var(--bg2);border:1px solid var(--b2);border-radius:10px;padding:6px;z-index:2000;display:none;min-width:180px;box-shadow:0 8px 32px rgba(0,0,0,.5);}.context-menu.show{display:block;animation:fadeIn .1s ease;}
+    .context-menu button{display:flex;align-items:center;gap:8px;width:100%;padding:8px 12px;background:none;border:none;color:var(--t2);cursor:pointer;border-radius:6px;font-size:12px;font-family:var(--font);}.context-menu button:hover{background:var(--bg3);color:var(--t1);}.context-menu button.danger{color:var(--re);}
+    .badge{display:inline-block;padding:2px 7px;border-radius:5px;font-size:10px;font-weight:700;}.badge.admin{background:rgba(239,68,68,.2);color:#ef4444;}.badge.mod{background:rgba(99,102,241,.2);color:#6366f1;}.badge.vip{background:rgba(168,85,247,.2);color:#a855f7;}
+    .toggle-switch{position:relative;width:44px;height:24px;background:var(--bg3);border-radius:12px;cursor:pointer;transition:all .2s;display:inline-block;}.toggle-switch.on{background:var(--ac);}.toggle-switch::after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;background:#fff;border-radius:50%;transition:all .2s;}.toggle-switch.on::after{left:22px;}
+    .toast{position:fixed;bottom:60px;right:16px;background:var(--bg2);padding:10px 16px;border-radius:10px;z-index:2000;border:1px solid var(--b2);font-size:13px;font-weight:600;animation:fadeIn .2s ease;transition:opacity .3s;}
+    .toast.hiding{opacity:0;}
+    .empty-state{text-align:center;padding:30px;color:var(--t3);font-size:13px;}
+    .empty-state svg{width:40px;height:40px;margin-bottom:10px;opacity:.5;stroke:var(--t3);}
+    @media (max-width:768px){
+      :root{--sidebar-w:260px;--userpanel-w:280px;}
+      .server-rail{width:52px;}.server-icon{width:40px;height:40px;}.server-icon svg{width:18px;height:18px;}
+      .channel-sidebar{position:absolute;left:-270px;top:0;bottom:0;height:100%;z-index:50;}.channel-sidebar.open{left:52px;box-shadow:4px 0 20px rgba(0,0,0,.5);}
+      .user-panel{position:absolute;right:-290px;top:0;bottom:0;height:100%;z-index:50;}.user-panel.open{right:0;box-shadow:-4px 0 20px rgba(0,0,0,.5);}
+      .emoji-popup{left:10px;right:10px;bottom:65px;width:auto;max-width:calc(100vw - 20px);}
+      .modal-box{width:96%;max-height:90vh;border-radius:16px;padding:16px;}
+      .input-area{padding:8px 12px calc(12px + env(safe-area-inset-bottom, 0px));gap:6px;}
+      .message-input{padding:8px 12px;font-size:16px;}
+      .messages-container{padding:8px 12px;}
+      .remote-volume{width:60px;}
+      #dmModal .modal-box{width:98%;max-height:95vh;}
+      .msg-actions{right:2px;top:-6px;}
+      .msg-actions button{padding:6px 8px;font-size:16px;}
     }
   </style>
 </head>
 <body>
+<div class="connection-bar" id="connectionBar"></div>
 <div id="loadingScreen" class="loading-screen"><div class="loader"></div><div class="loading-logo">gettic</div></div>
 <div id="app"></div>
-<div id="contextMenu" class="context-menu"></div>
+<div id="contextMenu" class="context-menu" role="menu"></div>
 
 <script>
 (function(){
 const API_URL = 'https://gettic-j49l.onrender.com';
-let currentUser=null, currentToken=localStorage.getItem('gt_token'), socket=null;
-let currentChannel={id:'genel-sohbet',name:'genel-sohbet',topic:'Sohbet odası'};
-let localStream=null, peerConnection=null, isInVoice=false, isMuted=false;
-const rtcConfig={iceServers:[{urls:'stun:stun.l.google.com:19302'}]};
-let channels=[
-  {id:'genel-sohbet',name:'genel-sohbet',type:'text',category:'METİN ODALARI',permissions:{}},
-  {id:'kurallar',name:'kurallar',type:'forum',category:'METİN ODALARI',permissions:{}},
-  {id:'genel-ses',name:'Genel Ses',type:'voice',category:'SESLİ ODALAR',permissions:{}},
-  {id:'muzik-odasi',name:'Müzik Odası',type:'voice',category:'SESLİ ODALAR',permissions:{}},
-  {id:'forum',name:'forum',type:'forum',category:'FORUM',permissions:{}},
-  {id:'oneri',name:'öneri',type:'text',category:'GERİ BİLDİRİM',permissions:{}},
-  {id:'bug-bildirimi',name:'bug-bildirimi',type:'text',category:'GERİ BİLDİRİM',permissions:{}}
-];
-let categories=['METİN ODALARI','SESLİ ODALAR','FORUM','GERİ BİLDİRİM'];
-let dmFriends=[];
-let roles=[
-  {id:'r1',name:'Kurucu',color:'#fbbf24',permissions:{all:true},position:0},
-  {id:'r2',name:'Admin',color:'#ef4444',permissions:{manageServer:true,manageRoles:true,manageChannels:true,kick:true,ban:true,deleteMsg:true},position:1},
-  {id:'r3',name:'Moderatör',color:'#6366f1',permissions:{kick:true,deleteMsg:true,manageMessages:true},position:2},
-  {id:'r4',name:'VIP',color:'#a855f7',permissions:{specialChannels:true},position:3},
-  {id:'r5',name:'Üye',color:'#9ca3af',permissions:{sendMsg:true,addReactions:true},position:4}
-];
-let userRoles={};
-let serverSettings={name:'Gettic',description:'',icon:'',banner:''};
-let pinnedMessages={};
-let userStatuses={};
-let notifications=[];
-let searchIndex=[];
+const RATE_LIMIT = new Map();
+const MAX_VISIBLE_MSGS = 80;
+const MAX_DB_SIZE = 500;
+const IDLE_TIMEOUT = 5 * 60 * 1000;
+let idleTimer = null;
+let currentDMId = null;
+let isOnline = navigator.onLine;
+let retryCount = 0;
+const MAX_RETRIES = 5;
+
+const LS_KEYS = ['gt_channels','gt_categories','gt_dmFriends','gt_roles','gt_userRoles','gt_serverSettings','gt_pinnedMessages','gt_userStatuses','gt_notifications','gt_unread','gt_blocked','gt_msgDb','gt_polls','gt_dmUnread'];
+function safeLSGet(key,fallback){try{const v=localStorage.getItem(key);return v?JSON.parse(v):fallback;}catch(e){return fallback;}}
+function safeLSSet(key,val){try{const s=JSON.stringify(val);if(s.length>500000){console.warn(key+' çok büyük, kırpılıyor');const arr=JSON.parse(s);if(Array.isArray(arr))val=arr.slice(-200);}localStorage.setItem(key,JSON.stringify(val));return true;}catch(e){console.warn('localStorage dolu:',key);try{localStorage.removeItem('gt_msgDb');localStorage.setItem(key,JSON.stringify(val));}catch(e2){return false;}}}
+
+const State = {
+  user: null,
+  token: localStorage.getItem('gt_token'),
+  socket: null,
+  channel: safeLSGet('gt_lastChannel',{id:'genel-sohbet',name:'genel-sohbet',topic:'Sohbet odası'}),
+  localStream: null,
+  peerConnections: new Map(),
+  remoteAudioElements: [],
+  isInVoice: false,
+  isMuted: false,
+  isDeafened: false,
+  channels: safeLSGet('gt_channels',[{id:'genel-sohbet',name:'genel-sohbet',type:'text',category:'METİN ODALARI'},{id:'kurallar',name:'kurallar',type:'forum',category:'METİN ODALARI'},{id:'genel-ses',name:'Genel Ses',type:'voice',category:'SESLİ ODALAR'},{id:'forum',name:'forum',type:'forum',category:'FORUM'}]),
+  categories: safeLSGet('gt_categories',['METİN ODALARI','SESLİ ODALAR','FORUM']),
+  dmFriends: safeLSGet('gt_dmFriends',[]),
+  roles: safeLSGet('gt_roles',[{id:'r1',name:'Kurucu',color:'#fbbf24',permissions:{all:true},position:0},{id:'r2',name:'Admin',color:'#ef4444',permissions:{manageServer:true,manageRoles:true,manageChannels:true,kick:true,ban:true,deleteMsg:true},position:1},{id:'r3',name:'Moderatör',color:'#6366f1',permissions:{kick:true,deleteMsg:true},position:2},{id:'r4',name:'VIP',color:'#a855f7',permissions:{specialChannels:true},position:3},{id:'r5',name:'Üye',color:'#9ca3af',permissions:{sendMsg:true,addReactions:true},position:4}]),
+  userRoles: safeLSGet('gt_userRoles',{}),
+  serverSettings: safeLSGet('gt_serverSettings',{name:'Gettic',description:''}),
+  pinnedMessages: safeLSGet('gt_pinnedMessages',{}),
+  userStatuses: safeLSGet('gt_userStatuses',{}),
+  notifications: safeLSGet('gt_notifications',[]),
+  unreadCounts: safeLSGet('gt_unread',{}),
+  blockedUsers: safeLSGet('gt_blocked',[]),
+  messageDb: safeLSGet('gt_msgDb',[]),
+  polls: safeLSGet('gt_polls',{}),
+  lang: localStorage.getItem('gt_lang')||'tr',
+  dmUnread: safeLSGet('gt_dmUnread',{}),
+  offlineQueue: safeLSGet('gt_offlineQueue',[]),
+  channelScrollPositions: {},
+};
+const rtcConfig = {iceServers:[{urls:'stun:stun.l.google.com:19302'}]};
+
+const L = {
+  tr:{welcome:'Hoş geldin',login:'Giriş',register:'Kayıt',username:'Kullanıcı Adı',password:'Şifre',send:'Mesaj yaz...',online:'Çevrimiçi',idle:'Boşta',dnd:'Rahatsız Etmeyin',offline:'Görünmez',logout:'Çıkış Yap',channels:'Kanallar',friends:'Arkadaşlar',settings:'Ayarlar',theme:'Tema',search:'Ara...',noMessages:'Henüz mesaj yok',birth:'doğuşu',typing:'yazıyor...',pinned:'Sabitlenmiş',copy:'Kopyala',delete:'Sil',edit:'Düzenle',react:'Tepki',pin:'Sabitle',block:'Engelle',unblock:'Engeli Kaldır',kick:'At',ban:'Yasakla',dm:'Direkt Mesajlar',groupDM:'Grup DM',addFriend:'Arkadaş Ekle',offline:'Çevrimdışı',retry:'Tekrar Dene',noChannels:'Henüz kanal yok',noDM:'Henüz DM yok',noNotifications:'Bildirim yok',noVoice:'Sesli kanalda kimse yok',msgSentOffline:'Mesaj sıraya alındı, bağlanınca gönderilecek'},
+  en:{welcome:'Welcome',login:'Login',register:'Register',username:'Username',password:'Password',send:'Type a message...',online:'Online',idle:'Idle',dnd:'Do Not Disturb',offline:'Invisible',logout:'Logout',channels:'Channels',friends:'Friends',settings:'Settings',theme:'Theme',search:'Search...',noMessages:'No messages yet',birth:'beginning',typing:'is typing...',pinned:'Pinned',copy:'Copy',delete:'Delete',edit:'Edit',react:'React',pin:'Pin',block:'Block',unblock:'Unblock',kick:'Kick',ban:'Ban',dm:'Direct Messages',groupDM:'Group DM',addFriend:'Add Friend',offline:'Offline',retry:'Retry',noChannels:'No channels yet',noDM:'No DMs yet',noNotifications:'No notifications',noVoice:'No one in voice',msgSentOffline:'Message queued, will send when online'},
+};
+function t(key){return (L[State.lang]||L.tr)[key]||key;}
+function setLang(l){State.lang=l;localStorage.setItem('gt_lang',l);renderApp();toast('Dil: '+l.toUpperCase());}
 
 const Icons={
-  hash:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>',
-  volume:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>',
-  forum:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
-  plus:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
-  send:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>',
-  smile:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>',
-  logout:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>',
-  mic:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>',
-  micOff:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><line x1="23" y1="1" x2="1" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V5a3 3 0 0 0-5.94-.6M17 16.95A7 7 0 0 1 5 12v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>',
-  deafen:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>',
-  user:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
-  webhook:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>',
-  copy:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
-  dm:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
-  theme:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>',
-  search:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
-  music:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>',
-  settings:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>',
-  trash:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>',
-  edit:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>',
-  pin:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/></svg>',
-  bell:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>',
-  shield:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
-  calendar:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
-  link:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>',
-  image:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>',
-  video:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>',
-  screen:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>',
-  export:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
-  backup:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>',
-  poll:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>',
-  check:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><polyline points="20 6 9 17 4 12"/></svg>',
-  x:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
-  more:'<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>',
+  hash:'<svg viewBox="0 0 24 24" aria-label="Kanallar"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>',
+  volume:'<svg viewBox="0 0 24 24" aria-label="Sesli"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>',
+  forum:'<svg viewBox="0 0 24 24" aria-label="Forum"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+  plus:'<svg viewBox="0 0 24 24" aria-label="Ekle"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
+  send:'<svg viewBox="0 0 24 24" aria-label="Gönder"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>',
+  smile:'<svg viewBox="0 0 24 24" aria-label="Emoji"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>',
+  logout:'<svg viewBox="0 0 24 24" aria-label="Çıkış"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>',
+  mic:'<svg viewBox="0 0 24 24" aria-label="Mikrofon"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>',
+  micOff:'<svg viewBox="0 0 24 24" aria-label="Mikrofon Kapalı"><line x1="23" y1="1" x2="1" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V5a3 3 0 0 0-5.94-.6M17 16.95A7 7 0 0 1 5 12v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>',
+  deafen:'<svg viewBox="0 0 24 24" aria-label="Sağır"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>',
+  user:'<svg viewBox="0 0 24 24" aria-label="Kullanıcı"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+  search:'<svg viewBox="0 0 24 24" aria-label="Ara"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+  settings:'<svg viewBox="0 0 24 24" aria-label="Ayarlar"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>',
+  trash:'<svg viewBox="0 0 24 24" aria-label="Sil"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>',
+  edit:'<svg viewBox="0 0 24 24" aria-label="Düzenle"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>',
+  pin:'<svg viewBox="0 0 24 24" aria-label="Sabitle"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/></svg>',
+  bell:'<svg viewBox="0 0 24 24" aria-label="Bildirimler"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>',
+  shield:'<svg viewBox="0 0 24 24" aria-label="Roller"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+  image:'<svg viewBox="0 0 24 24" aria-label="Dosya"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>',
+  video:'<svg viewBox="0 0 24 24" aria-label="Video"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>',
+  screen:'<svg viewBox="0 0 24 24" aria-label="Ekran"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>',
+  poll:'<svg viewBox="0 0 24 24" aria-label="Anket"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>',
+  sun:'<svg viewBox="0 0 24 24" aria-label="Aydınlık"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/></svg>',
+  moon:'<svg viewBox="0 0 24 24" aria-label="Karanlık"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>',
+  copy:'<svg viewBox="0 0 24 24" aria-label="Kopyala"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
+  more:'<svg viewBox="0 0 24 24" aria-label="Daha"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>',
+  wifi:'<svg viewBox="0 0 24 24" aria-label="Bağlantı"><path d="M5 12.55a11 11 0 0 1 14 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1"/></svg>',
+  wifiOff:'<svg viewBox="0 0 24 24" aria-label="Bağlantı Yok"><line x1="1" y1="1" x2="23" y2="23"/><path d="M5 12.55a11 11 0 0 1 14 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1"/></svg>',
 };
 
-function esc(s){if(!s)return'';return String(s).replace(/[&<>]/g,m=>m==='&'?'&amp;':m==='<'?'&lt;':'&gt;');}
-function toast(msg,err=false){
-  const t=document.createElement('div');
-  t.style.cssText=`position:fixed;bottom:60px;right:16px;background:var(--bg2);padding:10px 16px;border-radius:10px;color:${err?'#ef4444':'#22c55e'};z-index:2000;border:1px solid var(--b2);font-size:13px;font-weight:600;animation:fadeIn .2s ease;`;
-  t.textContent=msg;document.body.appendChild(t);
-  setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .3s';setTimeout(()=>t.remove(),300);},2500);
+function esc(s){if(!s)return'';return String(s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[m]);}
+function sanitize(html){const div=document.createElement('div');div.textContent=html;return div.innerHTML;}
+function toast(msg,err=false){const existing=document.querySelector('.toast');if(existing)existing.remove();const el=document.createElement('div');el.className='toast';el.style.color=err?'var(--re)':'var(--gr)';el.textContent=msg;el.setAttribute('role','status');el.setAttribute('aria-live','polite');document.body.appendChild(el);setTimeout(()=>{el.classList.add('hiding');setTimeout(()=>el.remove(),300);},2500);}
+function saveState(){
+  const s=State;safeLSSet('gt_channels',s.channels);safeLSSet('gt_categories',s.categories);safeLSSet('gt_dmFriends',s.dmFriends);safeLSSet('gt_roles',s.roles);safeLSSet('gt_userRoles',s.userRoles);safeLSSet('gt_serverSettings',s.serverSettings);safeLSSet('gt_pinnedMessages',s.pinnedMessages);safeLSSet('gt_userStatuses',s.userStatuses);safeLSSet('gt_notifications',s.notifications.slice(-100));safeLSSet('gt_unread',s.unreadCounts);safeLSSet('gt_blocked',s.blockedUsers);safeLSSet('gt_msgDb',s.messageDb.slice(-MAX_DB_SIZE));safeLSSet('gt_polls',s.polls);safeLSSet('gt_dmUnread',s.dmUnread);safeLSSet('gt_offlineQueue',s.offlineQueue);safeLSSet('gt_lastChannel',s.channel);
 }
-function openModal(id){const el=document.getElementById(id);if(el)el.classList.add('show');}
-function closeModal(id){const el=document.getElementById(id);if(el)el.classList.remove('show');}
-function genId(){return Date.now().toString(36)+Math.random().toString(36).substr(2,6);}
-function getUserRoles(uid){return userRoles[uid]||['r5'];}
-function getHighestRole(uid){const rids=getUserRoles(uid);let highest=roles[roles.length-1];rids.forEach(rid=>{const r=roles.find(x=>x.id===rid);if(r&&r.position<highest.position)highest=r;});return highest;}
-function hasPermission(uid,perm){const rids=getUserRoles(uid);for(const rid of rids){const r=roles.find(x=>x.id===rid);if(r&&(r.permissions.all||r.permissions[perm]))return true;}return false;}
+function openModal(id){const el=document.getElementById(id);if(el){el.classList.add('show');document.body.style.overflow='hidden';const inp=el.querySelector('input');if(inp)setTimeout(()=>inp.focus(),100);}}
+function closeModal(id){const el=document.getElementById(id);if(el){el.classList.remove('show');if(!document.querySelector('.modal.show'))document.body.style.overflow='';}}
+function genId(){return Date.now().toString(36)+Math.random().toString(36).substr(2,8);}
+function getUserRoles(uid){return State.userRoles[uid]||['r5'];}
+function getHighestRole(uid){const rids=getUserRoles(uid);let highest=State.roles[State.roles.length-1];rids.forEach(rid=>{const r=State.roles.find(x=>x.id===rid);if(r&&r.position<highest.position)highest=r;});return highest;}
+function hasPermission(uid,perm){if(!uid)return false;const rids=getUserRoles(uid);for(const rid of rids){const r=State.roles.find(x=>x.id===rid);if(r&&(r.permissions.all||r.permissions[perm]))return true;}return false;}
+function checkRateLimit(key,max=5,window=3000){const now=Date.now();if(RATE_LIMIT.size>200)RATE_LIMIT.clear();const timestamps=RATE_LIMIT.get(key)||[];const recent=timestamps.filter(t=>now-t<window);if(recent.length>=max)return false;recent.push(now);RATE_LIMIT.set(key,recent.slice(-10));return true;}
+async function requestNotifPerm(){if('Notification' in window&&Notification.permission==='default'){await Notification.requestPermission();}}
+function sendNotification(title,body){if('Notification' in window&&Notification.permission==='granted'){try{new Notification(title,{body,icon:'https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png'});}catch(e){}}}
+function playMsgSound(){try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;const ctx=new AC();const o=ctx.createOscillator();const g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=800;g.gain.value=.03;o.start();o.stop(ctx.currentTime+.08);}catch(e){}}
+function resetIdleTimer(){clearTimeout(idleTimer);if(State.userStatuses[State.user?._id]==='online'||!State.userStatuses[State.user?._id]){idleTimer=setTimeout(()=>{State.userStatuses[State.user?._id]='idle';saveState();updateStatusUI('idle');},IDLE_TIMEOUT);}}
+function handleUserActivity(){if(State.userStatuses[State.user?._id]==='idle'){State.userStatuses[State.user?._id]='online';saveState();updateStatusUI('online');}resetIdleTimer();}
+function updateConnectionUI(online){const bar=document.getElementById('connectionBar');const icon=document.getElementById('connectionIcon');isOnline=online;if(online){bar.classList.remove('offline');bar.innerHTML='';if(State.offlineQueue.length){toast(`${State.offlineQueue.length} mesaj gönderiliyor...`);processOfflineQueue();}}else{bar.classList.add('offline');bar.innerHTML=`${Icons.wifiOff} ${t('offline')} <button onclick="retryConnection()">${t('retry')}</button>`;if(icon)icon.innerHTML=Icons.wifiOff;}}
+function retryConnection(){retryCount=0;connectSocket();updateConnectionUI(navigator.onLine);}
+async function processOfflineQueue(){while(State.offlineQueue.length&&navigator.onLine){const msg=State.offlineQueue.shift();try{await fetch(`${API_URL}/api/channels/${msg.channelId}/messages`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${State.token}`},body:JSON.stringify({content:msg.content})});}catch(e){State.offlineQueue.unshift(msg);saveState();break;}}saveState();}
 
 function renderApp(){
   const app=document.getElementById('app');
-  if(!currentUser){app.innerHTML=renderAuth();bindAuth();return;}
+  if(!State.user){app.innerHTML=renderAuth();bindAuth();return;}
   app.innerHTML=renderUI();bindUI();renderChannels();loadMessages();connectSocket();loadTheme();
+  requestNotifPerm();resetIdleTimer();updateConnectionUI(navigator.onLine);
 }
 function renderAuth(){
-  return `<div class="modal show" id="authModal"><div class="modal-box">
+  return `<div class="modal show" id="authModal" role="dialog" aria-modal="true" aria-label="Giriş"><div class="modal-box">
     <div style="text-align:center;margin-bottom:14px;"><img src="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png" style="width:52px;border-radius:14px;" alt="Gettic"></div>
     <h2 style="text-align:center;font-size:20px;">gettic</h2>
     <div style="display:flex;gap:8px;margin:16px 0;">
-      <button id="loginTab" class="modal-btn" style="flex:1;">Giriş</button>
-      <button id="registerTab" class="modal-btn secondary" style="flex:1;">Kayıt</button>
+      <button id="loginTab" class="modal-btn" style="flex:1;">${t('login')}</button>
+      <button id="registerTab" class="modal-btn secondary" style="flex:1;">${t('register')}</button>
     </div>
-    <div id="loginForm"><input type="text" id="loginUser" class="modal-input" placeholder="Kullanıcı Adı"><input type="password" id="loginPass" class="modal-input" placeholder="Şifre"><button id="doLoginBtn" class="modal-btn">Giriş Yap</button></div>
-    <div id="registerForm" style="display:none;"><input type="text" id="regUser" class="modal-input" placeholder="Kullanıcı Adı (en az 3)"><input type="password" id="regPass" class="modal-input" placeholder="Şifre (en az 6)"><button id="doRegBtn" class="modal-btn">Kayıt Ol</button></div>
-    <div id="authError" style="color:var(--re);margin-top:10px;text-align:center;font-size:12px;"></div>
+    <div id="loginForm"><input type="text" id="loginUser" class="modal-input" placeholder="${t('username')}" autocomplete="username" aria-label="${t('username')}"><input type="password" id="loginPass" class="modal-input" placeholder="${t('password')}" autocomplete="current-password" aria-label="${t('password')}"><button id="doLoginBtn" class="modal-btn">${t('login')}</button></div>
+    <div id="registerForm" style="display:none;"><input type="text" id="regUser" class="modal-input" placeholder="${t('username')} (min 3)" autocomplete="username"><input type="password" id="regPass" class="modal-input" placeholder="${t('password')} (min 6)" autocomplete="new-password"><button id="doRegBtn" class="modal-btn">${t('register')}</button></div>
+    <div id="authError" style="color:var(--re);margin-top:10px;text-align:center;font-size:12px;" role="alert"></div>
   </div></div>`;
 }
 function renderUI(){
+  const isLight=document.body.classList.contains('light');
   return `<div class="app">
-    <div class="server-rail">
-      <div class="server-icon active" data-server="main">${Icons.hash}</div>
-      <div class="server-icon" id="addServerBtn" title="Sunucu Ekle">${Icons.plus}</div>
-      <div class="server-icon" id="discoverBtn" title="Keşfet">${Icons.search}</div>
+    <div class="server-rail" role="navigation" aria-label="Sunucu">
+      <div class="server-icon active" data-server="main" role="button" tabindex="0" aria-label="Ana sunucu">${Icons.hash}</div>
+      <div class="server-icon" id="addServerBtn" role="button" tabindex="0" aria-label="Sunucu ekle">${Icons.plus}</div>
+      <div class="server-icon" id="discoverBtn" role="button" tabindex="0" aria-label="Keşfet">${Icons.search}</div>
+      <div class="server-icon" id="themeToggleBtn" role="button" tabindex="0" aria-label="${t('theme')}">${isLight?Icons.moon:Icons.sun}</div>
+      <div class="server-icon" id="connectionIcon" style="margin-top:auto;">${Icons.wifi}</div>
     </div>
-    <div class="channel-sidebar" id="channelSidebar">
-      <div class="channel-header">${Icons.hash}<span>${esc(serverSettings.name)}</span></div>
+    <div class="channel-sidebar" id="channelSidebar" role="navigation" aria-label="${t('channels')}">
+      <div class="channel-header">${Icons.hash}<span>${sanitize(State.serverSettings.name)}</span></div>
       <div id="channelCategories"></div>
-      <button class="add-category-btn" id="addCategoryBtn">+ Kategori Ekle</button>
+      <button class="add-category-btn" id="addCategoryBtn" aria-label="Kategori ekle">+ Kategori Ekle</button>
     </div>
     <div class="chat-area">
       <div class="chat-header">
-        ${Icons.hash}<div class="channel-name"># ${esc(currentChannel.name)}</div>
-        <div class="channel-topic">${esc(currentChannel.topic)}</div>
+        ${Icons.hash}<div class="channel-name" aria-live="polite"># ${sanitize(State.channel.name)}</div>
+        <div class="channel-topic">${sanitize(State.channel.topic)}</div>
         <div class="header-badge">
-          <button class="icon-btn" id="searchBtn" title="Ara">${Icons.search}</button>
-          <button class="icon-btn" id="notifBtn" title="Bildirimler">${Icons.bell}</button>
-          <button class="icon-btn" id="webhookInfoBtn" title="Kanal Bilgileri">${Icons.webhook}</button>
-          <button class="icon-btn" id="toggleSidebarBtn" title="Kanal Listesi">${Icons.hash}</button>
-          <button class="icon-btn" id="toggleUserPanelBtn" title="Kullanıcı Paneli">${Icons.user}</button>
+          <button class="icon-btn" id="searchBtn" aria-label="${t('search')} (Ctrl+K)">${Icons.search}</button>
+          <button class="icon-btn" id="notifBtn" aria-label="Bildirimler">${Icons.bell}</button>
+          <button class="icon-btn" id="toggleSidebarBtn" aria-label="${t('channels')}">${Icons.hash}</button>
+          <button class="icon-btn" id="toggleUserPanelBtn" aria-label="${t('settings')}">${Icons.user}</button>
         </div>
       </div>
-      <div id="pinnedBar" style="display:none;background:var(--bg);padding:6px 18px;border-bottom:1px solid var(--b);font-size:12px;color:var(--t3);"></div>
-      <div class="messages-container" id="messagesContainer"></div>
-      <div class="typing-indicator" id="typingIndicator"></div>
+      <div id="pinnedBar" style="display:none;background:var(--bg);padding:6px 18px;border-bottom:1px solid var(--b);font-size:12px;color:var(--t3);cursor:pointer;" role="button" tabindex="0"></div>
+      <div class="messages-container" id="messagesContainer" role="log" aria-live="polite" aria-label="Mesajlar"><div class="messages-inner" id="messagesInner"></div></div>
+      <div class="typing-indicator" id="typingIndicator" aria-live="polite"></div>
       <div class="input-area">
-        <button class="icon-btn" id="uploadBtn" title="Dosya Gönder">${Icons.image}</button>
-        <button class="icon-btn" id="emojiBtn">${Icons.smile}</button>
-        <div id="emojiPicker" class="emoji-picker"></div>
-        <input type="text" class="message-input" id="messageInput" placeholder="Mesaj yaz..." autocomplete="off">
-        <button class="icon-btn" id="sendBtn" style="background:var(--ac);">${Icons.send}</button>
+        <button class="icon-btn" id="uploadBtn" aria-label="Dosya gönder">${Icons.image}</button>
+        <button class="icon-btn" id="emojiBtn" aria-label="Emoji">${Icons.smile}</button>
+        <div id="emojiPopup" class="emoji-popup" role="dialog" aria-label="Emoji seç"><div id="emojiSuggestions" class="emoji-suggestions"></div></div>
+        <input type="text" class="message-input" id="messageInput" placeholder="${t('send')}" autocomplete="off" aria-label="Mesaj yaz">
+        <button class="icon-btn" id="sendBtn" style="background:var(--ac);" aria-label="Gönder">${Icons.send}</button>
       </div>
     </div>
-    <div class="user-panel" id="userPanel">
-      <div class="user-profile" id="statusProfile">
-        <div class="user-avatar">${(currentUser?.username||'U').charAt(0).toUpperCase()}<div class="status-dot online" id="userStatusDot"></div></div>
-        <div class="user-info"><div class="user-name">${esc(currentUser?.username||'Kullanıcı')}</div><div class="user-status" id="userStatusText">🟢 Çevrimiçi</div></div>
+    <div class="user-panel" id="userPanel" role="complementary" aria-label="Kullanıcı paneli">
+      <div class="user-profile" id="statusProfile" role="button" tabindex="0" aria-label="Profil">
+        <div class="user-avatar">${(State.user?.username||'U').charAt(0).toUpperCase()}<div class="status-dot online" id="userStatusDot"></div></div>
+        <div class="user-info"><div class="user-name">${sanitize(State.user?.username||'Kullanıcı')}</div><div class="user-status" id="userStatusText">🟢 ${t('online')}</div></div>
       </div>
-      <div class="voice-bar" id="voiceBar">${Icons.volume}<span id="voiceChannelName">Sesli Kanal</span><div class="voice-controls"><button class="voice-btn" id="muteBtn">${Icons.mic}</button><button class="voice-btn" id="deafenBtn">${Icons.deafen}</button><button class="voice-btn" id="leaveVoiceBtn" style="background:var(--re);">${Icons.logout}</button></div></div>
+      <div class="voice-bar" id="voiceBar">${Icons.volume}<span id="voiceChannelName">Sesli Kanal</span><span id="voiceParticipantCount" style="font-size:10px;color:var(--t3);"></span><div class="voice-controls"><button class="voice-btn" id="muteBtn" aria-label="Mikrofon">${Icons.mic}</button><button class="voice-btn" id="deafenBtn" aria-label="Sağır">${Icons.deafen}</button><button class="voice-btn" id="screenShareBtn" aria-label="Ekran">${Icons.screen}</button><button class="voice-btn" id="videoBtn" aria-label="Video">${Icons.video}</button><button class="voice-btn" id="leaveVoiceBtn" style="background:var(--re);" aria-label="Ayrıl">${Icons.logout}</button></div></div>
+      <div style="font-size:10px;color:var(--t3);margin-top:4px;">Uzak Ses</div>
+      <div class="remote-volume" id="remoteVolume" role="slider" aria-label="Ses seviyesi" tabindex="0"><div class="remote-volume-fill" id="remoteVolumeFill"></div></div>
       <button class="panel-btn" id="serverSettingsBtn">${Icons.settings} Sunucu Ayarları</button>
-      <button class="panel-btn" id="rolesBtn">${Icons.shield} Roller & İzinler</button>
-      <button class="panel-btn" id="profileBtn">${Icons.user} Profilim</button>
-      <button class="panel-btn" id="themeSettingsBtn">${Icons.theme} Tema Ayarları</button>
-      <button class="panel-btn" id="dmBtn">${Icons.dm} Direkt Mesajlar</button>
-      <button class="panel-btn" id="addFriendBtn">${Icons.plus} Arkadaş Ekle</button>
-      <button class="panel-btn" id="exportBtn">${Icons.export} Dışa Aktar</button>
-      <button class="panel-btn" id="logoutBtn" style="color:var(--re);">${Icons.logout} Çıkış Yap</button>
+      <button class="panel-btn" id="rolesBtn">${Icons.shield} Roller</button>
+      <button class="panel-btn" id="densityBtn">📏 Yoğunluk</button>
+      <button class="panel-btn" id="dmBtn">💬 ${t('dm')}</button>
+      <button class="panel-btn" id="addFriendBtn">${Icons.plus} ${t('addFriend')}</button>
+      <button class="panel-btn" id="pollBtn">${Icons.poll} Anket</button>
+      <button class="panel-btn" id="backupBtn">💾 Yedek</button>
+      <button class="panel-btn" id="langBtn">🌐 ${State.lang.toUpperCase()}</button>
+      <button class="panel-btn" id="logoutBtn" style="color:var(--re);">${Icons.logout} ${t('logout')}</button>
     </div>
   </div>
   ${renderModals()}`;
 }
 function renderModals(){
   return `
-  <div id="serverSettingsModal" class="modal"><div class="modal-box"><h2>${Icons.settings} Sunucu Ayarları</h2><input id="serverName" class="modal-input" placeholder="Sunucu Adı" value="${esc(serverSettings.name)}"><input id="serverDesc" class="modal-input" placeholder="Açıklama" value="${esc(serverSettings.description)}"><input id="serverIconUrl" class="modal-input" placeholder="Logo URL"><input id="serverBannerUrl" class="modal-input" placeholder="Banner URL"><button class="modal-btn" onclick="saveServerSettings()">Kaydet</button><button class="modal-btn danger" onclick="deleteServer()" style="margin-top:8px;">${Icons.trash} Sunucuyu Sil</button></div></div>
-  <div id="profileModal" class="modal"><div class="modal-box"><h2>${Icons.user} Profilim</h2><div class="profile-banner"></div><div class="profile-avatar-large">${(currentUser?.username||'U').charAt(0).toUpperCase()}</div><input id="profileDisplayName" class="modal-input" placeholder="Görünen Ad" value="${esc(currentUser?.username||'')}"><textarea id="profileBio" class="modal-textarea" placeholder="Hakkımda"></textarea><input id="profileAvatarUrl" class="modal-input" placeholder="Avatar URL"><select id="profileStatus" class="modal-select"><option value="online">🟢 Çevrimiçi</option><option value="idle">🟡 Boşta</option><option value="dnd">🔴 Rahatsız Etmeyin</option><option value="offline">⚫ Görünmez</option></select><button class="modal-btn" onclick="saveProfile()">Kaydet</button></div></div>
-  <div id="themeSettingsModal" class="modal"><div class="modal-box"><h2>${Icons.theme} Tema Ayarları</h2><div class="theme-option" onclick="setTheme('#c084fc','#e879f9')"><div style="width:28px;height:28px;border-radius:7px;background:#c084fc;"></div>Pembe Mor</div><div class="theme-option" onclick="setTheme('#6366f1','#818cf8')"><div style="width:28px;height:28px;border-radius:7px;background:#6366f1;"></div>Mavi</div><div class="theme-option" onclick="setTheme('#22c55e','#4ade80')"><div style="width:28px;height:28px;border-radius:7px;background:#22c55e;"></div>Yeşil</div><div class="theme-option" onclick="openModal('customThemeModal')">🎨 Özel Tema</div><button class="modal-btn secondary" onclick="closeModal('themeSettingsModal')">Kapat</button></div></div>
-  <div id="customThemeModal" class="modal"><div class="modal-box"><h2>🎨 Özel Tema</h2><label style="font-size:12px;color:var(--t3);">Ana Renk</label><input type="color" id="customPrimary" class="modal-input" value="#c084fc"><label style="font-size:12px;color:var(--t3);">İkincil Renk</label><input type="color" id="customSecondary" class="modal-input" value="#e879f9"><button class="modal-btn" onclick="applyCustomTheme()">Uygula</button></div></div>
-  <div id="addServerModal" class="modal"><div class="modal-box"><h2>${Icons.plus} Sunucu Oluştur</h2><input id="newServerName" class="modal-input" placeholder="Sunucu Adı"><button class="modal-btn" onclick="createServer()">Oluştur</button></div></div>
-  <div id="addChannelModal" class="modal"><div class="modal-box"><h2>${Icons.plus} Kanal Oluştur</h2><input id="newChannelName" class="modal-input" placeholder="Kanal Adı"><select id="channelType" class="modal-select"><option value="text">💬 Metin</option><option value="voice">🔊 Ses</option><option value="forum">📋 Forum</option></select><select id="channelCategory" class="modal-select"><option value="">Kategori</option></select><button class="modal-btn" onclick="createChannel()">Oluştur</button></div></div>
-  <div id="editChannelModal" class="modal"><div class="modal-box"><h2>${Icons.edit} Kanal Düzenle</h2><input id="editChannelId" type="hidden"><input id="editChannelName" class="modal-input" placeholder="Kanal Adı"><select id="editChannelType" class="modal-select"><option value="text">💬 Metin</option><option value="voice">🔊 Ses</option><option value="forum">📋 Forum</option></select><select id="editChannelCategory" class="modal-select"><option value="">Kategori</option></select><button class="modal-btn" onclick="saveChannelEdit()">Kaydet</button><button class="modal-btn danger" onclick="deleteChannel()" style="margin-top:8px;">${Icons.trash} Kanalı Sil</button></div></div>
-  <div id="addCategoryModal" class="modal"><div class="modal-box"><h2>${Icons.plus} Kategori Ekle</h2><input id="newCategoryName" class="modal-input" placeholder="Kategori Adı"><button class="modal-btn" onclick="addCategoryConfirm()">Ekle</button></div></div>
-  <div id="discoverModal" class="modal"><div class="modal-box"><h2>${Icons.search} Toplulukları Keşfet</h2><div id="discoverList"></div></div></div>
-  <div id="dmModal" class="modal"><div class="modal-box"><h2>${Icons.dm} Direkt Mesajlar</h2><button class="modal-btn" onclick="openDMNew()" style="margin-bottom:12px;">${Icons.plus} Yeni DM</button><button class="modal-btn secondary" onclick="openGroupDM()" style="margin-bottom:12px;">👥 Grup DM</button><div id="dmList"></div><div id="dmChatArea" style="display:none;margin-top:12px;"><div id="dmMessages" style="height:180px;overflow-y:auto;margin-bottom:8px;border:1px solid var(--b);border-radius:10px;padding:8px;"></div><div style="display:flex;gap:6px;"><input type="text" id="dmInput" class="modal-input" style="margin:0;flex:1;" placeholder="Mesaj..."><button class="modal-btn" id="sendDmBtn" style="width:auto;padding:10px 16px;">${Icons.send}</button></div></div></div></div>
-  <div id="dmNewModal" class="modal"><div class="modal-box"><h2>${Icons.plus} Yeni DM</h2><input id="dmNewUsername" class="modal-input" placeholder="Kullanıcı Adı"><button class="modal-btn" onclick="startDM()">Başlat</button></div></div>
-  <div id="groupDMModal" class="modal"><div class="modal-box"><h2>👥 Grup DM</h2><input id="groupDMUsers" class="modal-input" placeholder="Kullanıcı adları (virgülle ayır)"><button class="modal-btn" onclick="startGroupDM()">Oluştur</button></div></div>
-  <div id="addFriendModal" class="modal"><div class="modal-box"><h2>${Icons.plus} Arkadaş Ekle</h2><input id="friendUsername" class="modal-input" placeholder="Kullanıcı Adı"><button class="modal-btn" onclick="addFriend()">Ekle</button></div></div>
-  <div id="webhookModal" class="modal"><div class="modal-box"><h2>${Icons.webhook} Webhook Bilgileri</h2><div class="id-row"><span>Kanal ID:</span><span id="channelIdVal">${currentChannel.id}</span></div><div class="id-row"><span>Sunucu ID:</span><span id="serverIdVal">srv_demo</span></div><div class="id-row"><span>Webhook URL:</span><span id="webhookUrlVal">${API_URL}/api/webhook/demo</span></div><button class="modal-btn secondary" onclick="closeModal('webhookModal')">Kapat</button></div></div>
-  <div id="rolesModal" class="modal"><div class="modal-box" style="width:600px;"><h2>${Icons.shield} Roller & İzinler</h2><div id="rolesList"></div><button class="modal-btn" onclick="openModal('addRoleModal')" style="margin-top:8px;">${Icons.plus} Rol Ekle</button></div></div>
-  <div id="addRoleModal" class="modal"><div class="modal-box"><h2>${Icons.plus} Rol Ekle</h2><input id="newRoleName" class="modal-input" placeholder="Rol Adı"><input type="color" id="newRoleColor" class="modal-input" value="#9ca3af"><button class="modal-btn" onclick="addRole()">Ekle</button></div></div>
-  <div id="editRoleModal" class="modal"><div class="modal-box" style="width:550px;"><h2>${Icons.edit} Rol Düzenle</h2><input id="editRoleId" type="hidden"><input id="editRoleName" class="modal-input" placeholder="Rol Adı"><input type="color" id="editRoleColor" class="modal-input" value="#9ca3af"><label style="font-size:11px;color:var(--t3);display:block;margin-bottom:4px;">Yetkiler</label><div id="rolePerms"></div><button class="modal-btn" onclick="saveRoleEdit()">Kaydet</button><button class="modal-btn danger" onclick="deleteRole()" style="margin-top:8px;">${Icons.trash} Rolü Sil</button></div></div>
-  <div id="userRolesModal" class="modal"><div class="modal-box"><h2>${Icons.shield} Kullanıcı Rolleri</h2><div id="userRolesList"></div><button class="modal-btn" onclick="closeModal('userRolesModal')">Kapat</button></div></div>
-  <div id="searchModal" class="modal"><div class="modal-box" style="width:600px;"><h2>${Icons.search} Ara</h2><input id="searchInput" class="modal-input" placeholder="Mesaj, kullanıcı veya kanal ara..."><div id="searchResults"></div></div></div>
-  <div id="inviteModal" class="modal"><div class="modal-box"><h2>${Icons.link} Davet Linki</h2><div class="id-row"><span>Davet Linki:</span><span id="inviteLink">https://gettic.js.org/invite/demo</span></div><button class="modal-btn" onclick="copyId('inviteLink')">Kopyala</button></div></div>
-  <div id="backupModal" class="modal"><div class="modal-box"><h2>${Icons.backup} Yedekleme</h2><button class="modal-btn" onclick="exportBackup()">Yedeği İndir</button><input type="file" id="backupFile" class="modal-input" accept=".json" style="margin-top:8px;"><button class="modal-btn secondary" onclick="importBackup()">Yedekten Geri Yükle</button></div></div>
-  <div id="exportModal" class="modal"><div class="modal-box"><h2>${Icons.export} Dışa Aktar</h2><button class="modal-btn" onclick="exportChat('json')">JSON olarak indir</button><button class="modal-btn secondary" onclick="exportChat('csv')">CSV olarak indir</button></div></div>
-  <div id="pollModal" class="modal"><div class="modal-box"><h2>${Icons.poll} Anket Başlat</h2><input id="pollQuestion" class="modal-input" placeholder="Soru"><input id="pollOption1" class="modal-input" placeholder="Seçenek 1"><input id="pollOption2" class="modal-input" placeholder="Seçenek 2"><input id="pollOption3" class="modal-input" placeholder="Seçenek 3 (opsiyonel)"><input id="pollOption4" class="modal-input" placeholder="Seçenek 4 (opsiyonel)"><button class="modal-btn" onclick="createPoll()">Başlat</button></div></div>
-  <div id="notifModal" class="modal"><div class="modal-box"><h2>${Icons.bell} Bildirimler</h2><div id="notifList"></div></div></div>`;
+  <div id="serverSettingsModal" class="modal" role="dialog" aria-modal="true"><div class="modal-box"><h2>${Icons.settings} Sunucu Ayarları</h2><input id="serverName" class="modal-input" placeholder="Sunucu Adı" value="${sanitize(State.serverSettings.name)}" aria-label="Sunucu adı"><button class="modal-btn" onclick="saveServerSettings()">Kaydet</button></div></div>
+  <div id="profileModal" class="modal" role="dialog" aria-modal="true"><div class="modal-box"><h2>${Icons.user} Profilim</h2><div class="profile-banner"></div><div class="profile-avatar-large">${(State.user?.username||'U').charAt(0).toUpperCase()}</div><input id="profileDisplayName" class="modal-input" value="${sanitize(State.user?.username||'')}" aria-label="Görünen ad"><select id="profileStatus" class="modal-select" aria-label="Durum"><option value="online">🟢 ${t('online')}</option><option value="idle">🟡 ${t('idle')}</option><option value="dnd">🔴 ${t('dnd')}</option><option value="offline">⚫ ${t('offline')}</option></select><button class="modal-btn" onclick="saveProfile()">Kaydet</button></div></div>
+  <div id="userInfoModal" class="modal" role="dialog" aria-modal="true"><div class="modal-box"><div id="userInfoContent"></div></div></div>
+  <div id="themeSettingsModal" class="modal" role="dialog" aria-modal="true"><div class="modal-box"><h2>${t('theme')}</h2><div class="theme-option" onclick="setTheme('#c084fc','#e879f9')"><div style="width:28px;height:28px;border-radius:7px;background:#c084fc;"></div>Pembe Mor</div><div class="theme-option" onclick="setTheme('#6366f1','#818cf8')"><div style="width:28px;height:28px;border-radius:7px;background:#6366f1;"></div>Mavi</div><div class="theme-option" onclick="setTheme('#22c55e','#4ade80')"><div style="width:28px;height:28px;border-radius:7px;background:#22c55e;"></div>Yeşil</div><div class="theme-option" onclick="toggleLightMode()">${document.body.classList.contains('light')?Icons.moon:Icons.sun} Aydınlık/Karanlık</div></div></div>
+  <div id="addServerModal" class="modal" role="dialog" aria-modal="true"><div class="modal-box"><h2>${Icons.plus} Sunucu Oluştur</h2><input id="newServerName" class="modal-input" placeholder="Sunucu Adı" aria-label="Sunucu adı"><button class="modal-btn" onclick="createServer()">Oluştur</button></div></div>
+  <div id="addChannelModal" class="modal" role="dialog" aria-modal="true"><div class="modal-box"><h2>${Icons.plus} Kanal Oluştur</h2><input id="newChannelName" class="modal-input" placeholder="Kanal Adı" aria-label="Kanal adı"><select id="channelType" class="modal-select" aria-label="Kanal tipi"><option value="text">💬 Metin</option><option value="voice">🔊 Ses</option><option value="forum">📋 Forum</option></select><select id="channelCategory" class="modal-select" aria-label="Kategori"><option value="">Kategori</option></select><button class="modal-btn" onclick="createChannel()">Oluştur</button></div></div>
+  <div id="editChannelModal" class="modal" role="dialog" aria-modal="true"><div class="modal-box"><h2>${Icons.edit} Kanal Düzenle</h2><input id="editChannelId" type="hidden"><input id="editChannelName" class="modal-input" placeholder="Kanal Adı"><select id="editChannelType" class="modal-select"><option value="text">💬 Metin</option><option value="voice">🔊 Ses</option><option value="forum">📋 Forum</option></select><select id="editChannelCategory" class="modal-select"><option value="">Kategori</option></select><button class="modal-btn" onclick="saveChannelEdit()">Kaydet</button></div></div>
+  <div id="addCategoryModal" class="modal" role="dialog" aria-modal="true"><div class="modal-box"><h2>${Icons.plus} Kategori Ekle</h2><input id="newCategoryName" class="modal-input" placeholder="Kategori Adı"><button class="modal-btn" onclick="addCategoryConfirm()">Ekle</button></div></div>
+  <div id="discoverModal" class="modal" role="dialog" aria-modal="true"><div class="modal-box"><h2>${Icons.search} Keşfet</h2><div id="discoverList"></div></div></div>
+  <div id="dmModal" class="modal" role="dialog" aria-modal="true"><div class="modal-box"><h2>💬 ${t('dm')}</h2><button class="modal-btn" onclick="openDMNew()">${Icons.plus} Yeni DM</button><button class="modal-btn secondary" onclick="openGroupDM()">👥 ${t('groupDM')}</button><div id="dmList"></div><div id="dmChatArea" style="display:none;"><div id="dmMessages" style="height:200px;overflow-y:auto;border:1px solid var(--b);border-radius:10px;padding:8px;" aria-label="DM mesajları"></div><div style="display:flex;gap:6px;"><input type="text" id="dmInput" placeholder="Mesaj..." aria-label="DM mesajı"><button class="modal-btn" id="sendDmBtn">${Icons.send}</button></div></div></div></div>
+  <div id="dmNewModal" class="modal" role="dialog" aria-modal="true"><div class="modal-box"><h2>${Icons.plus} Yeni DM</h2><input id="dmNewUsername" class="modal-input" placeholder="${t('username')}"><button class="modal-btn" onclick="startDM()">Başlat</button></div></div>
+  <div id="groupDMModal" class="modal" role="dialog" aria-modal="true"><div class="modal-box"><h2>👥 ${t('groupDM')}</h2><input id="groupDMUsers" class="modal-input" placeholder="Kullanıcı adları (virgülle)"><button class="modal-btn" onclick="startGroupDM()">Oluştur</button></div></div>
+  <div id="addFriendModal" class="modal" role="dialog" aria-modal="true"><div class="modal-box"><h2>${Icons.plus} ${t('addFriend')}</h2><input id="friendUsername" class="modal-input" placeholder="${t('username')}"><button class="modal-btn" onclick="addFriend()">Ekle</button></div></div>
+  <div id="rolesModal" class="modal" role="dialog" aria-modal="true"><div class="modal-box" style="width:600px;"><h2>${Icons.shield} Roller</h2><div id="rolesList"></div><button class="modal-btn" onclick="openModal('addRoleModal')">${Icons.plus} Rol Ekle</button></div></div>
+  <div id="addRoleModal" class="modal" role="dialog" aria-modal="true"><div class="modal-box"><h2>${Icons.plus} Rol Ekle</h2><input id="newRoleName" class="modal-input" placeholder="Rol Adı"><input type="color" id="newRoleColor" class="modal-input" value="#9ca3af"><button class="modal-btn" onclick="addRole()">Ekle</button></div></div>
+  <div id="editRoleModal" class="modal" role="dialog" aria-modal="true"><div class="modal-box" style="width:550px;"><h2>${Icons.edit} Rol Düzenle</h2><input id="editRoleId" type="hidden"><input id="editRoleName" class="modal-input" placeholder="Rol Adı"><input type="color" id="editRoleColor" class="modal-input" value="#9ca3af"><label>Yetkiler</label><div id="rolePerms"></div><button class="modal-btn" onclick="saveRoleEdit()">Kaydet</button></div></div>
+  <div id="searchModal" class="modal" role="dialog" aria-modal="true"><div class="modal-box" style="width:600px;"><h2>${Icons.search} ${t('search')}</h2><input id="searchInput" class="modal-input" placeholder="${t('search')}" aria-label="Arama"><div id="searchResults"></div></div></div>
+  <div id="pollModal" class="modal" role="dialog" aria-modal="true"><div class="modal-box"><h2>${Icons.poll} Anket</h2><input id="pollQuestion" class="modal-input" placeholder="Soru"><input id="pollOption1" class="modal-input" placeholder="Seçenek 1"><input id="pollOption2" class="modal-input" placeholder="Seçenek 2"><button class="modal-btn" onclick="createPoll()">Başlat</button></div></div>
+  <div id="notifModal" class="modal" role="dialog" aria-modal="true"><div class="modal-box"><h2>${Icons.bell} Bildirimler</h2><div id="notifList"></div></div></div>`;
 }
 
 function bindAuth(){
   document.getElementById('loginTab')?.addEventListener('click',()=>{document.getElementById('loginForm').style.display='block';document.getElementById('registerForm').style.display='none';});
   document.getElementById('registerTab')?.addEventListener('click',()=>{document.getElementById('loginForm').style.display='none';document.getElementById('registerForm').style.display='block';});
-  document.getElementById('doLoginBtn')?.addEventListener('click',async()=>{
-    const u=document.getElementById('loginUser')?.value.trim(),p=document.getElementById('loginPass')?.value;
-    if(!u||!p)return toast('Tüm alanları doldurun',true);
-    try{
-      const res=await fetch(`${API_URL}/api/auth/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})});
-      const data=await res.json();if(!res.ok)throw new Error(data.error||'Giriş başarısız');
-      currentToken=data.token;currentUser=data.user;userRoles[currentUser._id]=['r5'];
-      localStorage.setItem('gt_token',currentToken);localStorage.setItem('gt_user',JSON.stringify(currentUser));
-      document.getElementById('loadingScreen')?.classList.add('hide');renderApp();
-    }catch(e){document.getElementById('authError').textContent=e.message;}
-  });
-  document.getElementById('doRegBtn')?.addEventListener('click',async()=>{
-    const u=document.getElementById('regUser')?.value.trim(),p=document.getElementById('regPass')?.value;
-    if(!u||!p)return toast('Tüm alanları doldurun',true);
-    if(u.length<3)return toast('Kullanıcı adı en az 3 karakter',true);
-    if(p.length<6)return toast('Şifre en az 6 karakter',true);
-    try{
-      const res=await fetch(`${API_URL}/api/auth/register`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})});
-      const data=await res.json();if(!res.ok)throw new Error(data.error||'Kayıt başarısız');
-      currentToken=data.token;currentUser=data.user;userRoles[currentUser._id]=['r5'];
-      localStorage.setItem('gt_token',currentToken);localStorage.setItem('gt_user',JSON.stringify(currentUser));
-      document.getElementById('loadingScreen')?.classList.add('hide');renderApp();
-    }catch(e){document.getElementById('authError').textContent=e.message;}
-  });
+  document.getElementById('doLoginBtn')?.addEventListener('click',doAuth.bind(null,'login'));
+  document.getElementById('doRegBtn')?.addEventListener('click',doAuth.bind(null,'register'));
+}
+async function doAuth(type){
+  const isLogin=type==='login';const uId=isLogin?'loginUser':'regUser';const pId=isLogin?'loginPass':'regPass';
+  const u=document.getElementById(uId)?.value.trim(),p=document.getElementById(pId)?.value;
+  const errEl=document.getElementById('authError');
+  if(!u||!p)return errEl.textContent='Tüm alanları doldurun';
+  if(!isLogin&&u.length<3)return errEl.textContent='Kullanıcı adı en az 3 karakter';
+  if(!isLogin&&p.length<6)return errEl.textContent='Şifre en az 6 karakter';
+  if(!navigator.onLine)return errEl.textContent='İnternet bağlantısı yok';
+  try{
+    const res=await fetch(`${API_URL}/api/auth/${type}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})});
+    if(res.status===401){errEl.textContent='Oturum süresi doldu, tekrar giriş yapın';logout();return;}
+    const data=await res.json();if(!res.ok)throw new Error(data.error||'Başarısız');
+    State.token=data.token;State.user=data.user;
+    if(!State.userRoles[State.user._id]){State.userRoles[State.user._id]=['r5'];saveState();}
+    localStorage.setItem('gt_token',State.token);localStorage.setItem('gt_user',JSON.stringify(State.user));
+    document.getElementById('loadingScreen')?.classList.add('hide');renderApp();
+  }catch(e){errEl.textContent=e.message;}
 }
 function bindUI(){
-  document.getElementById('sendBtn')?.addEventListener('click',sendMessage);
-  document.getElementById('messageInput')?.addEventListener('keypress',e=>{if(e.key==='Enter')sendMessage();});
-  document.getElementById('emojiBtn')?.addEventListener('click',()=>document.getElementById('emojiPicker')?.classList.toggle('show'));
+  const sendBtn=document.getElementById('sendBtn');if(sendBtn)sendBtn.addEventListener('click',sendMessage);
+  const msgInput=document.getElementById('messageInput');if(msgInput){msgInput.addEventListener('keypress',e=>{if(e.key==='Enter')sendMessage();});msgInput.addEventListener('input',handleInput);}
+  document.getElementById('emojiBtn')?.addEventListener('click',()=>document.getElementById('emojiPopup')?.classList.toggle('show'));
   document.getElementById('logoutBtn')?.addEventListener('click',logout);
-  document.getElementById('webhookInfoBtn')?.addEventListener('click',()=>openModal('webhookModal'));
   document.getElementById('serverSettingsBtn')?.addEventListener('click',()=>openModal('serverSettingsModal'));
   document.getElementById('profileBtn')?.addEventListener('click',()=>openModal('profileModal'));
   document.getElementById('themeSettingsBtn')?.addEventListener('click',()=>openModal('themeSettingsModal'));
@@ -388,310 +387,257 @@ function bindUI(){
   document.getElementById('rolesBtn')?.addEventListener('click',()=>{openModal('rolesModal');renderRoles();});
   document.getElementById('searchBtn')?.addEventListener('click',()=>openModal('searchModal'));
   document.getElementById('notifBtn')?.addEventListener('click',()=>{openModal('notifModal');renderNotifications();});
-  document.getElementById('exportBtn')?.addEventListener('click',()=>openModal('exportModal'));
+  document.getElementById('pollBtn')?.addEventListener('click',()=>openModal('pollModal'));
+  document.getElementById('backupBtn')?.addEventListener('click',()=>exportBackup());
+  document.getElementById('themeToggleBtn')?.addEventListener('click',toggleLightMode);
+  document.getElementById('densityBtn')?.addEventListener('click',toggleDensity);
+  document.getElementById('langBtn')?.addEventListener('click',()=>setLang(State.lang==='tr'?'en':'tr'));
   document.getElementById('statusProfile')?.addEventListener('click',()=>openModal('profileModal'));
-  document.getElementById('uploadBtn')?.addEventListener('click',()=>{
-    const inp=document.createElement('input');inp.type='file';inp.accept='image/*,video/*,.pdf,.txt,.zip';
-    inp.onchange=()=>{if(inp.files[0])toast('Dosya yükleme hazır: '+inp.files[0].name);};
-    inp.click();
-  });
-  initEmojiPicker();
-  document.getElementById('searchInput')?.addEventListener('input',performSearch);
-  document.addEventListener('click',e=>{if(e.target.classList?.contains('modal'))e.target.classList.remove('show');});
-  document.addEventListener('contextmenu',e=>{e.preventDefault();showContextMenu(e);});
-  document.addEventListener('click',()=>{document.getElementById('contextMenu')?.classList.remove('show');});
+  document.getElementById('uploadBtn')?.addEventListener('click',handleFileUpload);
+  document.getElementById('muteBtn')?.addEventListener('click',toggleMute);
+  document.getElementById('deafenBtn')?.addEventListener('click',toggleDeafen);
+  document.getElementById('screenShareBtn')?.addEventListener('click',startScreenShare);
+  document.getElementById('videoBtn')?.addEventListener('click',startVideo);
+  document.getElementById('leaveVoiceBtn')?.addEventListener('click',leaveVoiceChannel);
+  document.getElementById('searchInput')?.addEventListener('input',debounce(performSearch,250));
+  document.addEventListener('click',e=>{if(e.target.classList?.contains('modal')){closeModal(e.target.id||[...e.target.classList].find(c=>c.endsWith('Modal')));}});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'){document.querySelectorAll('.modal.show').forEach(m=>closeModal(m.id));document.getElementById('emojiPopup')?.classList.remove('show');document.getElementById('contextMenu')?.classList.remove('show');}});
+  document.addEventListener('contextmenu',handleContextMenu);
+  document.addEventListener('click',e=>{if(!e.target.closest('.context-menu'))document.getElementById('contextMenu')?.classList.remove('show');});
+  document.addEventListener('keydown',e=>{if(e.ctrlKey&&e.key==='k'){e.preventDefault();openModal('searchModal');document.getElementById('searchInput')?.focus();}});
+  document.addEventListener('mousemove',handleUserActivity);document.addEventListener('keydown',handleUserActivity);
+  document.getElementById('messagesContainer')?.addEventListener('scroll',handleScrollSave);
+  document.addEventListener('touchstart',handleTouchStart,{passive:true});document.addEventListener('touchend',handleTouchEnd);
+  window.addEventListener('online',()=>{updateConnectionUI(true);processOfflineQueue();connectSocket();});
+  window.addEventListener('offline',()=>updateConnectionUI(false));
 }
+
+let touchStartX=0;function handleTouchStart(e){touchStartX=e.touches[0].clientX;}
+function handleTouchEnd(e){const dx=e.changedTouches[0].clientX-touchStartX;if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(e.changedTouches[0].clientY-(e.touches[0]?.clientY||0))){if(dx>0)document.getElementById('channelSidebar')?.classList.add('open');else document.getElementById('userPanel')?.classList.add('open');}}
+function handleScrollSave(){const c=document.getElementById('messagesContainer');if(c)State.channelScrollPositions[State.channel.id]=c.scrollTop;}
+
+function handleInput(){const val=document.getElementById('messageInput')?.value||'';if(State.socket&&State.channel)State.socket.emit('typing',{channelId:State.channel.id,username:State.user?.username});const cm=val.match(/:(\w+)$/);const popup=document.getElementById('emojiPopup');const sug=document.getElementById('emojiSuggestions');if(cm&&sug){const q=cm[1].toLowerCase();const em={smile:'😀',laugh:'😂',heart:'❤️',fire:'🔥',ok:'👍',clap:'👏',cry:'😢',angry:'😡',star:'⭐',check:'✅',x:'❌',wave:'👋',think:'🤔',cool:'😎',wink:'😉',love:'🥰',party:'🥳',rock:'🤘',pray:'🙏',muscle:'💪'};const m=Object.entries(em).filter(([k])=>k.startsWith(q));if(m.length){sug.innerHTML=m.map(([,e])=>`<span class="emoji-suggestion" role="button" tabindex="0">${e}</span>`).join('');popup.classList.add('show');sug.onclick=e=>{const emoji=e.target.closest('.emoji-suggestion');if(emoji){const inp=document.getElementById('messageInput');inp.value=inp.value.replace(/:\w+$/,'')+emoji.textContent;popup.classList.remove('show');inp.focus();}};}else{popup.classList.remove('show');}}else{popup.classList.remove('show');}}
+function handleContextMenu(e){e.preventDefault();const msgEl=e.target.closest('.message');const menu=document.getElementById('contextMenu');if(msgEl){const mid=msgEl.dataset.id;menu.innerHTML=`<button onclick="addReaction('${mid}','👍')">👍 Beğen</button><button onclick="addReaction('${mid}','❤️')">❤️ Kalp</button><button onclick="copyMsgContent('${mid}')">${Icons.copy} ${t('copy')}</button><button onclick="deleteMessage('${mid}')" class="danger">${Icons.trash} ${t('delete')}</button>`;}else{menu.innerHTML=`<button onclick="openModal('addChannelModal')">${Icons.plus} Kanal</button><button onclick="openModal('addCategoryModal')">📁 Kategori</button>`;}menu.style.left=Math.min(e.clientX,window.innerWidth-200)+'px';menu.style.top=Math.min(e.clientY,window.innerHeight-250)+'px';menu.classList.add('show');}
+function copyMsgContent(mid){const msg=State.messageDb.find(m=>m._id===mid);if(msg){if(navigator.clipboard){navigator.clipboard.writeText(msg.content).then(()=>toast('Kopyalandı!')).catch(()=>toast('Kopyalanamadı',true));}else{const ta=document.createElement('textarea');ta.value=msg.content;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('Kopyalandı!');}}document.getElementById('contextMenu')?.classList.remove('show');}
+function debounce(fn,ms){let t;return(...args)=>{clearTimeout(t);t=setTimeout(()=>fn(...args),ms);};}
+function toggleLightMode(){const isLight=document.body.classList.toggle('light');localStorage.setItem('gt_light',isLight?'true':'false');const btn=document.getElementById('themeToggleBtn');if(btn)btn.innerHTML=isLight?Icons.sun:Icons.moon;renderApp();}
+function toggleDensity(){const root=document.documentElement.style;const cur=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--msg-density'))||1;const nxt=cur===1?.6:cur===.6?.4:1;root.setProperty('--msg-density',nxt);toast('Yoğunluk: '+({1:'Rahat',.6:'Normal',.4:'Kompakt'}[nxt]));}
+function handleFileUpload(){const i=document.createElement('input');i.type='file';i.accept='image/*,video/*,.pdf,.txt';i.setAttribute('aria-label','Dosya seç');i.onchange=()=>{if(i.files[0]){const f=i.files[0];if(f.size>10*1024*1024)return toast('Max 10MB',true);const inp=document.getElementById('messageInput');if(inp)inp.value+=` [📎 ${f.name}] `;}};i.click();}
 
 function renderChannels(){
-  const container=document.getElementById('channelCategories');if(!container)return;
-  let html='';
-  categories.forEach(cat=>{
-    const catChannels=channels.filter(c=>c.category===cat);
-    html+=`<div class="channel-category">${cat}<button data-cat="${cat}">${Icons.plus}</button></div>`;
-    catChannels.forEach(ch=>{
+  const c=document.getElementById('channelCategories');if(!c)return;
+  if(!State.categories.length&&!State.channels.length){c.innerHTML=`<div class="empty-channels">${t('noChannels')}</div>`;return;}
+  let h='';State.categories.forEach(cat=>{
+    h+=`<div class="channel-category">${cat}<button data-cat="${cat}" aria-label="${cat} kanal ekle">${Icons.plus}</button></div>`;
+    State.channels.filter(ch=>ch.category===cat).forEach(ch=>{
       const icon=ch.type==='voice'?Icons.volume:ch.type==='forum'?Icons.forum:Icons.hash;
-      const cls=ch.id===currentChannel.id?' active':'';
-      html+=`<div class="channel-item${cls}" data-id="${ch.id}" data-type="${ch.type}" data-cat="${ch.category}">${icon}${esc(ch.name)}<div class="ch-actions"><button data-action="edit" title="Düzenle">${Icons.edit}</button><button data-action="delete" title="Sil">${Icons.trash}</button></div></div>`;
-    });
-  });
-  container.innerHTML=html;bindChannelClicks();
+      const cls=ch.id===State.channel.id?' active':'';const ur=State.unreadCounts[ch.id]||0;
+      h+=`<div class="channel-item${cls}" data-id="${ch.id}" data-type="${ch.type}" tabindex="0" role="button" aria-label="${ch.name}${ur?' '+ur+' okunmamış':''}">${icon}${sanitize(ch.name)}${ur>0?`<span class="unread-badge">${ur}</span>`:''}<div class="ch-actions"><button data-action="edit" aria-label="Düzenle">${Icons.edit}</button><button data-action="delete" aria-label="Sil">${Icons.trash}</button></div></div>`;});});c.innerHTML=h;
+  c.querySelectorAll('.channel-item').forEach(el=>{el.addEventListener('click',e=>{if(e.target.closest('.ch-actions'))return;const id=el.dataset.id;if(el.dataset.type==='voice'){joinVoiceChannel(id);return;}switchChannel(id);});el.addEventListener('keydown',e=>{if(e.key==='Enter')el.click();});});
+  c.querySelectorAll('.ch-actions button[data-action="edit"]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();openEditChannel(e.target.closest('.channel-item').dataset.id);}));
+  c.querySelectorAll('.ch-actions button[data-action="delete"]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();deleteChannelById(e.target.closest('.channel-item').dataset.id);}));
+  c.querySelectorAll('.channel-category button').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();setupChannelCatSelect(b.dataset.cat);openModal('addChannelModal');}));
 }
-function bindChannelClicks(){
-  document.querySelectorAll('.channel-category button').forEach(btn=>{btn.addEventListener('click',e=>{e.stopPropagation();setupChannelCatSelect(btn.dataset.cat);openModal('addChannelModal');});});
-  document.querySelectorAll('.channel-item').forEach(el=>{el.addEventListener('click',e=>{if(e.target.closest('.ch-actions'))return;const id=el.dataset.id,type=el.dataset.type;if(type==='voice'){joinVoiceChannel(id);return;}switchChannel(id);});});
-  document.querySelectorAll('.ch-actions button[data-action="edit"]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();const chId=e.target.closest('.channel-item')?.dataset.id;openEditChannel(chId);}));
-  document.querySelectorAll('.ch-actions button[data-action="delete"]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();const chId=e.target.closest('.channel-item')?.dataset.id;deleteChannelById(chId);}));
-}
-function openEditChannel(chId){
-  const ch=channels.find(c=>c.id===chId);if(!ch)return;
-  document.getElementById('editChannelId').value=ch.id;
-  document.getElementById('editChannelName').value=ch.name;
-  document.getElementById('editChannelType').value=ch.type;
-  const sel=document.getElementById('editChannelCategory');sel.innerHTML='<option value="">Kategori</option>'+categories.map(c=>`<option value="${c}" ${c===ch.category?'selected':''}>${c}</option>`).join('');
-  openModal('editChannelModal');
-}
-function saveChannelEdit(){
-  const id=document.getElementById('editChannelId').value;
-  const name=document.getElementById('editChannelName').value.trim();
-  const type=document.getElementById('editChannelType').value;
-  const cat=document.getElementById('editChannelCategory').value||'METİN ODALARI';
-  if(!name)return toast('Kanal adı gerekli',true);
-  const ch=channels.find(c=>c.id===id);if(!ch)return;
-  ch.name=name;ch.type=type;ch.category=cat;
-  if(!categories.includes(cat))categories.push(cat);
-  renderChannels();closeModal('editChannelModal');toast('Kanal güncellendi');
-}
-function deleteChannel(){const id=document.getElementById('editChannelId').value;deleteChannelById(id);closeModal('editChannelModal');}
-function deleteChannelById(chId){
-  if(!hasPermission(currentUser._id,'manageChannels'))return toast('Yetkiniz yok',true);
-  channels=channels.filter(c=>c.id!==chId);
-  if(currentChannel.id===chId){const first=channels.find(c=>c.type!=='voice');if(first)switchChannel(first.id);}
-  renderChannels();toast('Kanal silindi');
-}
-function setupChannelCatSelect(cat){const sel=document.getElementById('channelCategory');if(sel)sel.innerHTML='<option value="">Kategori (opsiyonel)</option>'+categories.map(c=>`<option value="${c}" ${c===cat?'selected':''}>${c}</option>`).join('');}
+function openEditChannel(id){const ch=State.channels.find(c=>c.id===id);if(!ch)return;document.getElementById('editChannelId').value=ch.id;document.getElementById('editChannelName').value=ch.name;document.getElementById('editChannelType').value=ch.type;const s=document.getElementById('editChannelCategory');s.innerHTML=State.categories.map(c=>`<option value="${c}" ${c===ch.category?'selected':''}>${c}</option>`).join('');openModal('editChannelModal');}
+function saveChannelEdit(){const id=document.getElementById('editChannelId').value,n=document.getElementById('editChannelName').value.trim(),type=document.getElementById('editChannelType').value,cat=document.getElementById('editChannelCategory').value;if(!n)return toast('Ad gerekli',true);const ch=State.channels.find(c=>c.id===id);if(!ch)return;ch.name=n;ch.type=type;ch.category=cat;if(!State.categories.includes(cat))State.categories.push(cat);saveState();renderChannels();closeModal('editChannelModal');}
+function deleteChannelById(id){if(!hasPermission(State.user._id,'manageChannels'))return toast('Yetkiniz yok',true);State.channels=State.channels.filter(c=>c.id!==id);if(State.channel.id===id){const f=State.channels.find(c=>c.type!=='voice');if(f)switchChannel(f.id);}saveState();renderChannels();}
+function setupChannelCatSelect(cat){const s=document.getElementById('channelCategory');if(s)s.innerHTML='<option value="">Kategori</option>'+State.categories.map(c=>`<option value="${c}" ${c===cat?'selected':''}>${c}</option>`).join('');}
 function switchChannel(id){
-  const ch=channels.find(c=>c.id===id);if(!ch)return;
-  currentChannel={id:ch.id,name:ch.name,topic:'Sohbet odası'};
-  document.querySelector('.channel-name').textContent='# '+ch.name;
-  renderChannels();loadMessages();
-  if(socket)socket.emit('join_channel',ch.id);
-  if(isInVoice)leaveVoiceChannel();
-  updatePinnedBar();
+  const ch=State.channels.find(c=>c.id===id);if(!ch)return;
+  const container=document.getElementById('messagesContainer');if(container)State.channelScrollPositions[State.channel.id]=container.scrollTop;
+  State.channel={id:ch.id,name:ch.name,topic:'Sohbet odası'};document.querySelector('.channel-name').textContent='# '+ch.name;State.unreadCounts[ch.id]=0;saveState();renderChannels();loadMessages();
+  if(State.socket){State.socket.emit('join_channel',ch.id);}
+  if(State.isInVoice)leaveVoiceChannel();updatePinnedBar();
 }
-function createChannel(){
-  const name=document.getElementById('newChannelName')?.value.trim();
-  const type=document.getElementById('channelType')?.value||'text';
-  const cat=document.getElementById('channelCategory')?.value||'METİN ODALARI';
-  if(!name)return toast('Kanal adı gerekli',true);
-  const id=name.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
-  if(channels.find(c=>c.id===id))return toast('Bu kanal zaten var',true);
-  channels.push({id,name,type,category:cat,permissions:{}});
-  if(!categories.includes(cat))categories.push(cat);
-  renderChannels();closeModal('addChannelModal');toast(`${name} kanalı oluşturuldu`);
-}
-function createServer(){
-  const name=document.getElementById('newServerName')?.value.trim();
-  if(!name)return toast('Sunucu adı gerekli',true);
-  serverSettings.name=name;channels=[{id:'genel-sohbet',name:'genel-sohbet',type:'text',category:'METİN ODALARI',permissions:{}},{id:'genel-ses',name:'Genel Ses',type:'voice',category:'SESLİ ODALAR',permissions:{}}];
-  categories=['METİN ODALARI','SESLİ ODALAR'];currentChannel={id:'genel-sohbet',name:'genel-sohbet',topic:'Sohbet odası'};
-  renderChannels();loadMessages();closeModal('addServerModal');toast(`${name} sunucusu oluşturuldu`);
-}
-function deleteServer(){if(confirm('Sunucuyu silmek istediğinize emin misiniz?')){serverSettings={name:'Gettic',description:'',icon:'',banner:''};channels=[{id:'genel-sohbet',name:'genel-sohbet',type:'text',category:'METİN ODALARI',permissions:{}}];categories=['METİN ODALARI'];renderChannels();closeModal('serverSettingsModal');toast('Sunucu silindi');}}
-function addCategoryConfirm(){const name=document.getElementById('newCategoryName')?.value.trim();if(!name)return toast('Kategori adı gerekli',true);if(categories.includes(name))return toast('Bu kategori zaten var',true);categories.push(name);renderChannels();closeModal('addCategoryModal');toast('Kategori eklendi');}
-function saveServerSettings(){serverSettings.name=document.getElementById('serverName')?.value||'Gettic';serverSettings.description=document.getElementById('serverDesc')?.value||'';document.querySelector('.channel-header span').textContent=serverSettings.name;closeModal('serverSettingsModal');toast('Sunucu ayarları kaydedildi');}
-function saveProfile(){const name=document.getElementById('profileDisplayName')?.value;if(name&&currentUser)currentUser.username=name;const status=document.getElementById('profileStatus')?.value;if(status){userStatuses[currentUser._id]=status;updateStatusUI(status);}closeModal('profileModal');toast('Profil güncellendi');}
-function updateStatusUI(status){const dot=document.getElementById('userStatusDot');const txt=document.getElementById('userStatusText');const map={online:['online','🟢 Çevrimiçi'],idle:['idle','🟡 Boşta'],dnd:['dnd','🔴 Rahatsız Etmeyin'],offline:['offline','⚫ Görünmez']};if(dot){dot.className='status-dot '+map[status][0];}if(txt)txt.textContent=map[status][1];}
+function createChannel(){const n=document.getElementById('newChannelName')?.value.trim(),type=document.getElementById('channelType')?.value||'text',cat=document.getElementById('channelCategory')?.value||'METİN ODALARI';if(!n)return toast('Ad gerekli',true);const id=n.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');if(State.channels.find(c=>c.id===id))return toast('Kanal var',true);State.channels.push({id,name:n,type,category:cat});if(!State.categories.includes(cat))State.categories.push(cat);saveState();renderChannels();closeModal('addChannelModal');}
+function createServer(){const n=document.getElementById('newServerName')?.value.trim();if(!n)return toast('Ad gerekli',true);State.serverSettings.name=n;State.channels=[{id:'genel-sohbet',name:'genel-sohbet',type:'text',category:'METİN ODALARI'},{id:'genel-ses',name:'Genel Ses',type:'voice',category:'SESLİ ODALAR'}];State.categories=['METİN ODALARI','SESLİ ODALAR'];State.channel={id:'genel-sohbet',name:'genel-sohbet',topic:'Sohbet odası'};saveState();renderChannels();loadMessages();closeModal('addServerModal');}
+function addCategoryConfirm(){const n=document.getElementById('newCategoryName')?.value.trim();if(!n)return toast('Ad gerekli',true);if(State.categories.includes(n))return toast('Var',true);State.categories.push(n);saveState();renderChannels();closeModal('addCategoryModal');}
+function saveServerSettings(){State.serverSettings.name=document.getElementById('serverName')?.value||'Gettic';document.querySelector('.channel-header span').textContent=State.serverSettings.name;saveState();closeModal('serverSettingsModal');}
+function saveProfile(){const n=document.getElementById('profileDisplayName')?.value;if(n&&State.user)State.user.username=n;const s=document.getElementById('profileStatus')?.value;if(s){State.userStatuses[State.user._id]=s;updateStatusUI(s);saveState();}closeModal('profileModal');}
+function updateStatusUI(s){const dot=document.getElementById('userStatusDot');const txt=document.getElementById('userStatusText');const m={online:['online','🟢 '+t('online')],idle:['idle','🟡 '+t('idle')],dnd:['dnd','🔴 '+t('dnd')],offline:['offline','⚫ '+t('offline')]};if(dot)dot.className='status-dot '+m[s][0];if(txt)txt.textContent=m[s][1];}
 
 async function sendMessage(){
-  const input=document.getElementById('messageInput');if(!input)return;
-  const content=input.value.trim();if(!content)return;
-  if(!currentToken)return toast('Önce giriş yapın',true);
-  if(!hasPermission(currentUser._id,'sendMsg'))return toast('Mesaj gönderme yetkiniz yok',true);
-  input.value='';
-  try{
-    const res=await fetch(`${API_URL}/api/channels/${currentChannel.id}/messages`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${currentToken}`},body:JSON.stringify({content})});
-    if(res.ok){const data=await res.json();searchIndex.push({id:data._id,content,channelId:currentChannel.id,senderName:currentUser.username,createdAt:new Date().toISOString()});}
-  }catch(e){toast('Mesaj gönderilemedi',true);input.value=content;}
+  if(!checkRateLimit('msg_'+State.user?._id,5,3000))return toast('Yavaşlayın',true);
+  const inp=document.getElementById('messageInput');if(!inp)return;
+  const content=inp.value.trim();if(!content)return;
+  if(!hasPermission(State.user._id,'sendMsg'))return toast('Yetkiniz yok',true);
+  inp.value='';const msg={_id:genId(),content,senderName:State.user.username,senderId:State.user._id,channelId:State.channel.id,createdAt:new Date().toISOString(),reactions:{}};
+  State.messageDb.push(msg);if(State.messageDb.length>MAX_DB_SIZE)State.messageDb=State.messageDb.slice(-MAX_DB_SIZE);saveState();addMsgToChat(msg);
+  if(!navigator.onLine){State.offlineQueue.push(msg);saveState();toast(t('msgSentOffline'));return;}
+  try{const res=await fetch(`${API_URL}/api/channels/${State.channel.id}/messages`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${State.token}`},body:JSON.stringify({content})});if(res.status===401){toast('Oturum süresi doldu',true);logout();return;}}catch(e){State.offlineQueue.push(msg);saveState();toast(t('msgSentOffline'));}
+  if(State.socket)State.socket.emit('send_message',msg);
 }
-async function loadMessages(){
-  const container=document.getElementById('messagesContainer');if(!container)return;
-  if(!currentToken){container.innerHTML=`<div class="empty-channel">${Icons.hash}<h4># ${esc(currentChannel.name)} doğuşu</h4><p>Giriş yaparak mesajları görebilirsin</p></div>`;return;}
-  try{
-    const res=await fetch(`${API_URL}/api/channels/${currentChannel.id}/messages`,{headers:{'Authorization':`Bearer ${currentToken}`}});
-    if(!res.ok)throw new Error('Yüklenemedi');
-    const msgs=await res.json();
-    if(!msgs.length){container.innerHTML=`<div class="empty-channel">${Icons.hash}<h4># ${esc(currentChannel.name)} doğuşu</h4><p>Bu kanalda henüz mesaj yok. İlk mesajı sen gönder!</p></div>`;return;}
-    container.innerHTML=(pinnedMessages[currentChannel.id]?[pinnedMessages[currentChannel.id]]:[]).concat(msgs).map(m=>renderMessage(m)).join('');
-    container.scrollTop=container.scrollHeight;
-  }catch(e){container.innerHTML=`<div class="empty-channel">${Icons.hash}<h4># ${esc(currentChannel.name)} doğuşu</h4><p>Mesajlar yüklenemedi</p></div>`;}
+function loadMessages(){
+  const inner=document.getElementById('messagesInner');const container=document.getElementById('messagesContainer');if(!inner)return;
+  const msgs=State.messageDb.filter(m=>m.channelId===State.channel.id).slice(-MAX_VISIBLE_MSGS);
+  if(!msgs.length){inner.innerHTML=`<div class="empty-channel">${Icons.hash}<h4># ${sanitize(State.channel.name)} ${t('birth')}</h4><p>${t('noMessages')}</p></div>`;return;}
+  inner.innerHTML=(State.pinnedMessages[State.channel.id]?[renderMessage(State.pinnedMessages[State.channel.id],true)]:[]).concat(msgs.map(m=>renderMessage(m))).join('');
+  if(State.channelScrollPositions[State.channel.id]){container.scrollTop=State.channelScrollPositions[State.channel.id];}else{container.scrollTop=container.scrollHeight;}
 }
 function renderMessage(m,isPinned=false){
-  const role=getHighestRole(m.senderId||'');const roleBadge=role&&role.id!=='r5'?`<span class="role-badge" style="background:${role.color}20;color:${role.color};">${role.name}</span>`:'';
-  const reactions=m.reactions||{};const reactHtml=Object.entries(reactions).map(([emoji,users])=>`<span class="msg-reaction ${users.includes(currentUser?._id)?'me':''}" data-emoji="${emoji}" data-msg="${m._id}">${emoji} ${users.length}</span>`).join('');
+  if(State.blockedUsers.includes(m.senderId))return'';
+  const role=getHighestRole(m.senderId||'');const badge=role&&role.id!=='r5'?`<span class="role-badge" style="background:${role.color}20;color:${role.color};">${role.name}</span>`:'';
+  const reacts=m.reactions||{};const rHtml=Object.entries(reacts).map(([e,u])=>`<span class="msg-reaction ${u.includes(State.user?._id)?'me':''}" data-emoji="${e}" data-msg="${m._id}" role="button" tabindex="0">${e} ${u.length}</span>`).join('');
+  const time=new Date(m.createdAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  const isOwner=m.senderId===State.user?._id||hasPermission(State.user._id,'deleteMsg');
+  const pollData=State.polls[m._id];
   return `<div class="message" data-id="${m._id}"${isPinned?' style="background:var(--acd);border-left:3px solid var(--ye);"':''}>
-    <div class="message-avatar">${esc(m.senderName?.charAt(0)?.toUpperCase()||'?')}</div>
+    <div class="message-avatar" onclick="showUserInfo('${m.senderId}','${sanitize(m.senderName||'')}')" role="button" tabindex="0" aria-label="${sanitize(m.senderName||'Kullanıcı')}">${sanitize(m.senderName?.charAt(0)?.toUpperCase()||'?')}</div>
     <div class="message-content">
-      <div class="message-header">${esc(m.senderName||'Bilinmeyen')}${roleBadge}<span>${new Date(m.createdAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span></div>
-      <div class="message-text">${formatMessage(esc(m.content))}</div>
-      ${reactHtml?`<div class="msg-reactions">${reactHtml}</div>`:''}
+      <div class="message-header"><span style="cursor:pointer;" onclick="showUserInfo('${m.senderId}','${sanitize(m.senderName||'')}')" role="button" tabindex="0">${sanitize(m.senderName||'?')}</span>${badge}<span>${time}</span></div>
+      <div class="message-text">${formatMsg(sanitize(m.content))}</div>
+      ${pollData?renderPoll(m._id,pollData):''}${rHtml?`<div class="msg-reactions">${rHtml}</div>`:''}
     </div>
-    <div class="msg-actions">
-      <button data-action="react" title="Tepki">${Icons.smile}</button>
-      <button data-action="edit" title="Düzenle">${Icons.edit}</button>
-      <button data-action="delete" title="Sil">${Icons.trash}</button>
-      <button data-action="pin" title="Sabitle">${Icons.pin}</button>
-    </div>
+    <div class="msg-actions">${isOwner?`<button onclick="editMessage('${m._id}')" aria-label="${t('edit')}">${Icons.edit}</button><button onclick="deleteMessage('${m._id}')" aria-label="${t('delete')}">${Icons.trash}</button>`:''}<button onclick="addReaction('${m._id}','👍')" aria-label="Beğen">👍</button><button onclick="pinMessage('${m._id}')" aria-label="${t('pin')}">${Icons.pin}</button></div>
   </div>`;
 }
-function formatMessage(text){
-  return text.replace(/\*\*(.*?)\*\*/g,'<b>$1</b>').replace(/\*(.*?)\*/g,'<i>$1</i>').replace(/`(.*?)`/g,'<code>$1</code>');
-}
-function updatePinnedBar(){
-  const bar=document.getElementById('pinnedBar');const pinned=pinnedMessages[currentChannel.id];
-  if(pinned){bar.style.display='block';bar.innerHTML=`${Icons.pin} Sabitlenmiş: <b>${esc(pinned.senderName)}</b> - ${esc(pinned.content).substring(0,50)}...`;}else{bar.style.display='none';}
-}
-function showContextMenu(e){
-  e.preventDefault();const menu=document.getElementById('contextMenu');const msgEl=e.target.closest('.message');
-  if(msgEl){
-    const msgId=msgEl.dataset.id;menu.innerHTML=`
-      <button onclick="addReaction('${msgId}','👍')">👍 Beğen</button>
-      <button onclick="addReaction('${msgId}','❤️')">❤️ Kalp</button>
-      <button onclick="addReaction('${msgId}','😂')">😂 Gül</button>
-      <button onclick="addReaction('${msgId}','😮')">😮 Şaşır</button>
-      <button onclick="editMessage('${msgId}')">${Icons.edit} Düzenle</button>
-      <button onclick="deleteMessage('${msgId}')" class="danger">${Icons.trash} Sil</button>
-      <button onclick="pinMessage('${msgId}')">${Icons.pin} Sabitle</button>`;
-  }else{
-    menu.innerHTML=`<button onclick="openModal('addChannelModal')">${Icons.plus} Kanal Oluştur</button><button onclick="openModal('addCategoryModal')">📁 Kategori Ekle</button><button onclick="openModal('inviteModal')">${Icons.link} Davet Linki</button>`;
-  }
-  menu.style.left=e.clientX+'px';menu.style.top=e.clientY+'px';menu.classList.add('show');
-}
-function addReaction(msgId,emoji){
-  const msgs=document.querySelectorAll('.message');msgs.forEach(m=>{if(m.dataset.id===msgId){const reactDiv=m.querySelector('.msg-reactions');if(reactDiv){const existing=reactDiv.querySelector(`[data-emoji="${emoji}"]`);if(existing){existing.textContent=`${emoji} ${parseInt(existing.textContent.slice(2))+1}`;existing.classList.add('me');}else{reactDiv.innerHTML+=`<span class="msg-reaction me" data-emoji="${emoji}">${emoji} 1</span>`;}}}});
-  document.getElementById('contextMenu')?.classList.remove('show');
-}
-function deleteMessage(msgId){if(confirm('Mesajı silmek istiyor musunuz?')){document.querySelector(`.message[data-id="${msgId}"]`)?.remove();toast('Mesaj silindi');}}
-function editMessage(msgId){const newContent=prompt('Yeni mesaj:');if(newContent){const el=document.querySelector(`.message[data-id="${msgId}"] .message-text`);if(el)el.innerHTML=formatMessage(esc(newContent));toast('Mesaj düzenlendi');}}
-function pinMessage(msgId){
-  const el=document.querySelector(`.message[data-id="${msgId}"]`);if(!el)return;
-  const content=el.querySelector('.message-text')?.textContent||'';
-  const sender=el.querySelector('.message-header')?.textContent?.split(' ')[0]||'';
-  pinnedMessages[currentChannel.id]={_id:msgId,content,senderName:sender,createdAt:new Date().toISOString()};
-  updatePinnedBar();loadMessages();toast('Mesaj sabitlendi');
-}
+function renderPoll(mid,p){const total=p.votes.reduce((a,b)=>a+b,0)||1;return`<div class="poll-options">${p.options.map((o,i)=>`<div class="poll-option${p.voters[State.user?._id]===i?' voted':''}" onclick="votePoll('${mid}',${i})" role="button" tabindex="0"><span>${sanitize(o)}</span><div class="bar" style="width:${(p.votes[i]/total)*100}%"></div><span style="font-size:10px;">${p.votes[i]}</span></div>`).join('')}</div>`;}
+function formatMsg(t){return t.replace(/\*\*(.*?)\*\*/g,'<b>$1</b>').replace(/\*(.*?)\*/g,'<i>$1</i>').replace(/`([^`]+)`/g,'<code>$1</code>');}
+function updatePinnedBar(){const b=document.getElementById('pinnedBar');const p=State.pinnedMessages[State.channel.id];if(p){b.style.display='block';b.innerHTML=`${Icons.pin} ${t('pinned')}: <b>${sanitize(p.senderName)}</b> - ${sanitize(p.content).substring(0,50)}...`;}else{b.style.display='none';}}
 
-let typingTimer;function showTyping(username){const el=document.getElementById('typingIndicator');if(el){el.textContent=`${username} yazıyor...`;clearTimeout(typingTimer);typingTimer=setTimeout(()=>{if(el)el.textContent='';},1500);}}
+function addMsgToChat(msg){
+  const exists=State.messageDb.find(m=>m._id===msg._id);
+  if(exists&&exists.senderId===msg.senderId)return;
+  if(!exists){State.messageDb.push(msg);if(State.messageDb.length>MAX_DB_SIZE)State.messageDb=State.messageDb.slice(-MAX_DB_SIZE);saveState();}
+  const inner=document.getElementById('messagesInner');if(!inner)return;
+  if(inner.querySelector('.empty-channel'))inner.innerHTML='';
+  const atBottom=(document.getElementById('messagesContainer').scrollHeight-document.getElementById('messagesContainer').scrollTop-document.getElementById('messagesContainer').clientHeight)<120;
+  inner.insertAdjacentHTML('beforeend',renderMessage(msg));
+  if(atBottom)document.getElementById('messagesContainer').scrollTop=document.getElementById('messagesContainer').scrollHeight;
+  while(inner.children.length>MAX_VISIBLE_MSGS*1.5){inner.firstChild.remove();}
+}
+function addReaction(mid,emoji){if(!checkRateLimit('react_'+State.user?._id,8,2000))return;const msg=State.messageDb.find(m=>m._id===mid);if(!msg)return;msg.reactions=msg.reactions||{};if(!msg.reactions[emoji])msg.reactions[emoji]=[];if(msg.reactions[emoji].includes(State.user._id))msg.reactions[emoji]=msg.reactions[emoji].filter(u=>u!==State.user._id);else msg.reactions[emoji].push(State.user._id);if(!msg.reactions[emoji].length)delete msg.reactions[emoji];saveState();loadMessages();}
+function deleteMessage(mid){if(!hasPermission(State.user._id,'deleteMsg')&&State.messageDb.find(m=>m._id===mid)?.senderId!==State.user?._id)return toast('Yetkiniz yok',true);State.messageDb=State.messageDb.filter(m=>m._id!==mid);saveState();loadMessages();}
+function editMessage(mid){const msg=State.messageDb.find(m=>m._id===mid);if(!msg||msg.senderId!==State.user?._id)return toast('Sadece kendi mesajınız',true);const n=prompt(t('edit'),msg.content);if(n&&n!==msg.content){msg.content=n;saveState();loadMessages();}}
+function pinMessage(mid){const msg=State.messageDb.find(m=>m._id===mid);if(!msg)return;State.pinnedMessages[State.channel.id]=msg;saveState();updatePinnedBar();loadMessages();}
+
+let typingTimer;function showTyping(u){const el=document.getElementById('typingIndicator');if(el){el.textContent=`${u} ${t('typing')}`;clearTimeout(typingTimer);typingTimer=setTimeout(()=>{if(el)el.textContent='';},1500);}}
 
 function connectSocket(){
-  if(!currentToken)return;if(socket){socket.disconnect();socket=null;}
-  socket=io(API_URL,{auth:{token:currentToken},transports:['websocket','polling']});
-  socket.on('connect',()=>{socket.emit('join_channel',currentChannel.id);});
-  socket.on('new_message',msg=>{if(msg.channelId===currentChannel.id)addMessageToChat(msg);});
-  socket.on('user_typing',({username,channelId})=>{if(channelId===currentChannel.id&&username!==currentUser?.username)showTyping(username);});
-}
-function addMessageToChat(msg){
-  const container=document.getElementById('messagesContainer');if(!container)return;
-  if(container.querySelector('.empty-channel'))container.innerHTML='';
-  container.insertAdjacentHTML('beforeend',renderMessage(msg));container.scrollTop=container.scrollHeight;
+  if(!State.token||retryCount>=MAX_RETRIES)return;
+  if(State.socket){try{State.socket.removeAllListeners();State.socket.disconnect();}catch(e){}State.socket=null;}
+  if(!navigator.onLine)return;
+  try{
+    State.socket=io(API_URL,{auth:{token:State.token},transports:['websocket','polling'],reconnection:true,reconnectionAttempts:MAX_RETRIES,reconnectionDelay:2000});
+    State.socket.on('connect',()=>{retryCount=0;State.socket.emit('join_channel',State.channel.id);updateConnectionUI(true);});
+    State.socket.on('new_message',msg=>{if(msg.channelId===State.channel.id)addMsgToChat(msg);else{State.unreadCounts[msg.channelId]=(State.unreadCounts[msg.channelId]||0)+1;saveState();renderChannels();}if(msg.senderId!==State.user?._id){State.notifications.push({text:`${msg.senderName}: ${msg.content.substring(0,30)}`,time:new Date().toISOString()});saveState();sendNotification(msg.senderName,msg.content.substring(0,40));}playMsgSound();});
+    State.socket.on('user_typing',({username,channelId})=>{if(channelId===State.channel.id&&username!==State.user?.username)showTyping(username);});
+    State.socket.on('voice_answer',async d=>{const pc=State.peerConnections.get(State.channel.id);if(pc&&d.sdp)await pc.setRemoteDescription(new RTCSessionDescription(d.sdp));});
+    State.socket.on('voice_candidate',d=>{const pc=State.peerConnections.get(State.channel.id);if(pc&&d.candidate)pc.addIceCandidate(new RTCIceCandidate(d.candidate));});
+    State.socket.on('connect_error',()=>{retryCount++;if(retryCount>=MAX_RETRIES)updateConnectionUI(false);});
+    State.socket.on('disconnect',()=>{if(navigator.onLine)retryCount=0;});
+  }catch(e){retryCount++;}
 }
 
-async function joinVoiceChannel(chId){
-  const ch=channels.find(c=>c.id===chId);if(!ch)return;toast(`🎙️ ${ch.name} kanalına bağlanılıyor...`);
-  try{localStream=await navigator.mediaDevices.getUserMedia({audio:true});document.getElementById('voiceBar').style.display='flex';document.getElementById('voiceChannelName').textContent=ch.name;isInVoice=true;setupVoice(chId);toast(`✅ ${ch.name} kanalına katıldınız`);}catch(e){toast('Mikrofon erişimi reddedildi',true);}
+async function joinVoiceChannel(id){
+  const ch=State.channels.find(c=>c.id===id);if(!ch)return;
+  try{State.localStream=await navigator.mediaDevices.getUserMedia({audio:true});document.getElementById('voiceBar').style.display='flex';document.getElementById('voiceChannelName').textContent=ch.name;State.isInVoice=true;setupVoice(id);toast(`✅ ${ch.name}`);}catch(e){toast('Mikrofon erişimi reddedildi. Ayarlardan izin verin.',true);}
 }
-function setupVoice(chId){
-  socket.emit('voice_join',{channel:chId});peerConnection=new RTCPeerConnection(rtcConfig);
-  localStream.getTracks().forEach(t=>peerConnection.addTrack(t,localStream));
-  peerConnection.onicecandidate=e=>{if(e.candidate)socket.emit('voice_candidate',{candidate:e.candidate,channel:chId});};
-  socket.on('voice_answer',async d=>{if(d.sdp)await peerConnection.setRemoteDescription(new RTCSessionDescription(d.sdp));});
-  socket.on('voice_candidate',d=>{if(d.candidate)peerConnection.addIceCandidate(new RTCIceCandidate(d.candidate));});
-  peerConnection.createOffer().then(o=>{peerConnection.setLocalDescription(o);socket.emit('voice_offer',{sdp:o,channel:chId});});
-  document.getElementById('muteBtn').onclick=()=>{if(!localStream)return;isMuted=!isMuted;localStream.getAudioTracks().forEach(t=>t.enabled=!isMuted);const btn=document.getElementById('muteBtn');btn.innerHTML=isMuted?Icons.micOff:Icons.mic;btn.classList.toggle('muted',isMuted);};
-  document.getElementById('leaveVoiceBtn').onclick=()=>leaveVoiceChannel();
+function setupVoice(id){
+  if(State.peerConnections.has(id)){const old=State.peerConnections.get(id);old.close();State.peerConnections.delete(id);}
+  const pc=new RTCPeerConnection(rtcConfig);State.peerConnections.set(id,pc);
+  if(State.localStream)State.localStream.getTracks().forEach(t=>pc.addTrack(t,State.localStream));
+  pc.onicecandidate=e=>{if(e.candidate&&State.socket)State.socket.emit('voice_candidate',{candidate:e.candidate,channel:id});};
+  pc.ontrack=e=>{const a=document.createElement('audio');a.srcObject=e.streams[0];a.autoplay=true;a.volume=parseFloat(document.getElementById('remoteVolumeFill')?.style.width||'80')/100;document.body.appendChild(a);State.remoteAudioElements.push(a);document.getElementById('voiceParticipantCount').textContent=`(${State.remoteAudioElements.length})`;};
+  if(State.socket)State.socket.emit('voice_join',{channel:id});
+  pc.createOffer().then(o=>{pc.setLocalDescription(o);if(State.socket)State.socket.emit('voice_offer',{sdp:o,channel:id});}).catch(e=>console.warn('Ses bağlantısı hatası:',e));
 }
+function toggleMute(){if(!State.localStream)return;State.isMuted=!State.isMuted;State.localStream.getAudioTracks().forEach(t=>t.enabled=!State.isMuted);const b=document.getElementById('muteBtn');b.innerHTML=State.isMuted?Icons.micOff:Icons.mic;b.classList.toggle('muted',State.isMuted);}
+function toggleDeafen(){State.isDeafened=!State.isDeafened;State.remoteAudioElements.forEach(a=>a.muted=State.isDeafened);document.getElementById('deafenBtn').classList.toggle('muted',State.isDeafened);}
+async function startScreenShare(){try{const s=await navigator.mediaDevices.getDisplayMedia({video:true});State.peerConnections.forEach(pc=>s.getTracks().forEach(t=>pc.addTrack(t,s)));}catch(e){toast('Ekran paylaşımı iptal edildi',true);}}
+async function startVideo(){try{const s=await navigator.mediaDevices.getUserMedia({video:true});State.peerConnections.forEach(pc=>s.getTracks().forEach(t=>pc.addTrack(t,s)));}catch(e){toast('Kamera reddedildi',true);}}
 function leaveVoiceChannel(){
-  if(localStream){localStream.getTracks().forEach(t=>t.stop());localStream=null;}if(peerConnection){peerConnection.close();peerConnection=null;}
-  if(socket)socket.emit('voice_leave',{channel:currentChannel.id});document.getElementById('voiceBar').style.display='none';isInVoice=false;isMuted=false;
-  const muteBtn=document.getElementById('muteBtn');if(muteBtn){muteBtn.innerHTML=Icons.mic;muteBtn.classList.remove('muted');}toast('Sesli kanaldan ayrıldınız');
+  if(State.localStream){State.localStream.getTracks().forEach(t=>t.stop());State.localStream=null;}
+  State.peerConnections.forEach(pc=>pc.close());State.peerConnections.clear();
+  State.remoteAudioElements.forEach(a=>{a.srcObject=null;a.remove();});State.remoteAudioElements=[];
+  if(State.socket)State.socket.emit('voice_leave',{channel:State.channel.id});
+  document.getElementById('voiceBar').style.display='none';State.isInVoice=State.isMuted=State.isDeafened=false;
+  document.getElementById('muteBtn').innerHTML=Icons.mic;document.getElementById('muteBtn').classList.remove('muted');
+  document.getElementById('deafenBtn').classList.remove('muted');document.getElementById('voiceParticipantCount').textContent='';
 }
 
-function renderRoles(){
-  const container=document.getElementById('rolesList');if(!container)return;
-  container.innerHTML=roles.sort((a,b)=>a.position-b.position).map(r=>`<div class="role-item"><div style="width:24px;height:24px;border-radius:50%;background:${r.color};flex-shrink:0;"></div><div class="role-info"><div class="role-name">${esc(r.name)}</div><div class="role-desc">${Object.keys(r.permissions).filter(k=>r.permissions[k]).length||(r.permissions.all?'Tüm yetkiler':'0')} yetki</div></div><button class="icon-btn" onclick="openEditRole('${r.id}')">${Icons.edit}</button></div>`).join('');
+function renderRoles(){const c=document.getElementById('rolesList');if(!c)return;c.innerHTML=State.roles.sort((a,b)=>a.position-b.position).map(r=>`<div class="role-item"><div style="width:24px;height:24px;border-radius:50%;background:${r.color};"></div><div class="role-info"><div class="role-name">${sanitize(r.name)}</div></div><button onclick="openEditRole('${r.id}')" aria-label="Düzenle">${Icons.edit}</button></div>`).join('');}
+function openEditRole(id){const r=State.roles.find(x=>x.id===id);if(!r)return;document.getElementById('editRoleId').value=r.id;document.getElementById('editRoleName').value=r.name;document.getElementById('editRoleColor').value=r.color;const p=['sendMsg','deleteMsg','kick','ban','manageChannels','manageRoles','manageServer'];document.getElementById('rolePerms').innerHTML=p.map(x=>`<div style="display:flex;justify-content:space-between;padding:6px 0;"><span>${x}</span><div class="toggle-switch ${r.permissions[x]||r.permissions.all?'on':''}" data-p="${x}" role="switch" aria-checked="${r.permissions[x]||r.permissions.all}" tabindex="0"></div></div>`).join('');document.querySelectorAll('#rolePerms .toggle-switch').forEach(t=>{t.addEventListener('click',()=>t.classList.toggle('on'));t.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();t.classList.toggle('on');}});});openModal('editRoleModal');}
+function saveRoleEdit(){const id=document.getElementById('editRoleId').value;const r=State.roles.find(x=>x.id===id);if(!r)return;r.name=document.getElementById('editRoleName').value;r.color=document.getElementById('editRoleColor').value;r.permissions={};document.querySelectorAll('#rolePerms .toggle-switch').forEach(t=>r.permissions[t.dataset.p]=t.classList.contains('on'));saveState();closeModal('editRoleModal');renderRoles();}
+function addRole(){const n=document.getElementById('newRoleName')?.value.trim(),c=document.getElementById('newRoleColor')?.value||'#9ca3af';if(!n)return;State.roles.push({id:genId(),name:n,color:c,permissions:{sendMsg:true},position:State.roles.length});saveState();closeModal('addRoleModal');renderRoles();}
+function showUserInfo(uid,uname){
+  if(uid===State.user?._id){openModal('profileModal');return;}
+  const c=document.getElementById('userInfoContent');const isBlocked=State.blockedUsers.includes(uid);
+  c.innerHTML=`<div class="profile-avatar-large">${sanitize(uname.charAt(0).toUpperCase())}</div><h3 style="text-align:center;">${sanitize(uname)}</h3>
+    <button class="modal-btn" onclick="toggleBlock('${uid}')">${isBlocked?t('unblock'):t('block')}</button>
+    ${hasPermission(State.user._id,'kick')?`<button class="modal-btn danger" onclick="kickUser('${uid}')">${t('kick')}</button>`:''}
+    ${hasPermission(State.user._id,'ban')?`<button class="modal-btn danger" onclick="banUser('${uid}')">${t('ban')}</button>`:''}
+    <button class="modal-btn secondary" onclick="assignRoleToUser('${uid}')">Rol Ata</button>`;
+  openModal('userInfoModal');
 }
-function openEditRole(rid){
-  const r=roles.find(x=>x.id===rid);if(!r)return;
-  document.getElementById('editRoleId').value=r.id;document.getElementById('editRoleName').value=r.name;document.getElementById('editRoleColor').value=r.color;
-  const perms=['sendMsg','deleteMsg','kick','ban','manageChannels','manageRoles','manageServer','manageMessages','addReactions','specialChannels','uploadFiles'];
-  document.getElementById('rolePerms').innerHTML=perms.map(p=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--b);"><span style="font-size:12px;">${p}</span><div class="toggle-switch ${r.permissions[p]||r.permissions.all?'on':''}" data-perm="${p}"></div></div>`).join('');
-  document.querySelectorAll('#rolePerms .toggle-switch').forEach(t=>t.addEventListener('click',()=>t.classList.toggle('on')));
-  openModal('editRoleModal');
-}
-function saveRoleEdit(){
-  const id=document.getElementById('editRoleId').value;const r=roles.find(x=>x.id===id);if(!r)return;
-  r.name=document.getElementById('editRoleName').value;r.color=document.getElementById('editRoleColor').value;
-  r.permissions={};document.querySelectorAll('#rolePerms .toggle-switch').forEach(t=>{r.permissions[t.dataset.perm]=t.classList.contains('on');});
-  closeModal('editRoleModal');renderRoles();toast('Rol güncellendi');
-}
-function deleteRole(){const id=document.getElementById('editRoleId').value;roles=roles.filter(r=>r.id!==id);closeModal('editRoleModal');renderRoles();toast('Rol silindi');}
-function addRole(){
-  const name=document.getElementById('newRoleName')?.value.trim();const color=document.getElementById('newRoleColor')?.value||'#9ca3af';
-  if(!name)return toast('Rol adı gerekli',true);
-  roles.push({id:genId(),name,color,permissions:{sendMsg:true},position:roles.length});closeModal('addRoleModal');renderRoles();toast('Rol eklendi');
-}
+function toggleBlock(uid){if(State.blockedUsers.includes(uid))State.blockedUsers=State.blockedUsers.filter(u=>u!==uid);else State.blockedUsers.push(uid);saveState();loadMessages();closeModal('userInfoModal');}
+function kickUser(uid){if(!hasPermission(State.user._id,'kick'))return;toast('Kullanıcı atıldı');closeModal('userInfoModal');}
+function banUser(uid){if(!hasPermission(State.user._id,'ban'))return;toast('Kullanıcı yasaklandı');closeModal('userInfoModal');}
+function assignRoleToUser(uid){const ur=getUserRoles(uid);const c=document.getElementById('userInfoContent');c.innerHTML=`<h3>Rol Ata</h3>`+State.roles.map(r=>`<label style="display:flex;align-items:center;gap:8px;padding:4px 0;"><input type="checkbox" ${ur.includes(r.id)?'checked':''} value="${r.id}"> ${sanitize(r.name)}</label>`).join('')+`<button class="modal-btn" onclick="saveUserRoleAssign('${uid}')">Kaydet</button>`;}
+function saveUserRoleAssign(uid){const checks=document.querySelectorAll('#userInfoContent input[type="checkbox"]');State.userRoles[uid]=Array.from(checks).filter(c=>c.checked).map(c=>c.value);if(!State.userRoles[uid].length)State.userRoles[uid]=['r5'];saveState();closeModal('userInfoModal');toast('Roller güncellendi');}
 
 function loadDMList(){
-  const container=document.getElementById('dmList');if(!container)return;
-  if(!dmFriends.length){container.innerHTML='<div style="text-align:center;padding:20px;color:var(--t3);">Henüz DM yok</div>';return;}
-  container.innerHTML=dmFriends.map(f=>`<div class="dm-item" onclick="openDM('${f.id}','${esc(f.username)}')"><div class="dm-avatar">${f.username.charAt(0).toUpperCase()}</div><div class="dm-info"><div class="dm-name">${esc(f.username)}</div><div class="dm-last-msg">${esc(f.last||'')}</div></div></div>`).join('');
+  const c=document.getElementById('dmList');if(!c)return;
+  if(!State.dmFriends.length){c.innerHTML=`<div class="empty-state">${Icons.dm}<p>${t('noDM')}</p></div>`;return;}
+  c.innerHTML=State.dmFriends.map(f=>`<div class="dm-item" onclick="openDM('${f.id}','${sanitize(f.username)}')" role="button" tabindex="0"><div class="dm-avatar">${sanitize(f.username.charAt(0).toUpperCase())}</div><div class="dm-info"><div class="dm-name">${sanitize(f.username)}${State.dmUnread[f.id]?` (${State.dmUnread[f.id]})`:''}</div><div class="dm-last-msg">${sanitize(f.last||'')}</div></div><button class="icon-btn" onclick="event.stopPropagation();deleteDM('${f.id}')" aria-label="Sil">${Icons.trash}</button></div>`).join('');
 }
+function deleteDM(id){State.dmFriends=State.dmFriends.filter(f=>f.id!==id);saveState();loadDMList();}
 function openDMNew(){closeModal('dmModal');openModal('dmNewModal');}
 function openGroupDM(){closeModal('dmModal');openModal('groupDMModal');}
-function startDM(){const u=document.getElementById('dmNewUsername')?.value.trim();if(!u)return toast('Kullanıcı adı gerekli',true);dmFriends.push({id:genId(),username:u,last:'',time:'Şimdi'});loadDMList();closeModal('dmNewModal');openModal('dmModal');toast(`${u} ile DM başladı`);}
-function startGroupDM(){const users=document.getElementById('groupDmUsers')?.value.split(',').map(s=>s.trim()).filter(Boolean);if(!users.length)return toast('En az bir kullanıcı gerekli',true);const name=users.join(', ');dmFriends.push({id:genId(),username:name,last:'Grup DM',time:'Şimdi',isGroup:true});loadDMList();closeModal('groupDMModal');openModal('dmModal');toast('Grup DM oluşturuldu');}
-window.openDM=(id,uname)=>{document.getElementById('dmChatArea').style.display='block';document.getElementById('dmMessages').innerHTML='';document.getElementById('sendDmBtn').onclick=()=>{const inp=document.getElementById('dmInput');if(!inp||!inp.value.trim())return;const div=document.getElementById('dmMessages');div.innerHTML+=`<div style="padding:4px 0;"><b>${esc(currentUser?.username||'Sen')}:</b> ${esc(inp.value)}</div>`;div.scrollTop=div.scrollHeight;inp.value='';};};
-function addFriend(){const u=document.getElementById('friendUsername')?.value.trim();if(!u)return toast('Kullanıcı adı gerekli',true);dmFriends.push({id:genId(),username:u,last:'Arkadaş eklendi',time:'Şimdi'});closeModal('addFriendModal');toast(`${u} eklendi`);}
-function loadDiscover(){document.getElementById('discoverList').innerHTML=['MLBB Topluluğu','Müzik Odası','Teknoloji'].map(n=>`<div class="dm-item" onclick="joinDiscover('${n}')"><div class="dm-avatar">${n.charAt(0)}</div><div class="dm-info"><div class="dm-name">${n}</div></div></div>`).join('');}
-window.joinDiscover=(n)=>{toast(`${n} sunucusuna katılıyorsunuz...`);closeModal('discoverModal');};
+function startDM(){const u=document.getElementById('dmNewUsername')?.value.trim();if(!u)return toast('Kullanıcı adı gerekli',true);State.dmFriends.push({id:genId(),username:u,last:'',messages:[],time:'Şimdi'});saveState();loadDMList();closeModal('dmNewModal');openModal('dmModal');}
+function startGroupDM(){const u=document.getElementById('groupDmUsers')?.value.split(',').map(s=>s.trim()).filter(Boolean);if(!u.length)return;State.dmFriends.push({id:genId(),username:u.join(', '),last:'Grup',messages:[],time:'Şimdi',isGroup:true});saveState();loadDMList();closeModal('groupDMModal');openModal('dmModal');}
+window.openDM=(id,uname)=>{
+  const f=State.dmFriends.find(x=>x.id===id);if(!f)return;currentDMId=id;State.dmUnread[id]=0;saveState();
+  document.getElementById('dmChatArea').style.display='block';
+  const d=document.getElementById('dmMessages');d.innerHTML=(f.messages||[]).map(m=>`<div><b>${sanitize(m.sender)}:</b> ${sanitize(m.text)}</div>`).join('');
+  const sdb=document.getElementById('sendDmBtn');sdb.onclick=null;sdb.addEventListener('click',function dmSend(){
+    const inp=document.getElementById('dmInput');if(!inp?.value.trim())return;
+    const msg={sender:State.user?.username||'Sen',text:inp.value,time:new Date().toISOString()};
+    f.messages.push(msg);f.last=msg.text;f.time='Şimdi';saveState();
+    d.innerHTML+=`<div><b>${sanitize(msg.sender)}:</b> ${sanitize(msg.text)}</div>`;d.scrollTop=d.scrollHeight;inp.value='';
+    sendNotification('DM',`${msg.sender}: ${msg.text.substring(0,30)}`);
+  },{once:false});
+};
+function addFriend(){const u=document.getElementById('friendUsername')?.value.trim();if(!u)return;State.dmFriends.push({id:genId(),username:u,last:'Arkadaş',messages:[],time:'Şimdi'});saveState();closeModal('addFriendModal');}
+function loadDiscover(){document.getElementById('discoverList').innerHTML=['MLBB','Müzik','Teknoloji'].map(n=>`<div class="dm-item" onclick="joinDiscover('${n}')"><div class="dm-avatar">${n[0]}</div><div class="dm-name">${n}</div></div>`).join('');}
+window.joinDiscover=(n)=>{toast(`${n} sunucusuna katıldınız`);closeModal('discoverModal');};
 
-function performSearch(){const q=document.getElementById('searchInput')?.value.toLowerCase();const results=document.getElementById('searchResults');if(!results)return;if(!q){results.innerHTML='';return;}
-  const found=searchIndex.filter(m=>m.content.toLowerCase().includes(q)||m.senderName.toLowerCase().includes(q)).slice(0,10);
-  results.innerHTML=found.length?found.map(m=>`<div class="dm-item" onclick="switchChannel('${m.channelId}');closeModal('searchModal');"><div class="dm-avatar">${m.senderName.charAt(0).toUpperCase()}</div><div class="dm-info"><div class="dm-name">${esc(m.senderName)}</div><div class="dm-last-msg">${esc(m.content.substring(0,60))}</div></div></div>`).join(''):'<div style="text-align:center;padding:20px;color:var(--t3);">Sonuç bulunamadı</div>';
-}
-function renderNotifications(){document.getElementById('notifList').innerHTML=notifications.length?notifications.map(n=>`<div style="padding:8px;border-bottom:1px solid var(--b);font-size:12px;">${n.text}</div>`).join(''):'<div style="text-align:center;padding:20px;color:var(--t3);">Bildirim yok</div>';}
-function createPoll(){
-  const q=document.getElementById('pollQuestion')?.value;const opts=[document.getElementById('pollOption1')?.value,document.getElementById('pollOption2')?.value,document.getElementById('pollOption3')?.value,document.getElementById('pollOption3')?.value].filter(Boolean);
-  if(!q||opts.length<2)return toast('Soru ve en az 2 seçenek gerekli',true);
-  const pollText=`📊 **Anket:** ${q}\n`+opts.map((o,i)=>`${i+1}️⃣ ${o}`).join('\n');
-  const inp=document.getElementById('messageInput');if(inp)inp.value=pollText;closeModal('pollModal');toast('Anket hazır, gönder tuşuna basın');
-}
-function exportChat(format){
-  const msgs=Array.from(document.querySelectorAll('.message')).map(m=>({sender:m.querySelector('.message-header')?.textContent?.split(' ')[0]||'',content:m.querySelector('.message-text')?.textContent||'',time:m.querySelector('span')?.textContent||''}));
-  let data=format==='json'?JSON.stringify(msgs,null,2):'sender,content,time\n'+msgs.map(m=>`"${m.sender}","${m.content}","${m.time}"`).join('\n');
-  const blob=new Blob([data],{type:format==='json'?'application/json':'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`chat-export.${format}`;a.click();closeModal('exportModal');toast('Dışa aktarıldı');
-}
-function exportBackup(){
-  const backup={serverSettings,channels,categories,roles,pinnedMessages,userRoles};
-  const blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='gettic-backup.json';a.click();toast('Yedek indirildi');
-}
-function importBackup(){
-  const file=document.getElementById('backupFile')?.files[0];if(!file)return;
-  const reader=new FileReader();reader.onload=()=>{try{const data=JSON.parse(reader.result);Object.assign(serverSettings,data.serverSettings||{});channels=data.channels||channels;categories=data.categories||categories;roles=data.roles||roles;Object.assign(pinnedMessages,data.pinnedMessages||{});Object.assign(userRoles,data.userRoles||{});renderChannels();closeModal('backupModal');toast('Yedek geri yüklendi');}catch(e){toast('Geçersiz yedek dosyası',true);}};reader.readAsText(file);
-}
-function applyCustomTheme(){const p=document.getElementById('customPrimary')?.value||'#c084fc';const s=document.getElementById('customSecondary')?.value||'#e879f9';setTheme(p,s);closeModal('customThemeModal');}
+function performSearch(){const q=document.getElementById('searchInput')?.value.toLowerCase();const r=document.getElementById('searchResults');if(!r)return;if(!q){r.innerHTML='';return;}const msgs=State.messageDb.filter(m=>m.content.toLowerCase().includes(q)||m.senderName.toLowerCase().includes(q)).slice(0,10);const chs=State.channels.filter(c=>c.name.toLowerCase().includes(q));r.innerHTML=[...msgs.map(m=>({type:'msg',text:`${m.senderName}: ${m.content.substring(0,50)}`,ch:m.channelId})),...chs.map(c=>({type:'ch',text:`#${c.name}`,id:c.id}))].map(f=>`<div class="dm-item" onclick="${f.type==='msg'?`switchChannel('${f.ch}')`:f.type==='ch'?`switchChannel('${f.id}')`:''};closeModal('searchModal')" role="button" tabindex="0"><div class="dm-avatar">${f.type==='msg'?'💬':'#'}</div><div class="dm-name">${sanitize(f.text)}</div></div>`).join('')||`<div class="empty-state">Bulunamadı</div>`;}
+function renderNotifications(){const c=document.getElementById('notifList');if(!c)return;c.innerHTML=State.notifications.slice(-20).reverse().map(n=>`<div style="padding:8px;border-bottom:1px solid var(--b);font-size:12px;">${sanitize(n.text)}</div>`).join('')||`<div class="empty-state">${Icons.bell}<p>${t('noNotifications')}</p></div>`;}
+function createPoll(){const q=document.getElementById('pollQuestion')?.value,o=[document.getElementById('pollOption1')?.value,document.getElementById('pollOption2')?.value].filter(Boolean);if(!q||o.length<2)return toast('Soru + 2 seçenek',true);const mid=genId();State.polls[mid]={question:q,options:o,votes:o.map(()=>0),voters:{}};const msg={_id:mid,content:`📊 **${q}**\n${o.map((x,i)=>`${i+1}️⃣ ${x}`).join('\n')}`,senderName:State.user.username,senderId:State.user._id,channelId:State.channel.id,createdAt:new Date().toISOString(),reactions:{}};State.messageDb.push(msg);saveState();closeModal('pollModal');addMsgToChat(msg);}
+function votePoll(mid,opt){if(!checkRateLimit('vote_'+State.user?._id,5,2000))return;const p=State.polls[mid];if(!p||p.voters[State.user._id]!==undefined)return;p.voters[State.user._id]=opt;p.votes[opt]++;saveState();loadMessages();}
 
-function setTheme(p,s){document.documentElement.style.setProperty('--ac',p);document.documentElement.style.setProperty('--ac2',s);document.documentElement.style.setProperty('--acg',p+'4D');document.documentElement.style.setProperty('--acd',p+'1A');localStorage.setItem('gt_theme_primary',p);localStorage.setItem('gt_theme_secondary',s);toast('Tema değiştirildi');}
-function loadTheme(){const p=localStorage.getItem('gt_theme_primary'),s=localStorage.getItem('gt_theme_secondary');if(p&&s){document.documentElement.style.setProperty('--ac',p);document.documentElement.style.setProperty('--ac2',s);document.documentElement.style.setProperty('--acg',p+'4D');document.documentElement.style.setProperty('--acd',p+'1A');}}
-function initEmojiPicker(){
-  const picker=document.getElementById('emojiPicker');if(!picker)return;
-  const emojis=['😀','😂','❤️','🔥','🎉','👍','👎','🙏','🎮','💻','✨','✅','❌','🎵','😮','😢','😡','🥳','🤖','👑','🛡️','🔨','💎','📌','🔗','📊','📁'];
-  picker.innerHTML=emojis.map(e=>`<div class="emoji-option">${e}</div>`).join('');
-  picker.querySelectorAll('.emoji-option').forEach(o=>o.addEventListener('click',()=>{const inp=document.getElementById('messageInput');if(inp){inp.value+=o.textContent;inp.focus();}picker.classList.remove('show');}));
-  document.addEventListener('click',e=>{if(!picker.contains(e.target)&&e.target.id!=='emojiBtn')picker.classList.remove('show');});
-}
-function copyId(id){const el=document.getElementById(id);if(el){navigator.clipboard.writeText(el.textContent);toast('Kopyalandı!');}}
-function logout(){localStorage.removeItem('gt_token');localStorage.removeItem('gt_user');currentUser=null;currentToken=null;if(socket){socket.disconnect();socket=null;}if(localStream){localStream.getTracks().forEach(t=>t.stop());localStream=null;}if(peerConnection){peerConnection.close();peerConnection=null;}renderApp();toast('Çıkış yapıldı');}
+function exportBackup(){const b={serverSettings:State.serverSettings,channels:State.channels,categories:State.categories,roles:State.roles,dmFriends:State.dmFriends};const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(b)],{type:'application/json'}));a.download='gettic-backup.json';a.click();toast('Yedek indirildi');}
+function setTheme(p,s){document.documentElement.style.setProperty('--ac',p);document.documentElement.style.setProperty('--ac2',s);document.documentElement.style.setProperty('--acg',p+'4D');document.documentElement.style.setProperty('--acd',p+'1A');localStorage.setItem('gt_theme_primary',p);localStorage.setItem('gt_theme_secondary',s);closeModal('themeSettingsModal');toast('Tema değişti');}
+function loadTheme(){const p=localStorage.getItem('gt_theme_primary'),s=localStorage.getItem('gt_theme_secondary');if(p&&s){document.documentElement.style.setProperty('--ac',p);document.documentElement.style.setProperty('--ac2',s);}if(localStorage.getItem('gt_light')==='true')document.body.classList.add('light');}
+function logout(){localStorage.removeItem('gt_token');localStorage.removeItem('gt_user');LS_KEYS.forEach(k=>localStorage.removeItem(k));State.user=null;State.token=null;if(State.socket){try{State.socket.removeAllListeners();State.socket.disconnect();}catch(e){}State.socket=null;}leaveVoiceChannel();renderApp();}
 
 function init(){
   setTimeout(()=>document.getElementById('loadingScreen')?.classList.add('hide'),600);
-  const stored=localStorage.getItem('gt_user');if(stored&&currentToken){try{currentUser=JSON.parse(stored);userRoles[currentUser._id]=['r5'];}catch(e){currentUser=null;currentToken=null;}}
-  renderApp();
-  window.setTheme=setTheme;window.openModal=openModal;window.closeModal=closeModal;
+  const stored=localStorage.getItem('gt_user');if(stored&&State.token){try{State.user=JSON.parse(stored);if(!State.userRoles[State.user._id]){State.userRoles[State.user._id]=['r5'];saveState();}}catch(e){State.user=null;State.token=null;}}
+  renderApp();loadTheme();
+  window.setLang=setLang;window.toggleLightMode=toggleLightMode;window.setTheme=setTheme;
+  window.openModal=openModal;window.closeModal=closeModal;
   window.createServer=createServer;window.createChannel=createChannel;window.addCategoryConfirm=addCategoryConfirm;
-  window.saveServerSettings=saveServerSettings;window.saveProfile=saveProfile;window.addFriend=addFriend;
+  window.saveServerSettings=saveServerSettings;window.saveProfile=saveProfile;
   window.openDMNew=openDMNew;window.startDM=startDM;window.openGroupDM=openGroupDM;window.startGroupDM=startGroupDM;
-  window.joinVoiceChannel=joinVoiceChannel;window.openDM=window.openDM||(()=>{});window.joinDiscover=window.joinDiscover||(()=>{});
-  window.addReaction=addReaction;window.deleteMessage=deleteMessage;window.editMessage=editMessage;window.pinMessage=pinMessage;
-  window.openEditRole=openEditRole;window.deleteRole=deleteRole;window.addRole=addRole;window.saveRoleEdit=saveRoleEdit;
-  window.deleteServer=deleteServer;window.deleteChannel=deleteChannel;window.saveChannelEdit=saveChannelEdit;
-  window.openEditChannel=openEditChannel;window.deleteChannelById=deleteChannelById;
-  window.switchChannel=switchChannel;window.copyId=copyId;
-  window.exportChat=exportChat;window.exportBackup=exportBackup;window.importBackup=importBackup;
-  window.createPoll=createPoll;window.applyCustomTheme=applyCustomTheme;
-  if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(()=>{});}
+  window.joinVoiceChannel=joinVoiceChannel;window.addReaction=addReaction;
+  window.deleteMessage=deleteMessage;window.editMessage=editMessage;window.pinMessage=pinMessage;
+  window.openEditRole=openEditRole;window.saveRoleEdit=saveRoleEdit;window.addRole=addRole;
+  window.deleteChannelById=deleteChannelById;window.openEditChannel=openEditChannel;window.saveChannelEdit=saveChannelEdit;
+  window.switchChannel=switchChannel;window.copyId=(id)=>{const el=document.getElementById(id);if(el&&navigator.clipboard)navigator.clipboard.writeText(el.textContent).then(()=>toast('Kopyalandı!'));};
+  window.showUserInfo=showUserInfo;window.toggleBlock=toggleBlock;window.kickUser=kickUser;window.banUser=banUser;window.assignRoleToUser=assignRoleToUser;window.saveUserRoleAssign=saveUserRoleAssign;
+  window.deleteDM=deleteDM;window.copyMsgContent=copyMsgContent;
+  window.exportBackup=exportBackup;window.createPoll=createPoll;window.votePoll=votePoll;
+  window.toggleDensity=toggleDensity;window.handleFileUpload=handleFileUpload;
+  window.toggleMute=toggleMute;window.toggleDeafen=toggleDeafen;window.startScreenShare=startScreenShare;window.startVideo=startVideo;
+  window.retryConnection=retryConnection;window.joinDiscover=window.joinDiscover||(()=>{});
+  window.addEventListener('online',()=>{updateConnectionUI(true);processOfflineQueue();connectSocket();});
+  window.addEventListener('offline',()=>updateConnectionUI(false));
+  if('serviceWorker' in navigator){navigator.serviceWorker.register("data:application/javascript,self.addEventListener('fetch',e=>{e.respondWith(fetch(e.request).catch(()=>caches.match(e.request)));});").catch(()=>{});}
 }
 init();
 })();
 </script>
 </body>
-  </html>
+</html>
