@@ -91,19 +91,19 @@ function startMinecraftServer() {
     const mcPath = path.join(__dirname, 'mc');
     
     // Eger bedrock_server yoksa indir
-    if (!fs.existsSync(path.join(mcPath, 'bedrock_server'))) {
-        console.log('Minecraft Bedrock sunucusu indiriliyor...');
-        try {
-            execSync(
-                'wget -O bedrock.zip https://minecraft.azureedge.net/bin-linux/bedrock-server-1.21.60.10.zip && unzip -o bedrock.zip && chmod +x bedrock_server && rm bedrock.zip',
-                { cwd: mcPath, stdio: 'inherit' }
-            );
-            console.log('Indirme tamamlandi');
-        } catch (e) {
-            console.error('Indirme hatasi:', e.message);
-            return;
-        }
+if (!fs.existsSync(path.join(mcPath, 'bedrock_server'))) {
+    console.log('Minecraft Bedrock sunucusu indiriliyor...');
+    try {
+        execSync(
+            'curl -L -o bedrock.zip "https://minecraft.azureedge.net/bin-linux/bedrock-server-1.21.60.10.zip" && unzip -o bedrock.zip && chmod +x bedrock_server && rm bedrock.zip',
+            { cwd: mcPath, stdio: 'inherit', timeout: 120000 }
+        );
+        console.log('Indirme tamamlandi');
+    } catch (e) {
+        console.error('Indirme hatasi:', e.message);
+        return;
     }
+}
     
     console.log('Minecraft sunucusu baslatiliyor...');
     
