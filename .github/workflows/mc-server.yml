@@ -19,15 +19,29 @@ jobs:
       
       - name: Setup and Run
         run: |
+          set -x  # Hata ayıklama modu
+          
           ngrok config add-authtoken ${{ secrets.NGROK_AUTH_TOKEN }}
           
           cd mc/minecraft
           cat bedrock_server_part_* > bedrock_server
           chmod +x bedrock_server
           
-          # Ngrok'u başlat (--log olmadan)
-          ngrok udp 19132 &
+          echo "Ngrok baslatiliyor..."
+          ngrok udp 19132 > /tmp/ngrok.log 2>&1 &
+          NGROK_PID=$!
+          echo "Ngrok PID: $NGROK_PID"
+          
           sleep 5
+          
+          # Ngrok çalışıyor mu?
+          if ps -p $NGROK_PID > /dev/null; then
+            echo "Ngrok calisiyor"
+          else
+            echo "Ngrok CALISMIYOR!"
+            cat /tmp/ngrok.log
+            exit 1
+          fi
           
           # URL'yi al
           NGROK_URL=$(curl -s http://localhost:4040/api/tunnels | jq -r '.tunnels[0].public_url')
@@ -38,6 +52,9 @@ jobs:
           # Minecraft'ı başlat
           ./bedrock_server &
           MC_PID=$!
+          echo "MC PID: $MC_PID"
           
-          echo "Sunucu PID: $MC_PID"
+          sleep 10
+          echo "Sunucu 10 saniyedir calisiyor..."
+          
           wait $MC_PID
