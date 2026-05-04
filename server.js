@@ -6,6 +6,8 @@ const jwt = require('jsonwebtoken');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
+const { spawn, execSync } = require('child_process');
+const fs = require('fs');
 
 const app = express();
 const httpServer = createServer(app);
@@ -16,6 +18,9 @@ const io = new Server(httpServer, {
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Statik dosyalar
+app.use(express.static(path.join(__dirname)));
 
 // MongoDB Schema'lar
 const UserSchema = new mongoose.Schema({
@@ -73,9 +78,74 @@ const ChatSchema = new mongoose.Schema({
 
 const Chat = mongoose.model('Chat', ChatSchema);
 
+// ==================== MINECRAFT SUNUCU ====================
+let mcServerProcess = null;
+let serverStatus = {
+    online: false,
+    players: 0,
+    maxPlayers: 20,
+    startedAt: null
+};
+
+function startMinecraftServer() {
+    const mcPath = path.join(__dirname, 'mc');
+    
+    // Eger bedrock_server yoksa indir
+    if (!fs.existsSync(path.join(mcPath, 'bedrock_server'))) {
+        console.log('Minecraft Bedrock sunucusu indiriliyor...');
+        try {
+            execSync(
+                'wget -O bedrock.zip https://minecraft.azureedge.net/bin-linux/bedrock-server-1.21.60.10.zip && unzip -o bedrock.zip && chmod +x bedrock_server && rm bedrock.zip',
+                { cwd: mcPath, stdio: 'inherit' }
+            );
+            console.log('Indirme tamamlandi');
+        } catch (e) {
+            console.error('Indirme hatasi:', e.message);
+            return;
+        }
+    }
+    
+    console.log('Minecraft sunucusu baslatiliyor...');
+    
+    mcServerProcess = spawn('./bedrock_server', [], {
+        cwd: mcPath,
+        stdio: ['pipe', 'pipe', 'pipe']
+    });
+    
+    serverStatus.startedAt = new Date().toISOString();
+    
+    mcServerProcess.stdout.on('data', (data) => {
+        const output = data.toString();
+        console.log('[MC]', output.trim());
+        if (output.includes('Server started')) {
+            serverStatus.online = true;
+            console.log('MC Sunucu aktif!');
+        }
+    });
+    
+    mcServerProcess.stderr.on('data', (data) => {
+        console.error('[MC]', data.toString().trim());
+    });
+    
+    mcServerProcess.on('close', (code) => {
+        serverStatus.online = false;
+        console.log('MC Sunucu kapandi (kod:', code, ')');
+        mcServerProcess = null;
+    });
+}
+
+// MC durum endpoint'i
+app.get('/api/mc/status', (req, res) => {
+    res.json(serverStatus);
+});
+
+// MC sayfasi
+app.get('/mc', (req, res) => {
+    res.sendFile(path.join(__dirname, 'mc', 'index.html'));
+});
+
 // ==================== AI ENDPOINTS ====================
 
-// AI sohbet endpoint'i
 app.post('/api/chat', async (req, res) => {
     try {
         const { message, sessionId, chatId, mode } = req.body;
@@ -141,7 +211,6 @@ app.post('/api/chat', async (req, res) => {
     }
 });
 
-// Kullanıcının sohbet geçmişini getir
 app.get('/api/chats/:username', async (req, res) => {
     try {
         const chats = await Chat.find({ 
@@ -160,7 +229,6 @@ app.get('/api/chats/:username', async (req, res) => {
     }
 });
 
-// Belirli sohbeti getir
 app.get('/api/chat/:id', async (req, res) => {
     try {
         const chat = await Chat.findById(req.params.id);
@@ -171,7 +239,6 @@ app.get('/api/chat/:id', async (req, res) => {
     }
 });
 
-// Sohbet sil
 app.delete('/api/chat/:id', async (req, res) => {
     try {
         await Chat.findByIdAndDelete(req.params.id);
@@ -181,30 +248,16 @@ app.delete('/api/chat/:id', async (req, res) => {
     }
 });
 
-// AI sayfası
 app.get('/ai', (req, res) => {
     res.sendFile(path.join(__dirname, 'ai', 'index.html'));
 });
 
 // ==================== API ROUTES ====================
 
-// Ana sayfa (API bilgilendirme)
 app.get('/', (req, res) => {
-    res.json({
-        name: 'Gettic API',
-        version: '2.0.0',
-        endpoints: {
-            auth: '/api/auth',
-            bots: '/api/bots',
-            webhooks: '/api/webhooks',
-            health: '/api/health',
-            ai: '/ai'
-        },
-        frontend: 'https://gettic.js.org'
-    });
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// CORS headers for frontend
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', 'https://gettic.js.org');
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -212,7 +265,6 @@ app.use((req, res, next) => {
     next();
 });
 
-// Auth
 app.post('/api/auth/register', async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -247,7 +299,6 @@ app.get('/api/me', authMiddleware, async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// Bot Routes
 app.get('/api/bots', authMiddleware, async (req, res) => {
     try {
         const bots = await Bot.find({ ownerId: req.userId });
@@ -277,7 +328,6 @@ app.delete('/api/bots/:id', authMiddleware, async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// Webhook Routes
 app.get('/api/webhooks', authMiddleware, async (req, res) => {
     try {
         const webhooks = await Webhook.find({ ownerId: req.userId });
@@ -306,12 +356,10 @@ app.delete('/api/webhooks/:id', authMiddleware, async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// Health Check
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date() });
 });
 
-// ==================== GÖRSEL OLUŞTURMA ====================
 // ==================== GÖRSEL OLUŞTURMA ====================
 
 app.post('/api/image', async (req, res) => {
@@ -322,7 +370,6 @@ app.post('/api/image', async (req, res) => {
             return res.status(400).json({ error: 'Prompt gerekli' });
         }
 
-        // Pollinations.ai - tamamen ücretsiz, limitsiz
         const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1024&height=1024&nologo=true&seed=${Math.floor(Math.random() * 100000)}`;
 
         res.json({ 
@@ -338,11 +385,10 @@ app.post('/api/image', async (req, res) => {
 
 // ==================== SOCKET.IO ====================
 io.on('connection', (socket) => {
-    console.log('🔌 Yeni socket bağlantısı:', socket.id);
+    console.log('Yeni socket baglantisi:', socket.id);
     
     socket.on('join_channel', (channelId) => {
         socket.join(channelId);
-        console.log(`📡 ${socket.id} joined channel: ${channelId}`);
     });
     
     socket.on('leave_channel', (channelId) => {
@@ -358,7 +404,7 @@ io.on('connection', (socket) => {
     });
     
     socket.on('disconnect', () => {
-        console.log('🔌 Socket ayrıldı:', socket.id);
+        console.log('Socket ayrildi:', socket.id);
     });
 });
 
@@ -367,9 +413,11 @@ const PORT = process.env.PORT || 3000;
 
 mongoose.connect(process.env.MONGODB_URI)
     .then(() => {
-        console.log('✅ MongoDB bağlantısı başarılı');
+        console.log('MongoDB baglantisi basarili');
         httpServer.listen(PORT, () => {
-            console.log(`🚀 Gettic API ${PORT} portunda çalışıyor`);
+            console.log(`Gettic API ${PORT} portunda calisiyor`);
+            // Minecraft sunucusunu baslat
+            startMinecraftServer();
         });
     })
-    .catch(err => console.error('❌ MongoDB bağlantı hatası:', err));
+    .catch(err => console.error('MongoDB baglanti hatasi:', err));
