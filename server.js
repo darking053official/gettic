@@ -110,27 +110,28 @@ function startMinecraftServer() {
                 'bedrock_server_part_ae'
             ];
             
-            const buffers = [];
+            const fd = fs.openSync(path.join(mcPath, 'bedrock_server'), 'w');
+            
             for (const part of parts) {
                 const partPath = path.join(mcPath, part);
                 if (!fs.existsSync(partPath)) {
                     console.error(`Parca bulunamadi: ${part}`);
+                    fs.closeSync(fd);
                     return;
                 }
-                console.log(`Parca okunuyor: ${part} (${fs.statSync(partPath).size} bytes)`);
-                buffers.push(fs.readFileSync(partPath));
+                const data = fs.readFileSync(partPath);
+                fs.writeSync(fd, data);
+                console.log(`${part} yazildi`);
             }
             
-            const fullBuffer = Buffer.concat(buffers);
-            fs.writeFileSync(path.join(mcPath, 'bedrock_server'), fullBuffer);
+            fs.closeSync(fd);
             fs.chmodSync(path.join(mcPath, 'bedrock_server'), 0o755);
-            console.log('bedrock_server hazir (senkron yazildi)');
+            console.log('bedrock_server hazir');
             
             for (const part of parts) {
                 const partPath = path.join(mcPath, part);
                 if (fs.existsSync(partPath)) {
                     fs.unlinkSync(partPath);
-                    console.log(`${part} silindi`);
                 }
             }
             
