@@ -25,13 +25,23 @@ jobs:
           cat bedrock_server_part_* > bedrock_server
           chmod +x bedrock_server
           
-          ngrok udp 19132 > /dev/null &
-          sleep 3
+          # Ngrok'u başlat
+          ngrok udp 19132 --log=stderr &
+          NGROK_PID=$!
+          sleep 5
           
-          curl -s http://localhost:4040/api/tunnels | jq -r '.tunnels[0].public_url'
+          # URL'yi al
+          NGROK_URL=$(curl -s http://localhost:4040/api/tunnels | jq -r '.tunnels[0].public_url')
           echo "========================================="
-          echo "Bu adrese baglanin:"
-          curl -s http://localhost:4040/api/tunnels | jq -r '.tunnels[0].public_url'
+          echo "Minecraft Bedrock Sunucusu: $NGROK_URL"
           echo "========================================="
           
-          ./bedrock_server
+          # Minecraft'ı arka planda başlat
+          ./bedrock_server &
+          MC_PID=$!
+          
+          echo "Sunucu basladi. PID: $MC_PID"
+          echo "6 saat calisacak."
+          
+          # Bekle - sunucu kapanana kadar
+          wait $MC_PID
