@@ -11,50 +11,34 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Install Ngrok
+      - name: Install LocalXpose
         run: |
-          curl -sSL https://ngrok-agent.s3.amazonaws.com/ngrok.asc | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null
-          echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | sudo tee /etc/apt/sources.list.d/ngrok.list
-          sudo apt update && sudo apt install ngrok -y
+          wget https://api.localxpose.io/api/downloads/loclx-linux-amd64.zip
+          unzip loclx-linux-amd64.zip
+          chmod +x loclx
+          sudo mv loclx /usr/local/bin/
       
       - name: Setup and Run
         run: |
-          set -x  # Hata ayıklama modu
-          
-          ngrok config add-authtoken ${{ secrets.NGROK_AUTH_TOKEN }}
+          # Login
+          loclx login --token ${{ secrets.LOCALXPOSE_TOKEN }}
           
           cd mc/minecraft
           cat bedrock_server_part_* > bedrock_server
           chmod +x bedrock_server
           
-          echo "Ngrok baslatiliyor..."
-          ngrok udp 19132 > /tmp/ngrok.log 2>&1 &
-          NGROK_PID=$!
-          echo "Ngrok PID: $NGROK_PID"
-          
-          sleep 5
-          
-          # Ngrok çalışıyor mu?
-          if ps -p $NGROK_PID > /dev/null; then
-            echo "Ngrok calisiyor"
-          else
-            echo "Ngrok CALISMIYOR!"
-            cat /tmp/ngrok.log
-            exit 1
-          fi
-          
-          # URL'yi al
-          NGROK_URL=$(curl -s http://localhost:4040/api/tunnels | jq -r '.tunnels[0].public_url')
-          echo "========================================="
-          echo "Minecraft: $NGROK_URL"
-          echo "========================================="
-          
           # Minecraft'ı başlat
           ./bedrock_server &
-          MC_PID=$!
-          echo "MC PID: $MC_PID"
+          sleep 3
           
-          sleep 10
-          echo "Sunucu 10 saniyedir calisiyor..."
+          # Tünel aç
+          loclx tunnel udp --port 19132 &
+          sleep 3
           
-          wait $MC_PID
+          # Tünel URL'sini al
+          echo "========================================="
+          loclx tunnel list
+          echo "========================================="
+          
+          # Bekle
+          wait
