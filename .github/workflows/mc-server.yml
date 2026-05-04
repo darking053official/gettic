@@ -1,0 +1,43 @@
+name: GETTICMC Server
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 */6 * * *'  # 6 saatte bir yeniden başlat
+
+jobs:
+  mc-server:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      
+      - name: Install Ngrok
+        run: |
+          curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null
+          echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | sudo tee /etc/apt/sources.list.d/ngrok.list
+          sudo apt update && sudo apt install ngrok
+      
+      - name: Setup Ngrok Auth
+        run: ngrok config add-authtoken ${{ secrets.NGROK_AUTH_TOKEN }}
+      
+      - name: Start Ngrok Tunnel
+        run: ngrok udp 19132 --log=stdout &
+      
+      - name: Wait for Ngrok
+        run: sleep 5
+      
+      - name: Get Ngrok URL
+        run: curl -s localhost:4040/api/tunnels | jq -r '.tunnels[0].public_url'
+      
+      - name: Start Minecraft Server
+        run: |
+          cd mc/minecraft
+          chmod +x bedrock_server
+          ./bedrock_server
