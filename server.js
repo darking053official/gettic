@@ -88,22 +88,53 @@ let serverStatus = {
 };
 
 function startMinecraftServer() {
-    const mcPath = path.join(__dirname, 'mc');
+    const mcPath = path.join(__dirname, 'mc', 'minecraft');
     
-    // Eger bedrock_server yoksa indir
-if (!fs.existsSync(path.join(mcPath, 'bedrock_server'))) {
-    console.log('Minecraft Bedrock sunucusu indiriliyor...');
-    try {
-        execSync(
-            'curl -L -o bedrock.zip "https://minecraft.azureedge.net/bin-linux/bedrock-server-1.21.60.10.zip" && unzip -o bedrock.zip && chmod +x bedrock_server && rm bedrock.zip',
-            { cwd: mcPath, stdio: 'inherit', timeout: 120000 }
-        );
-        console.log('Indirme tamamlandi');
-    } catch (e) {
-        console.error('Indirme hatasi:', e.message);
-        return;
+    // Parçaları birleştir
+    if (!fs.existsSync(path.join(mcPath, 'bedrock_server'))) {
+        console.log('bedrock_server parcalari birlestiriliyor...');
+        try {
+            const parts = [
+                'bedrock_server_part_aa',
+                'bedrock_server_part_ab', 
+                'bedrock_server_part_ac',
+                'bedrock_server_part_ad',
+                'bedrock_server_part_ae'
+            ];
+            const writeStream = fs.createWriteStream(path.join(mcPath, 'bedrock_server'));
+            
+            for (const part of parts) {
+                const partPath = path.join(mcPath, part);
+                if (!fs.existsSync(partPath)) {
+                    console.error(`Parca bulunamadi: ${part}`);
+                    return;
+                }
+                const data = fs.readFileSync(partPath);
+                writeStream.write(data);
+            }
+            writeStream.end();
+            
+            fs.chmodSync(path.join(mcPath, 'bedrock_server'), '755');
+            console.log('bedrock_server birlestirildi');
+            
+            // Parçaları sil
+            for (const part of parts) {
+                const partPath = path.join(mcPath, part);
+                if (fs.existsSync(partPath)) {
+                    fs.unlinkSync(partPath);
+                }
+            }
+        } catch (e) {
+            console.error('Birlestirme hatasi:', e.message);
+            return;
+        }
     }
-}
+    
+    // Eski bedrock.zip varsa sil
+    const zipFile = path.join(mcPath, 'bedrock.zip');
+    if (fs.existsSync(zipFile)) {
+        fs.unlinkSync(zipFile);
+    }
     
     console.log('Minecraft sunucusu baslatiliyor...');
     
