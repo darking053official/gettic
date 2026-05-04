@@ -88,29 +88,19 @@ let serverStatus = {
 };
 
 function startMinecraftServer() {
-    // Ana dizindeki mc/minecraft klasorunu bul
     const mcPath = path.join(__dirname, 'mc', 'minecraft');
     
     console.log('MC dizini:', mcPath);
     
-    // Klasor var mi kontrol et
     if (!fs.existsSync(mcPath)) {
         console.error('MC klasoru bulunamadi:', mcPath);
-        // Alternatif yolu dene
-        const altPath = path.join(__dirname, '..', 'mc', 'minecraft');
-        console.log('Alternatif yol deneniyor:', altPath);
-        if (!fs.existsSync(altPath)) {
-            console.error('Alternatif yol da bulunamadi');
-            return;
-        }
+        return;
     }
     
-    const targetPath = fs.existsSync(mcPath) ? mcPath : path.join(__dirname, '..', 'mc', 'minecraft');
-    console.log('Kullanilan yol:', targetPath);
-    console.log('Klasor icerigi:', fs.readdirSync(targetPath));
+    console.log('Klasor icerigi:', fs.readdirSync(mcPath));
     
     // Parçaları birleştir
-    if (!fs.existsSync(path.join(targetPath, 'bedrock_server'))) {
+    if (!fs.existsSync(path.join(mcPath, 'bedrock_server'))) {
         console.log('bedrock_server parcalari birlestiriliyor...');
         try {
             const parts = [
@@ -121,9 +111,8 @@ function startMinecraftServer() {
                 'bedrock_server_part_ae'
             ];
             
-            // Tüm parçalar var mı kontrol et
             for (const part of parts) {
-                const partPath = path.join(targetPath, part);
+                const partPath = path.join(mcPath, part);
                 if (!fs.existsSync(partPath)) {
                     console.error(`Parca bulunamadi: ${part}`);
                     return;
@@ -131,34 +120,46 @@ function startMinecraftServer() {
                 console.log(`Parca bulundu: ${part} (${fs.statSync(partPath).size} bytes)`);
             }
             
-            const writeStream = fs.createWriteStream(path.join(targetPath, 'bedrock_server'));
+            const writeStream = fs.createWriteStream(path.join(mcPath, 'bedrock_server'));
             
             for (const part of parts) {
-                const partPath = path.join(targetPath, part);
+                const partPath = path.join(mcPath, part);
                 const data = fs.readFileSync(partPath);
                 writeStream.write(data);
                 console.log(`${part} birlestirildi`);
             }
             writeStream.end();
             
-            // Çalıştırma izni ver
-            fs.chmodSync(path.join(targetPath, 'bedrock_server'), 0o755);
-            console.log('bedrock_server birlestirildi ve calistirilabilir yapildi');
-            
-            // Parçaları sil (isteğe bağlı)
-            for (const part of parts) {
-                const partPath = path.join(targetPath, part);
-                if (fs.existsSync(partPath)) {
-                    fs.unlinkSync(partPath);
-                    console.log(`${part} silindi`);
+            writeStream.on('finish', () => {
+                fs.chmodSync(path.join(mcPath, 'bedrock_server'), 0o755);
+                console.log('bedrock_server hazir, parcalar siliniyor...');
+                
+                // Parçaları sil
+                for (const part of parts) {
+                    const partPath = path.join(mcPath, part);
+                    if (fs.existsSync(partPath)) {
+                        fs.unlinkSync(partPath);
+                        console.log(`${part} silindi`);
+                    }
                 }
-            }
+                
+                // Sunucuyu başlat
+                launchBedrockServer(mcPath);
+            });
+            
+            return; // finish event'ini bekle
+            
         } catch (e) {
             console.error('Birlestirme hatasi:', e.message);
             return;
         }
     }
     
+    // Eğer bedrock_server zaten varsa direkt başlat
+    launchBedrockServer(mcPath);
+}
+
+function launchBedrockServer(targetPath) {
     console.log('Minecraft sunucusu baslatiliyor...');
     
     try {
