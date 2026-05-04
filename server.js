@@ -99,7 +99,6 @@ function startMinecraftServer() {
     
     console.log('Klasor icerigi:', fs.readdirSync(mcPath));
     
-    // Parçaları birleştir
     if (!fs.existsSync(path.join(mcPath, 'bedrock_server'))) {
         console.log('bedrock_server parcalari birlestiriliyor...');
         try {
@@ -111,43 +110,29 @@ function startMinecraftServer() {
                 'bedrock_server_part_ae'
             ];
             
+            const buffers = [];
             for (const part of parts) {
                 const partPath = path.join(mcPath, part);
                 if (!fs.existsSync(partPath)) {
                     console.error(`Parca bulunamadi: ${part}`);
                     return;
                 }
-                console.log(`Parca bulundu: ${part} (${fs.statSync(partPath).size} bytes)`);
+                console.log(`Parca okunuyor: ${part} (${fs.statSync(partPath).size} bytes)`);
+                buffers.push(fs.readFileSync(partPath));
             }
             
-            const writeStream = fs.createWriteStream(path.join(mcPath, 'bedrock_server'));
+            const fullBuffer = Buffer.concat(buffers);
+            fs.writeFileSync(path.join(mcPath, 'bedrock_server'), fullBuffer);
+            fs.chmodSync(path.join(mcPath, 'bedrock_server'), 0o755);
+            console.log('bedrock_server hazir (senkron yazildi)');
             
             for (const part of parts) {
                 const partPath = path.join(mcPath, part);
-                const data = fs.readFileSync(partPath);
-                writeStream.write(data);
-                console.log(`${part} birlestirildi`);
-            }
-            writeStream.end();
-            
-            writeStream.on('finish', () => {
-                fs.chmodSync(path.join(mcPath, 'bedrock_server'), 0o755);
-                console.log('bedrock_server hazir, parcalar siliniyor...');
-                
-                // Parçaları sil
-                for (const part of parts) {
-                    const partPath = path.join(mcPath, part);
-                    if (fs.existsSync(partPath)) {
-                        fs.unlinkSync(partPath);
-                        console.log(`${part} silindi`);
-                    }
+                if (fs.existsSync(partPath)) {
+                    fs.unlinkSync(partPath);
+                    console.log(`${part} silindi`);
                 }
-                
-                // Sunucuyu başlat
-                launchBedrockServer(mcPath);
-            });
-            
-            return; // finish event'ini bekle
+            }
             
         } catch (e) {
             console.error('Birlestirme hatasi:', e.message);
@@ -155,7 +140,6 @@ function startMinecraftServer() {
         }
     }
     
-    // Eğer bedrock_server zaten varsa direkt başlat
     launchBedrockServer(mcPath);
 }
 
@@ -198,12 +182,10 @@ function launchBedrockServer(targetPath) {
     }
 }
 
-// MC durum endpoint'i
 app.get('/api/mc/status', (req, res) => {
     res.json(serverStatus);
 });
 
-// MC sayfasi
 app.get('/mc', (req, res) => {
     res.sendFile(path.join(__dirname, 'mc', 'index.html'));
 });
