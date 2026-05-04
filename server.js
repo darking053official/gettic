@@ -88,10 +88,29 @@ let serverStatus = {
 };
 
 function startMinecraftServer() {
+    // Ana dizindeki mc/minecraft klasorunu bul
     const mcPath = path.join(__dirname, 'mc', 'minecraft');
     
+    console.log('MC dizini:', mcPath);
+    
+    // Klasor var mi kontrol et
+    if (!fs.existsSync(mcPath)) {
+        console.error('MC klasoru bulunamadi:', mcPath);
+        // Alternatif yolu dene
+        const altPath = path.join(__dirname, '..', 'mc', 'minecraft');
+        console.log('Alternatif yol deneniyor:', altPath);
+        if (!fs.existsSync(altPath)) {
+            console.error('Alternatif yol da bulunamadi');
+            return;
+        }
+    }
+    
+    const targetPath = fs.existsSync(mcPath) ? mcPath : path.join(__dirname, '..', 'mc', 'minecraft');
+    console.log('Kullanilan yol:', targetPath);
+    console.log('Klasor icerigi:', fs.readdirSync(targetPath));
+    
     // Parçaları birleştir
-    if (!fs.existsSync(path.join(mcPath, 'bedrock_server'))) {
+    if (!fs.existsSync(path.join(targetPath, 'bedrock_server'))) {
         console.log('bedrock_server parcalari birlestiriliyor...');
         try {
             const parts = [
@@ -101,27 +120,37 @@ function startMinecraftServer() {
                 'bedrock_server_part_ad',
                 'bedrock_server_part_ae'
             ];
-            const writeStream = fs.createWriteStream(path.join(mcPath, 'bedrock_server'));
             
+            // Tüm parçalar var mı kontrol et
             for (const part of parts) {
-                const partPath = path.join(mcPath, part);
+                const partPath = path.join(targetPath, part);
                 if (!fs.existsSync(partPath)) {
                     console.error(`Parca bulunamadi: ${part}`);
                     return;
                 }
+                console.log(`Parca bulundu: ${part} (${fs.statSync(partPath).size} bytes)`);
+            }
+            
+            const writeStream = fs.createWriteStream(path.join(targetPath, 'bedrock_server'));
+            
+            for (const part of parts) {
+                const partPath = path.join(targetPath, part);
                 const data = fs.readFileSync(partPath);
                 writeStream.write(data);
+                console.log(`${part} birlestirildi`);
             }
             writeStream.end();
             
-            fs.chmodSync(path.join(mcPath, 'bedrock_server'), '755');
-            console.log('bedrock_server birlestirildi');
+            // Çalıştırma izni ver
+            fs.chmodSync(path.join(targetPath, 'bedrock_server'), 0o755);
+            console.log('bedrock_server birlestirildi ve calistirilabilir yapildi');
             
-            // Parçaları sil
+            // Parçaları sil (isteğe bağlı)
             for (const part of parts) {
-                const partPath = path.join(mcPath, part);
+                const partPath = path.join(targetPath, part);
                 if (fs.existsSync(partPath)) {
                     fs.unlinkSync(partPath);
+                    console.log(`${part} silindi`);
                 }
             }
         } catch (e) {
@@ -130,39 +159,42 @@ function startMinecraftServer() {
         }
     }
     
-    // Eski bedrock.zip varsa sil
-    const zipFile = path.join(mcPath, 'bedrock.zip');
-    if (fs.existsSync(zipFile)) {
-        fs.unlinkSync(zipFile);
-    }
-    
     console.log('Minecraft sunucusu baslatiliyor...');
     
-    mcServerProcess = spawn('./bedrock_server', [], {
-        cwd: mcPath,
-        stdio: ['pipe', 'pipe', 'pipe']
-    });
-    
-    serverStatus.startedAt = new Date().toISOString();
-    
-    mcServerProcess.stdout.on('data', (data) => {
-        const output = data.toString();
-        console.log('[MC]', output.trim());
-        if (output.includes('Server started')) {
-            serverStatus.online = true;
-            console.log('MC Sunucu aktif!');
-        }
-    });
-    
-    mcServerProcess.stderr.on('data', (data) => {
-        console.error('[MC]', data.toString().trim());
-    });
-    
-    mcServerProcess.on('close', (code) => {
-        serverStatus.online = false;
-        console.log('MC Sunucu kapandi (kod:', code, ')');
-        mcServerProcess = null;
-    });
+    try {
+        mcServerProcess = spawn('./bedrock_server', [], {
+            cwd: targetPath,
+            stdio: ['pipe', 'pipe', 'pipe']
+        });
+        
+        serverStatus.startedAt = new Date().toISOString();
+        
+        mcServerProcess.stdout.on('data', (data) => {
+            const output = data.toString();
+            console.log('[MC]', output.trim());
+            if (output.includes('Server started')) {
+                serverStatus.online = true;
+                console.log('MC Sunucu aktif!');
+            }
+        });
+        
+        mcServerProcess.stderr.on('data', (data) => {
+            console.error('[MC]', data.toString().trim());
+        });
+        
+        mcServerProcess.on('close', (code) => {
+            serverStatus.online = false;
+            console.log('MC Sunucu kapandi (kod:', code, ')');
+            mcServerProcess = null;
+        });
+        
+        mcServerProcess.on('error', (err) => {
+            console.error('MC Sunucu baslatma hatasi:', err.message);
+        });
+        
+    } catch (e) {
+        console.error('MC Sunucu spawn hatasi:', e.message);
+    }
 }
 
 // MC durum endpoint'i
