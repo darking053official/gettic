@@ -1,21 +1,48 @@
-      - name: Sunucu Dosyalarını Sıfırdan İndir ve Kur
+name: Bedrock Server & Tunnel
+on: 
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Depoyu Çek
+        uses: actions/checkout@v4
+
+      - name: Gerekli Kütüphaneleri Kur
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libcurl4 openssl unzip libnsl2
+
+      - name: Temiz Bedrock Server Kurulumu
         run: |
           cd mc/minecraft
-          # Mevcut bozuk olabilecek dosyayı siliyoruz
-          rm -f bedrock_server
-          # Resmi Linux Bedrock Server'ı çekiyoruz
+          # Bozuk olabilecek parçalanmış dosyaları siliyoruz
+          rm -f bedrock_server bedrock_server_part_*
+          
+          # Resmi Linux sürümünü indiriyoruz
           wget https://minecraft.azureedge.net/bin-linux/bedrock-server-1.20.81.01.zip
-          unzip bedrock-server-1.20.81.01.zip
+          unzip -o bedrock-server-1.20.81.01.zip
           chmod +x bedrock_server
-          echo "Orijinal Bedrock Server indirildi."
+          echo "Orijinal Bedrock Server dosyaları kuruldu."
+
+      - name: Localtonet Kurulumu
+        run: |
+          curl -L https://localtonet.com/download/localtonet-linux-x64 -o localtonet
+          chmod +x localtonet
 
       - name: Sunucuyu ve Tüneli Başlat
         run: |
+          # 1. Tüneli başlat ve arka plana at
           ./localtonet authtoken AqtbZxleyWAJD0B8iFVCvsrUMkjzO7YKo
           ./localtonet udp 19132 &
           
-          echo "Sunucu başlatılıyor..."
+          echo "Tünel aktif edildi, sunucu açılıyor..."
+          sleep 10
+          
+          # 2. Minecraft sunucusunu başlat
           cd mc/minecraft
           export LD_LIBRARY_PATH=.
-          # Sunucuyu doğrudan başlatıyoruz ki hata varsa loglara düşsün
+          
+          # Sunucuyu başlat ve GitHub'ın kapatmaması için döngüye gir
           ./bedrock_server
