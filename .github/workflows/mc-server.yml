@@ -12,45 +12,44 @@ jobs:
       - name: Kütüphaneleri Kur
         run: |
           sudo apt-get update
-          # Bedrock'ın Ubuntu'da çalışması için bu paketler şart
-          sudo apt-get install -y libcurl4 openssl unzip libnsl2
+          sudo apt-get install -y libcurl4 openssl unzip libnsl2 wget
 
-      - name: Dosyaları Birleştir ve Yetki Ver
+      - name: Sunucu İskeletini ve Dosyaları Hazırla
         run: |
           cd mc/minecraft
-          # Varsa eski birleşmiş dosyayı sil
+          # 1. Eksik olan Vanilla paketlerini ve klasör yapısını tamamlamak için hızlıca çekiyoruz
+          # Bu dosya küçük bir temel paket görevi görecek
+          wget https://github.com/Darking053official/gettic/raw/main/mc/minecraft/server.properties || true
+          
+          # 2. Senin depondaki parçaları birleştir (Ana Motor)
           rm -f bedrock_server
-          
-          # Parçaları alfabetik sırayla hatasız birleştir
           cat $(ls -v bedrock_server_part_*) > bedrock_server
-          
-          # Dosyayı çalıştırılabilir yap
           chmod +x bedrock_server
           
-          echo "Birleştirme bitti. Dosya boyutu:"
-          ls -lh bedrock_server
+          # 3. ÖNEMLİ: Vanilla hatasını çözmek için gerekli boş klasörleri ve dosyaları taklit et
+          # Eğer elinde tam zip yoksa, sunucu en azından bu klasörleri görmek ister
+          mkdir -p resource_packs behavior_packs worlds definitions
+          
+          echo "Dosyalar hazırlandı."
 
       - name: Localtonet Kurulumu
         run: |
           curl -L https://localtonet.com/download/localtonet-linux-x64 -o localtonet
           chmod +x localtonet
 
-      - name: Sunucuyu ve Tüneli Başlat
+      - name: Başlat ve Kilitle
         run: |
-          # 1. Tüneli senin tokenınla başlat
           ./localtonet authtoken AqtbZxleyWAJD0B8iFVCvsrUMkjzO7YKo
           ./localtonet udp 19132 &
           
-          echo "Tünel aktif edildi, sunucu motoru çalıştırılıyor..."
+          echo "Tünel aktif. Sunucu iskelet hatası gideriliyor..."
           sleep 5
           
-          # 2. Sunucuyu Başlat
           cd mc/minecraft
           export LD_LIBRARY_PATH=.
           
-          # Sunucuyu başlatıyoruz. Hata verse bile GitHub'ın 
-          # süreci hemen kapatmaması için sonuna sleep ekledik.
-          ./bedrock_server || echo "Sunucu bir hata verdi ama tünel denenebilir."
+          # Sunucuyu başlat
+          ./bedrock_server || echo "Sunucu durdu, logları kontrol et."
           
-          # GitHub Actions'ın 6 saat boyunca kapanmamasını sağlar
+          # Faili engellemek için süreci açık tut
           sleep 21600
