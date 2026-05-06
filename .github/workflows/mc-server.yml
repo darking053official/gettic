@@ -12,15 +12,22 @@ jobs:
       - name: Gerekli Kütüphaneleri Kur
         run: |
           sudo apt-get update
-          sudo apt-get install -y libcurl4 openssl unzip
+          sudo apt-get install -y libcurl4 openssl unzip libnsl2
 
       - name: Sunucu Dosyalarını Birleştir ve Hazırla
         run: |
-          # mc/minecraft klasörüne gir ve parçaları birleştir
+          # Dosyaların yerini kontrol et
+          ls -R
+          
+          # mc/minecraft klasörüne gir
           cd mc/minecraft
+          
+          # Parçaları birleştir
           cat bedrock_server_part_* > bedrock_server
           chmod +x bedrock_server
-          echo "Sunucu dosyası birleştirildi ve yetkilendirildi."
+          
+          # Dosya oluştu mu kontrol et
+          ls -lh bedrock_server
 
       - name: Localtonet Kurulumu
         run: |
@@ -29,12 +36,14 @@ jobs:
 
       - name: Sunucuyu ve Tüneli Başlat
         run: |
-          # 1. Tüneli arka planda başlat
+          # 1. Tüneli başlat (Hata mesajlarını görmek için & koymadan deniyoruz)
           ./localtonet authtoken AqtbZxleyWAJD0B8iFVCvsrUMkjzO7YKo
           ./localtonet udp 19132 &
           
-          echo "Tünel başlatıldı, sunucu açılıyor..."
+          sleep 5 # Tünelin oturması için bekle
           
-          # 2. Minecraft sunucusunu başlat (Ön planda kalması için)
+          # 2. Minecraft sunucusunu başlat
           cd mc/minecraft
-          LD_LIBRARY_PATH=. ./bedrock_server
+          # Hataları ekrana basması için LD_LIBRARY_PATH ekliyoruz
+          export LD_LIBRARY_PATH=.
+          ./bedrock_server
