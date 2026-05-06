@@ -9,40 +9,46 @@ jobs:
       - name: Depoyu Çek
         uses: actions/checkout@v4
 
-      - name: Gerekli Kütüphaneleri Kur
+      - name: Sistem Gereksinimlerini Hazırla
         run: |
           sudo apt-get update
-          sudo apt-get install -y libcurl4 openssl unzip libnsl2
-
-      - name: Temiz Bedrock Server Kurulumu
+          # Bedrock için hayati kütüphaneler (libnsl ve openssl 1.1)
+          sudo apt-get install -y libcurl4 openssl unzip libnsl2 libnsl-dev
+          
+      - name: Dosyaları Zorla Birleştir ve Onar
         run: |
           cd mc/minecraft
-          # Bozuk olabilecek parçalanmış dosyaları siliyoruz
-          rm -f bedrock_server bedrock_server_part_*
+          # Eski veya bozuk birleşmiş dosya varsa sil
+          rm -f bedrock_server
           
-          # Resmi Linux sürümünü indiriyoruz
-          wget https://minecraft.azureedge.net/bin-linux/bedrock-server-1.20.81.01.zip
-          unzip -o bedrock-server-1.20.81.01.zip
-          chmod +x bedrock_server
-          echo "Orijinal Bedrock Server dosyaları kuruldu."
+          # Parçaları birleştir (Hata payını azaltmak için alfabetik sıralama)
+          cat $(ls -v bedrock_server_part_*) > bedrock_server
+          
+          # Yetkileri en üst seviyeye çıkar
+          chmod 777 bedrock_server
+          
+          echo "Dosya boyutu kontrolü:"
+          ls -lh bedrock_server
 
       - name: Localtonet Kurulumu
         run: |
           curl -L https://localtonet.com/download/localtonet-linux-x64 -o localtonet
           chmod +x localtonet
 
-      - name: Sunucuyu ve Tüneli Başlat
+      - name: Sunucuyu Başlat ve Kilitli Tut (Sıfır Fail Modu)
         run: |
-          # 1. Tüneli başlat ve arka plana at
+          # 1. Tüneli başlat (Arka plan)
           ./localtonet authtoken AqtbZxleyWAJD0B8iFVCvsrUMkjzO7YKo
           ./localtonet udp 19132 &
           
-          echo "Tünel aktif edildi, sunucu açılıyor..."
-          sleep 10
+          echo "Tünel aktif edildi. Sunucu yükleniyor..."
+          sleep 5
           
-          # 2. Minecraft sunucusunu başlat
+          # 2. Sunucuyu Başlat
           cd mc/minecraft
           export LD_LIBRARY_PATH=.
           
-          # Sunucuyu başlat ve GitHub'ın kapatmaması için döngüye gir
-          ./bedrock_server
+          # Sunucuyu 'screen' veya benzeri bir mantıkla değil, 
+          # doğrudan ön planda çalıştırarak GitHub'ın kapatmasını engelliyoruz.
+          # Eğer sunucu çökerse workflow'un fail vermesi için '|| exit 1' ekliyoruz.
+          ./bedrock_server || (echo "SUNUCU BASLATILAMADI! Logları kontrol et." && exit 1)
