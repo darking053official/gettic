@@ -1,57 +1,21 @@
-name: Bedrock Server & Tunnel
-on: 
-  workflow_dispatch:
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Depoyu Çek
-        uses: actions/checkout@v4
-
-      - name: Gerekli Kütüphaneleri Kur
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libcurl4 openssl unzip libnsl2
-
-      - name: Sunucu Dosyalarını Birleştir
+      - name: Sunucu Dosyalarını Sıfırdan İndir ve Kur
         run: |
           cd mc/minecraft
-          cat bedrock_server_part_* > bedrock_server
+          # Mevcut bozuk olabilecek dosyayı siliyoruz
+          rm -f bedrock_server
+          # Resmi Linux Bedrock Server'ı çekiyoruz
+          wget https://minecraft.azureedge.net/bin-linux/bedrock-server-1.20.81.01.zip
+          unzip bedrock-server-1.20.81.01.zip
           chmod +x bedrock_server
-          echo "Dosya boyutu:"
-          ls -lh bedrock_server
+          echo "Orijinal Bedrock Server indirildi."
 
-      - name: Localtonet Kurulumu
+      - name: Sunucuyu ve Tüneli Başlat
         run: |
-          curl -L https://localtonet.com/download/localtonet-linux-x64 -o localtonet
-          chmod +x localtonet
-
-      - name: Sunucuyu Başlat ve Hatayı Yakala
-        run: |
-          # Tüneli arka planda başlat
           ./localtonet authtoken AqtbZxleyWAJD0B8iFVCvsrUMkjzO7YKo
           ./localtonet udp 19132 &
           
           echo "Sunucu başlatılıyor..."
           cd mc/minecraft
           export LD_LIBRARY_PATH=.
-          
-          # Sunucuyu başlat ve hata mesajlarını 'hata.log' dosyasına yaz
-          ./bedrock_server > server_output.log 2>&1 &
-          
-          # 10 saniye bekle ve logları ekrana bas
-          sleep 10
-          echo "--- SUNUCU LOGLARI BAŞLANGIÇ ---"
-          cat server_output.log
-          echo "--- SUNUCU LOGLARI BİTİŞ ---"
-          
-          # Sürecin canlı olup olmadığını kontrol et
-          if pgrep -x "bedrock_server" > /dev/null
-          then
-              echo "Sunucu başarıyla çalışıyor. 6 saatlik döngü başlıyor..."
-              sleep 21600
-          else
-              echo "HATA: Sunucu başlatılamadı veya çöktü!"
-              exit 1
-          fi
+          # Sunucuyu doğrudan başlatıyoruz ki hata varsa loglara düşsün
+          ./bedrock_server
