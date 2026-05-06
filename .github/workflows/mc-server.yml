@@ -12,38 +12,45 @@ jobs:
       - name: Kütüphaneleri Kur
         run: |
           sudo apt-get update
-          sudo apt-get install -y libcurl4 openssl unzip libnsl2 wget
+          # Bedrock'ın Ubuntu'da çalışması için bu paketler şart
+          sudo apt-get install -y libcurl4 openssl unzip libnsl2
 
-      - name: Sunucuyu Hazırla (Garantili Yöntem)
+      - name: Dosyaları Birleştir ve Yetki Ver
         run: |
           cd mc/minecraft
-          # 1. Eski sunucu dosyasını sil (Senin ayarların kalacak)
+          # Varsa eski birleşmiş dosyayı sil
           rm -f bedrock_server
           
-          # 2. Çalışan güncel Linux dosyasını çek
-          wget https://minecraft.azureedge.net/bin-linux/bedrock-server-1.21.0.03.zip
+          # Parçaları alfabetik sırayla hatasız birleştir
+          cat $(ls -v bedrock_server_part_*) > bedrock_server
           
-          # 3. Sadece bedrock_server ve gerekli .so dosyalarını üzerine yaz
-          unzip -o bedrock-server-1.21.0.03.zip bedrock_server *.so
+          # Dosyayı çalıştırılabilir yap
           chmod +x bedrock_server
-          echo "Sunucu dosyası yenilendi, ayarların korundu."
+          
+          echo "Birleştirme bitti. Dosya boyutu:"
+          ls -lh bedrock_server
 
       - name: Localtonet Kurulumu
         run: |
           curl -L https://localtonet.com/download/localtonet-linux-x64 -o localtonet
           chmod +x localtonet
 
-      - name: Başlat ve Kilitli Tut
+      - name: Sunucuyu ve Tüneli Başlat
         run: |
+          # 1. Tüneli senin tokenınla başlat
           ./localtonet authtoken AqtbZxleyWAJD0B8iFVCvsrUMkjzO7YKo
           ./localtonet udp 19132 &
           
-          echo "Tünel ve Sunucu başlatılıyor..."
+          echo "Tünel aktif edildi, sunucu motoru çalıştırılıyor..."
+          sleep 5
+          
+          # 2. Sunucuyu Başlat
           cd mc/minecraft
           export LD_LIBRARY_PATH=.
           
-          # ASIL NOKTA: Sunucu kapansa bile döngü sayesinde işlem bitmeyecek
-          until ./bedrock_server; do
-              echo "Sunucu çöktü, 5 saniye içinde yeniden başlatılıyor..."
-              sleep 5
-          done
+          # Sunucuyu başlatıyoruz. Hata verse bile GitHub'ın 
+          # süreci hemen kapatmaması için sonuna sleep ekledik.
+          ./bedrock_server || echo "Sunucu bir hata verdi ama tünel denenebilir."
+          
+          # GitHub Actions'ın 6 saat boyunca kapanmamasını sağlar
+          sleep 21600
