@@ -1,58 +1,18 @@
-name: GETTICMC Server
-
-on:
-  workflow_dispatch:
+name: Bedrock Server Tunnel
+on: 
+  workflow_dispatch: # Manuel başlatmak için
 
 jobs:
-  mc-server:
+  build:
     runs-on: ubuntu-latest
-    timeout-minutes: 360
-    
     steps:
-      - uses: actions/checkout@v4
-      
-      - name: Install LocalXpose
+      - name: Localtonet Kurulumu
         run: |
-          wget https://api.localxpose.io/api/downloads/loclx-linux-amd64.zip
-          unzip loclx-linux-amd64.zip
-          chmod +x loclx
-          sudo mv loclx /usr/local/bin/
-          echo "LocalXpose kuruldu"
+          curl -L https://localtonet.com/download/localtonet-linux-x64 -o localtonet
+          chmod +x localtonet
       
-      - name: Login
+      - name: Tüneli Başlat
         run: |
-          set -x
-          echo "Login deneniyor..."
-          loclx login --token ${{ secrets.LOCALXPOSE_TOKEN }} 2>&1
-          echo "Login basarili"
-      
-      - name: Merge parts
-        run: |
-          set -x
-          cd mc/minecraft
-          ls -la
-          cat bedrock_server_part_* > bedrock_server
-          chmod +x bedrock_server
-          echo "Parcalar birlestirildi"
-      
-      - name: Start Minecraft
-        run: |
-          set -x
-          cd mc/minecraft
-          ./bedrock_server &
-          MC_PID=$!
-          echo "MC PID: $MC_PID"
-          sleep 3
-      
-      - name: Start Tunnel
-        run: |
-          set -x
-          loclx tunnel udp --port 19132 &
-          sleep 3
-          loclx tunnel list
-          echo "Tunel acildi"
-      
-      - name: Keep Alive
-        run: |
-          echo "Sunucu calisiyor..."
-          sleep 36000
+          # Token ve UDP tünelini arka planda başlatıyoruz
+          ./localtonet authtoken AqtbZxleyWAJD0B8iFVCvsrUMkjzO7YKo
+          ./localtonet udp 19132
