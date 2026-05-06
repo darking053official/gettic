@@ -11,12 +11,16 @@ jobs:
           curl -L https://localtonet.com/download/localtonet-linux-x64 -o localtonet
           chmod +x localtonet
       
-      - name: Tüneli Başlat ve Açık Tut
+      - name: Tüneli Başlat ve Canlı Tut
         run: |
-          # Token tanımlama
+          # Token'ı ayarla
           ./localtonet authtoken AqtbZxleyWAJD0B8iFVCvsrUMkjzO7YKo
           
-          # Tüneli başlat. 
-          # Dikkat: Alttaki komut tüneli açar ve terminali meşgul eder. 
-          # Böylece GitHub Actions "iş bitti" diyerek kapatmaz.
-          ./localtonet udp 19132
+          # Tüneli arka planda değil, doğrudan (foreground) başlat.
+          # Logları görmek için çıktıları yönlendirme.
+          ./localtonet udp 19132 & 
+          
+          # GitHub Actions'ın hemen kapanmaması için bir döngü ekleyelim.
+          # Bu sayede tünel arkada çalışırken GitHub süreci öldürmez.
+          echo "Tünel başlatıldı, 6 saat boyunca açık kalacak..."
+          sleep 21600
