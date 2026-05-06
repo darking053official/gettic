@@ -16,17 +16,14 @@ jobs:
 
       - name: Sunucu Dosyalarını Birleştir ve Hazırla
         run: |
-          # Dosyaların yerini kontrol et
-          ls -R
-          
           # mc/minecraft klasörüne gir
           cd mc/minecraft
           
-          # Parçaları birleştir
+          # Parçaları birleştirerek orijinal bedrock_server dosyasını oluştur
           cat bedrock_server_part_* > bedrock_server
           chmod +x bedrock_server
           
-          # Dosya oluştu mu kontrol et
+          echo "Dosyalar başarıyla birleştirildi:"
           ls -lh bedrock_server
 
       - name: Localtonet Kurulumu
@@ -36,14 +33,17 @@ jobs:
 
       - name: Sunucuyu ve Tüneli Başlat
         run: |
-          # 1. Tüneli başlat (Hata mesajlarını görmek için & koymadan deniyoruz)
+          # 1. Tüneli başlat ve arka plana at
           ./localtonet authtoken AqtbZxleyWAJD0B8iFVCvsrUMkjzO7YKo
           ./localtonet udp 19132 &
           
-          sleep 5 # Tünelin oturması için bekle
+          echo "Tünel başlatıldı, sunucu yükleniyor..."
+          sleep 5
           
           # 2. Minecraft sunucusunu başlat
+          # LD_LIBRARY_PATH'i hem export ediyoruz hem de komut başında belirtiyoruz
           cd mc/minecraft
-          # Hataları ekrana basması için LD_LIBRARY_PATH ekliyoruz
           export LD_LIBRARY_PATH=.
+          
+          # Sunucuyu başlat ve çıktısını anlık izle
           ./bedrock_server
