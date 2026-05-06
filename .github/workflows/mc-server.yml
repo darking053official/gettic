@@ -1,6 +1,6 @@
 name: Bedrock Server Tunnel
 on: 
-  workflow_dispatch: # Manuel başlatmak için
+  workflow_dispatch:
 
 jobs:
   build:
@@ -11,8 +11,12 @@ jobs:
           curl -L https://localtonet.com/download/localtonet-linux-x64 -o localtonet
           chmod +x localtonet
       
-      - name: Tüneli Başlat
+      - name: Tüneli Başlat ve Açık Tut
         run: |
-          # Token ve UDP tünelini arka planda başlatıyoruz
+          # Token tanımlama
           ./localtonet authtoken AqtbZxleyWAJD0B8iFVCvsrUMkjzO7YKo
+          
+          # Tüneli başlat. 
+          # Dikkat: Alttaki komut tüneli açar ve terminali meşgul eder. 
+          # Böylece GitHub Actions "iş bitti" diyerek kapatmaz.
           ./localtonet udp 19132
