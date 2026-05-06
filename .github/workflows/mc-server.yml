@@ -1,4 +1,4 @@
-name: Bedrock Server Tunnel
+name: Bedrock Server & Tunnel
 on: 
   workflow_dispatch:
 
@@ -6,21 +6,35 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Depoyu Çek (Checkout)
+        uses: actions/checkout@v4
+
+      - name: Gerekli Kütüphaneleri Kur
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libcurl4 openssl unzip
+
+      - name: Sunucu Dosyalarını Birleştir ve Hazırla
+        run: |
+          # mc/minecraft klasörüne gir ve parçaları birleştir
+          cd mc/minecraft
+          cat bedrock_server_part_* > bedrock_server
+          chmod +x bedrock_server
+          echo "Sunucu dosyası birleştirildi ve yetkilendirildi."
+
       - name: Localtonet Kurulumu
         run: |
           curl -L https://localtonet.com/download/localtonet-linux-x64 -o localtonet
           chmod +x localtonet
-      
-      - name: Tüneli Başlat ve Canlı Tut
+
+      - name: Sunucuyu ve Tüneli Başlat
         run: |
-          # Token'ı ayarla
+          # 1. Tüneli arka planda başlat
           ./localtonet authtoken AqtbZxleyWAJD0B8iFVCvsrUMkjzO7YKo
+          ./localtonet udp 19132 &
           
-          # Tüneli arka planda değil, doğrudan (foreground) başlat.
-          # Logları görmek için çıktıları yönlendirme.
-          ./localtonet udp 19132 & 
+          echo "Tünel başlatıldı, sunucu açılıyor..."
           
-          # GitHub Actions'ın hemen kapanmaması için bir döngü ekleyelim.
-          # Bu sayede tünel arkada çalışırken GitHub süreci öldürmez.
-          echo "Tünel başlatıldı, 6 saat boyunca açık kalacak..."
-          sleep 21600
+          # 2. Minecraft sunucusunu başlat (Ön planda kalması için)
+          cd mc/minecraft
+          LD_LIBRARY_PATH=. ./bedrock_server
