@@ -372,8 +372,6 @@ mongoose.connect(process.env.MONGODB_URI)
         console.log('MongoDB baglantisi basarili');
         httpServer.listen(PORT, () => {
             console.log(`Gettic API ${PORT} portunda calisiyor`);
-            // Minecraft sunucusunu baslat
-            startMinecraftServer();
         });
     })
     .catch(err => console.error('MongoDB baglanti hatasi:', err));
