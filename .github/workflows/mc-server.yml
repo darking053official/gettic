@@ -16,6 +16,8 @@ jobs:
         wget https://localtonet.com/download/localtonet-linux-x64.zip
         unzip localtonet-linux-x64.zip
         chmod +x localtonet
+        # Tokeni sisteme tam olarak kaydet
+        ./localtonet authtoken aqtbZxleyWAJD0B8iFVCvsrUMkjzO7YKo
 
     - name: Combine Server Parts
       run: |
@@ -25,14 +27,12 @@ jobs:
 
     - name: Run Server and Tunnel
       run: |
-        # LocalToNet'i senin tokeninle arka planda başlat
-        ./localtonet authtoken aqtbZxleyWAJD0B8iFVCvsrUMkjzO7YKo &
-        sleep 5
+        # Tüneli UDP protokolü ve port 19132 ile arka planda başlat
+        # --token parametresini doğrudan buraya da ekliyoruz ki "Wrong Token" diyemesin
+        ./localtonet udp --port 19132 --token aqtbZxleyWAJD0B8iFVCvsrUMkjzO7YKo &
         
-        # Bedrock için UDP tüneli oluştur (Port 19132)
-        ./localtonet udp --port 19132 &
-        sleep 5
-
-        # Minecraft Sunucusunu Başlat
+        sleep 10
+        
+        # Sunucuyu başlat
         cd mc/minecraft
         LD_LIBRARY_PATH=. ./bedrock_server
