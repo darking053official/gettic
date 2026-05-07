@@ -129,12 +129,10 @@ async function checkTunnel() {
   const portEl = document.getElementById('port');
   const motd = document.getElementById('motd');
   
-  dot.className = 'pulse-dot';
-  statusText.textContent = 'Kontrol ediliyor...';
-  statusText.className = 'status-text';
-  
   try {
-    const res = await fetch('/api/mc');
+    const res = await fetch('https://localtonet.com/api/v1/tunnels', {
+      headers: { 'Authorization': 'Bearer 9vOCzt74nRjJyY5FK0kTDoESBN1M3pG8qf6WdsVZgelUi' }
+    });
     const data = await res.json();
     
     if (data.tunnels && data.tunnels.length > 0) {
@@ -142,47 +140,20 @@ async function checkTunnel() {
       dot.className = 'pulse-dot online';
       statusText.textContent = 'Sunucu Aktif';
       statusText.className = 'status-text online';
-      
-      const addr = t.public_url || t.remote_addr || '---';
-      const port = t.remote_port || '---';
-      ipEl.textContent = addr;
-      portEl.textContent = port;
-      motd.textContent = t.name || 'GETTICMC - Survival Sunucusu';
+      ipEl.textContent = t.public_url || t.remote_addr + ':' + t.remote_port || '---';
+      portEl.textContent = t.remote_port || '---';
+      motd.textContent = 'GETTICMC - Survival';
     } else {
       dot.className = 'pulse-dot offline';
       statusText.textContent = 'Sunucu Kapali';
       statusText.className = 'status-text offline';
-      ipEl.textContent = '---';
-      portEl.textContent = '---';
-      motd.textContent = 'Sunucu su anda cevrimdisi';
     }
   } catch(e) {
     dot.className = 'pulse-dot offline';
     statusText.textContent = 'Baglanti hatasi';
     statusText.className = 'status-text offline';
-    ipEl.textContent = '---';
-    portEl.textContent = '---';
   }
 }
-
-function copyIP() {
-  const ip = document.getElementById('ip').textContent;
-  if (ip !== '---') {
-    navigator.clipboard.writeText(ip);
-    const toast = document.getElementById('toast');
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 2000);
-  }
-}
-
-window.addEventListener('load', () => {
-  setTimeout(() => {
-    document.getElementById('loading').classList.add('hidden');
-    checkTunnel();
-  }, 1500);
-});
-
-setInterval(checkTunnel, 30000);
 </script>
 </body>
   </html>
