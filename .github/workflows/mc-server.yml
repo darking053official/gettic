@@ -26,8 +26,4 @@ jobs:
 
     - name: Run Server and Tunnel
       run: |
-        ./localtonet authtoken "${{ secrets.LOCALTONET_TOKEN }}"
-        ./localtonet udp --port 19132 &
-        sleep 20
-        cd mc/minecraft
-        LD_LIBRARY_PATH=. ./bedrock_server
+        ./localtonet authtoken "${{ secrets.LOCALTONET_TOKEN }}" && ./localtonet udp --port 19132 & sleep 20 && cd mc/minecraft && LD_LIBRARY_PATH=. ./bedrock_server
