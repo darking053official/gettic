@@ -16,8 +16,6 @@ jobs:
         wget https://localtonet.com/download/localtonet-linux-x64.zip
         unzip localtonet-linux-x64.zip
         chmod +x localtonet
-        # Sadece tokeni kaydet, uygulamayı başlatma!
-        ./localtonet authtoken aqtbZxleyWAJD0B8iFVCvsrUMkjzO7YKo
 
     - name: Combine Server Parts
       run: |
@@ -27,11 +25,14 @@ jobs:
 
     - name: Run Server and Tunnel
       run: |
-        # Tüneli arka planda başlat (& işareti önemli!)
-        ./localtonet udp --port 19132 &
+        # Tokeni sisteme tanıt ve arka plana at
+        ./localtonet authtoken aqtbZxleyWAJD0B8iFVCvsrUMkjzO7YKo &
+        sleep 5
         
+        # Tüneli UDP 19132 portuyla başlat ve arka plana at
+        ./localtonet udp --port 19132 &
         sleep 10
         
-        # Sunucuyu başlat
+        # Sunucu dosyalarının olduğu klasöre gir ve başlat
         cd mc/minecraft
         LD_LIBRARY_PATH=. ./bedrock_server
