@@ -82,19 +82,6 @@ const Chat = mongoose.model('Chat', ChatSchema);
 // Minecraft sunucusu GitHub Actions'da calisiyor
 // Durum bilgisi LocalToNet API'den Render uzerinden cekiliyor
 
-// MC API proxy - LocalToNet CORS cozumu
-app.get('/api/mc', async (req, res) => {
-    try {
-        const response = await fetch('https://localtonet.com/api/v1/tunnels', {
-            headers: { 'Authorization': `Bearer ${process.env.LOCALTONET_API_KEY}` }
-        });
-        const data = await response.json();
-        res.json(data);
-    } catch (e) {
-        res.json({ error: 'API baglanti hatasi' });
-    }
-});
-
 // MC sayfasi
 app.get('/mc', (req, res) => {
     res.sendFile(path.join(__dirname, 'mc', 'index.html'));
