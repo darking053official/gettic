@@ -1,55 +1,38 @@
 name: Bedrock Server & Tunnel
-on: 
+
+on:
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Depoyu Çek
-        uses: actions/checkout@v4
+    - name: Checkout Repository
+      uses: actions/checkout@v3
 
-      - name: Kütüphaneleri Kur
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libcurl4 openssl unzip libnsl2 wget
+    - name: Setup LocalToNet
+      run: |
+        wget https://localtonet.com/download/localtonet-linux-x64.zip
+        unzip localtonet-linux-x64.zip
+        chmod +x localtonet
 
-      - name: Sunucu İskeletini ve Dosyaları Hazırla
-        run: |
-          cd mc/minecraft
-          # 1. Eksik olan Vanilla paketlerini ve klasör yapısını tamamlamak için hızlıca çekiyoruz
-          # Bu dosya küçük bir temel paket görevi görecek
-          wget https://github.com/Darking053official/gettic/raw/main/mc/minecraft/server.properties || true
-          
-          # 2. Senin depondaki parçaları birleştir (Ana Motor)
-          rm -f bedrock_server
-          cat $(ls -v bedrock_server_part_*) > bedrock_server
-          chmod +x bedrock_server
-          
-          # 3. ÖNEMLİ: Vanilla hatasını çözmek için gerekli boş klasörleri ve dosyaları taklit et
-          # Eğer elinde tam zip yoksa, sunucu en azından bu klasörleri görmek ister
-          mkdir -p resource_packs behavior_packs worlds definitions
-          
-          echo "Dosyalar hazırlandı."
+    - name: Combine Server Parts
+      run: |
+        cd mc/minecraft
+        cat bedrock_server_part_* > bedrock_server
+        chmod +x bedrock_server
 
-      - name: Localtonet Kurulumu
-        run: |
-          curl -L https://localtonet.com/download/localtonet-linux-x64 -o localtonet
-          chmod +x localtonet
+    - name: Run Server and Tunnel
+      run: |
+        # LocalToNet'i senin tokeninle arka planda başlat
+        ./localtonet authtoken aqtbZxleyWAJD0B8iFVCvsrUMkjzO7YKo &
+        sleep 5
+        
+        # Bedrock için UDP tüneli oluştur (Port 19132)
+        ./localtonet udp --port 19132 &
+        sleep 5
 
-      - name: Başlat ve Kilitle
-        run: |
-          ./localtonet authtoken AqtbZxleyWAJD0B8iFVCvsrUMkjzO7YKo
-          ./localtonet udp 19132 &
-          
-          echo "Tünel aktif. Sunucu iskelet hatası gideriliyor..."
-          sleep 5
-          
-          cd mc/minecraft
-          export LD_LIBRARY_PATH=.
-          
-          # Sunucuyu başlat
-          ./bedrock_server || echo "Sunucu durdu, logları kontrol et."
-          
-          # Faili engellemek için süreci açık tut
-          sleep 21600
+        # Minecraft Sunucusunu Başlat
+        cd mc/minecraft
+        LD_LIBRARY_PATH=. ./bedrock_server
