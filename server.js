@@ -79,126 +79,20 @@ const ChatSchema = new mongoose.Schema({
 const Chat = mongoose.model('Chat', ChatSchema);
 
 // ==================== MINECRAFT SUNUCU ====================
-let mcServerProcess = null;
-let serverStatus = {
-    online: false,
-    players: 0,
-    maxPlayers: 20,
-    startedAt: null
-};
-
-function startMinecraftServer() {
-    const mcPath = path.join(__dirname, 'mc', 'minecraft');
-    
-    console.log('MC dizini:', mcPath);
-    
-    if (!fs.existsSync(mcPath)) {
-        console.error('MC klasoru bulunamadi:', mcPath);
-        return;
-    }
-    
-    console.log('Klasor icerigi:', fs.readdirSync(mcPath));
-    
-    if (!fs.existsSync(path.join(mcPath, 'bedrock_server'))) {
-        console.log('bedrock_server parcalari birlestiriliyor...');
-        try {
-            const parts = [
-                'bedrock_server_part_aa',
-                'bedrock_server_part_ab', 
-                'bedrock_server_part_ac',
-                'bedrock_server_part_ad',
-                'bedrock_server_part_ae'
-            ];
-            
-            const fd = fs.openSync(path.join(mcPath, 'bedrock_server'), 'w');
-            
-            for (const part of parts) {
-                const partPath = path.join(mcPath, part);
-                if (!fs.existsSync(partPath)) {
-                    console.error(`Parca bulunamadi: ${part}`);
-                    fs.closeSync(fd);
-                    return;
-                }
-                const data = fs.readFileSync(partPath);
-                fs.writeSync(fd, data);
-                console.log(`${part} yazildi`);
-            }
-            
-            fs.closeSync(fd);
-            fs.chmodSync(path.join(mcPath, 'bedrock_server'), 0o755);
-            console.log('bedrock_server hazir');
-            
-            for (const part of parts) {
-                const partPath = path.join(mcPath, part);
-                if (fs.existsSync(partPath)) {
-                    fs.unlinkSync(partPath);
-                }
-            }
-            
-        } catch (e) {
-            console.error('Birlestirme hatasi:', e.message);
-            return;
-        }
-    }
-    
-    launchBedrockServer(mcPath);
-}
-
-function launchBedrockServer(targetPath) {
-    console.log('Minecraft sunucusu baslatiliyor...');
-    
-    try {
-        mcServerProcess = spawn('./bedrock_server', [], {
-            cwd: targetPath,
-            stdio: ['pipe', 'pipe', 'pipe']
-        });
-        
-        serverStatus.startedAt = new Date().toISOString();
-        
-        mcServerProcess.stdout.on('data', (data) => {
-            const output = data.toString();
-            console.log('[MC]', output.trim());
-            if (output.includes('Server started')) {
-                serverStatus.online = true;
-                console.log('MC Sunucu aktif!');
-            }
-        });
-        
-        mcServerProcess.stderr.on('data', (data) => {
-            console.error('[MC]', data.toString().trim());
-        });
-        
-        mcServerProcess.on('close', (code) => {
-            serverStatus.online = false;
-            console.log('MC Sunucu kapandi (kod:', code, ')');
-            mcServerProcess = null;
-        });
-        
-        mcServerProcess.on('error', (err) => {
-            console.error('MC Sunucu baslatma hatasi:', err.message);
-        });
-        
-    } catch (e) {
-        console.error('MC Sunucu spawn hatasi:', e.message);
-    }
-}
+// Minecraft sunucusu GitHub Actions'da calisiyor
+// Durum bilgisi LocalToNet API'den Render uzerinden cekiliyor
 
 // MC API proxy - LocalToNet CORS cozumu
 app.get('/api/mc', async (req, res) => {
     try {
         const response = await fetch('https://localtonet.com/api/v1/tunnels', {
-            headers: { 'Authorization': `Bearer 9vOCzt74nRjJyY5FK0kTDoESBN1M3pG8qf6WdsVZgelUi` }
+            headers: { 'Authorization': `Bearer ${process.env.LOCALTONET_API_KEY}` }
         });
         const data = await response.json();
         res.json(data);
     } catch (e) {
         res.json({ error: 'API baglanti hatasi' });
     }
-});
-
-// MC durum endpoint'i
-app.get('/api/mc/status', (req, res) => {
-    res.json(serverStatus);
 });
 
 // MC sayfasi
