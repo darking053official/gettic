@@ -1,1 +1,184 @@
-eklencek
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GETTICMC</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#05010a;color:#fff;font-family:sans-serif;overflow:hidden}
+
+/* Loading Screen */
+.loading-screen{
+  position:fixed;top:0;left:0;width:100%;height:100vh;
+  background:#05010a;z-index:1000;display:flex;
+  flex-direction:column;align-items:center;justify-content:center;gap:24px;
+  transition:opacity .5s,visibility .5s;
+}
+.loading-screen.hidden{opacity:0;visibility:hidden;pointer-events:none}
+.loading-logo svg{width:80px;height:80px}
+.spinner{width:48px;height:48px;border:3px solid #1a0030;border-top:3px solid #4ade80;border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{font-size:14px;color:#888;letter-spacing:4px;animation:pulse-text 1.5s infinite}
+@keyframes pulse-text{0%,100%{opacity:1}50%{opacity:.3}}
+.loading-bar{width:200px;height:3px;background:#1a0030;border-radius:2px;overflow:hidden}
+.loading-fill{width:0%;height:100%;background:#4ade80;border-radius:2px;animation:fill-bar 1.5s ease-in-out infinite}
+@keyframes fill-bar{0%{width:0%}50%{width:80%}100%{width:0%;margin-left:auto}}
+
+/* Ana Sayfa */
+.container{max-width:500px;width:100%;padding:20px;margin:0 auto}
+.header{margin-bottom:24px;text-align:center}
+.header svg{width:64px;height:64px;margin-bottom:12px}
+.header h1{font-size:28px;font-weight:900;background:linear-gradient(90deg,#4ade80,#22c55e);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:2px}
+.status-card{background:#0b0014;border:1px solid #220033;border-radius:16px;padding:24px;margin-bottom:12px}
+.status-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px}
+.pulse-dot{width:14px;height:14px;border-radius:50%}
+.pulse-dot.online{background:#4ade80;box-shadow:0 0 16px rgba(74,222,128,.5);animation:pulse-dot 2s infinite}
+.pulse-dot.offline{background:#ef4444;box-shadow:0 0 16px rgba(239,68,68,.5)}
+@keyframes pulse-dot{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.6);opacity:.3}}
+.status-text{font-size:20px;font-weight:700}
+.status-text.online{color:#4ade80}
+.status-text.offline{color:#ef4444}
+.ip-row{display:flex;align-items:center;justify-content:center;gap:8px;margin:10px 0;background:#12001f;border-radius:8px;padding:10px 14px;font-family:monospace;font-size:14px;color:#4ade80}
+.copy-btn{background:transparent;border:none;cursor:pointer;padding:4px;opacity:.6;transition:opacity .2s}
+.copy-btn:hover{opacity:1}
+.motd{background:#12001f;border-radius:8px;padding:10px;font-size:13px;color:#aaa;line-height:1.4;min-height:40px;display:flex;align-items:center;justify-content:center;word-break:break-word;margin:10px 0}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:10px 0}
+.card{background:#12001f;border-radius:10px;padding:12px 8px;text-align:center}
+.card-label{font-size:9px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px}
+.card-value{font-size:16px;font-weight:700}
+.players-bar{width:100%;height:3px;background:#1a0030;border-radius:2px;margin-top:6px;overflow:hidden}
+.players-fill{height:100%;background:#4ade80;border-radius:2px;transition:width .5s}
+.btn{margin-top:14px;padding:10px 24px;border:none;border-radius:8px;background:linear-gradient(90deg,#4ade80,#22c55e);color:#000;font-weight:700;cursor:pointer;font-size:13px;display:inline-flex;align-items:center;gap:6px;transition:all .2s}
+.btn:hover{transform:scale(1.03)}
+.btn svg{transition:transform .3s}
+.btn:hover svg{transform:rotate(180deg)}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#4ade80;color:#000;padding:8px 18px;border-radius:6px;font-size:12px;font-weight:600;opacity:0;transition:opacity .3s;pointer-events:none;z-index:200}
+.toast.show{opacity:1}
+.footer{margin-top:12px;font-size:9px;color:#333;letter-spacing:2px;text-align:center}
+</style>
+</head>
+<body>
+
+<!-- Loading Screen -->
+<div class="loading-screen" id="loading">
+  <div class="loading-logo">
+    <svg viewBox="0 0 64 64" fill="none" stroke="#4ade80" stroke-width="2">
+      <rect x="4" y="4" width="56" height="56" rx="12"/>
+      <rect x="8" y="8" width="48" height="16" rx="6"/>
+      <rect x="8" y="28" width="48" height="28" rx="6"/>
+      <circle cx="16" cy="16" r="2" fill="#4ade80"/><circle cx="26" cy="16" r="2" fill="#4ade80"/><circle cx="36" cy="16" r="2" fill="#4ade80"/>
+      <circle cx="16" cy="42" r="2" fill="#4ade80"/><circle cx="26" cy="42" r="2" fill="#4ade80"/><circle cx="36" cy="42" r="2" fill="#4ade80"/>
+    </svg>
+  </div>
+  <div class="spinner"></div>
+  <div class="loading-text">GETTICMC</div>
+  <div class="loading-bar"><div class="loading-fill"></div></div>
+</div>
+
+<!-- Ana Sayfa -->
+<div class="container">
+  <div class="header">
+    <svg viewBox="0 0 64 64" fill="none" stroke="#4ade80" stroke-width="2">
+      <rect x="4" y="4" width="56" height="56" rx="12"/>
+      <rect x="8" y="8" width="48" height="16" rx="6"/>
+      <rect x="8" y="28" width="48" height="28" rx="6"/>
+      <circle cx="16" cy="16" r="2" fill="#4ade80"/><circle cx="26" cy="16" r="2" fill="#4ade80"/><circle cx="36" cy="16" r="2" fill="#4ade80"/>
+      <circle cx="16" cy="42" r="2" fill="#4ade80"/><circle cx="26" cy="42" r="2" fill="#4ade80"/><circle cx="36" cy="42" r="2" fill="#4ade80"/>
+    </svg>
+    <h1>GETTICMC</h1>
+  </div>
+
+  <div class="status-card">
+    <div class="status-row">
+      <div class="pulse-dot" id="dot"></div>
+      <span class="status-text" id="statusText">Kontrol ediliyor...</span>
+    </div>
+    
+    <div class="ip-row">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10M12 2a15.3 15.3 0 0 0-4 10 15.3 15.3 0 0 0 4 10"/></svg>
+      <span id="ip">---</span>
+      <button class="copy-btn" onclick="copyIP()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      </button>
+    </div>
+    
+    <div class="motd" id="motd">Yukleniyor...</div>
+    
+    <div class="grid">
+      <div class="card">
+        <div class="card-label">Surum</div>
+        <div class="card-value" id="version">1.26.20.4</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Oyuncu</div>
+        <div class="card-value" id="players">0 / 20</div>
+        <div class="players-bar"><div class="players-fill" id="playersFill" style="width:0%"></div></div>
+      </div>
+    </div>
+    
+    <button class="btn" onclick="check()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+      Yenile
+    </button>
+  </div>
+  
+  <div class="footer">mc.gettic.js.org</div>
+</div>
+
+<div class="toast" id="toast">IP kopyalandi</div>
+
+<script>
+const TUNNEL_API = 'https://localtonet.com/api/v1/tunnels';
+const API_KEY = '9vOCzt74nRjJyY5FK0kTDoESBN1M3pG8qf6WdsVZgelUi';
+
+async function check() {
+  try {
+    const res = await fetch(TUNNEL_API, {
+      headers: { 'Authorization': `Bearer ${API_KEY}` }
+    });
+    const data = await res.json();
+    
+    if (data.tunnels && data.tunnels.length > 0) {
+      const t = data.tunnels[0];
+      document.getElementById('dot').className = 'pulse-dot online';
+      document.getElementById('statusText').textContent = 'Sunucu Aktif';
+      document.getElementById('statusText').className = 'status-text online';
+      document.getElementById('ip').textContent = t.public_url || t.remote_addr + ':' + t.remote_port || '---';
+      document.getElementById('motd').textContent = t.name || 'GETTICMC - Survival Sunucusu';
+    } else {
+      document.getElementById('dot').className = 'pulse-dot offline';
+      document.getElementById('statusText').textContent = 'Sunucu Kapali';
+      document.getElementById('statusText').className = 'status-text offline';
+      document.getElementById('ip').textContent = '---';
+      document.getElementById('motd').textContent = 'Sunucu su anda cevrimdisi';
+    }
+  } catch(e) {
+    document.getElementById('dot').className = 'pulse-dot offline';
+    document.getElementById('statusText').textContent = 'Baglanti hatasi';
+    document.getElementById('statusText').className = 'status-text offline';
+  }
+}
+
+function copyIP() {
+  const ip = document.getElementById('ip').textContent;
+  if (ip !== '---') {
+    navigator.clipboard.writeText(ip);
+    const toast = document.getElementById('toast');
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2000);
+  }
+}
+
+// Loading screen
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    document.getElementById('loading').classList.add('hidden');
+    check();
+  }, 1500);
+});
+
+setInterval(check, 30000);
+</script>
+</body>
+  </html>
