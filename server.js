@@ -78,8 +78,6 @@ const ChatSchema = new mongoose.Schema({
 
 const Chat = mongoose.model('Chat', ChatSchema);
 
-startedAt = new Date().toISOString();
-
 // ==================== MINECRAFT SUNUCU ====================
 let mcServerProcess = null;
 let serverStatus = {
