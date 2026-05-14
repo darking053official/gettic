@@ -192,31 +192,59 @@
         }));
         scene.add(particles);
 
-        // ==================== GETTIC LOGO KÜRESİ (KÜÇÜK) ====================
-        const logoGroup = new THREE.Group();
-        const sphere = new THREE.Mesh(
-            new THREE.SphereGeometry(1.8, 64, 64),
-            new THREE.MeshPhongMaterial({ map: logoTexture, shininess: 60, transparent: true, opacity: 0.95 })
-        );
-        logoGroup.add(sphere);
+        // ==================== GETTIC LOGO KÜRESİ ====================
+const logoGroup = new THREE.Group();
 
-        const ring1 = new THREE.Mesh(
-            new THREE.TorusGeometry(2.2, 0.12, 32, 80),
-            new THREE.MeshPhongMaterial({ color: 0xb57bee, emissive: 0x4a1d8a, emissiveIntensity: 0.7, shininess: 100, transparent: true, opacity: 0.9 })
-        );
-        ring1.rotation.x = Math.PI / 2;
-        logoGroup.add(ring1);
+// Texture'ı küçült - logo tekrar etmesin diye
+logoTexture.wrapS = THREE.ClampToEdgeWrapping;
+logoTexture.wrapT = THREE.ClampToEdgeWrapping;
+logoTexture.repeat.set(1, 1);
+logoTexture.offset.set(0, 0);
 
-        const ring2 = new THREE.Mesh(
-            new THREE.TorusGeometry(2.5, 0.08, 32, 70),
-            new THREE.MeshPhongMaterial({ color: 0xc99df2, emissive: 0x6b21a8, emissiveIntensity: 0.5, shininess: 100, transparent: true, opacity: 0.7 })
-        );
-        ring2.rotation.x = Math.PI / 3; ring2.rotation.y = Math.PI / 4;
-        logoGroup.add(ring2);
+// Küre ESKİ BÜYÜK boyutta
+const sphere = new THREE.Mesh(
+    new THREE.SphereGeometry(3, 64, 64),  // ← 3'e geri döndü
+    new THREE.MeshPhongMaterial({ 
+        map: logoTexture, 
+        shininess: 60, 
+        transparent: true, 
+        opacity: 0.95 
+    })
+);
+logoGroup.add(sphere);
 
-        logoGroup.position.set(5, 0, -6);
-        scene.add(logoGroup);
+// Halkalar da ESKİ BÜYÜK boyutta
+const ring1 = new THREE.Mesh(
+    new THREE.TorusGeometry(3.8, 0.2, 32, 120),  // ← 3.8'e geri döndü
+    new THREE.MeshPhongMaterial({ 
+        color: 0xb57bee, 
+        emissive: 0x4a1d8a, 
+        emissiveIntensity: 0.7, 
+        shininess: 100, 
+        transparent: true, 
+        opacity: 0.9 
+    })
+);
+ring1.rotation.x = Math.PI / 2;
+logoGroup.add(ring1);
 
+const ring2 = new THREE.Mesh(
+    new THREE.TorusGeometry(4.2, 0.12, 32, 100),  // ← 4.2'ye geri döndü
+    new THREE.MeshPhongMaterial({ 
+        color: 0xc99df2, 
+        emissive: 0x6b21a8, 
+        emissiveIntensity: 0.5, 
+        shininess: 100, 
+        transparent: true, 
+        opacity: 0.7 
+    })
+);
+ring2.rotation.x = Math.PI / 3;
+ring2.rotation.y = Math.PI / 4;
+logoGroup.add(ring2);
+
+logoGroup.position.set(5, 0, -6);
+scene.add(logoGroup);
         // ==================== 3D "404" ====================
         const textGroup = new THREE.Group();
 
