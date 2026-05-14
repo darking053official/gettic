@@ -74,10 +74,14 @@ app.post('/api/list/reset', async (req, res) => {
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// html
+// API listesini gösteren sayfa
 app.get('/apis/list', (req, res) => {
-    res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.sendFile(path.join(__dirname, 'apis', 'list.html'));
+});
+
+// Ekleme sayfası
+app.get('/apis/list/add', (req, res) => {
+    res.sendFile(path.join(__dirname, 'apis', 'add.html'));
 });
 
 // MongoDB Schema'lar
