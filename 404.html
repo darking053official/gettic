@@ -36,49 +36,43 @@
             text-align: center;
             padding: 30px;
             pointer-events: none;
-            background: radial-gradient(ellipse at center, transparent 30%, rgba(10, 10, 20, 0.8) 100%);
         }
 
         .content {
             pointer-events: auto;
             max-width: 550px;
-            background: rgba(10, 10, 20, 0.8);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-            padding: 40px 35px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 100px rgba(181, 123, 238, 0.15);
+            text-align: center;
         }
 
         .error-code {
-            font-size: 90px;
+            font-size: 100px;
             font-weight: 900;
             background: linear-gradient(135deg, #b57bee, #c99df2, #dbbff9);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
             line-height: 1;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             letter-spacing: -3px;
-            filter: drop-shadow(0 0 30px rgba(181, 123, 238, 0.5));
+            filter: drop-shadow(0 0 40px rgba(181, 123, 238, 0.6));
         }
 
         h1 {
-            font-size: 22px;
+            font-size: 26px;
             font-weight: 700;
-            margin-bottom: 12px;
+            margin-bottom: 14px;
             color: #ffffff;
-            text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.4), 0 0 60px rgba(181, 123, 238, 0.3);
             letter-spacing: 0.5px;
         }
 
         p {
-            color: #b0b0d0;
-            font-size: 14px;
-            margin-bottom: 28px;
+            color: #c0c0e0;
+            font-size: 15px;
+            margin-bottom: 32px;
             line-height: 1.7;
             font-weight: 400;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
         }
 
         a.home-btn {
@@ -102,34 +96,34 @@
         }
 
         .links {
-            margin-top: 22px;
+            margin-top: 24px;
             display: flex;
             gap: 10px;
             justify-content: center;
             flex-wrap: wrap;
         }
         .links a {
-            background: rgba(255, 255, 255, 0.04);
-            color: #8888bb;
+            background: rgba(255, 255, 255, 0.06);
+            color: #9999cc;
             text-decoration: none;
             font-size: 12px;
             padding: 8px 18px;
             border-radius: 50px;
-            border: 1px solid rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             transition: all .2s;
             font-weight: 500;
         }
         .links a:hover {
-            background: rgba(181, 123, 238, 0.15);
+            background: rgba(181, 123, 238, 0.2);
             color: #dbbff9;
-            border-color: rgba(181, 123, 238, 0.4);
+            border-color: rgba(181, 123, 238, 0.5);
         }
 
         @media (max-width: 600px) {
-            .content { padding: 28px 20px; border-radius: 20px; }
-            .error-code { font-size: 60px; }
-            h1 { font-size: 18px; }
-            p { font-size: 12px; }
+            .error-code { font-size: 65px; }
+            h1 { font-size: 20px; }
+            p { font-size: 13px; }
+            a.home-btn { padding: 12px 26px; font-size: 14px; }
         }
     </style>
 </head>
@@ -162,16 +156,13 @@
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.setClearColor(0x0a0a14, 1);
 
-        // ==================== TEXTURE YÜKLEYİCİ ====================
+        // ==================== TEXTURE ====================
         const textureLoader = new THREE.TextureLoader();
         const logoTexture = textureLoader.load(
-            'https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png',
-            () => console.log('Logo yüklendi!'),
-            undefined,
-            () => console.warn('Logo yüklenemedi, yedek küre kullanılıyor')
+            'https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png'
         );
 
-        // ==================== PARTİKÜL SİSTEMİ ====================
+        // ==================== PARTİKÜLLER ====================
         const particlesGeom = new THREE.BufferGeometry();
         const particlesCount = 800;
         const posArray = new Float32Array(particlesCount * 3);
@@ -181,7 +172,6 @@
             posArray[i] = (Math.random() - 0.5) * 50;
             posArray[i + 1] = (Math.random() - 0.5) * 40;
             posArray[i + 2] = (Math.random() - 0.5) * 30;
-
             colorArray[i] = 0.5 + Math.random() * 0.5;
             colorArray[i + 1] = 0.3 + Math.random() * 0.5;
             colorArray[i + 2] = 0.6 + Math.random() * 0.4;
@@ -190,145 +180,74 @@
         particlesGeom.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
         particlesGeom.setAttribute('color', new THREE.BufferAttribute(colorArray, 3));
 
-        const particlesMat = new THREE.PointsMaterial({
-            size: 0.08,
-            vertexColors: true,
-            blending: THREE.AdditiveBlending,
-            depthWrite: false,
-            transparent: true,
-            opacity: 0.8,
-        });
-
-        const particles = new THREE.Points(particlesGeom, particlesMat);
+        const particles = new THREE.Points(particlesGeom, new THREE.PointsMaterial({
+            size: 0.08, vertexColors: true, blending: THREE.AdditiveBlending,
+            depthWrite: false, transparent: true, opacity: 0.8,
+        }));
         scene.add(particles);
 
         // ==================== GETTIC LOGO KÜRESİ ====================
         const logoGroup = new THREE.Group();
-
-        // Logolu küre
-        const sphereGeom = new THREE.SphereGeometry(3, 64, 64);
-        const sphereMat = new THREE.MeshPhongMaterial({
-            map: logoTexture,
-            shininess: 60,
-            specular: 0x333333,
-            transparent: true,
-            opacity: 0.95,
-        });
-        const sphere = new THREE.Mesh(sphereGeom, sphereMat);
+        const sphere = new THREE.Mesh(
+            new THREE.SphereGeometry(3, 64, 64),
+            new THREE.MeshPhongMaterial({ map: logoTexture, shininess: 60, transparent: true, opacity: 0.95 })
+        );
         logoGroup.add(sphere);
 
-        // Dış halka 1 (yatay)
-        const ringGeom1 = new THREE.TorusGeometry(3.8, 0.2, 32, 120);
-        const ringMat1 = new THREE.MeshPhongMaterial({
-            color: 0xb57bee,
-            emissive: 0x4a1d8a,
-            emissiveIntensity: 0.7,
-            shininess: 100,
-            transparent: true,
-            opacity: 0.9,
-        });
-        const ring1 = new THREE.Mesh(ringGeom1, ringMat1);
+        const ring1 = new THREE.Mesh(
+            new THREE.TorusGeometry(3.8, 0.2, 32, 120),
+            new THREE.MeshPhongMaterial({ color: 0xb57bee, emissive: 0x4a1d8a, emissiveIntensity: 0.7, shininess: 100, transparent: true, opacity: 0.9 })
+        );
         ring1.rotation.x = Math.PI / 2;
         logoGroup.add(ring1);
 
-        // Dış halka 2 (eğik)
-        const ringGeom2 = new THREE.TorusGeometry(4.2, 0.12, 32, 100);
-        const ringMat2 = new THREE.MeshPhongMaterial({
-            color: 0xc99df2,
-            emissive: 0x6b21a8,
-            emissiveIntensity: 0.5,
-            shininess: 100,
-            transparent: true,
-            opacity: 0.7,
-        });
-        const ring2 = new THREE.Mesh(ringGeom2, ringMat2);
-        ring2.rotation.x = Math.PI / 3;
-        ring2.rotation.y = Math.PI / 4;
+        const ring2 = new THREE.Mesh(
+            new THREE.TorusGeometry(4.2, 0.12, 32, 100),
+            new THREE.MeshPhongMaterial({ color: 0xc99df2, emissive: 0x6b21a8, emissiveIntensity: 0.5, shininess: 100, transparent: true, opacity: 0.7 })
+        );
+        ring2.rotation.x = Math.PI / 3; ring2.rotation.y = Math.PI / 4;
         logoGroup.add(ring2);
-
-        // Glow
-        const glowGeom = new THREE.SphereGeometry(3.3, 32, 32);
-        const glowMat = new THREE.MeshBasicMaterial({
-            color: 0xb57bee,
-            transparent: true,
-            opacity: 0.08,
-            depthWrite: false,
-        });
-        const glow = new THREE.Mesh(glowGeom, glowMat);
-        logoGroup.add(glow);
 
         logoGroup.position.set(5, 0, -6);
         scene.add(logoGroup);
 
-        // ==================== 3D "404" YAZISI ====================
+        // ==================== 3D "404" ====================
         const textGroup = new THREE.Group();
 
-        function createShapeMesh(shape, x, color) {
-            const geom = new THREE.ShapeGeometry(shape);
-            const mat = new THREE.MeshPhongMaterial({
-                color: color,
-                emissive: color,
-                emissiveIntensity: 0.6,
-                shininess: 100,
-                transparent: true,
-                opacity: 0.9,
-                side: THREE.DoubleSide,
-            });
-            const mesh = new THREE.Mesh(geom, mat);
-            mesh.position.x = x;
-            return mesh;
+        function makeMesh(shape, x, color) {
+            const m = new THREE.Mesh(
+                new THREE.ShapeGeometry(shape),
+                new THREE.MeshPhongMaterial({ color, emissive: color, emissiveIntensity: 0.6, shininess: 100, transparent: true, opacity: 0.9, side: THREE.DoubleSide })
+            );
+            m.position.x = x;
+            return m;
         }
 
-        function createFour(x) {
-            const shape = new THREE.Shape();
-            shape.moveTo(-1.2, 2.5);
-            shape.lineTo(0.6, 2.5);
-            shape.lineTo(0.6, 0.4);
-            shape.lineTo(-1.2, 0.4);
-            shape.lineTo(-1.2, -0.8);
-            shape.lineTo(0.6, -0.8);
-            shape.lineTo(0.6, -2.5);
-            shape.lineTo(-1.2, -2.5);
-            return createShapeMesh(shape, x, 0xb57bee);
+        function four(x) {
+            const s = new THREE.Shape();
+            s.moveTo(-1.2, 2.5); s.lineTo(0.6, 2.5); s.lineTo(0.6, 0.4); s.lineTo(-1.2, 0.4);
+            s.lineTo(-1.2, -0.8); s.lineTo(0.6, -0.8); s.lineTo(0.6, -2.5); s.lineTo(-1.2, -2.5);
+            return makeMesh(s, x, 0xb57bee);
         }
 
-        function createZero(x) {
-            const outer = new THREE.Shape();
-            outer.moveTo(-1.2, 2.5);
-            outer.lineTo(1.2, 2.5);
-            outer.lineTo(1.2, -2.5);
-            outer.lineTo(-1.2, -2.5);
-
-            const hole = new THREE.Path();
-            hole.moveTo(-0.5, 1.7);
-            hole.lineTo(0.5, 1.7);
-            hole.lineTo(0.5, -1.7);
-            hole.lineTo(-0.5, -1.7);
-            outer.holes.push(hole);
-
-            return createShapeMesh(outer, x, 0xc99df2);
+        function zero(x) {
+            const s = new THREE.Shape();
+            s.moveTo(-1.2, 2.5); s.lineTo(1.2, 2.5); s.lineTo(1.2, -2.5); s.lineTo(-1.2, -2.5);
+            const h = new THREE.Path();
+            h.moveTo(-0.5, 1.7); h.lineTo(0.5, 1.7); h.lineTo(0.5, -1.7); h.lineTo(-0.5, -1.7);
+            s.holes.push(h);
+            return makeMesh(s, x, 0xc99df2);
         }
 
-        textGroup.add(createFour(-4.5));
-        textGroup.add(createZero(0));
-        textGroup.add(createFour(4.5));
+        textGroup.add(four(-4.5)); textGroup.add(zero(0)); textGroup.add(four(4.5));
         textGroup.position.set(-3, 2, -2);
         scene.add(textGroup);
 
-        // ==================== IŞIKLANDIRMA ====================
+        // ==================== IŞIKLAR ====================
         scene.add(new THREE.AmbientLight(0x444466, 0.8));
-
-        const pl1 = new THREE.PointLight(0xb57bee, 2.0, 40);
-        pl1.position.set(12, 8, 14);
-        scene.add(pl1);
-
-        const pl2 = new THREE.PointLight(0xc99df2, 1.6, 30);
-        pl2.position.set(-12, -5, 10);
-        scene.add(pl2);
-
-        const pl3 = new THREE.PointLight(0xffffff, 0.8, 25);
-        pl3.position.set(0, 5, 18);
-        scene.add(pl3);
+        const pl1 = new THREE.PointLight(0xb57bee, 2.0, 40); pl1.position.set(12, 8, 14); scene.add(pl1);
+        const pl2 = new THREE.PointLight(0xc99df2, 1.6, 30); pl2.position.set(-12, -5, 10); scene.add(pl2);
+        const pl3 = new THREE.PointLight(0xffffff, 0.8, 25); pl3.position.set(0, 5, 18); scene.add(pl3);
 
         // ==================== MOUSE ====================
         let mx = 0, my = 0, tx = 0, ty = 0;
@@ -338,36 +257,22 @@
         // ==================== ANİMASYON ====================
         function animate() {
             requestAnimationFrame(animate);
-
-            mx += (tx - mx) * 0.04;
-            my += (ty - my) * 0.04;
-
-            particles.rotation.y += 0.0005;
-            particles.rotation.x += 0.0002;
-
-            textGroup.rotation.y = mx * 0.5;
-            textGroup.rotation.x = my * 0.3;
+            mx += (tx - mx) * 0.04; my += (ty - my) * 0.04;
+            particles.rotation.y += 0.0005; particles.rotation.x += 0.0002;
+            textGroup.rotation.y = mx * 0.5; textGroup.rotation.x = my * 0.3;
             textGroup.position.y = 2 + Math.sin(Date.now() * 0.0012) * 0.5;
-
             logoGroup.rotation.y += 0.006;
             logoGroup.rotation.x = Math.sin(Date.now() * 0.0008) * 0.3;
             logoGroup.position.y = Math.sin(Date.now() * 0.0015) * 1.5;
-
-            ring1.rotation.z += 0.004;
-            ring2.rotation.z -= 0.003;
-            ring2.rotation.x += 0.002;
-
+            ring1.rotation.z += 0.004; ring2.rotation.z -= 0.003; ring2.rotation.x += 0.002;
             const t = Date.now() * 0.001;
             pl1.intensity = 1.8 + Math.sin(t * 0.7) * 0.5;
             pl2.intensity = 1.4 + Math.cos(t * 0.5) * 0.4;
-            glow.scale.setScalar(1 + Math.sin(t * 2) * 0.2);
-
             renderer.render(scene, camera);
         }
 
         window.addEventListener('resize', () => {
-            camera.aspect = innerWidth / innerHeight;
-            camera.updateProjectionMatrix();
+            camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
             renderer.setSize(innerWidth, innerHeight);
         });
 
