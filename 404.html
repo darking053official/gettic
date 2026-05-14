@@ -37,94 +37,120 @@
             align-items: center;
             justify-content: center;
             text-align: center;
-            padding: 20px;
+            padding: 30px;
             pointer-events: none;
+            background: radial-gradient(ellipse at center, transparent 40%, rgba(10, 10, 20, 0.7) 100%);
         }
 
         .content {
             pointer-events: auto;
-            max-width: 500px;
+            max-width: 550px;
+            background: rgba(10, 10, 20, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 40px 35px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 80px rgba(181, 123, 238, 0.1);
+        }
+
+        .error-code {
+            font-size: 90px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #b57bee, #c99df2, #dbbff9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+            margin-bottom: 8px;
+            letter-spacing: -3px;
+            text-shadow: none;
+            filter: drop-shadow(0 0 30px rgba(181, 123, 238, 0.4));
         }
 
         h1 {
-            font-size: 24px;
+            font-size: 22px;
+            font-weight: 700;
             margin-bottom: 12px;
-            color: #dbbff9;
-            text-shadow: 0 0 40px rgba(181, 123, 238, .5);
-            animation: float 3s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%,
-            100% {
-                transform: translateY(0);
-            }
-            50% {
-                transform: translateY(-10px);
-            }
+            color: #ffffff;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+            letter-spacing: 0.5px;
         }
 
         p {
-            color: #9898b8;
+            color: #b0b0d0;
             font-size: 14px;
-            margin-bottom: 30px;
-            line-height: 1.6;
+            margin-bottom: 28px;
+            line-height: 1.7;
+            font-weight: 400;
         }
 
         a.home-btn {
             display: inline-block;
-            padding: 14px 32px;
-            background: linear-gradient(135deg, #b57bee, #c99df2);
+            padding: 14px 34px;
+            background: linear-gradient(135deg, #b57bee, #9b5de5);
             color: #fff;
             text-decoration: none;
             border-radius: 50px;
             font-weight: 700;
             font-size: 15px;
             transition: all .3s;
-            box-shadow: 0 4px 30px rgba(181, 123, 238, .4);
-            letter-spacing: .5px;
+            box-shadow: 0 6px 30px rgba(181, 123, 238, 0.5);
+            letter-spacing: 0.5px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         a.home-btn:hover {
             transform: translateY(-3px);
-            box-shadow: 0 8px 40px rgba(181, 123, 238, .6);
-            filter: brightness(1.1);
+            box-shadow: 0 10px 40px rgba(181, 123, 238, 0.7);
+            filter: brightness(1.15);
+            background: linear-gradient(135deg, #c99df2, #b57bee);
         }
 
         .links {
-            margin-top: 25px;
+            margin-top: 22px;
             display: flex;
-            gap: 12px;
+            gap: 10px;
             justify-content: center;
             flex-wrap: wrap;
         }
 
         .links a {
-            background: rgba(255, 255, 255, .06);
-            color: #9898b8;
+            background: rgba(255, 255, 255, 0.04);
+            color: #8888bb;
             text-decoration: none;
             font-size: 12px;
             padding: 8px 18px;
             border-radius: 50px;
-            border: 1px solid rgba(255, 255, 255, .08);
+            border: 1px solid rgba(255, 255, 255, 0.06);
             transition: all .2s;
+            font-weight: 500;
         }
 
         .links a:hover {
-            background: rgba(255, 255, 255, .12);
-            color: #fff;
-            border-color: rgba(181, 123, 238, .4);
+            background: rgba(181, 123, 238, 0.15);
+            color: #dbbff9;
+            border-color: rgba(181, 123, 238, 0.4);
         }
 
-        .particle-hint {
-            position: fixed;
-            bottom: 30px;
-            z-index: 2;
-            color: #585878;
-            font-size: 11px;
-            text-align: center;
-            width: 100%;
-            pointer-events: none;
+        @media (max-width: 600px) {
+            .content {
+                padding: 28px 20px;
+                border-radius: 20px;
+            }
+            .error-code {
+                font-size: 60px;
+            }
+            h1 {
+                font-size: 18px;
+            }
+            p {
+                font-size: 12px;
+            }
+            a.home-btn {
+                padding: 12px 24px;
+                font-size: 13px;
+            }
         }
     </style>
 </head>
@@ -133,6 +159,7 @@
 
     <div class="overlay">
         <div class="content">
+            <div class="error-code">404</div>
             <h1>🔮 Sayfa Bulunamadı</h1>
             <p>Aradığın sayfa taşınmış, silinmiş veya hiç var olmamış olabilir.<br>Doğru adresi yazdığından emin ol.</p>
             <a href="/" class="home-btn">🏠 Ana Sayfaya Dön</a>
@@ -144,13 +171,11 @@
         </div>
     </div>
 
-    <div class="particle-hint">🖱️ Fareyi hareket ettir - partiküller seni takip etsin</div>
-
     <script>
         // ==================== THREE.JS 3D SAHNE ====================
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.z = 20;
+        camera.position.z = 18;
 
         const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('bg'), alpha: true, antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -158,34 +183,92 @@
 
         // ==================== PARTİKÜL SİSTEMİ ====================
         const particlesGeom = new THREE.BufferGeometry();
-        const particlesCount = 600;
+        const particlesCount = 500;
         const posArray = new Float32Array(particlesCount * 3);
         const colorArray = new Float32Array(particlesCount * 3);
 
         for (let i = 0; i < particlesCount * 3; i += 3) {
-            posArray[i] = (Math.random() - 0.5) * 40;
-            posArray[i + 1] = (Math.random() - 0.5) * 30;
-            posArray[i + 2] = (Math.random() - 0.5) * 20;
+            posArray[i] = (Math.random() - 0.5) * 45;
+            posArray[i + 1] = (Math.random() - 0.5) * 35;
+            posArray[i + 2] = (Math.random() - 0.5) * 25;
 
-            colorArray[i] = 0.6 + Math.random() * 0.4;
-            colorArray[i + 1] = 0.4 + Math.random() * 0.3;
-            colorArray[i + 2] = 0.8 + Math.random() * 0.2;
+            colorArray[i] = 0.5 + Math.random() * 0.5;
+            colorArray[i + 1] = 0.3 + Math.random() * 0.4;
+            colorArray[i + 2] = 0.7 + Math.random() * 0.3;
         }
 
         particlesGeom.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
         particlesGeom.setAttribute('color', new THREE.BufferAttribute(colorArray, 3));
 
         const particlesMat = new THREE.PointsMaterial({
-            size: 0.08,
+            size: 0.07,
             vertexColors: true,
             blending: THREE.AdditiveBlending,
             depthWrite: false,
             transparent: true,
-            opacity: 0.8,
+            opacity: 0.7,
         });
 
         const particles = new THREE.Points(particlesGeom, particlesMat);
         scene.add(particles);
+
+        // ==================== 3D GETTIC LOGOSU (KÜRE + HALKA) ====================
+        const logoGroup = new THREE.Group();
+
+        // Ana küre (Gettic logosu temsili)
+        const sphereGeom = new THREE.SphereGeometry(2.5, 64, 64);
+        const sphereMat = new THREE.MeshPhongMaterial({
+            color: 0xb57bee,
+            emissive: 0x4a1d8a,
+            emissiveIntensity: 0.5,
+            shininess: 80,
+            transparent: true,
+            opacity: 0.85,
+        });
+        const sphere = new THREE.Mesh(sphereGeom, sphereMat);
+        logoGroup.add(sphere);
+
+        // Dış halka 1
+        const ringGeom1 = new THREE.TorusGeometry(3.2, 0.15, 32, 100);
+        const ringMat1 = new THREE.MeshPhongMaterial({
+            color: 0xc99df2,
+            emissive: 0x6b21a8,
+            emissiveIntensity: 0.6,
+            shininess: 100,
+            transparent: true,
+            opacity: 0.8,
+        });
+        const ring1 = new THREE.Mesh(ringGeom1, ringMat1);
+        ring1.rotation.x = Math.PI / 2;
+        logoGroup.add(ring1);
+
+        // Dış halka 2 (eğik)
+        const ringGeom2 = new THREE.TorusGeometry(3.5, 0.1, 32, 80);
+        const ringMat2 = new THREE.MeshPhongMaterial({
+            color: 0xdbbff9,
+            emissive: 0x4a1d8a,
+            emissiveIntensity: 0.4,
+            shininess: 100,
+            transparent: true,
+            opacity: 0.6,
+        });
+        const ring2 = new THREE.Mesh(ringGeom2, ringMat2);
+        ring2.rotation.x = Math.PI / 3;
+        ring2.rotation.y = Math.PI / 4;
+        logoGroup.add(ring2);
+
+        // İç parlak nokta
+        const glowGeom = new THREE.SphereGeometry(1.2, 32, 32);
+        const glowMat = new THREE.MeshBasicMaterial({
+            color: 0xffffff,
+            transparent: true,
+            opacity: 0.15,
+        });
+        const glow = new THREE.Mesh(glowGeom, glowMat);
+        logoGroup.add(glow);
+
+        logoGroup.position.set(6, 0, -5);
+        scene.add(logoGroup);
 
         // ==================== 3D "404" YAZISI ====================
         const textGroup = new THREE.Group();
@@ -195,10 +278,10 @@
             const mat = new THREE.MeshPhongMaterial({
                 color: color,
                 emissive: color,
-                emissiveIntensity: 0.6,
+                emissiveIntensity: 0.5,
                 shininess: 100,
                 transparent: true,
-                opacity: 0.9,
+                opacity: 0.85,
                 side: THREE.DoubleSide,
             });
             const mesh = new THREE.Mesh(geom, mat);
@@ -208,57 +291,57 @@
 
         function createFour(x) {
             const shape = new THREE.Shape();
-            shape.moveTo(-1.5, 3);
-            shape.lineTo(0.5, 3);
-            shape.lineTo(0.5, 0.5);
-            shape.lineTo(-1.5, 0.5);
-            shape.lineTo(-1.5, -1);
-            shape.lineTo(0.5, -1);
-            shape.lineTo(0.5, -3);
-            shape.lineTo(-1.5, -3);
-            shape.lineTo(-1.5, 3);
+            shape.moveTo(-1.2, 2.5);
+            shape.lineTo(0.6, 2.5);
+            shape.lineTo(0.6, 0.4);
+            shape.lineTo(-1.2, 0.4);
+            shape.lineTo(-1.2, -0.8);
+            shape.lineTo(0.6, -0.8);
+            shape.lineTo(0.6, -2.5);
+            shape.lineTo(-1.2, -2.5);
+            shape.lineTo(-1.2, 2.5);
             return createDigit(shape, x, 0xb57bee);
         }
 
         function createZero(x) {
             const shape = new THREE.Shape();
-            shape.moveTo(-1.5, 3);
-            shape.lineTo(1.5, 3);
-            shape.lineTo(1.5, -3);
-            shape.lineTo(-1.5, -3);
-            shape.lineTo(-1.5, 3);
+            shape.moveTo(-1.2, 2.5);
+            shape.lineTo(1.2, 2.5);
+            shape.lineTo(1.2, -2.5);
+            shape.lineTo(-1.2, -2.5);
+            shape.lineTo(-1.2, 2.5);
 
             const hole = new THREE.Path();
-            hole.moveTo(-0.7, 2);
-            hole.lineTo(0.7, 2);
-            hole.lineTo(0.7, -2);
-            hole.lineTo(-0.7, -2);
+            hole.moveTo(-0.5, 1.7);
+            hole.lineTo(0.5, 1.7);
+            hole.lineTo(0.5, -1.7);
+            hole.lineTo(-0.5, -1.7);
             shape.holes.push(hole);
 
             return createDigit(shape, x, 0xc99df2);
         }
 
-        textGroup.add(createFour(-5));
+        textGroup.add(createFour(-4));
         textGroup.add(createZero(0));
-        textGroup.add(createFour(5));
+        textGroup.add(createFour(4));
 
-        textGroup.position.y = 1;
+        textGroup.position.set(-3, 1, -2);
         scene.add(textGroup);
 
         // ==================== IŞIKLANDIRMA ====================
-        const ambientLight = new THREE.AmbientLight(0x333355, 0.6);
+        const ambientLight = new THREE.AmbientLight(0x333366, 0.5);
         scene.add(ambientLight);
 
-        const pointLight1 = new THREE.PointLight(0xb57bee, 1.5, 30);
-        pointLight1.position.set(8, 5, 10);
+        const pointLight1 = new THREE.PointLight(0xb57bee, 1.8, 35);
+        pointLight1.position.set(10, 6, 12);
         scene.add(pointLight1);
 
-        const pointLight2 = new THREE.PointLight(0xc99df2, 1.2, 25);
-        pointLight2.position.set(-8, -3, 8);
+        const pointLight2 = new THREE.PointLight(0xc99df2, 1.4, 28);
+        pointLight2.position.set(-10, -4, 8);
         scene.add(pointLight2);
 
-        const pointLight3 = new THREE.PointLight(0xdbbff9, 0.8, 20);
-        pointLight3.position.set(0, 0, 15);
+        const pointLight3 = new THREE.PointLight(0xdbbff9, 1.0, 22);
+        pointLight3.position.set(0, 3, 16);
         scene.add(pointLight3);
 
         // ==================== MOUSE TAKİBİ ====================
@@ -278,23 +361,43 @@
         });
 
         // ==================== ANİMASYON DÖNGÜSÜ ====================
+        const clock = new THREE.Clock();
+
         function animate() {
             requestAnimationFrame(animate);
 
-            mouseX += (targetX - mouseX) * 0.05;
-            mouseY += (targetY - mouseY) * 0.05;
+            const dt = clock.getDelta();
+            mouseX += (targetX - mouseX) * 0.04;
+            mouseY += (targetY - mouseY) * 0.04;
 
-            particles.rotation.y += 0.0003;
-            particles.rotation.x += 0.0001;
+            // Partiküller yavaşça döner
+            particles.rotation.y += 0.0004;
+            particles.rotation.x += 0.00015;
 
-            textGroup.rotation.y = mouseX * 0.5;
-            textGroup.rotation.x = mouseY * 0.3;
-            textGroup.position.y = 1 + Math.sin(Date.now() * 0.001) * 0.3;
+            // 404 yazısı fareye tepki verir
+            textGroup.rotation.y = mouseX * 0.6;
+            textGroup.rotation.x = mouseY * 0.4;
+            textGroup.position.y = 1 + Math.sin(Date.now() * 0.001) * 0.4;
 
+            // Gettic logosu kendi etrafında döner
+            logoGroup.rotation.y += 0.005;
+            logoGroup.rotation.x = Math.sin(Date.now() * 0.0008) * 0.3;
+            logoGroup.rotation.z = Math.cos(Date.now() * 0.0006) * 0.2;
+            logoGroup.position.y = Math.sin(Date.now() * 0.0015) * 1.5;
+
+            // Halkalar farklı hızlarda döner
+            ring1.rotation.z += 0.003;
+            ring2.rotation.z -= 0.002;
+            ring2.rotation.x += 0.001;
+
+            // Işıklar titreşir
             const t = Date.now() * 0.001;
-            pointLight1.intensity = 1.2 + Math.sin(t * 0.8) * 0.4;
-            pointLight2.intensity = 1.0 + Math.cos(t * 0.6) * 0.3;
-            pointLight3.intensity = 0.7 + Math.sin(t * 1.2) * 0.2;
+            pointLight1.intensity = 1.5 + Math.sin(t * 0.7) * 0.4;
+            pointLight2.intensity = 1.2 + Math.cos(t * 0.5) * 0.3;
+            pointLight3.intensity = 0.9 + Math.sin(t * 1.0) * 0.25;
+
+            // Küre glow efekti
+            glow.scale.setScalar(1 + Math.sin(t * 2) * 0.15);
 
             renderer.render(scene, camera);
         }
