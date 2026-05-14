@@ -6,12 +6,12 @@
     <title>404 - Sayfa Bulunamadı | Gettic</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js">
     </script>
-    <link href="https://fonts.googleapis.com/css2?family=Survivor+Four+Bold&display=swap" rel="stylesheet">
+    <link href="https://api.fontshare.com/v2/css?f[]=satoshi@700,900&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'Survivor Four Bold', 'Segoe UI', system-ui, sans-serif;
+            font-family: 'Satoshi', 'Segoe UI', system-ui, sans-serif;
             background: #0a0a14;
             color: #e8e8f8;
             overflow: hidden;
@@ -46,7 +46,7 @@
         }
 
         .error-code {
-            font-family: 'Survivor Four Bold', 'Segoe UI', system-ui, sans-serif;
+            font-family: 'Satoshi', 'Segoe UI', system-ui, sans-serif;
             font-size: 110px;
             font-weight: 900;
             background: linear-gradient(135deg, #b57bee, #c99df2, #dbbff9);
@@ -60,7 +60,7 @@
         }
 
         h1 {
-            font-family: 'Survivor Four Bold', 'Segoe UI', system-ui, sans-serif;
+            font-family: 'Satoshi', 'Segoe UI', system-ui, sans-serif;
             font-size: 28px;
             font-weight: 700;
             margin-bottom: 14px;
@@ -70,7 +70,7 @@
         }
 
         p {
-            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-family: 'Satoshi', 'Segoe UI', system-ui, sans-serif;
             color: #c0c0e0;
             font-size: 15px;
             margin-bottom: 32px;
@@ -80,7 +80,7 @@
         }
 
         a.home-btn {
-            font-family: 'Survivor Four Bold', 'Segoe UI', system-ui, sans-serif;
+            font-family: 'Satoshi', 'Segoe UI', system-ui, sans-serif;
             display: inline-block;
             padding: 14px 34px;
             background: linear-gradient(135deg, #b57bee, #9b5de5);
@@ -108,7 +108,7 @@
             flex-wrap: wrap;
         }
         .links a {
-            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-family: 'Satoshi', 'Segoe UI', system-ui, sans-serif;
             background: rgba(255, 255, 255, 0.06);
             color: #9999cc;
             text-decoration: none;
@@ -192,23 +192,23 @@
         }));
         scene.add(particles);
 
-        // ==================== GETTIC LOGO KÜRESİ ====================
+        // ==================== GETTIC LOGO KÜRESİ (KÜÇÜK) ====================
         const logoGroup = new THREE.Group();
         const sphere = new THREE.Mesh(
-            new THREE.SphereGeometry(3, 64, 64),
+            new THREE.SphereGeometry(1.8, 64, 64),
             new THREE.MeshPhongMaterial({ map: logoTexture, shininess: 60, transparent: true, opacity: 0.95 })
         );
         logoGroup.add(sphere);
 
         const ring1 = new THREE.Mesh(
-            new THREE.TorusGeometry(3.8, 0.2, 32, 120),
+            new THREE.TorusGeometry(2.2, 0.12, 32, 80),
             new THREE.MeshPhongMaterial({ color: 0xb57bee, emissive: 0x4a1d8a, emissiveIntensity: 0.7, shininess: 100, transparent: true, opacity: 0.9 })
         );
         ring1.rotation.x = Math.PI / 2;
         logoGroup.add(ring1);
 
         const ring2 = new THREE.Mesh(
-            new THREE.TorusGeometry(4.2, 0.12, 32, 100),
+            new THREE.TorusGeometry(2.5, 0.08, 32, 70),
             new THREE.MeshPhongMaterial({ color: 0xc99df2, emissive: 0x6b21a8, emissiveIntensity: 0.5, shininess: 100, transparent: true, opacity: 0.7 })
         );
         ring2.rotation.x = Math.PI / 3; ring2.rotation.y = Math.PI / 4;
