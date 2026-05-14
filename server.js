@@ -77,7 +77,7 @@ app.post('/api/list/reset', async (req, res) => {
 // .php isteğini yakala, panel sayfasını göster
 app.get('/apis/list.php', (req, res) => {
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.sendFile(path.join(__dirname, 'apis', 'list.php'));
+    res.sendFile(path.join(__dirname, 'apis', 'list.html'));
 });
 
 // MongoDB Schema'lar
