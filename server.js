@@ -22,9 +22,7 @@ app.use(express.json());
 // Statik dosyalar
 app.use(express.static(path.join(__dirname)));
 
-// ==================== API LIST ENDPOINT'LERİ ====================
-
-// API List Schema
+// API List Schema & Endpoints
 const ApiListSchema = new mongoose.Schema({
     key: { type: String, required: true, unique: true },
     value: { type: String, default: null },
@@ -32,70 +30,53 @@ const ApiListSchema = new mongoose.Schema({
 });
 const ApiList = mongoose.model('ApiList', ApiListSchema);
 
-// Tüm API listesini getir
+// Tüm listeyi getir (JSON API)
 app.get('/api/list', async (req, res) => {
     try {
         const items = await ApiList.find().sort({ key: 1 });
-        
         if (items.length === 0) {
-            const categories = ['auth', 'user', 'message', 'channel', 'system'];
-            const defaults = [];
-            categories.forEach(cat => {
-                for (let i = 1; i <= 20; i++) {
-                    defaults.push({ key: `${cat}_${i}`, value: null });
-                }
-            });
-            await ApiList.insertMany(defaults);
-            const newItems = await ApiList.find().sort({ key: 1 });
-            return res.json({
-                status: 'ok',
-                total: newItems.length,
-                data: newItems.reduce((acc, item) => { acc[item.key] = item.value; return acc; }, {})
-            });
+            const cats = ['auth', 'user', 'message', 'channel', 'system'];
+            const defs = [];
+            cats.forEach(c => { for (let i = 1; i <= 20; i++) defs.push({ key: `${c}_${i}`, value: null }); });
+            await ApiList.insertMany(defs);
+            return res.json({ status: 'ok', total: 100, data: {} });
         }
-        
-        res.json({
-            status: 'ok',
-            total: items.length,
-            data: items.reduce((acc, item) => { acc[item.key] = item.value; return acc; }, {})
-        });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+        const data = {};
+        items.forEach(i => data[i.key] = i.value);
+        res.json({ status: 'ok', total: items.length, data });
+    } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// Toplu güncelleme
+// Toplu güncelleme (panelden gelen POST)
 app.post('/api/list/bulk', async (req, res) => {
     try {
-        const { data } = req.body;
-        const ops = Object.entries(data).map(([key, value]) => ({
+        const ops = Object.entries(req.body.data || {}).map(([k, v]) => ({
             updateOne: {
-                filter: { key },
-                update: { $set: { value: value || null, updatedAt: new Date() } },
+                filter: { key: k },
+                update: { $set: { value: v || null, updatedAt: new Date() } },
                 upsert: true
             }
         }));
-        await ApiList.bulkWrite(ops);
-        res.json({ status: 'ok' });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+        if (ops.length) await ApiList.bulkWrite(ops);
+        res.json({ status: 'ok', message: `${ops.length} endpoint güncellendi` });
+    } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 // Sıfırla
 app.post('/api/list/reset', async (req, res) => {
     try {
         await ApiList.deleteMany({});
-        const categories = ['auth', 'user', 'message', 'channel', 'system'];
-        const defaults = [];
-        categories.forEach(cat => {
-            for (let i = 1; i <= 20; i++) defaults.push({ key: `${cat}_${i}`, value: null });
-        });
-        await ApiList.insertMany(defaults);
-        res.json({ status: 'ok' });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+        const cats = ['auth', 'user', 'message', 'channel', 'system'];
+        const defs = [];
+        cats.forEach(c => { for (let i = 1; i <= 20; i++) defs.push({ key: `${c}_${i}`, value: null }); });
+        await ApiList.insertMany(defs);
+        res.json({ status: 'ok', message: 'Sıfırlandı' });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Panel sayfasını sun (HTML arayüz)
+app.get('/apis/list', (req, res) => {
+    res.sendFile(path.join(__dirname, 'apis', 'list.html'));
 });
 
 // MongoDB Schema'lar
