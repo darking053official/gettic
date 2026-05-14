@@ -413,6 +413,11 @@ io.on('connection', (socket) => {
     });
 });
 
+// ==================== 404 SAYFASI ====================
+app.use((req, res) => {
+    res.status(404).sendFile(path.join(__dirname, '404.html'));
+});
+
 // ==================== SERVER START ====================
 const PORT = process.env.PORT || 3000;
 
