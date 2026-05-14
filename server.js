@@ -22,6 +22,82 @@ app.use(express.json());
 // Statik dosyalar
 app.use(express.static(path.join(__dirname)));
 
+// ==================== API LIST ENDPOINT'LERİ ====================
+
+// API List Schema
+const ApiListSchema = new mongoose.Schema({
+    key: { type: String, required: true, unique: true },
+    value: { type: String, default: null },
+    updatedAt: { type: Date, default: Date.now }
+});
+const ApiList = mongoose.model('ApiList', ApiListSchema);
+
+// Tüm API listesini getir
+app.get('/api/list', async (req, res) => {
+    try {
+        const items = await ApiList.find().sort({ key: 1 });
+        
+        if (items.length === 0) {
+            const categories = ['auth', 'user', 'message', 'channel', 'system'];
+            const defaults = [];
+            categories.forEach(cat => {
+                for (let i = 1; i <= 20; i++) {
+                    defaults.push({ key: `${cat}_${i}`, value: null });
+                }
+            });
+            await ApiList.insertMany(defaults);
+            const newItems = await ApiList.find().sort({ key: 1 });
+            return res.json({
+                status: 'ok',
+                total: newItems.length,
+                data: newItems.reduce((acc, item) => { acc[item.key] = item.value; return acc; }, {})
+            });
+        }
+        
+        res.json({
+            status: 'ok',
+            total: items.length,
+            data: items.reduce((acc, item) => { acc[item.key] = item.value; return acc; }, {})
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Toplu güncelleme
+app.post('/api/list/bulk', async (req, res) => {
+    try {
+        const { data } = req.body;
+        const ops = Object.entries(data).map(([key, value]) => ({
+            updateOne: {
+                filter: { key },
+                update: { $set: { value: value || null, updatedAt: new Date() } },
+                upsert: true
+            }
+        }));
+        await ApiList.bulkWrite(ops);
+        res.json({ status: 'ok' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Sıfırla
+app.post('/api/list/reset', async (req, res) => {
+    try {
+        await ApiList.deleteMany({});
+        const categories = ['auth', 'user', 'message', 'channel', 'system'];
+        const defaults = [];
+        categories.forEach(cat => {
+            for (let i = 1; i <= 20; i++) defaults.push({ key: `${cat}_${i}`, value: null });
+        });
+        await ApiList.insertMany(defaults);
+        res.json({ status: 'ok' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // MongoDB Schema'lar
 const UserSchema = new mongoose.Schema({
     username: { type: String, required: true, unique: true, trim: true, minlength: 3 },
@@ -77,129 +153,6 @@ const ChatSchema = new mongoose.Schema({
 });
 
 const Chat = mongoose.model('Chat', ChatSchema);
-
-// ==================== MEVCUT KODUN ALTINA EKLE ====================
-
-// API List Schema
-const ApiListSchema = new mongoose.Schema({
-    key: { type: String, required: true, unique: true },
-    value: { type: String, default: null },
-    updatedAt: { type: Date, default: Date.now }
-});
-const ApiList = mongoose.model('ApiList', ApiListSchema);
-
-// ==================== API LIST ENDPOINTS ====================
-
-// Tüm API listesini getir (100 endpoint)
-app.get('/api/list', async (req, res) => {
-    try {
-        const items = await ApiList.find().sort({ key: 1 });
-        
-        // Eğer boşsa varsayılan 100 null endpoint oluştur
-        if (items.length === 0) {
-            const categories = ['auth', 'user', 'message', 'channel', 'system'];
-            const defaults = [];
-            categories.forEach(cat => {
-                for (let i = 1; i <= 20; i++) {
-                    defaults.push({ key: `${cat}_${i}`, value: null });
-                }
-            });
-            await ApiList.insertMany(defaults);
-            const newItems = await ApiList.find().sort({ key: 1 });
-            return res.json({
-                status: 'ok',
-                total: newItems.length,
-                server: 'gettic.js.org',
-                data: newItems.reduce((acc, item) => {
-                    acc[item.key] = item.value;
-                    return acc;
-                }, {})
-            });
-        }
-        
-        res.json({
-            status: 'ok',
-            total: items.length,
-            server: 'gettic.js.org',
-            data: items.reduce((acc, item) => {
-                acc[item.key] = item.value;
-                return acc;
-            }, {})
-        });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-// Tek bir endpoint güncelle
-app.put('/api/list/:key', async (req, res) => {
-    try {
-        const { key } = req.params;
-        const { value } = req.body;
-        
-        const item = await ApiList.findOneAndUpdate(
-            { key },
-            { value: value || null, updatedAt: new Date() },
-            { upsert: true, new: true }
-        );
-        
-        res.json({
-            status: 'ok',
-            message: `${key} güncellendi`,
-            data: { key: item.key, value: item.value }
-        });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-// Toplu güncelleme (tüm listeyi birden)
-app.post('/api/list/bulk', async (req, res) => {
-    try {
-        const { data } = req.body; // { auth_1: "deger", auth_2: null, ... }
-        
-        const operations = Object.entries(data).map(([key, value]) => ({
-            updateOne: {
-                filter: { key },
-                update: { $set: { value: value || null, updatedAt: new Date() } },
-                upsert: true
-            }
-        }));
-        
-        await ApiList.bulkWrite(operations);
-        
-        res.json({
-            status: 'ok',
-            message: `${Object.keys(data).length} endpoint güncellendi`
-        });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-// Tümünü sıfırla (hepsini null yap)
-app.post('/api/list/reset', async (req, res) => {
-    try {
-        await ApiList.deleteMany({});
-        
-        const categories = ['auth', 'user', 'message', 'channel', 'system'];
-        const defaults = [];
-        categories.forEach(cat => {
-            for (let i = 1; i <= 20; i++) {
-                defaults.push({ key: `${cat}_${i}`, value: null });
-            }
-        });
-        
-        await ApiList.insertMany(defaults);
-        
-        res.json({
-            status: 'ok',
-            message: 'Tüm endpointler sıfırlandı (null)'
-        });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
 
 // ==================== MINECRAFT SUNUCU ====================
 // Minecraft sunucusu GitHub Actions'da calisiyor
