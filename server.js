@@ -74,8 +74,8 @@ app.post('/api/list/reset', async (req, res) => {
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// .php isteğini yakala, panel sayfasını göster
-app.get('/apis/list.php', (req, res) => {
+// html
+app.get('/apis/list', (req, res) => {
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.sendFile(path.join(__dirname, 'apis', 'list.html'));
 });
