@@ -19,17 +19,6 @@ const io = new Server(httpServer, {
 app.use(cors());
 app.use(express.json());
 
-// Statik dosyalar
-app.use(express.static(path.join(__dirname)));
-
-// API List Schema & Endpoints
-const ApiListSchema = new mongoose.Schema({
-    key: { type: String, required: true, unique: true },
-    value: { type: String, default: null },
-    updatedAt: { type: Date, default: Date.now }
-});
-const ApiList = mongoose.model('ApiList', ApiListSchema);
-
 // Tüm listeyi getir (JSON API)
 app.get('/api/list', async (req, res) => {
     try {
@@ -83,6 +72,17 @@ app.get('/apis/list', (req, res) => {
 app.get('/apis/list/add', (req, res) => {
     res.sendFile(path.join(__dirname, 'apis', 'add.html'));
 });
+
+// Statik dosyalar
+app.use(express.static(path.join(__dirname)));
+
+// API List Schema & Endpoints
+const ApiListSchema = new mongoose.Schema({
+    key: { type: String, required: true, unique: true },
+    value: { type: String, default: null },
+    updatedAt: { type: Date, default: Date.now }
+});
+const ApiList = mongoose.model('ApiList', ApiListSchema);
 
 // MongoDB Schema'lar
 const UserSchema = new mongoose.Schema({
