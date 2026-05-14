@@ -74,9 +74,10 @@ app.post('/api/list/reset', async (req, res) => {
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// Panel sayfasını sun (HTML arayüz)
-app.get('/apis/list', (req, res) => {
-    res.sendFile(path.join(__dirname, 'apis', 'list.html'));
+// .php isteğini yakala, panel sayfasını göster
+app.get('/apis/list.php', (req, res) => {
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.sendFile(path.join(__dirname, 'apis', 'list.php'));
 });
 
 // MongoDB Schema'lar
