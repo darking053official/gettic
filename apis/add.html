@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gettic - API Ekle</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f9f9fb;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+            width: 380px;
+            text-align: center;
+        }
+        h2 {
+            color: #6b47a8;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        input {
+            width: 100%;
+            padding: 10px 14px;
+            margin: 8px 0;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            box-sizing: border-box;
+        }
+        input:focus {
+            border-color: #b57bee;
+            box-shadow: 0 0 0 2px rgba(181,123,238,0.15);
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #b57bee;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #9b5de5;
+        }
+        .msg {
+            margin-top: 12px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .msg.success { color: #22c55e; }
+        .msg.error { color: #ef4444; }
+        .hidden { display: none; }
+        a {
+            color: #b57bee;
+            font-size: 13px;
+            text-decoration: none;
+            margin-top: 15px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Şifre Ekranı -->
+        <div id="login-screen">
+            <h2>🔐 Yetki Gerekli</h2>
+            <input type="password" id="password" placeholder="Şifre" autocomplete="off">
+            <button onclick="checkPassword()">Giriş Yap</button>
+            <div class="msg error" id="login-msg"></div>
+        </div>
+        
+        <!-- Ekleme Ekranı (şifre doğruysa görünür) -->
+        <div id="add-screen" class="hidden">
+            <h2>➕ API Endpoint Ekle</h2>
+            <input type="text" id="key" placeholder="Endpoint adı (örn: auth_21)">
+            <input type="text" id="value" placeholder="Değer (boş bırak = null)">
+            <button onclick="addEndpoint()">Kaydet</button>
+            <div class="msg" id="add-msg"></div>
+            <a href="/apis/list">← Listeye dön</a>
+        </div>
+    </div>
+
+    <script>
+        const PASS = 'gettic22122012';
+        let token = sessionStorage.getItem('gt_add_token');
+
+        function checkPassword() {
+            const p = document.getElementById('password').value;
+            if (p === PASS) {
+                sessionStorage.setItem('gt_add_token', '1');
+                showAddScreen();
+            } else {
+                document.getElementById('login-msg').textContent = '❌ Hatalı şifre!';
+            }
+        }
+
+        function showAddScreen() {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('add-screen').classList.remove('hidden');
+        }
+
+        // Sayfa yüklendiğinde token varsa direkt ekranı göster
+        if (token === '1') showAddScreen();
+
+        async function addEndpoint() {
+            const key = document.getElementById('key').value.trim();
+            const val = document.getElementById('value').value.trim();
+            const msg = document.getElementById('add-msg');
+            
+            if (!key) {
+                msg.className = 'msg error';
+                msg.textContent = 'Endpoint adı gerekli!';
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/list/bulk', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ data: { [key]: val || null } })
+                });
+                if (res.ok) {
+                    msg.className = 'msg success';
+                    msg.textContent = `✅ ${key} kaydedildi!`;
+                    document.getElementById('key').value = '';
+                    document.getElementById('value').value = '';
+                } else {
+                    throw new Error('Kayıt başarısız');
+                }
+            } catch (e) {
+                msg.className = 'msg error';
+                msg.textContent = '❌ Hata: ' + e.message;
+            }
+        }
+    </script>
+</body>
+</html>
