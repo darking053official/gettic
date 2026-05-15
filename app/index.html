@@ -24,6 +24,14 @@
     <div id="ctxmenu" class="ctxmenu" role="menu" aria-label="Bağlam menüsü"></div>
     
     <script>
+      'use strict';
+    
+    // HATA YAKALAYICI
+    window.onerror = function(msg, url, line) {
+        document.body.innerHTML = '<div style="padding:30px;background:#fff;color:red;font-size:14px;"><h2>JavaScript Hatası:</h2><p><b>Hata:</b> ' + msg + '</p><p><b>Satır:</b> ' + line + '</p><p><b>Dosya:</b> ' + url + '</p></div>';
+        return false;
+    };
+        
         /* ============================================================
            GETTIC — app/index.html (340+ Özellik)
            "Parşömen" Temalı, Tam Kapsamlı Sohbet Platformu
