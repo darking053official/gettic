@@ -2,17 +2,27 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gettic</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover, maximum-scale=1.0">
+    <title>Gettic — Sohbet Platformu</title>
+    <link rel="icon" href="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png">
+    <link rel="manifest" href="data:application/json,{'name':'Gettic','short_name':'Gettic','start_url':'/app/','display':'standalone','background_color':'#faf6f0','theme_color':'#c94d8c','icons':[{'src':'https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png','sizes':'192x192','type':'image/png'},{'src':'https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png','sizes':'512x512','type':'image/png'}]}">
+    <meta name="theme-color" content="#c94d8c">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <link rel="stylesheet" href="/app/style.css">
-</head>
-<body>
-    <div id="app" style="padding:20px;color:#2c2416;">
-        <h1>Gettic yükleniyor...</h1>
-        <p>Eğer bu yazıyı görüyorsan CSS çalışıyor demektir.</p>
-    </div>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+    <canvas id="bgc"></canvas>
+    <div id="ls">
+        <div class="spin"></div>
+        <div class="ls-logo">gettic</div>
+    </div>
+    <div id="captchaOverlay" class="cap-ov"></div>
+    <div id="app"></div>
+    <div id="ctxmenu" class="ctxmenu" role="menu" aria-label="Bağlam menüsü"></div>
+    
     <script>
         /* ============================================================
            GETTIC — app/index.html (340+ Özellik)
