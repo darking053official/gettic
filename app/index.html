@@ -1073,29 +1073,64 @@
             window.setTheme = window.setTheme;
 
             /* ===== INIT ===== */
-            function init() { document.documentElement.style.setProperty('--scrollbar-w', (window.innerWidth - document
-                        .documentElement.clientWidth) + 'px');
-                    initThreeJS();
-                    loadTheme(); try { const raw = localStorage.getItem('gt_state'); if (raw) { const saved = JSON.parse(raw); const s =
-                            G();
-                            ['channels', 'categories', 'dmFriends', 'roles', 'userRoles', 'serverSettings', 'pinnedMessages',
-                                'userStatuses', 'notifications', 'unreadCounts', 'blockedUsers', 'messageDb', 'polls', 'lang',
-                                'dmUnread', 'offlineQueue', 'channelScrollPositions', 'userStatus', 'captchaVerified'
-                            ].forEach(k => { if (saved[k] !== undefined) s[k] = saved[k]; }); } } catch (e) {} try { const u =
-                        localStorage.getItem('gt_user'),
-                        tk = localStorage.getItem('gt_token'); if (u && tk) { const s = G();
-                        s.user = JSON.parse(u);
-                        s.token = tk; if (!s.userRoles[s.user._id]) s.userRoles[s.user._id] = ['r4']; } } catch (e) {}
-                    setTimeout(() => document.getElementById('ls')?.classList.add('hide'), 600);
-                    renderApp(); if ('serviceWorker' in navigator) { const swCode =
-                        `const CACHE='gettic-v2';self.addEventListener('install',e=>{self.skipWaiting()});self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));clients.claim()});self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;e.respondWith(fetch(e.request).then(r=>{const c=r.clone();caches.open(CACHE).then(ca=>ca.put(e.request,c));return r}).catch(()=>caches.match(e.request)))})`;
-                        const blob = new Blob([swCode], { type: 'application/javascript' }); const url = URL.createObjectURL(
-                        blob);
-                        navigator.serviceWorker.register(url).catch(() => {}); }
-                    window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault();
-                        window._pwaPrompt = e;
-                        toast('📱 Uygulama olarak yükleyebilirsiniz'); }); }
-
+            function init() { 
+    console.log('=== GETTIC INIT BAŞLADI ===');
+    
+    document.documentElement.style.setProperty('--scrollbar-w', (window.innerWidth - document.documentElement.clientWidth) + 'px');
+    console.log('1. Scrollbar ayarlandı');
+    
+    try {
+        initThreeJS();
+        console.log('2. ThreeJS başlatıldı');
+    } catch(e) {
+        console.error('2. ThreeJS HATASI:', e.message);
+    }
+    
+    loadTheme(); 
+    console.log('3. Tema yüklendi');
+    
+    try { 
+        const raw = localStorage.getItem('gt_state'); 
+        if (raw) { 
+            const saved = JSON.parse(raw); 
+            const s = G();
+            ['channels', 'categories', 'dmFriends', 'roles', 'userRoles', 'serverSettings', 'pinnedMessages',
+                'userStatuses', 'notifications', 'unreadCounts', 'blockedUsers', 'messageDb', 'polls', 'lang',
+                'dmUnread', 'offlineQueue', 'channelScrollPositions', 'userStatus', 'captchaVerified'
+            ].forEach(k => { if (saved[k] !== undefined) s[k] = saved[k]; }); 
+        } 
+        console.log('4. State yüklendi');
+    } catch (e) { 
+        console.error('4. State HATASI:', e.message);
+    }
+    
+    try { 
+        const u = localStorage.getItem('gt_user'),
+            tk = localStorage.getItem('gt_token'); 
+        if (u && tk) { 
+            const s = G();
+            s.user = JSON.parse(u);
+            s.token = tk; 
+            if (!s.userRoles[s.user._id]) s.userRoles[s.user._id] = ['r4']; 
+        } 
+        console.log('5. Kullanıcı yüklendi:', G().user ? G().user.username : 'yok');
+    } catch (e) {
+        console.error('5. Kullanıcı HATASI:', e.message);
+    }
+    
+    setTimeout(() => document.getElementById('ls')?.classList.add('hide'), 600);
+    console.log('6. Loading gizlendi');
+    
+    try {
+        renderApp();
+        console.log('7. renderApp çalıştı');
+    } catch(e) {
+        console.error('7. renderApp HATASI:', e.message, e.stack);
+    }
+    
+    console.log('=== GETTIC INIT TAMAMLANDI ===');
+            }
+            
             init();
         })();
     </script>
