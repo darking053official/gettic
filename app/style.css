@@ -52,7 +52,8 @@
   --rail:  62px;
   --side:  240px;
   --panel: 252px;
-
+  --userpanel-w: 252px;
+   
   /* Safe Area */
   --st: env(safe-area-inset-top,    0px);
   --sb: env(safe-area-inset-bottom, 0px);
