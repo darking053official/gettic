@@ -81,6 +81,14 @@ app.get('/apis/list/add', (req, res) => {
     res.sendFile(path.join(__dirname, 'apis', 'add.html'));
 });
 
+// 👇 app klasörünü EKLE (CSS için bu şart!)
+app.get('/app', (req, res) => {
+    res.sendFile(path.join(__dirname, 'app', 'index.html'));
+});
+
+// 👇 app içindeki statik dosyalar için (style.css, vs.)
+app.use('/app', express.static(path.join(__dirname, 'app')));
+
 // Statik dosyalar
 app.use(express.static(path.join(__dirname)));
 
