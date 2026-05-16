@@ -1,9 +1,7 @@
 console.log('🚀 App başlatılıyor...');
-console.log('Vue:', typeof Vue);
-console.log('store:', typeof store);
 
 if (typeof Vue === 'undefined') {
-    document.getElementById('ls').innerHTML = '<div style="color:red;padding:20px;font-family:sans-serif;">Vue.js yüklenemedi! Lütfen sayfayı yenileyin.</div>';
+    document.getElementById('ls').innerHTML = '<div style="color:red;padding:20px;font-family:sans-serif;">Vue.js yüklenemedi!</div>';
 } else {
     const app = Vue.createApp({
         data() {
@@ -26,31 +24,24 @@ if (typeof Vue === 'undefined') {
         methods: {
             submitAuth() {
                 if (!this.username || !this.password) return toast('Kullanıcı adı ve şifre gerekli', 'e');
-                if (this.tab === 'login') {
-                    doLogin(this.username, this.password);
-                } else {
-                    doRegister(this.username, this.password);
-                }
+                if (this.tab === 'login') doLogin(this.username, this.password);
+                else doRegister(this.username, this.password);
             },
             sendMessage() {
-                if (typeof sendMessage === 'function') {
-                    sendMessage();
-                } else if (this.store.input.trim() && this.store.user) {
-                    const msg = {
-                        _id: genId(),
-                        content: this.store.input.trim(),
-                        senderName: this.store.user.username,
-                        senderId: this.store.user._id,
-                        channelId: this.store.activeChannel.id,
-                        createdAt: new Date().toISOString()
-                    };
-                    this.store.messages.push(msg);
-                    this.store.input = '';
-                }
+                if (!this.store.input.trim() || !this.store.user) return;
+                const msg = {
+                    _id: genId(),
+                    content: this.store.input.trim(),
+                    senderName: this.store.user.username,
+                    senderId: this.store.user._id,
+                    channelId: this.store.activeChannel.id,
+                    createdAt: new Date().toISOString()
+                };
+                this.store.messages.push(msg);
+                this.store.input = '';
             },
             deleteMessage(mid) {
                 this.store.messages = this.store.messages.filter(m => m._id !== mid);
-                toast('Silindi');
             },
             logout() {
                 localStorage.removeItem('gt_token');
@@ -58,7 +49,6 @@ if (typeof Vue === 'undefined') {
                 this.store.user = null;
                 this.store.token = null;
                 this.store.messages = [];
-                toast('Çıkış yapıldı');
             },
             toggleSidebar() {
                 this.store.sidebarOpen = !this.store.sidebarOpen;
@@ -89,21 +79,15 @@ if (typeof Vue === 'undefined') {
                 this.store.sidebarOpen = false;
             },
             startDM(username) {
-                if (typeof startDM === 'function') {
-                    startDM(username);
-                }
+                if (typeof startDM === 'function') startDM(username);
                 this.closeModal();
             },
             addFriend(username) {
                 if (!username || !username.trim()) return;
-                if (typeof addFriend === 'function') {
-                    addFriend(username);
-                } else {
-                    if (!this.dmStore.friends.find(f => f.username === username)) {
-                        this.dmStore.friends.push({ id: genId(), username, last: '', time: 'Şimdi' });
-                    }
-                    toast(username + ' eklendi');
+                if (!this.dmStore.friends.find(f => f.username === username)) {
+                    this.dmStore.friends.push({ id: genId(), username, last: '', time: 'Şimdi' });
                 }
+                toast(username + ' eklendi');
                 this.closeModal();
             },
             setTheme(c) {
@@ -116,16 +100,11 @@ if (typeof Vue === 'undefined') {
                 const mid = genId();
                 const poll = { question, options: opts, votes: new Array(opts.length).fill(0), voters: {} };
                 const msg = {
-                    _id: mid,
-                    content: '📊 ' + question,
-                    senderName: this.store.user.username,
-                    senderId: this.store.user._id,
-                    channelId: this.store.activeChannel.id,
-                    createdAt: new Date().toISOString(),
-                    poll
+                    _id: mid, content: '📊 ' + question,
+                    senderName: this.store.user.username, senderId: this.store.user._id,
+                    channelId: this.store.activeChannel.id, createdAt: new Date().toISOString(), poll
                 };
                 this.store.messages.push(msg);
-                toast('Anket başlatıldı');
                 this.closeModal();
             },
             votePoll(mid, i) {
@@ -141,64 +120,47 @@ if (typeof Vue === 'undefined') {
                 return Math.round((poll.votes[i] / total) * 100);
             },
             formatTime(d) {
-                try {
-                    return new Date(d).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
-                } catch(e) {
-                    return '';
-                }
+                try { return new Date(d).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }); }
+                catch(e) { return ''; }
             },
             formatMsg(t) {
                 if (!t) return '';
-                return t
-                    .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
-                    .replace(/\*(.+?)\*/g, '<i>$1</i>')
-                    .replace(/`([^`]+?)`/g, '<code>$1</code>');
+                return t.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/\*(.+?)\*/g, '<i>$1</i>').replace(/`([^`]+?)`/g, '<code>$1</code>');
             },
-            joinVoice(chId) {
-                toast('Sesli kanal yakında gelecek', 'w');
-            },
-            leaveVoice() {},
             async generateImage() {
                 if (!this.imagePrompt.trim()) return;
                 toast('🎨 Görsel oluşturuluyor...');
                 try {
                     const res = await fetch(API + '/api/image', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ prompt: this.imagePrompt })
                     });
                     const data = await res.json();
                     if (data.image) {
                         this.generatedImage = data.image;
-                        const msg = {
-                            _id: genId(),
-                            content: '🎨 ' + this.imagePrompt,
-                            senderName: this.store.user.username,
-                            senderId: this.store.user._id,
-                            channelId: this.store.activeChannel.id,
-                            createdAt: new Date().toISOString(),
-                            image: data.image
-                        };
-                        this.store.messages.push(msg);
+                        this.store.messages.push({
+                            _id: genId(), content: '🎨 ' + this.imagePrompt,
+                            senderName: this.store.user.username, senderId: this.store.user._id,
+                            channelId: this.store.activeChannel.id, createdAt: new Date().toISOString(), image: data.image
+                        });
                         this.imagePrompt = '';
                         this.closeModal();
-                        toast('✅ Görsel oluşturuldu');
-                    } else {
-                        toast('❌ Görsel oluşturulamadı', 'e');
-                    }
-                } catch (e) {
-                    toast('❌ Bağlantı hatası', 'e');
-                }
+                    } else { toast('Görsel oluşturulamadı', 'e'); }
+                } catch(e) { toast('Bağlantı hatası', 'e'); }
             }
         },
-            mounted() {
-        console.log('✅ Vue mounted, user:', this.store.user);
-        const ls = document.getElementById('ls');
-        if (ls) ls.remove();
-    }
-});
+        mounted() {
+            console.log('✅ Vue mounted');
+            const ls = document.getElementById('ls');
+            if (ls) {
+                ls.style.opacity = '0';
+                ls.style.transition = 'opacity 0.3s';
+                setTimeout(() => { if (ls) ls.remove(); }, 300);
+            }
+        }
+    });
 
     app.mount('#root');
     window.app = app;
     console.log('✅ Vue uygulaması başlatıldı');
-                        }
+            }
