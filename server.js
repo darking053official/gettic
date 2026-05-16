@@ -23,11 +23,12 @@ const io = new Server(httpServer, {
     cors: { origin: '*', methods: ['GET', 'POST'] }
 });
 
-app.set('view engine', 'hbs');
+app.engine('html', hbs.__express);
+app.set('view engine', 'html');
 app.set('views', path.join(__dirname, 'app'));
 
 app.get('/app', (req, res) => {
-    res.sendFile(path.join(__dirname, 'app', 'index.hbs'));
+    res.render('index');  // index.html dosyasını render eder
 });
 
 // app içindeki statik dosyalar
