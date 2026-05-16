@@ -17,6 +17,9 @@ const io = new Server(httpServer, {
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'app'));
+app.get('/app', (req, res) => {
+    res.render('index');
+});
 
 // Middleware
 app.use(cors());
