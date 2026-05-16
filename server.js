@@ -19,6 +19,17 @@ const io = new Server(httpServer, {
 app.use(cors());
 app.use(express.json());
 
+// JavaScript MIME type düzeltmesi
+app.use((req, res, next) => {
+    if (req.url.endsWith('.js') || req.url.endsWith('.jsx')) {
+        res.type('application/javascript');
+    }
+    if (req.url.endsWith('.css')) {
+        res.type('text/css');
+    }
+    next();
+});
+
 // API List Schema & Endpoints
 const ApiListSchema = new mongoose.Schema({
     key: { type: String, required: true, unique: true },
