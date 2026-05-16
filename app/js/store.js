@@ -1,5 +1,6 @@
+// Store - Vue Reactive State
 const store = Vue.reactive({
-  user: JSON.parse(localStorage.getItem('gt_user') || 'null'),
+  user: null,
   token: localStorage.getItem('gt_token') || null,
   isOnline: navigator.onLine,
   channels: [
@@ -20,6 +21,21 @@ const store = Vue.reactive({
   userRoles: {}
 });
 
+// Kullanıcıyı güvenli şekilde localStorage'dan yükle
+try {
+  const savedUser = localStorage.getItem('gt_user');
+  if (savedUser && savedUser !== 'undefined' && savedUser !== 'null') {
+    const parsed = JSON.parse(savedUser);
+    if (parsed && parsed._id) {
+      store.user = parsed;
+    }
+  }
+} catch(e) {
+  console.log('Kullanıcı yüklenemedi:', e.message);
+  localStorage.removeItem('gt_user');
+}
+
+// Toast mesaj sistemi
 function toast(msg, type = 's') {
   store.toastMsg = { msg, type };
   setTimeout(() => {
@@ -27,6 +43,13 @@ function toast(msg, type = 's') {
   }, 2500);
 }
 
+// Benzersiz ID üret
 function genId() {
   return Date.now().toString(36) + Math.random().toString(36).substr(2, 7);
 }
+
+// Online/Offline durum takibi
+window.addEventListener('online', () => { store.isOnline = true; });
+window.addEventListener('offline', () => { store.isOnline = false; });
+
+console.log('✅ Store yüklendi, user:', store.user ? store.user.username : 'yok');
