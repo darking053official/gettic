@@ -27,7 +27,7 @@ app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'app'));
 
 app.get('/app', (req, res) => {
-    res.render('index');
+    res.sendFile(path.join(__dirname, 'app', 'index.hbs'));
 });
 
 // app içindeki statik dosyalar
