@@ -43,15 +43,29 @@
     
     <script>
         window.onload = function() {
-            if (typeof App === 'function') {
-                const root = ReactDOM.createRoot(document.getElementById('root'));
-                root.render(React.createElement(App));
-                setTimeout(function() {
-                    var ls = document.getElementById('ls');
-                    if (ls) ls.classList.add('hide');
-                }, 800);
-            }
-        };
-    </script>
+    console.log('🟢 Sayfa yüklendi');
+    if (typeof App === 'function') {
+        console.log('🟢 App render ediliyor...');
+        try {
+            const root = ReactDOM.createRoot(document.getElementById('root'));
+            root.render(React.createElement(App));
+            console.log('🟢 Render başarılı');
+            setTimeout(function() {
+                var ls = document.getElementById('ls');
+                if (ls) {
+                    ls.classList.add('hide');
+                    console.log('🟢 Loading gizlendi');
+                }
+            }, 800);
+        } catch(e) {
+            console.error('🔴 Render hatası:', e.message);
+            document.getElementById('ls').innerHTML = '<div style="color:red;padding:20px;">HATA: ' + e.message + '</div>';
+        }
+    } else {
+        console.error('🔴 App fonksiyonu bulunamadı!');
+        document.getElementById('ls').innerHTML = '<div style="color:red;padding:20px;">App yüklenemedi!</div>';
+    }
+};
+</script>
 </body>
 </html>
