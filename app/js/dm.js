@@ -1,47 +1,32 @@
-function DMPanel({ dmFriends, activeDM, dmInput, onStartDM, onSendDM, onSetDmInput, onAddFriend, t }) {
-  return (
-    <div>
-      <h2 dangerouslySetInnerHTML={{ __html: I.dm }} /> {t('dm')}
-      <button className="mb sec" onClick={() => window._setActiveModal?.('dmNew')}>+ Yeni DM</button>
-      {dmFriends.map(f => (
-        <div key={f.id} className="mitem" onClick={() => onStartDM(f.username)}>
-          <div className="mav">{f.username.charAt(0).toUpperCase()}</div>
-          <div className="minfo">
-            <div className="mname">{f.username}</div>
-            <div className="msub">{f.last || 'DM başlat'}</div>
-          </div>
-        </div>
-      ))}
-      {dmFriends.length === 0 && <p style={{ color: 'var(--t3)', fontSize: '12px' }}>Henüz DM yok</p>}
-    </div>
-  );
+const dmStore = reactive({
+  friends: JSON.parse(localStorage.getItem('gt_dm') || '[]'),
+  activeDM: null,
+  dmInput: '',
+  messages: {}
+});
+
+function startDM(username) {
+  if (!dmStore.friends.find(f => f.username === username)) {
+    dmStore.friends.push({ id: genId(), username, last: '', time: 'Şimdi' });
+    localStorage.setItem('gt_dm', JSON.stringify(dmStore.friends));
+  }
+  dmStore.activeDM = username;
+  if (!dmStore.messages[username]) dmStore.messages[username] = [];
 }
 
-function DMChat({ activeDM, dmInput, user, onSendDM, onSetDmInput, onClose }) {
-  if (!activeDM) return null;
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <div className="chat-header">
-        <span>@{activeDM.username}</span>
-        <button className="ib" onClick={onClose}>×</button>
-      </div>
-      <div className="msgs" style={{ flex: 1 }}>
-        {activeDM.messages.map((m, i) => (
-          <div key={i} className="msg" style={{ flexDirection: m.sender === user.username ? 'row-reverse' : 'row' }}>
-            <div className="msg-av">{m.sender.charAt(0).toUpperCase()}</div>
-            <div className="msg-body">
-              <div className="msg-head"><span>{m.sender}</span><span className="msg-time"> {timeAgo(m.time)}</span></div>
-              <div className="msg-text">{m.text}</div>
-            </div>
-          </div>
-        ))}
-      </div>
-      <div className="input-area">
-        <textarea className="msg-inp" placeholder="Mesaj yaz..." value={dmInput}
-          onChange={e => onSetDmInput(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); onSendDM(); } }} rows={1} />
-        <button className="ib" style={{ background: 'var(--gr)' }} onClick={onSendDM} dangerouslySetInnerHTML={{ __html: I.send }} />
-      </div>
-    </div>
-  );
-        }
+function sendDMMessage() {
+  if (!dmStore.dmInput.trim() || !dmStore.activeDM) return;
+  const msg = { sender: store.user.username, text: dmStore.dmInput.trim(), time: new Date().toISOString() };
+  dmStore.messages[dmStore.activeDM].push(msg);
+  const friend = dmStore.friends.find(f => f.username === dmStore.activeDM);
+  if (friend) { friend.last = msg.text; friend.time = 'Şimdi'; }
+  dmStore.dmInput = '';
+  if (socket) socket.emit('dm_message', { to: dmStore.activeDM, text: msg.text });
+}
+
+function addFriend(username) {
+  if (dmStore.friends.find(f => f.username === username)) return toast('Zaten arkadaş', 'e');
+  dmStore.friends.push({ id: genId(), username, last: '', time: 'Şimdi' });
+  localStorage.setItem('gt_dm', JSON.stringify(dmStore.friends));
+  toast(username + ' eklendi');
+}
