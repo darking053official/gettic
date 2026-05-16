@@ -1135,3 +1135,5 @@ function ModalManager({ activeModal, setActiveModal, channels, categories, roles
       return null;
   }
     }
+
+window.App = App;
