@@ -1,0 +1,25 @@
+#ls {
+  position: fixed; inset: 0; background: var(--bg); z-index: 99999;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+  transition: opacity .45s, visibility .45s;
+}
+#ls.hide { opacity: 0; visibility: hidden; pointer-events: none; }
+
+.spin {
+  width: 34px; height: 34px; border-radius: 50%;
+  border: 3px solid var(--b2); border-top-color: var(--ac);
+  animation: spin .75s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.ls-logo {
+  font-size: 20px; font-weight: 800; letter-spacing: .06em;
+  background: linear-gradient(135deg, var(--ac), var(--ac2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+
+.app { display: flex; height: 100dvh; position: relative; z-index: 1; }
+
+@keyframes fuA { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+@keyframes blink { 0%,80%,100%{opacity:.2} 40%{opacity:1} }
