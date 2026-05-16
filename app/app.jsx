@@ -46,7 +46,7 @@ function checkRL(key, max = 5, win = 3000) {
 }
 
 // ===== APP COMPONENT =====
-export default function App() {
+function App() {
   // State
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem('gt_user');
