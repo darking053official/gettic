@@ -1,6 +1,3 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { io } from 'socket.io/client-dist';
-
 const API = 'https://gettic-j49l.onrender.com';
 const MAX_MSGS = 100;
 
