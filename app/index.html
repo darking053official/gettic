@@ -235,7 +235,18 @@
 setTimeout(function() {
     var ls = document.getElementById('ls');
     if (ls) ls.remove();
-}, 3000);
+    
+    var root = document.getElementById('root');
+    var debug = document.createElement('div');
+    debug.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#000;color:#0f0;padding:10px;z-index:99999;font-size:11px;max-height:150px;overflow:auto';
+    debug.innerHTML = 'Vue: ' + (typeof Vue !== 'undefined' ? 'VAR ✅' : 'YOK ❌') + '<br>';
+    debug.innerHTML += 'store: ' + (typeof store !== 'undefined' ? 'VAR ✅' : 'YOK ❌') + '<br>';
+    debug.innerHTML += 'App: ' + (typeof app !== 'undefined' ? 'VAR ✅' : 'YOK ❌') + '<br>';
+    if (typeof store !== 'undefined') {
+        debug.innerHTML += 'user: ' + JSON.stringify(store.user) + '<br>';
+    }
+    document.body.appendChild(debug);
+}, 2000);
     </script>
 </body>
     </html>
