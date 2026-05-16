@@ -15,6 +15,13 @@ const io = new Server(httpServer, {
     cors: { origin: '*', methods: ['GET', 'POST'] }
 });
 
+app.set('view engine', 'pug');
+app.set('views', path.join(__dirname, 'app'));
+
+app.get('/app', (req, res) => {
+    res.render('index');
+});
+
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -90,11 +97,6 @@ app.get('/apis/list', (req, res) => {
 // Ekleme sayfası
 app.get('/apis/list/add', (req, res) => {
     res.sendFile(path.join(__dirname, 'apis', 'add.html'));
-});
-
-// app klasörü
-app.get('/app', (req, res) => {
-    res.sendFile(path.join(__dirname, 'app', 'index.html'));
 });
 
 // app içindeki statik dosyalar
