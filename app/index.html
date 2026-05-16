@@ -838,23 +838,11 @@ body {
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script type="text/babel" src="https://gettic-j49l.onrender.com/app/app.js"></script>
-    <script type="text/babel">
-    console.log('Render başlıyor...');
-    try {
-        if (typeof App !== 'function') {
-            document.getElementById('ls').innerHTML = '<div style="color:red;padding:20px;">App fonksiyonu bulunamadı!</div>';
-        } else {
-            const root = ReactDOM.createRoot(document.getElementById('root'));
-            root.render(React.createElement(App));
-            console.log('Render tamam');
-            setTimeout(function() {
-                document.getElementById('ls').classList.add('hide');
-            }, 500);
-        }
-    } catch(e) {
-        console.error('Hata:', e);
-        document.getElementById('ls').innerHTML = '<div style="color:red;padding:20px;">HATA: ' + e.message + '</div>';
-    }
+    <script>
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(React.createElement(App));
+    document.getElementById('ls').classList.add('hide');
+    </script>
  </script>
 </body>
 </html>
