@@ -1,10 +1,3 @@
-try {
-    require('hbs');
-    console.log('✅ HBS yüklü');
-} catch(e) {
-    console.log('❌ HBS yok:', e.message);
-}
-
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -15,20 +8,11 @@ const { Server } = require('socket.io');
 const path = require('path');
 const { spawn, execSync } = require('child_process');
 const fs = require('fs');
-const hbs = require('hbs');
 
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
     cors: { origin: '*', methods: ['GET', 'POST'] }
-});
-
-app.engine('html', hbs.__express);
-app.set('view engine', 'html');
-app.set('views', path.join(__dirname, 'app'));
-
-app.get('/app', (req, res) => {
-    res.render('index');  // index.html dosyasını render eder
 });
 
 // Middleware
@@ -106,6 +90,10 @@ app.get('/apis/list', (req, res) => {
 // Ekleme sayfası
 app.get('/apis/list/add', (req, res) => {
     res.sendFile(path.join(__dirname, 'apis', 'add.html'));
+});
+
+app.get('/app', (req, res) => {
+    res.sendFile(path.join(__dirname, 'app', 'index.html'));
 });
 
 // app içindeki statik dosyalar
