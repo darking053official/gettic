@@ -1,0 +1,15 @@
+@media (max-width: 768px) {
+  :root { --side: 260px; --rail: 52px; }
+  .ri { width: 38px; height: 38px; }
+  .sidebar {
+    position: absolute; left: calc(-1 * var(--side));
+    top: 0; bottom: 0; height: 100%;
+    z-index: 50; transition: left .22s ease;
+  }
+  .sidebar.open { left: var(--rail); box-shadow: 4px 0 20px rgba(0,0,0,.08); }
+  .mbox { width: 96%; max-height: 92dvh; border-radius: 16px; padding: 16px; }
+  .input-area { padding: 6px 10px; }
+}
+@media (max-width: 480px) {
+  .hacts .ib:nth-child(n+3) { display: none; }
+}
