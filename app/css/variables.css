@@ -1,0 +1,34 @@
+:root {
+  --bg:   #faf6f0;
+  --bg1:  #f5efe5;
+  --bg2:  #efe7da;
+  --bg3:  #e8dfd0;
+  --bg4:  #ddd3c0;
+  --b:    rgba(0,0,0,.05);
+  --b2:   rgba(0,0,0,.08);
+  --b3:   rgba(0,0,0,.12);
+  --ac:   #c94d8c;
+  --ac2:  #d4689e;
+  --ac3:  #e08db5;
+  --acg:  rgba(201,77,140,.18);
+  --acd:  rgba(201,77,140,.08);
+  --gr:   #2ecc71;
+  --gr2:  #27ae60;
+  --re:   #e74c3c;
+  --re2:  #c0392b;
+  --ye:   #f39c12;
+  --bl:   #3498db;
+  --t1:   #2c2416;
+  --t2:   #6b5e4a;
+  --t3:   #9e9078;
+  --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --rail: 62px;
+  --side: 240px;
+  --panel: 252px;
+  --st: env(safe-area-inset-top, 0px);
+  --sb: env(safe-area-inset-bottom, 0px);
+  --sl: env(safe-area-inset-left, 0px);
+  --sr: env(safe-area-inset-right, 0px);
+  --tr: .14s cubic-bezier(.3,.8,.4,1);
+                          }
