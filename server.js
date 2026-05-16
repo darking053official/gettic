@@ -15,12 +15,8 @@ const io = new Server(httpServer, {
     cors: { origin: '*', methods: ['GET', 'POST'] }
 });
 
-app.set('view engine', 'pug');
+app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'app'));
-
-app.get('/app', (req, res) => {
-    res.render('index');
-});
 
 // Middleware
 app.use(cors());
