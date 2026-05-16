@@ -1,3 +1,4 @@
+const { useState, useEffect, useRef, useCallback } = React;
 console.log('app.jsx yüklendi');
 const API = 'https://gettic-j49l.onrender.com';
 const MAX_MSGS = 100;
