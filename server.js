@@ -1,3 +1,10 @@
+try {
+    require('hbs');
+    console.log('✅ HBS yüklü');
+} catch(e) {
+    console.log('❌ HBS yok:', e.message);
+}
+
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
