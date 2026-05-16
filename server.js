@@ -30,6 +30,9 @@ app.get('/app', (req, res) => {
     res.render('index');
 });
 
+// app içindeki statik dosyalar
+app.use('/app', express.static(path.join(__dirname, 'app')));
+
 // Middleware
 app.use(cors());
 app.use(express.json());
