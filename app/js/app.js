@@ -1,7 +1,5 @@
-console.log('🚀 App başlatılıyor...');
-
 if (typeof Vue === 'undefined') {
-    document.getElementById('ls').innerHTML = '<div style="color:red;padding:20px;font-family:sans-serif;">Vue.js yüklenemedi!</div>';
+    document.getElementById('ls').innerHTML = '<div style="color:red;padding:20px;">Vue yüklenemedi!</div>';
 } else {
     const app = Vue.createApp({
         data() {
@@ -18,7 +16,7 @@ if (typeof Vue === 'undefined') {
                 pollO2: '',
                 imagePrompt: '',
                 generatedImage: null,
-                emojis: ['😀','😂','❤️','👍','🔥','🎉','🥳','😎','💯','✅','👋','🙏','🎮','✨']
+                emojis: ['😀','😂','❤️','👍','🔥','🎉','🥳','😎','💯']
             };
         },
         methods: {
@@ -49,9 +47,6 @@ if (typeof Vue === 'undefined') {
                 this.store.user = null;
                 this.store.token = null;
                 this.store.messages = [];
-            },
-            toggleSidebar() {
-                this.store.sidebarOpen = !this.store.sidebarOpen;
             },
             openModal(name) {
                 this.store.activeModal = name;
@@ -98,11 +93,11 @@ if (typeof Vue === 'undefined') {
             createPoll(question, opts) {
                 if (!question || !opts || opts.length < 2) return;
                 const mid = genId();
-                const poll = { question, options: opts, votes: new Array(opts.length).fill(0), voters: {} };
                 const msg = {
                     _id: mid, content: '📊 ' + question,
                     senderName: this.store.user.username, senderId: this.store.user._id,
-                    channelId: this.store.activeChannel.id, createdAt: new Date().toISOString(), poll
+                    channelId: this.store.activeChannel.id, createdAt: new Date().toISOString(),
+                    poll: { question, options: opts, votes: new Array(opts.length).fill(0), voters: {} }
                 };
                 this.store.messages.push(msg);
                 this.closeModal();
@@ -137,7 +132,6 @@ if (typeof Vue === 'undefined') {
                     });
                     const data = await res.json();
                     if (data.image) {
-                        this.generatedImage = data.image;
                         this.store.messages.push({
                             _id: genId(), content: '🎨 ' + this.imagePrompt,
                             senderName: this.store.user.username, senderId: this.store.user._id,
@@ -150,17 +144,16 @@ if (typeof Vue === 'undefined') {
             }
         },
         mounted() {
-            console.log('✅ Vue mounted');
             const ls = document.getElementById('ls');
             if (ls) {
                 ls.style.opacity = '0';
                 ls.style.transition = 'opacity 0.3s';
-                setTimeout(() => { if (ls) ls.remove(); }, 300);
+                setTimeout(() => { if (ls && ls.parentNode) ls.remove(); }, 300);
             }
         }
     });
 
     app.mount('#root');
     window.app = app;
-    console.log('✅ Vue uygulaması başlatıldı');
+    console.log('✅ Vue başlatıldı');
             }
