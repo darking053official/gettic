@@ -210,3 +210,4 @@ function App() {
 }
 
 window.App = App;
+console.log('✅ App fonksiyonu tanımlandı:', typeof App);
