@@ -839,9 +839,20 @@ body {
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script type="text/babel" src="https://gettic-j49l.onrender.com/app/app.jsx"></script>
     <script type="text/babel">
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(React.createElement(App));
-        document.getElementById('ls').classList.add('hide');
+    // App yüklenene kadar bekle
+    setTimeout(function() {
+        try {
+            if (typeof App === 'function') {
+                const root = ReactDOM.createRoot(document.getElementById('root'));
+                root.render(React.createElement(App));
+                document.getElementById('ls').classList.add('hide');
+            } else {
+                document.getElementById('ls').innerHTML = '<div style="color:red;padding:20px;">App bulunamadı! app.jsx yüklenmedi.</div>';
+            }
+        } catch(e) {
+            document.getElementById('ls').innerHTML = '<div style="color:red;padding:20px;">HATA: ' + e.message + '</div>';
+        }
+    }, 2000);
     </script>
 </body>
 </html>
