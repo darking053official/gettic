@@ -45,9 +45,18 @@
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <script type="text/babel" src="https://gettic-j49l.onrender.com/app/app.jsx"></script>
 <script type="text/babel">
-    const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(React.createElement(App));
-    document.getElementById('ls').classList.add('hide');
+    console.log('Babel çalışıyor...');
+    
+    // App bileşenini yükle
+    const AppComponent = App;
+    
+    try {
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(React.createElement(AppComponent));
+        document.getElementById('ls').classList.add('hide');
+    } catch(e) {
+        document.getElementById('ls').innerHTML = '<div style="color:red;padding:20px;font-family:sans-serif;">HATA: ' + e.message + '<br><pre>' + e.stack + '</pre></div>';
+    }
 </script>
 </body>
 </html>
