@@ -847,7 +847,7 @@ body {
             const root = ReactDOM.createRoot(document.getElementById('root'));
             root.render(React.createElement(App));
             console.log('Render tamam');
-            setTimeout(() => {
+            setTimeout(function() {
                 document.getElementById('ls').classList.add('hide');
             }, 500);
         }
@@ -855,6 +855,6 @@ body {
         console.error('Hata:', e);
         document.getElementById('ls').innerHTML = '<div style="color:red;padding:20px;">HATA: ' + e.message + '</div>';
     }
-    </script>
+ </script>
 </body>
 </html>
