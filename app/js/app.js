@@ -191,14 +191,12 @@ if (typeof Vue === 'undefined') {
                 }
             }
         },
-        mounted() {
-            console.log('✅ Vue mounted, user:', this.store.user);
-            setTimeout(() => {
-                const ls = document.getElementById('ls');
-                if (ls) ls.classList.add('hide');
-            }, 500);
-        }
-    });
+            mounted() {
+        console.log('✅ Vue mounted, user:', this.store.user);
+        const ls = document.getElementById('ls');
+        if (ls) ls.remove();
+    }
+});
 
     app.mount('#root');
     window.app = app;
