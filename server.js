@@ -89,6 +89,9 @@ app.get('/app', (req, res) => {
 // 👇 app içindeki statik dosyalar için (style.css, vs.)
 app.use('/app', express.static(path.join(__dirname, 'app')));
 
+// Statik dosyalar
+app.use(express.static(path.join(__dirname)));
+
 // MongoDB Schema'lar
 const UserSchema = new mongoose.Schema({
     username: { type: String, required: true, unique: true, trim: true, minlength: 3 },
@@ -418,8 +421,6 @@ io.on('connection', (socket) => {
     });
 });
 
-// Statik dosyalar
-app.use(express.static(path.join(__dirname)));
 
 // ==================== 404 SAYFASI ====================
 app.use((req, res) => {
