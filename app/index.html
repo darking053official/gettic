@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="Gettic - Modern Türkçe sohbet platformu. Gerçek zamanlı mesajlaşma, sesli kanallar, görsel oluşturma, rol sistemi.">
+    <meta name="keywords" content="sohbet, chat, discord, platform, gettic, türkçe, sesli, görüntülü">
+    <meta name="author" content="Gettic">
+    <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#c94d8c">
+    <meta property="og:title" content="Gettic - Modern Sohbet Platformu">
+    <meta property="og:description" content="Gerçek zamanlı mesajlaşma, sesli kanallar, ekran paylaşımı ve daha fazlası.">
+    <meta property="og:image" content="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png">
+    <meta property="og:url" content="https://gettic.js.org">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Gettic">
+    <meta name="twitter:description" content="Modern Türkçe sohbet platformu">
+    <meta name="twitter:image" content="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png">
+    <link rel="canonical" href="https://gettic.js.org">
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png">
+    <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="stylesheet" href="https://gettic-j49l.onrender.com/app/style.css">
+    <title>Gettic - Sohbet Platformu</title>
+</head>
+<body>
+    <noscript>
+        <div style="padding:20px;text-align:center;background:#c94d8c;color:#fff;font-family:sans-serif;">
+            Gettic çalışmak için JavaScript gerektirir. Lütfen JavaScript'i etkinleştirin.
+        </div>
+    </noscript>
+
+    <div id="root">
+        <div id="ls">
+            <div class="spin"></div>
+            <div class="ls-logo">gettic</div>
+        </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script type="text/babel" src="https://gettic-j49l.onrender.com/app/app.jsx"></script>
+<script type="text/babel">
+    console.log('Babel çalışıyor...');
+    
+    // App bileşenini yükle
+    const AppComponent = App;
+    
+    try {
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(React.createElement(AppComponent));
+        document.getElementById('ls').classList.add('hide');
+    } catch(e) {
+        document.getElementById('ls').innerHTML = '<div style="color:red;padding:20px;font-family:sans-serif;">HATA: ' + e.message + '<br><pre>' + e.stack + '</pre></div>';
+    }
+</script>
+</body>
+</html>
