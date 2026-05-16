@@ -1,4 +1,3 @@
-// Store - Vue Reactive State
 const store = Vue.reactive({
   user: null,
   token: localStorage.getItem('gt_token') || null,
@@ -21,7 +20,7 @@ const store = Vue.reactive({
   userRoles: {}
 });
 
-// Kullanıcıyı güvenli şekilde localStorage'dan yükle
+// Kullanıcıyı localStorage'dan yükle
 try {
   const savedUser = localStorage.getItem('gt_user');
   if (savedUser && savedUser !== 'undefined' && savedUser !== 'null') {
@@ -31,25 +30,34 @@ try {
     }
   }
 } catch(e) {
-  console.log('Kullanıcı yüklenemedi:', e.message);
   localStorage.removeItem('gt_user');
 }
 
-// Toast mesaj sistemi
-function toast(msg, type = 's') {
-  store.toastMsg = { msg, type };
-  setTimeout(() => {
-    store.toastMsg = null;
-  }, 2500);
+// Token varsa kullanıcıyı API'den dene
+if (!store.user && store.token) {
+  fetch(API + '/api/me', {
+    headers: { 'Authorization': 'Bearer ' + store.token }
+  })
+  .then(r => r.json())
+  .then(user => {
+    if (user && user._id) {
+      store.user = user;
+      localStorage.setItem('gt_user', JSON.stringify(user));
+    }
+  })
+  .catch(() => {});
 }
 
-// Benzersiz ID üret
+function toast(msg, type = 's') {
+  store.toastMsg = { msg, type };
+  setTimeout(() => { store.toastMsg = null; }, 2500);
+}
+
 function genId() {
   return Date.now().toString(36) + Math.random().toString(36).substr(2, 7);
 }
 
-// Online/Offline durum takibi
 window.addEventListener('online', () => { store.isOnline = true; });
 window.addEventListener('offline', () => { store.isOnline = false; });
 
-console.log('✅ Store yüklendi, user:', store.user ? store.user.username : 'yok');
+console.log('✅ Store hazır, user:', store.user?.username || 'yok');
