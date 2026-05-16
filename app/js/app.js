@@ -1,111 +1,102 @@
-const { createApp, ref, computed, onMounted, nextTick } = Vue;
+console.log('Vue:', typeof Vue);
+console.log('store:', typeof store);
 
-const app = createApp({
-  setup() {
-    return { store, toast, doLogin, doRegister, logout, sendMessage, deleteMessage, genId };
-  }
-});
-
-// Bileşenler
-app.component('auth-box', {
-  template: `
-    <div class="auth-wrap">
-      <div class="auth-box">
-        <img src="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png" class="auth-logo" alt="Gettic">
-        <div class="auth-title">gettic</div>
-        <div class="auth-sub">Türkçe sohbet platformu</div>
-        <div class="auth-tabs">
-          <button :class="['auth-tab', tab==='login'?'act':'']" @click="tab='login'">Giriş</button>
-          <button :class="['auth-tab', tab==='register'?'act':'']" @click="tab='register'">Kayıt</button>
-        </div>
-        <input class="mi" v-model="username" placeholder="Kullanıcı adı" @keydown.enter="submit">
-        <input class="mi" type="password" v-model="password" placeholder="Şifre" @keydown.enter="submit">
-        <button class="mb" @click="submit">{{ tab === 'login' ? 'Giriş' : 'Kayıt' }}</button>
-      </div>
-    </div>
-  `,
-  data() { return { tab: 'login', username: '', password: '' }; },
-  methods: {
-    submit() {
-      if (this.tab === 'login') doLogin(this.username, this.password);
-      else doRegister(this.username, this.password);
-    }
-  }
-});
-
-app.component('chat-area', {
-  template: `
-    <main class="chat">
-      <header class="chat-header">
-        <span v-html="I.hash"></span>
-        <div class="ch-hname"># {{ store.activeChannel.name }}</div>
-        <div class="hacts">
-          <button class="ib" @click="store.sidebarOpen=!store.sidebarOpen" v-html="I.hash"></button>
-          <button class="ib" @click="logout" v-html="I.logout"></button>
-        </div>
-      </header>
-      <div class="msgs">
-        <div v-if="store.messages.length===0" class="empty-ch">
-          <h4># {{ store.activeChannel.name }}</h4>
-          <p>Henüz mesaj yok</p>
-        </div>
-        <div v-for="msg in store.messages" :key="msg._id" class="msg">
-          <div class="msg-av">{{ msg.senderName?.charAt(0) }}</div>
-          <div class="msg-body">
-            <div class="msg-head">
-              <span>{{ msg.senderName }}</span>
-              <span class="msg-time"> {{ new Date(msg.createdAt).toLocaleTimeString('tr-TR', {hour:'2-digit',minute:'2-digit'}) }}</span>
-            </div>
-            <div class="msg-text" v-html="formatMsg(msg.content)"></div>
-          </div>
-        </div>
-      </div>
-      <div class="input-area">
-        <button class="ib" @click="store.emojiOpen=!store.emojiOpen" v-html="I.smile"></button>
-        <div v-if="store.emojiOpen" class="epop show">
-          <div class="egrid">
-            <span v-for="e in ['😀','😂','❤️','👍','🔥','🎉']" :key="e" class="es" @click="store.input+=e;store.emojiOpen=false">{{ e }}</span>
-          </div>
-        </div>
-        <textarea class="msg-inp" placeholder="Mesaj yaz..." v-model="store.input" @keydown.enter.exact.prevent="sendMessage" rows="1"></textarea>
-        <button class="ib" style="background:var(--gr)" @click="sendMessage" v-html="I.send"></button>
-      </div>
-    </main>
-  `,
-  setup() {
-    const I = {
-      hash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><line x1="4" y1="9" x2="20" y2="9"/></svg>',
-      send: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><line x1="22" y1="2" x2="11" y2="13"/></svg>',
-      smile: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/></svg>',
-      logout: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 21H5a2 2 0 0 1-2-2V5"/></svg>'
-    };
-    return { I, store, sendMessage, logout, formatMsg };
-  }
-});
-
-// Socket.io
-let socket;
-onMounted(() => {
-  if (store.token) {
-    socket = io(API, { auth: { token: store.token } });
-    socket.on('connect', () => socket.emit('join_channel', store.activeChannel.id));
-    socket.on('new_message', (msg) => {
-      if (msg.channelId === store.activeChannel.id) {
-        store.messages.push(msg);
-        if (store.messages.length > MAX_MSGS) store.messages.shift();
-      }
+if (typeof Vue === 'undefined') {
+    document.getElementById('ls').innerHTML = '<div style="color:red;padding:20px;">Vue yüklenemedi!</div>';
+} else {
+    const app = Vue.createApp({
+        data() {
+            return {
+                store: store,
+                I: I,
+                dmStore: typeof dmStore !== 'undefined' ? dmStore : { friends: [], messages: {}, activeDM: null, dmInput: '' },
+                tab: 'login',
+                username: '',
+                password: '',
+                modalInput: '',
+                pollQ: '',
+                pollO1: '',
+                pollO2: '',
+                imagePrompt: '',
+                generatedImage: null,
+                emojis: ['😀','😂','❤️','👍','🔥','🎉','🥳','😎','💯','✅','👋','🙏','🎮','✨']
+            };
+        },
+        methods: {
+            submitAuth() {
+                if (this.tab === 'login') doLogin(this.username, this.password);
+                else doRegister(this.username, this.password);
+            },
+            sendMessage: typeof sendMessage !== 'undefined' ? sendMessage : function() { toast('Mesaj fonksiyonu yok', 'e'); },
+            deleteMessage: typeof deleteMessage !== 'undefined' ? deleteMessage : function(mid) { store.messages = store.messages.filter(m => m._id !== mid); },
+            logout: typeof logout !== 'undefined' ? logout : function() { store.user = null; store.token = null; },
+            toggleSidebar() { store.sidebarOpen = !store.sidebarOpen; },
+            openModal(name) { store.activeModal = name; },
+            closeModal() { store.activeModal = null; },
+            createChannel: typeof createChannel !== 'undefined' ? createChannel : function(name) { 
+                if (!name) return; 
+                const id = name.toLowerCase().replace(/\s+/g,'-');
+                store.channels.push({ id, name, type: 'text', category: 'METİN' });
+            },
+            switchChannel(ch) { store.activeChannel = ch; store.messages = []; store.sidebarOpen = false; },
+            startDM: typeof startDM !== 'undefined' ? startDM : function(u) { toast('DM yakında', 'w'); },
+            addFriend: typeof addFriend !== 'undefined' ? addFriend : function(u) { toast(u + ' eklendi'); },
+            setTheme(c) { store.theme = c; localStorage.setItem('gt_ac', c); },
+            createPoll: typeof createPoll !== 'undefined' ? createPoll : function(q, opts) { toast('Anket oluşturuldu'); },
+            votePoll(mid, i) { 
+                const msg = store.messages.find(m => m._id === mid);
+                if (msg?.poll && msg.poll.voters[store.user?._id] === undefined) {
+                    msg.poll.voters[store.user._id] = i;
+                    msg.poll.votes[i]++;
+                }
+            },
+            joinVoice: typeof joinVoice !== 'undefined' ? joinVoice : function() { toast('Ses yakında', 'w'); },
+            leaveVoice: typeof leaveVoice !== 'undefined' ? leaveVoice : function() {},
+            getPollPercent(poll, i) {
+                if (!poll) return 0;
+                const total = poll.votes.reduce((a,b)=>a+b,0) || 1;
+                return Math.round((poll.votes[i]/total)*100);
+            },
+            formatTime(d) { return new Date(d).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'}); },
+            formatMsg(t) { 
+                if (!t) return '';
+                return t.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\*(.+?)\*/g,'<i>$1</i>').replace(/`([^`]+?)`/g,'<code>$1</code>');
+            },
+            async generateImage() {
+                if (!this.imagePrompt.trim()) return;
+                try {
+                    const res = await fetch(API+'/api/image', {
+                        method:'POST',
+                        headers:{'Content-Type':'application/json'},
+                        body:JSON.stringify({prompt:this.imagePrompt})
+                    });
+                    const data = await res.json();
+                    if (data.image) {
+                        this.generatedImage = data.image;
+                        store.messages.push({
+                            _id: genId(),
+                            content: '🎨 ' + this.imagePrompt,
+                            senderName: store.user.username,
+                            senderId: store.user._id,
+                            channelId: store.activeChannel.id,
+                            createdAt: new Date().toISOString(),
+                            image: data.image
+                        });
+                        this.imagePrompt = '';
+                    } else {
+                        toast('Görsel oluşturulamadı', 'e');
+                    }
+                } catch(e) { toast('Bağlantı hatası', 'e'); }
+            }
+        },
+        mounted() {
+            setTimeout(() => {
+                const ls = document.getElementById('ls');
+                if (ls) ls.classList.add('hide');
+            }, 500);
+        }
     });
-  }
-  
-  nextTick(() => {
-    const ls = document.getElementById('ls');
-    if (ls) ls.classList.add('hide');
-  });
-});
 
-function formatMsg(text) {
-  return text.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/\*(.+?)\*/g, '<i>$1</i>');
-}
-
-app.mount('#root');
-window.app = app;
+    app.mount('#root');
+    window.app = app;
+              }
