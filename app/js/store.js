@@ -1,4 +1,4 @@
-const store = reactive({
+const store = Vue.reactive({
   user: JSON.parse(localStorage.getItem('gt_user') || 'null'),
   token: localStorage.getItem('gt_token') || null,
   isOnline: navigator.onLine,
@@ -11,16 +11,20 @@ const store = reactive({
   messages: [],
   input: '',
   sidebarOpen: false,
+  userPanelOpen: false,
   theme: localStorage.getItem('gt_ac') || '#c94d8c',
   emojiOpen: false,
   toastMsg: null,
   activeModal: null,
-  serverSettings: { name: 'Gettic' }
+  serverSettings: { name: 'Gettic' },
+  userRoles: {}
 });
 
 function toast(msg, type = 's') {
   store.toastMsg = { msg, type };
-  setTimeout(() => store.toastMsg = null, 2500);
+  setTimeout(() => {
+    store.toastMsg = null;
+  }, 2500);
 }
 
 function genId() {
