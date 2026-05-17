@@ -494,3 +494,23 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 console.log('✅ Gettic 300 - Stimulus hazır');
+
+// Global referans
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(function() {
+    var el = document.querySelector('[data-controller="app"]');
+    if (el && el.__x && el.__x.$controller) {
+      window._app = el.__x.$controller;
+      console.log('✅ _app hazır');
+    } else {
+      console.log('❌ _app bulunamadı, tekrar deneniyor...');
+      setTimeout(function() {
+        var el2 = document.querySelector('[data-controller="app"]');
+        if (el2 && el2.__x) {
+          window._app = el2.__x.$controller;
+          console.log('✅ _app hazır (2. deneme)');
+        }
+      }, 1000);
+    }
+  }, 500);
+});
