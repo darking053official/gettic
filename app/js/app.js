@@ -161,3 +161,10 @@ window.addEventListener('online', () => { Store.isOnline=true; connbar.style.hei
 window.addEventListener('offline', () => { Store.isOnline=false; connbar.style.height='28px'; });
 
 console.log('✅ Gettic App');
+
+// Service Worker kaydı
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/service-worker.js')
+    .then((reg) => console.log('✅ SW kaydedildi:', reg.scope))
+    .catch((err) => console.log('SW hatası:', err));
+  }
