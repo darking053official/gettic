@@ -1,5 +1,5 @@
-console.clear();
-console.log('=== STIMULUS BAŞLADI ===');
+console.log('🔥 app-stimulus.js yüklendi');
+console.log('🔥 Stimulus:', typeof Stimulus);
 class AppController extends Stimulus.Controller {
   static targets = [
     "login", "main", "username", "password", "authBtn", "authError",
