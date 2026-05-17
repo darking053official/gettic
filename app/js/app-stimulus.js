@@ -56,6 +56,21 @@ class AppController extends Stimulus.Controller {
   }
 
   async submitAuth() {
+    console.log('🟢 submitAuth başladı');
+    const username = this.usernameTarget?.value?.trim() || '';
+    const password = this.passwordTarget?.value?.trim() || '';
+    console.log('🟢 username:', username, 'password:', password ? '***' : 'boş');
+    
+    if (!username || username.length < 3) {
+        console.log('🔴 Kullanıcı adı hatası');
+        return this.showAuthError('Kullanıcı adı en az 3 karakter');
+    }
+    if (!password || password.length < 4) {
+        console.log('🔴 Şifre hatası');
+        return this.showAuthError('Şifre en az 4 karakter');
+    }
+    
+    console.log('🟢 API çağrılıyor...');
     const username = this.usernameTarget?.value?.trim() || '';
     const password = this.passwordTarget?.value?.trim() || '';
     
