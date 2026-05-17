@@ -24,13 +24,19 @@
         .ls-logo { font-size:20px;font-weight:800;background:linear-gradient(135deg,#c94d8c,#d4689e);-webkit-background-clip:text;-webkit-text-fill-color:transparent }
         .hidden { display:none!important }
         .flex { display:flex!important }
+        /* Mobil input fix */
+        .msg-inp-mobile { font-size:16px!important; }
+        @media (max-width: 768px) {
+            .input-area { padding: 8px 10px; gap: 6px; }
+            .msg-inp { font-size: 16px; }
+        }
     </style>
 </head>
 <body>
-    <noscript><div style="padding:20px;text-align:center;background:#c94d8c;color:#fff">JavaScript gerekli</div></noscript>
+    <noscript><div style="padding:20px;text-align:center;background:#c94d8c;color:#fff;font-family:sans-serif">JavaScript gerekli</div></noscript>
     <div id="ls"><div class="spin"></div><div class="ls-logo">gettic</div></div>
 
-    <!-- GİRİŞ EKRANI -->
+    <!-- ========== GİRİŞ EKRANI ========== -->
     <div id="loginScreen" class="auth-wrap hidden">
         <div class="auth-box">
             <img src="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png" class="auth-logo" alt="Gettic">
@@ -40,27 +46,31 @@
                 <button class="auth-tab act" id="tabLogin">Giriş</button>
                 <button class="auth-tab" id="tabRegister">Kayıt</button>
             </div>
-            <input class="mi" id="authUsername" placeholder="Kullanıcı adı" autocomplete="username">
+            <input class="mi" id="authUsername" placeholder="Kullanıcı adı" autocomplete="username" inputmode="text">
             <input class="mi" type="password" id="authPassword" placeholder="Şifre" autocomplete="current-password">
             <button class="mb" id="authSubmit">Giriş</button>
             <div id="authError" style="color:#e74c3c;font-size:11px;margin-top:8px;display:none"></div>
         </div>
     </div>
 
-    <!-- ANA ARAYÜZ -->
+    <!-- ========== ANA ARAYÜZ ========== -->
     <div id="mainScreen" class="app hidden" style="--ac:#c94d8c">
+        <!-- Server Rail -->
         <nav class="rail">
-            <div class="ri act">#</div>
+            <div class="ri act" id="serverIcon">#</div>
             <div class="ri-sep"></div>
-            <div class="ri" id="addChannelBtn">+</div>
-            <div class="ri" id="themeBtn">🎨</div>
-            <div class="ri" id="dmBtn">💬</div>
-            <div class="ri ri-push" id="logoutBtn">🚪</div>
+            <div class="ri" id="addChannelBtn" title="Kanal Ekle">+</div>
+            <div class="ri" id="themeBtn" title="Tema">🎨</div>
+            <div class="ri" id="dmBtn" title="DM">💬</div>
+            <div class="ri ri-push" id="logoutBtn" title="Çıkış">🚪</div>
         </nav>
+
+        <!-- Sidebar -->
         <nav id="sidebar" class="sidebar">
             <div class="sidebar-header"><span>#</span> <span id="serverName">Gettic</span></div>
             <div class="sidebar-scroll" id="channelList"></div>
-            <div class="sidebar-user">
+            <button class="add-cat-btn" onclick="openModal('addChannel')">+ Kanal Ekle</button>
+            <div class="sidebar-user" onclick="openModal('profile')">
                 <div class="su-av" id="avatar">G</div>
                 <div class="su-info">
                     <div class="su-name" id="displayName">Kullanıcı</div>
@@ -68,42 +78,71 @@
                 </div>
             </div>
         </nav>
+
+        <!-- Chat Area -->
         <main class="chat">
-            <header class="chat-header"><span>#</span> <div class="ch-hname" id="channelName">genel-sohbet</div></header>
-            <div class="msgs" id="messages"><div class="empty-ch"><h4>genel-sohbet</h4><p>Henüz mesaj yok</p></div></div>
+            <!-- Bağlantı çubuğu -->
+            <div id="connbar" style="height:0;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:8px;font-size:11px;font-weight:600;color:#fff;background:#e74c3c;transition:height .22s;flex-shrink:0">
+                ⚠️ Bağlantı koptu <button id="retryBtn" style="background:rgba(255,255,255,.2);border:none;padding:2px 9px;border-radius:4px;color:#fff;cursor:pointer;font-size:11px">Tekrar Dene</button>
+            </div>
+
+            <!-- Chat Header -->
+            <header class="chat-header">
+                <span>#</span>
+                <div class="ch-hname" id="channelName">genel-sohbet</div>
+                <div class="hacts">
+                    <button class="ib" id="searchBtn" title="Ara">🔍</button>
+                    <button class="ib" id="toggleSidebarBtn" title="Sidebar">☰</button>
+                    <button class="ib" id="togglePanelBtn" title="Panel">👤</button>
+                </div>
+            </header>
+
+            <!-- Messages -->
+            <div class="msgs" id="messages">
+                <div class="empty-ch"><h4># genel-sohbet</h4><p>Sohbete hoş geldin! İlk mesajı sen gönder.</p></div>
+            </div>
+
+            <!-- Typing -->
             <div class="typing" id="typing"></div>
+
+            <!-- Input Area -->
             <div class="input-area">
-                <button class="ib" id="emojiBtn">😊</button>
-                <div id="emojiPanel" class="epop hidden"></div>
-                <button class="ib" id="imageBtn">🖼️</button>
-                <button class="ib" id="pollBtn">📊</button>
-                <textarea class="msg-inp" id="messageInput" placeholder="Mesaj yaz..." rows="1"></textarea>
-                <button class="ib" style="background:var(--gr)" id="sendBtn">➤</button>
+                <button class="ib" id="emojiBtn" title="Emoji">😊</button>
+                <div id="emojiPanel" class="epop hidden" style="bottom:60px;left:10px"></div>
+                <button class="ib" id="imageBtn" title="Görsel">🖼️</button>
+                <button class="ib" id="pollBtn" title="Anket">📊</button>
+                <textarea class="msg-inp msg-inp-mobile" id="messageInput" placeholder="Mesaj yaz..." rows="1" inputmode="text" enterkeyhint="send"></textarea>
+                <button class="ib" style="background:var(--gr);flex-shrink:0" id="sendBtn" title="Gönder">➤</button>
             </div>
         </main>
+
+        <!-- User Panel -->
         <aside id="userPanel" class="sidebar hidden" style="right:0;width:252px;border-right:none;border-left:1px solid var(--b2)">
-            <div class="sidebar-header">Panel</div>
+            <div class="sidebar-header">👤 Panel</div>
             <div class="sidebar-scroll" style="padding:8px">
                 <button class="mb" id="panelDmBtn">💬 DM</button>
                 <button class="mb" id="panelAddFriendBtn">👤 Arkadaş Ekle</button>
                 <button class="mb" id="panelThemeBtn">🎨 Tema</button>
                 <button class="mb" id="panelPollBtn">📊 Anket</button>
+                <button class="mb" id="panelSearchBtn">🔍 Arama</button>
+                <button class="mb" id="panelClearBtn">🗑️ Mesajları Temizle</button>
                 <button class="mb danger" id="panelLogoutBtn">🚪 Çıkış</button>
             </div>
         </aside>
     </div>
 
-    <!-- MODAL -->
-    <div id="modal" class="modal hidden">
+    <!-- ========== MODAL ========== -->
+    <div id="modal" class="modal hidden" onclick="if(event.target===this)closeModal()">
         <div class="mbox">
             <button class="mclose" id="modalClose">×</button>
             <div id="modalContent"></div>
         </div>
     </div>
 
-    <!-- TOAST -->
+    <!-- ========== TOAST ========== -->
     <div id="toast" class="toast hidden"></div>
 
+    <!-- ========== SCRIPTS ========== -->
     <script src="js/socketio.js"></script>
     <script src="js/config.js"></script>
     <script src="js/icons.js"></script>
