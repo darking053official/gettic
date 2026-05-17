@@ -1,23 +1,12 @@
-function createChannel(name, type = 'text', cat = 'METİN') {
-  const id = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '');
-  if (store.channels.find(c => c.id === id)) return toast('Bu kanal zaten var', 'e');
-  store.channels.push({ id, name, type, category: cat });
-  if (!store.categories.includes(cat)) store.categories.push(cat);
-  toast(`# ${name} oluşturuldu`);
+function createChannelElement(ch, isActive) {
+  const div = document.createElement('div');
+  div.className = 'ch-item' + (isActive ? ' act' : '');
+  div.innerHTML = `<span class="ch-name"># ${ch.name}</span>`;
+  div.onclick = () => switchChannel(ch.id);
+  return div;
 }
 
-function deleteChannel(id) {
-  store.channels = store.channels.filter(c => c.id !== id);
-  if (store.activeChannel.id === id) {
-    const first = store.channels.find(c => c.type === 'text');
-    if (first) store.activeChannel = first;
-  }
-  toast('Kanal silindi');
-}
-
-function switchChannel(ch) {
-  store.activeChannel = ch;
-  store.messages = [];
-  store.sidebarOpen = false;
-  if (socket) socket.emit('join_channel', ch.id);
+function switchChannel(channelId) {
+  const msgs = document.querySelector('[data-app-target="messages"]');
+  if (msgs) msgs.innerHTML = '<div class="empty-ch"><h4># ' + channelId + '</h4><p>Henüz mesaj yok</p></div>';
 }
