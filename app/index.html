@@ -4,10 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#c94d8c">
-    <meta name="description" content="Gettic - Modern Türkçe sohbet platformu. Gerçek zamanlı mesajlaşma, sesli kanallar, görsel oluşturma.">
+    <meta name="description" content="Gettic - Modern Türkçe sohbet platformu. Gerçek zamanlı mesajlaşma, sesli kanallar, görsel oluşturma, rol sistemi.">
     <meta property="og:title" content="Gettic - Sohbet Platformu">
+    <meta property="og:description" content="Discord benzeri Türkçe sohbet platformu. Sesli, görüntülü, yazılı iletişim.">
     <meta property="og:image" content="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png">
+    <meta property="og:url" content="https://gettic.js.org/app">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
     <link rel="icon" href="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png">
+    <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png">
+    <link rel="manifest" href="/manifest.json">
     <title>Gettic - Sohbet Platformu</title>
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/reset.css">
@@ -24,16 +30,61 @@
         .ls-logo { font-size:20px;font-weight:800;background:linear-gradient(135deg,#c94d8c,#d4689e);-webkit-background-clip:text;-webkit-text-fill-color:transparent }
         .hidden { display:none!important }
         .flex { display:flex!important }
-        /* Mobil input fix */
-        .msg-inp-mobile { font-size:16px!important; }
+        .msg-inp-mobile { font-size:16px!important }
+        /* Voice Panel */
+        .voice-panel { position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--bg);border:1px solid var(--b2);border-radius:16px;padding:12px 18px;z-index:200;display:none;flex-direction:column;gap:8px;box-shadow:0 8px 32px rgba(0,0,0,.15);min-width:280px }
+        .voice-panel-header { display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:600 }
+        .voice-panel-controls { display:flex;gap:8px;align-items:center }
+        .voice-btn { width:36px;height:36px;border-radius:50%;border:1px solid var(--b2);background:var(--bg2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .2s }
+        .voice-btn:hover { background:var(--ac);color:#fff }
+        .voice-btn.muted { background:var(--re);color:#fff }
+        .voice-btn.deafened { background:var(--re);color:#fff }
+        .voice-btn.danger:hover { background:var(--re);color:#fff }
+        .voice-panel-participants { max-height:120px;overflow-y:auto;font-size:11px }
+        .voice-participant { display:flex;align-items:center;gap:6px;padding:3px 0 }
+        .voice-participant-av { width:22px;height:22px;border-radius:50%;background:var(--ac);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700 }
+        /* Reply bar */
+        .reply-bar { display:none;padding:6px 12px;background:var(--bg1);border-top:1px solid var(--b2);align-items:center;gap:8px;font-size:11px }
+        .reply-bar .reply-close { cursor:pointer;color:var(--re);font-weight:700 }
+        /* Date separator */
+        .msg-date-separator { text-align:center;padding:8px 0;font-size:10px;color:var(--t3);font-weight:600 }
+        .msg-date-separator span { background:var(--bg1);padding:2px 10px;border-radius:10px }
+        /* Poll styles */
+        .poll-form { display:flex;flex-direction:column;gap:8px }
+        .poll-option-row { display:flex;gap:6px;align-items:center }
+        .poll-option-row input { flex:1;margin-bottom:0 }
+        .poll-remove-opt { background:none;border:none;color:var(--re);cursor:pointer;font-size:18px;padding:0 4px }
+        .poll-settings { margin:8px 0 }
+        .poll-setting { display:flex;align-items:center;gap:8px;font-size:12px;color:var(--t2);cursor:pointer;padding:4px 0 }
+        .poll-setting input[type="checkbox"] { width:16px;height:16px;cursor:pointer }
+        .poll-meta { display:flex;gap:8px;align-items:center;font-size:10px;color:var(--t3) }
+        .poll-close-btn { background:none;border:none;color:var(--re);cursor:pointer;font-size:14px }
+        .poll-opt.winner { border-color:var(--ye)!important }
+        .poll-crown { margin-left:auto }
+        .poll-progress { height:3px;background:var(--bg3);border-radius:2px;margin:6px 0;overflow:hidden }
+        .poll-progress-bar { height:100%;background:var(--ac);transition:width .3s }
+        .poll-footer-text { font-size:9px;color:var(--t3) }
+        /* Toast */
+        .toast-icon { margin-right:6px }
+        .toast-s { border-color:var(--gr);color:var(--gr) }
+        .toast-e { border-color:var(--re);color:var(--re) }
+        .toast-w { border-color:var(--ye);color:var(--ye) }
+        .toast-i { border-color:var(--bl);color:var(--bl) }
+        @keyframes toastIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes toastOut { from{opacity:1;transform:translateY(0)} to{opacity:0;transform:translateY(10px)} }
+        /* Responsive */
         @media (max-width: 768px) {
-            .input-area { padding: 8px 10px; gap: 6px; }
-            .msg-inp { font-size: 16px; }
+            .input-area { padding: 8px 10px; gap: 6px }
+            .msg-inp { font-size: 16px }
+            .voice-panel { bottom:100px;width:90vw }
+        }
+        @media (max-width: 480px) {
+            .hacts .ib:nth-child(n+3) { display:none }
         }
     </style>
 </head>
 <body>
-    <noscript><div style="padding:20px;text-align:center;background:#c94d8c;color:#fff;font-family:sans-serif">JavaScript gerekli</div></noscript>
+    <noscript><div style="padding:20px;text-align:center;background:#c94d8c;color:#fff;font-family:sans-serif">Gettic çalışmak için JavaScript gerektirir.</div></noscript>
     <div id="ls"><div class="spin"></div><div class="ls-logo">gettic</div></div>
 
     <!-- ========== GİRİŞ EKRANI ========== -->
@@ -57,24 +108,30 @@
     <div id="mainScreen" class="app hidden" style="--ac:#c94d8c">
         <!-- Server Rail -->
         <nav class="rail">
-            <div class="ri act" id="serverIcon">#</div>
+            <div class="ri act" id="serverIcon" title="Sunucu">#</div>
             <div class="ri-sep"></div>
             <div class="ri" id="addChannelBtn" title="Kanal Ekle">+</div>
             <div class="ri" id="themeBtn" title="Tema">🎨</div>
-            <div class="ri" id="dmBtn" title="DM">💬</div>
+            <div class="ri" id="dmBtn" title="Direkt Mesaj">💬</div>
+            <div class="ri" id="serverSettingsBtn" title="Sunucu Ayarları">⚙️</div>
             <div class="ri ri-push" id="logoutBtn" title="Çıkış">🚪</div>
         </nav>
 
         <!-- Sidebar -->
         <nav id="sidebar" class="sidebar">
-            <div class="sidebar-header"><span>#</span> <span id="serverName">Gettic</span></div>
+            <div class="sidebar-header">
+                <span>#</span> 
+                <span id="serverName">Gettic</span>
+                <button class="ib" id="serverSettingsBtn2" title="Sunucu Ayarları" style="margin-left:auto;width:24px;height:24px">⚙️</button>
+            </div>
             <div class="sidebar-scroll" id="channelList"></div>
-            <button class="add-cat-btn" onclick="openModal('addChannel')">+ Kanal Ekle</button>
-            <div class="sidebar-user" onclick="openModal('profile')">
+            <button class="add-cat-btn" id="addCategoryBtn">+ Kategori Ekle</button>
+            <button class="add-cat-btn" id="addChannelSidebarBtn">+ Kanal Ekle</button>
+            <div class="sidebar-user" id="sidebarUserBtn">
                 <div class="su-av" id="avatar">G</div>
                 <div class="su-info">
                     <div class="su-name" id="displayName">Kullanıcı</div>
-                    <div class="su-tag">🟢 Çevrimiçi</div>
+                    <div class="su-tag" id="userStatus">🟢 Çevrimiçi</div>
                 </div>
             </div>
         </nav>
@@ -82,24 +139,38 @@
         <!-- Chat Area -->
         <main class="chat">
             <!-- Bağlantı çubuğu -->
-            <div id="connbar" style="height:0;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:8px;font-size:11px;font-weight:600;color:#fff;background:#e74c3c;transition:height .22s;flex-shrink:0">
-                ⚠️ Bağlantı koptu <button id="retryBtn" style="background:rgba(255,255,255,.2);border:none;padding:2px 9px;border-radius:4px;color:#fff;cursor:pointer;font-size:11px">Tekrar Dene</button>
+            <div id="connbar">
+                ⚠️ Bağlantı koptu 
+                <button id="retryBtn">Tekrar Dene</button>
             </div>
 
             <!-- Chat Header -->
             <header class="chat-header">
                 <span>#</span>
                 <div class="ch-hname" id="channelName">genel-sohbet</div>
+                <div class="ch-htopic" id="channelTopic"></div>
                 <div class="hacts">
-                    <button class="ib" id="searchBtn" title="Ara">🔍</button>
+                    <button class="ib" id="searchBtn" title="Ara (Ctrl+K)">🔍</button>
+                    <button class="ib" id="notificationsBtn" title="Bildirimler">🔔</button>
+                    <button class="ib" id="pinBtn" title="Sabitlenmişler">📌</button>
                     <button class="ib" id="toggleSidebarBtn" title="Sidebar">☰</button>
                     <button class="ib" id="togglePanelBtn" title="Panel">👤</button>
                 </div>
             </header>
 
+            <!-- Reply Bar -->
+            <div class="reply-bar" id="replyBar"></div>
+
+            <!-- Pinned Messages -->
+            <div id="pinnedBar" style="display:none;padding:4px 12px;background:rgba(243,156,18,.06);border-bottom:1px solid var(--ye);font-size:11px;cursor:pointer"></div>
+
             <!-- Messages -->
             <div class="msgs" id="messages">
-                <div class="empty-ch"><h4># genel-sohbet</h4><p>Sohbete hoş geldin! İlk mesajı sen gönder.</p></div>
+                <div class="empty-ch">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" opacity="0.3"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8"/></svg>
+                    <h4># genel-sohbet</h4>
+                    <p>Sohbete hoş geldin! İlk mesajı sen gönder.</p>
+                </div>
             </div>
 
             <!-- Typing -->
@@ -107,26 +178,35 @@
 
             <!-- Input Area -->
             <div class="input-area">
-                <button class="ib" id="emojiBtn" title="Emoji">😊</button>
+                <button class="ib" id="emojiBtn" title="Emoji Seçici">😊</button>
                 <div id="emojiPanel" class="epop hidden" style="bottom:60px;left:10px"></div>
-                <button class="ib" id="imageBtn" title="Görsel">🖼️</button>
-                <button class="ib" id="pollBtn" title="Anket">📊</button>
+                <button class="ib" id="fileBtn" title="Dosya Ekle">📎</button>
+                <button class="ib" id="imageBtn" title="Görsel Oluştur">🖼️</button>
+                <button class="ib" id="pollBtn" title="Anket Başlat">📊</button>
                 <textarea class="msg-inp msg-inp-mobile" id="messageInput" placeholder="Mesaj yaz..." rows="1" inputmode="text" enterkeyhint="send"></textarea>
-                <button class="ib" style="background:var(--gr);flex-shrink:0" id="sendBtn" title="Gönder">➤</button>
+                <button class="ib" style="background:var(--gr);flex-shrink:0" id="sendBtn" title="Gönder (Enter)">➤</button>
             </div>
         </main>
 
         <!-- User Panel -->
         <aside id="userPanel" class="sidebar hidden" style="right:0;width:252px;border-right:none;border-left:1px solid var(--b2)">
-            <div class="sidebar-header">👤 Panel</div>
+            <div class="sidebar-header">👤 Kullanıcı Paneli</div>
             <div class="sidebar-scroll" style="padding:8px">
-                <button class="mb" id="panelDmBtn">💬 DM</button>
+                <div class="msep"></div>
+                <button class="mb" id="panelProfileBtn">👤 Profilim</button>
+                <button class="mb" id="panelDmBtn">💬 Direkt Mesajlar</button>
                 <button class="mb" id="panelAddFriendBtn">👤 Arkadaş Ekle</button>
+                <div class="msep"></div>
                 <button class="mb" id="panelThemeBtn">🎨 Tema</button>
-                <button class="mb" id="panelPollBtn">📊 Anket</button>
-                <button class="mb" id="panelSearchBtn">🔍 Arama</button>
+                <button class="mb" id="panelPollBtn">📊 Anket Başlat</button>
+                <button class="mb" id="panelSearchBtn">🔍 Mesaj Ara</button>
+                <div class="msep"></div>
+                <button class="mb" id="panelServerBtn">⚙️ Sunucu Ayarları</button>
+                <button class="mb" id="panelRolesBtn">🛡️ Roller</button>
+                <button class="mb" id="panelAuditBtn">📋 Denetim Kaydı</button>
+                <div class="msep"></div>
                 <button class="mb" id="panelClearBtn">🗑️ Mesajları Temizle</button>
-                <button class="mb danger" id="panelLogoutBtn">🚪 Çıkış</button>
+                <button class="mb danger" id="panelLogoutBtn">🚪 Çıkış Yap</button>
             </div>
         </aside>
     </div>
@@ -157,4 +237,4 @@
     <script src="js/ui.js"></script>
     <script src="js/app.js"></script>
 </body>
-          </html>
+    </html>
