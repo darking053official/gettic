@@ -9,7 +9,7 @@ const Store = {
   ],
   categories: ['METİN', 'SES'],
   activeChannel: 'genel-sohbet',
-  messages: [],
+  messages: JSON.parse(localStorage.getItem('gt_messages') || '[]'), // ← BURAYA EKLE
   dmFriends: JSON.parse(localStorage.getItem('gt_dm') || '[]'),
   blockedUsers: JSON.parse(localStorage.getItem('gt_blocked') || '[]'),
   theme: localStorage.getItem('gt_ac') || '#c94d8c',
@@ -30,6 +30,7 @@ function saveStore() {
   localStorage.setItem('gt_dm', JSON.stringify(Store.dmFriends));
   localStorage.setItem('gt_blocked', JSON.stringify(Store.blockedUsers));
   localStorage.setItem('gt_ac', Store.theme);
+  localStorage.setItem('gt_messages', JSON.stringify(Store.messages.slice(-50))); // ← BURAYA EKLE
 }
 
 window.addEventListener('online', () => { Store.isOnline = true; });
