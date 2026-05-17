@@ -377,3 +377,102 @@ function updateIcons() {
     }
   });
 }
+
+// ============ APP.JS - BUTONLAR İÇİN EKLE ============
+
+// Sayfa yüklendikten sonra tüm butonları bağla
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(function() {
+    // Home butonu
+    var homeBtn = document.getElementById('homeBtn');
+    if (homeBtn) {
+      homeBtn.onclick = function() {
+        document.getElementById('homePanel').classList.remove('hidden');
+        document.getElementById('sidebar').classList.add('hidden');
+        document.getElementById('chatArea').classList.add('hidden');
+        if (typeof loadFriendSuggestions === 'function') loadFriendSuggestions();
+      };
+    }
+
+    // Discover butonu
+    var discoverBtn = document.getElementById('discoverBtn');
+    if (discoverBtn) {
+      discoverBtn.onclick = function() {
+        document.getElementById('homePanel').classList.add('hidden');
+        document.getElementById('sidebar').classList.add('hidden');
+        document.getElementById('chatArea').classList.remove('hidden');
+        document.getElementById('chatArea').classList.add('flex');
+        document.getElementById('channelName').textContent = 'Keşfet';
+        document.getElementById('messages').innerHTML = '<div class="empty-ch"><h4>🔍 Keşfet</h4><p>Popüler sunucular</p></div>';
+      };
+    }
+
+    // DM butonu
+    var dmBtn = document.getElementById('dmBtn');
+    if (dmBtn) dmBtn.onclick = function() { openModal('dm'); };
+
+    // Sunucu Oluştur
+    var createServerBtn = document.getElementById('createServerBtn');
+    if (createServerBtn) createServerBtn.onclick = function() { openModal('addServer'); };
+
+    // Ayarlar
+    var homeSettingsBtn = document.getElementById('homeSettingsBtn');
+    if (homeSettingsBtn) homeSettingsBtn.onclick = function() {
+      document.getElementById('settingsPanel').classList.toggle('show');
+    };
+
+    // Chat Settings
+    var chatSettingsBtn = document.getElementById('chatSettingsBtn');
+    if (chatSettingsBtn) chatSettingsBtn.onclick = function() {
+      document.getElementById('settingsPanel').classList.toggle('show');
+    };
+
+    // Bildirimler
+    var homeNotificationsBtn = document.getElementById('homeNotificationsBtn');
+    if (homeNotificationsBtn) homeNotificationsBtn.onclick = function() { openModal('notifications'); };
+
+    // Sidebar butonları
+    var addCategoryBtn = document.getElementById('addCategoryBtn');
+    if (addCategoryBtn) addCategoryBtn.onclick = function() { openModal('addCategory'); };
+
+    var addChannelSidebarBtn = document.getElementById('addChannelSidebarBtn');
+    if (addChannelSidebarBtn) addChannelSidebarBtn.onclick = function() { openModal('addChannel'); };
+
+    var sidebarUserBtn = document.getElementById('sidebarUserBtn');
+    if (sidebarUserBtn) sidebarUserBtn.onclick = function() { openModal('profile'); };
+
+    // Panel butonları
+    var panelBtns = {
+      'panelProfileBtn': 'profile',
+      'panelDmBtn': 'dm',
+      'panelAddFriendBtn': 'addFriend',
+      'panelThemeBtn': 'theme',
+      'panelPollBtn': 'poll',
+      'panelSearchBtn': 'search',
+      'panelServerBtn': 'serverSettings',
+      'panelRolesBtn': 'roles',
+      'panelClearBtn': null,
+      'panelLogoutBtn': null
+    };
+
+    Object.keys(panelBtns).forEach(function(id) {
+      var btn = document.getElementById(id);
+      if (btn) {
+        var modal = panelBtns[id];
+        if (modal) {
+          btn.onclick = function() { openModal(modal); };
+        }
+      }
+    });
+
+    // Panel Clear
+    var panelClearBtn = document.getElementById('panelClearBtn');
+    if (panelClearBtn) panelClearBtn.onclick = function() { if (typeof clearMessages === 'function') clearMessages(); };
+
+    // Panel Logout
+    var panelLogoutBtn = document.getElementById('panelLogoutBtn');
+    if (panelLogoutBtn) panelLogoutBtn.onclick = function() { if (typeof logout === 'function') logout(); };
+
+    console.log('✅ Tüm butonlar bağlandı');
+  }, 1000);
+});
