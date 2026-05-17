@@ -52,6 +52,28 @@ function showMain() {
   if(typeof renderChannels==='function') renderChannels();
   if(typeof saveStore==='function') saveStore();
   handleRoute(location.pathname.replace('/app','')||'/');
+  
+  // Yetkiye göre butonları güncelle
+  updateUIPermissions();
+}
+
+function updateUIPermissions() {
+  const isAdmin = hasPermission(Store.user?._id, 'manageChannels');
+  const addCatBtn = $('addCategoryBtn');
+  const addChBtn = $('addChannelSidebarBtn');
+  if (addCatBtn) addCatBtn.style.display = isAdmin ? '' : 'none';
+  if (addChBtn) addChBtn.style.display = isAdmin ? '' : 'none';
+}
+
+// app.js'de showMain fonksiyonunun sonuna ekle
+function updateUIPermissions() {
+  const isAdmin = hasPermission(Store.user?._id, 'manageChannels');
+  
+  const addCatBtn = $('addCategoryBtn');
+  const addChBtn = $('addChannelSidebarBtn');
+  
+  if (addCatBtn) addCatBtn.style.display = isAdmin ? '' : 'none';
+  if (addChBtn) addChBtn.style.display = isAdmin ? '' : 'none';
 }
 
 function showLogin() {
