@@ -1,16 +1,4 @@
-function openModal(name) {
-  store.activeModal = name;
-}
-
-function closeModal() {
-  store.activeModal = null;
-}
-
-function setTheme(color) {
-  store.theme = color;
-  localStorage.setItem('gt_ac', color);
-}
-
-function toggleSidebar() {
-  store.sidebarOpen = !store.sidebarOpen;
-}
+function openModal(name) { console.log('Modal aç:', name); }
+function closeModal() { console.log('Modal kapandı'); }
+function toggleSidebar() { document.querySelector('.sidebar')?.classList.toggle('open'); }
+function toast(msg, type) { console.log('Toast:', msg, type); }
