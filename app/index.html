@@ -2,8 +2,13 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gettic </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#c94d8c">
+    <meta name="description" content="Gettic - Modern Türkçe sohbet platformu. Gerçek zamanlı mesajlaşma, sesli kanallar, görsel oluşturma.">
+    <meta property="og:title" content="Gettic - Sohbet Platformu">
+    <meta property="og:image" content="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png">
+    <link rel="icon" href="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png">
+    <title>Gettic - Sohbet Platformu</title>
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/reset.css">
     <link rel="stylesheet" href="css/layout.css">
@@ -12,84 +17,105 @@
     <link rel="stylesheet" href="css/modals.css">
     <link rel="stylesheet" href="css/responsive.css">
     <style>
-        #ls { position:fixed;inset:0;background:#faf6f0;z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px; }
-        .spin { width:34px;height:34px;border-radius:50%;border:3px solid rgba(0,0,0,.08);border-top-color:#c94d8c;animation:spin .75s linear infinite; }
+        #ls { position:fixed;inset:0;background:#faf6f0;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;transition:opacity .3s }
+        #ls.hide { opacity:0;pointer-events:none }
+        .spin { width:34px;height:34px;border-radius:50%;border:3px solid rgba(0,0,0,.08);border-top-color:#c94d8c;animation:spin .75s linear infinite }
         @keyframes spin { to{transform:rotate(360deg)} }
-        .ls-logo { font-size:20px;font-weight:800;background:linear-gradient(135deg,#c94d8c,#d4689e);-webkit-background-clip:text;-webkit-text-fill-color:transparent; }
+        .ls-logo { font-size:20px;font-weight:800;background:linear-gradient(135deg,#c94d8c,#d4689e);-webkit-background-clip:text;-webkit-text-fill-color:transparent }
+        .hidden { display:none!important }
+        .flex { display:flex!important }
     </style>
 </head>
 <body>
+    <noscript><div style="padding:20px;text-align:center;background:#c94d8c;color:#fff">JavaScript gerekli</div></noscript>
     <div id="ls"><div class="spin"></div><div class="ls-logo">gettic</div></div>
 
-    <div data-controller="app" id="root">
-        <!-- GİRİŞ EKRANI -->
-<div data-app-target="login" class="auth-wrap">
-    <div class="auth-box">
-        <img src="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png" class="auth-logo" alt="Gettic">
-        <div class="auth-title">gettic</div>
-        <div class="auth-sub">Türkçe sohbet platformu</div>
-        <input class="mi" data-app-target="username" placeholder="Kullanıcı adı" autocomplete="username">
-        <input class="mi" type="password" data-app-target="password" placeholder="Şifre" autocomplete="current-password">
-        <button class="mb" id="loginBtn">Giriş</button>
-        <div data-app-target="authError" style="color:#e74c3c;font-size:11px;margin-top:8px;display:none"></div>
-    </div>
-</div>
-        
-        <!-- ANA ARAYÜZ -->
-        <div data-app-target="main" class="app" style="display:none;--ac:#c94d8c">
-            <nav class="rail">
-                <div class="ri act">#</div>
-                <div class="ri-sep"></div>
-                <div class="ri" data-action="click->app#toggleSidebar">☰</div>
-            </nav>
-            <nav data-app-target="sidebar" class="sidebar">
-                <div class="sidebar-header">Genel</div>
-                <div class="sidebar-scroll">
-                    <div class="ch-item act" data-action="click->app#switchChannel">genel-sohbet</div>
-                </div>
-                <div class="sidebar-user">
-                    <div class="su-av" data-app-target="avatar">G</div>
-                    <div class="su-name" data-app-target="displayName">Kullanıcı</div>
-                </div>
-            </nav>
-            <main class="chat">
-                <header class="chat-header"><div class="ch-hname"># genel-sohbet</div></header>
-                <div class="msgs" data-app-target="messages">
-                    <div class="empty-ch"><h4># genel-sohbet</h4><p>Henüz mesaj yok</p></div>
-                </div>
-                <div class="input-area">
-                    <textarea class="msg-inp" data-app-target="input" placeholder="Mesaj yaz..." data-action="keydown.enter->app#sendMessage"></textarea>
-                    <button class="ib" style="background:var(--gr)" data-action="click->app#sendMessage">➤</button>
-                </div>
-            </main>
+    <!-- GİRİŞ EKRANI -->
+    <div id="loginScreen" class="auth-wrap hidden">
+        <div class="auth-box">
+            <img src="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png" class="auth-logo" alt="Gettic">
+            <div class="auth-title">gettic</div>
+            <div class="auth-sub">Türkçe sohbet platformu</div>
+            <div class="auth-tabs">
+                <button class="auth-tab act" id="tabLogin">Giriş</button>
+                <button class="auth-tab" id="tabRegister">Kayıt</button>
+            </div>
+            <input class="mi" id="authUsername" placeholder="Kullanıcı adı" autocomplete="username">
+            <input class="mi" type="password" id="authPassword" placeholder="Şifre" autocomplete="current-password">
+            <button class="mb" id="authSubmit">Giriş</button>
+            <div id="authError" style="color:#e74c3c;font-size:11px;margin-top:8px;display:none"></div>
         </div>
     </div>
 
-    <script src="js/stimulus.js"></script>
+    <!-- ANA ARAYÜZ -->
+    <div id="mainScreen" class="app hidden" style="--ac:#c94d8c">
+        <nav class="rail">
+            <div class="ri act">#</div>
+            <div class="ri-sep"></div>
+            <div class="ri" id="addChannelBtn">+</div>
+            <div class="ri" id="themeBtn">🎨</div>
+            <div class="ri" id="dmBtn">💬</div>
+            <div class="ri ri-push" id="logoutBtn">🚪</div>
+        </nav>
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-header"><span>#</span> <span id="serverName">Gettic</span></div>
+            <div class="sidebar-scroll" id="channelList"></div>
+            <div class="sidebar-user">
+                <div class="su-av" id="avatar">G</div>
+                <div class="su-info">
+                    <div class="su-name" id="displayName">Kullanıcı</div>
+                    <div class="su-tag">🟢 Çevrimiçi</div>
+                </div>
+            </div>
+        </nav>
+        <main class="chat">
+            <header class="chat-header"><span>#</span> <div class="ch-hname" id="channelName">genel-sohbet</div></header>
+            <div class="msgs" id="messages"><div class="empty-ch"><h4>genel-sohbet</h4><p>Henüz mesaj yok</p></div></div>
+            <div class="typing" id="typing"></div>
+            <div class="input-area">
+                <button class="ib" id="emojiBtn">😊</button>
+                <div id="emojiPanel" class="epop hidden"></div>
+                <button class="ib" id="imageBtn">🖼️</button>
+                <button class="ib" id="pollBtn">📊</button>
+                <textarea class="msg-inp" id="messageInput" placeholder="Mesaj yaz..." rows="1"></textarea>
+                <button class="ib" style="background:var(--gr)" id="sendBtn">➤</button>
+            </div>
+        </main>
+        <aside id="userPanel" class="sidebar hidden" style="right:0;width:252px;border-right:none;border-left:1px solid var(--b2)">
+            <div class="sidebar-header">Panel</div>
+            <div class="sidebar-scroll" style="padding:8px">
+                <button class="mb" id="panelDmBtn">💬 DM</button>
+                <button class="mb" id="panelAddFriendBtn">👤 Arkadaş Ekle</button>
+                <button class="mb" id="panelThemeBtn">🎨 Tema</button>
+                <button class="mb" id="panelPollBtn">📊 Anket</button>
+                <button class="mb danger" id="panelLogoutBtn">🚪 Çıkış</button>
+            </div>
+        </aside>
+    </div>
+
+    <!-- MODAL -->
+    <div id="modal" class="modal hidden">
+        <div class="mbox">
+            <button class="mclose" id="modalClose">×</button>
+            <div id="modalContent"></div>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div id="toast" class="toast hidden"></div>
+
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <script src="js/config.js"></script>
+    <script src="js/icons.js"></script>
     <script src="js/store.js"></script>
     <script src="js/auth.js"></script>
-    <script src="js/app-stimulus.js"></script>
-    <script>
-setTimeout(function() {
-    var ls = document.getElementById('ls');
-    if (ls && ls.style.display !== 'none') {
-        ls.style.display = 'none';
-        console.log('Zorla kaldırıldı');
-    }
-}, 3000);
-    </script>
-    <script>
-alert('Sayfa yüklendi! Stimulus: ' + (typeof Stimulus !== 'undefined' ? 'VAR' : 'YOK'));
-    </script>
-    <script>
-document.getElementById('loginBtn').addEventListener('click', function() {
-    if (window._app) {
-        window._app.submitAuth();
-    } else {
-        alert('Uygulama henüz yüklenmedi, lütfen bekleyin...');
-    }
-});
-    </script>
+    <script src="js/chat.js"></script>
+    <script src="js/channels.js"></script>
+    <script src="js/dm.js"></script>
+    <script src="js/voice.js"></script>
+    <script src="js/polls.js"></script>
+    <script src="js/roles.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/app.js"></script>
 </body>
-</html>
+    </html>
