@@ -1,3 +1,4 @@
+console.log('calisiyo');
 class AppController extends Stimulus.Controller {
   static targets = ["login", "main", "username", "password", "messages", "input", "displayName", "avatar", "sidebar"];
 
