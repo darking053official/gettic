@@ -225,3 +225,5 @@ console.log('✅ App.js yüklendi');
 const currentPath = location.pathname.replace('/app', '') || '/';
 console.log('📍 Current path:', currentPath);
 handleRoute(currentPath);
+
+window.handleRoute = handleRoute;
