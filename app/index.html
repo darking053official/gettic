@@ -1,160 +1,163 @@
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#c94d8c">
-    <meta name="description" content="Gettic - Modern Türkçe sohbet platformu. Gerçek zamanlı mesajlaşma, sesli kanallar, görsel oluşturma.">
-    <meta property="og:title" content="Gettic - Sohbet Platformu">
-    <meta property="og:image" content="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png">
-    <link rel="icon" href="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png">
-    <title>Gettic - Sohbet Platformu</title>
-    <link rel="stylesheet" href="css/variables.css">
-    <link rel="stylesheet" href="css/reset.css">
-    <link rel="stylesheet" href="css/layout.css">
-    <link rel="stylesheet" href="css/sidebar.css">
-    <link rel="stylesheet" href="css/chat.css">
-    <link rel="stylesheet" href="css/modals.css">
-    <link rel="stylesheet" href="css/responsive.css">
-    <style>
-        #ls { position:fixed;inset:0;background:#faf6f0;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;transition:opacity .3s }
-        #ls.hide { opacity:0;pointer-events:none }
-        .spin { width:34px;height:34px;border-radius:50%;border:3px solid rgba(0,0,0,.08);border-top-color:#c94d8c;animation:spin .75s linear infinite }
-        @keyframes spin { to{transform:rotate(360deg)} }
-        .ls-logo { font-size:20px;font-weight:800;background:linear-gradient(135deg,#c94d8c,#d4689e);-webkit-background-clip:text;-webkit-text-fill-color:transparent }
-        .hidden { display:none!important }
-        .flex { display:flex!important }
-        /* Mobil input fix */
-        .msg-inp-mobile { font-size:16px!important; }
-        @media (max-width: 768px) {
-            .input-area { padding: 8px 10px; gap: 6px; }
-            .msg-inp { font-size: 16px; }
-        }
-    </style>
-</head>
-<body>
-    <noscript><div style="padding:20px;text-align:center;background:#c94d8c;color:#fff;font-family:sans-serif">JavaScript gerekli</div></noscript>
-    <div id="ls"><div class="spin"></div><div class="ls-logo">gettic</div></div>
+// ============ GETTIC APP.JS - FULL ============
+console.log('🚀 Gettic başlatılıyor...');
 
-    <!-- ========== GİRİŞ EKRANI ========== -->
-    <div id="loginScreen" class="auth-wrap hidden">
-        <div class="auth-box">
-            <img src="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png" class="auth-logo" alt="Gettic">
-            <div class="auth-title">gettic</div>
-            <div class="auth-sub">Türkçe sohbet platformu</div>
-            <div class="auth-tabs">
-                <button class="auth-tab act" id="tabLogin">Giriş</button>
-                <button class="auth-tab" id="tabRegister">Kayıt</button>
-            </div>
-            <input class="mi" id="authUsername" placeholder="Kullanıcı adı" autocomplete="username" inputmode="text">
-            <input class="mi" type="password" id="authPassword" placeholder="Şifre" autocomplete="current-password">
-            <button class="mb" id="authSubmit">Giriş</button>
-            <div id="authError" style="color:#e74c3c;font-size:11px;margin-top:8px;display:none"></div>
-        </div>
-    </div>
+// ============ DOM REFS ============
+const $ = (id) => document.getElementById(id);
+const ls = $('ls');
+const loginScreen = $('loginScreen');
+const mainScreen = $('mainScreen');
+const authUsername = $('authUsername');
+const authPassword = $('authPassword');
+const authSubmit = $('authSubmit');
+const authError = $('authError');
+const tabLogin = $('tabLogin');
+const tabRegister = $('tabRegister');
+const messagesEl = $('messages');
+const messageInput = $('messageInput');
+const sendBtn = $('sendBtn');
+const displayName = $('displayName');
+const avatar = $('avatar');
+const serverName = $('serverName');
+const channelName = $('channelName');
+const channelList = $('channelList');
+const sidebar = $('sidebar');
+const userPanel = $('userPanel');
+const modal = $('modal');
+const modalContent = $('modalContent');
+const modalClose = $('modalClose');
+const toastEl = $('toast');
+const emojiPanel = $('emojiPanel');
+const typing = $('typing');
+const connbar = $('connbar');
 
-    <!-- ========== ANA ARAYÜZ ========== -->
-    <div id="mainScreen" class="app hidden" style="--ac:#c94d8c">
-        <!-- Server Rail -->
-        <nav class="rail">
-            <div class="ri act" id="serverIcon">#</div>
-            <div class="ri-sep"></div>
-            <div class="ri" id="addChannelBtn" title="Kanal Ekle">+</div>
-            <div class="ri" id="themeBtn" title="Tema">🎨</div>
-            <div class="ri" id="dmBtn" title="DM">💬</div>
-            <div class="ri ri-push" id="logoutBtn" title="Çıkış">🚪</div>
-        </nav>
+// ============ STATE ============
+let tab = 'login';
+let socket = null;
 
-        <!-- Sidebar -->
-        <nav id="sidebar" class="sidebar">
-            <div class="sidebar-header"><span>#</span> <span id="serverName">Gettic</span></div>
-            <div class="sidebar-scroll" id="channelList"></div>
-            <button class="add-cat-btn" onclick="openModal('addChannel')">+ Kanal Ekle</button>
-            <div class="sidebar-user" onclick="openModal('profile')">
-                <div class="su-av" id="avatar">G</div>
-                <div class="su-info">
-                    <div class="su-name" id="displayName">Kullanıcı</div>
-                    <div class="su-tag">🟢 Çevrimiçi</div>
-                </div>
-            </div>
-        </nav>
+// ============ INIT ============
+setTimeout(() => { ls?.classList.add('hide'); loginScreen?.classList.remove('hidden'); }, 500);
 
-        <!-- Chat Area -->
-        <main class="chat">
-            <!-- Bağlantı çubuğu -->
-            <div id="connbar" style="height:0;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:8px;font-size:11px;font-weight:600;color:#fff;background:#e74c3c;transition:height .22s;flex-shrink:0">
-                ⚠️ Bağlantı koptu <button id="retryBtn" style="background:rgba(255,255,255,.2);border:none;padding:2px 9px;border-radius:4px;color:#fff;cursor:pointer;font-size:11px">Tekrar Dene</button>
-            </div>
+// ============ AUTH ============
+tabLogin.onclick = () => { tab='login'; updateAuthUI(); };
+tabRegister.onclick = () => { tab='register'; updateAuthUI(); };
+function updateAuthUI() {
+  tabLogin.classList.toggle('act', tab==='login');
+  tabRegister.classList.toggle('act', tab==='register');
+  authSubmit.textContent = tab==='login'?'Giriş':'Kayıt';
+}
 
-            <!-- Chat Header -->
-            <header class="chat-header">
-                <span>#</span>
-                <div class="ch-hname" id="channelName">genel-sohbet</div>
-                <div class="hacts">
-                    <button class="ib" id="searchBtn" title="Ara">🔍</button>
-                    <button class="ib" id="toggleSidebarBtn" title="Sidebar">☰</button>
-                    <button class="ib" id="togglePanelBtn" title="Panel">👤</button>
-                </div>
-            </header>
+authSubmit.onclick = async () => {
+  const u = authUsername.value.trim();
+  const p = authPassword.value.trim();
+  if (!u||u.length<3) { showAuthError('Kullanıcı adı en az 3 karakter'); return; }
+  if (!p||p.length<4) { showAuthError('Şifre en az 4 karakter'); return; }
+  authError.style.display='none';
+  try {
+    await doAuth(tab, u, p);
+    showMain();
+  } catch(e) { showAuthError(e.message); }
+};
+function showAuthError(msg) { authError.textContent=msg; authError.style.display='block'; }
 
-            <!-- Messages -->
-            <div class="msgs" id="messages">
-                <div class="empty-ch"><h4># genel-sohbet</h4><p>Sohbete hoş geldin! İlk mesajı sen gönder.</p></div>
-            </div>
+authPassword.onkeydown = (e) => { if(e.key==='Enter') authSubmit.click(); };
 
-            <!-- Typing -->
-            <div class="typing" id="typing"></div>
+function showMain() {
+  loginScreen.classList.add('hidden');
+  mainScreen.classList.remove('hidden','flex');
+  mainScreen.classList.add('flex');
+  displayName.textContent = Store.user?.username || '';
+  avatar.textContent = Store.user?.username?.charAt(0)?.toUpperCase() || 'G';
+  serverName.textContent = Store.serverSettings?.name || 'Gettic';
+  channelName.textContent = Store.activeChannel || 'genel-sohbet';
+  renderChannels();
+  renderMessages();
+  initEmojiPanel();
+  connectSocket();
+  saveStore();
+}
 
-            <!-- Input Area -->
-            <div class="input-area">
-                <button class="ib" id="emojiBtn" title="Emoji">😊</button>
-                <div id="emojiPanel" class="epop hidden" style="bottom:60px;left:10px"></div>
-                <button class="ib" id="imageBtn" title="Görsel">🖼️</button>
-                <button class="ib" id="pollBtn" title="Anket">📊</button>
-                <textarea class="msg-inp msg-inp-mobile" id="messageInput" placeholder="Mesaj yaz..." rows="1" inputmode="text" enterkeyhint="send"></textarea>
-                <button class="ib" style="background:var(--gr);flex-shrink:0" id="sendBtn" title="Gönder">➤</button>
-            </div>
-        </main>
+// ============ LOGOUT ============
+$('logoutBtn').onclick = logout;
+$('panelLogoutBtn').onclick = logout;
 
-        <!-- User Panel -->
-        <aside id="userPanel" class="sidebar hidden" style="right:0;width:252px;border-right:none;border-left:1px solid var(--b2)">
-            <div class="sidebar-header">👤 Panel</div>
-            <div class="sidebar-scroll" style="padding:8px">
-                <button class="mb" id="panelDmBtn">💬 DM</button>
-                <button class="mb" id="panelAddFriendBtn">👤 Arkadaş Ekle</button>
-                <button class="mb" id="panelThemeBtn">🎨 Tema</button>
-                <button class="mb" id="panelPollBtn">📊 Anket</button>
-                <button class="mb" id="panelSearchBtn">🔍 Arama</button>
-                <button class="mb" id="panelClearBtn">🗑️ Mesajları Temizle</button>
-                <button class="mb danger" id="panelLogoutBtn">🚪 Çıkış</button>
-            </div>
-        </aside>
-    </div>
+// ============ MESAJ ============
+sendBtn.onclick = sendMessage;
+sendBtn.addEventListener('touchend', (e) => { e.preventDefault(); sendMessage(); });
+messageInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
 
-    <!-- ========== MODAL ========== -->
-    <div id="modal" class="modal hidden" onclick="if(event.target===this)closeModal()">
-        <div class="mbox">
-            <button class="mclose" id="modalClose">×</button>
-            <div id="modalContent"></div>
-        </div>
-    </div>
+// ============ SIDEBAR TOGGLE ============
+$('toggleSidebarBtn').onclick = () => sidebar.classList.toggle('open');
+$('togglePanelBtn').onclick = () => userPanel.classList.toggle('hidden');
 
-    <!-- ========== TOAST ========== -->
-    <div id="toast" class="toast hidden"></div>
+// ============ MODALS ============
+modalClose.onclick = closeModal;
+$('addChannelBtn').onclick = () => openModal('addChannel');
+$('themeBtn').onclick = () => openModal('theme');
+$('dmBtn').onclick = () => openModal('dm');
+$('imageBtn').onclick = () => openModal('imageGen');
+$('pollBtn').onclick = () => openModal('poll');
+$('searchBtn').onclick = () => openModal('search');
 
-    <!-- ========== SCRIPTS ========== -->
-    <script src="js/socketio.js"></script>
-    <script src="js/config.js"></script>
-    <script src="js/icons.js"></script>
-    <script src="js/store.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/chat.js"></script>
-    <script src="js/channels.js"></script>
-    <script src="js/dm.js"></script>
-    <script src="js/voice.js"></script>
-    <script src="js/polls.js"></script>
-    <script src="js/roles.js"></script>
-    <script src="js/ui.js"></script>
-    <script src="js/app.js"></script>
-</body>
-    </html>
+// Panel butonları
+$('panelDmBtn').onclick = () => openModal('dm');
+$('panelAddFriendBtn').onclick = () => openModal('addFriend');
+$('panelThemeBtn').onclick = () => openModal('theme');
+$('panelPollBtn').onclick = () => openModal('poll');
+$('panelSearchBtn').onclick = () => openModal('search');
+$('panelClearBtn').onclick = clearMessages;
+
+// ============ EMOJI ============
+$('emojiBtn').onclick = () => emojiPanel.classList.toggle('hidden');
+function initEmojiPanel() {
+  const emojis = ['😀','😂','❤️','👍','🔥','🎉','🥳','😎','💯','✅','👋','🙏','🎮','✨','😢','😡','🤔','💻','📱','🌍','🎵','⭐','💎','🍕','🚀'];
+  emojiPanel.innerHTML = '<div class="egrid">'+emojis.map(e => `<span class="es" onclick="insertEmoji('${e}')">${e}</span>`).join('')+'</div>';
+}
+function insertEmoji(emoji) {
+  messageInput.value += emoji;
+  messageInput.focus();
+  emojiPanel.classList.add('hidden');
+}
+
+// ============ SOCKET ============
+function connectSocket() {
+  if (!Store.token||typeof io==='undefined') return;
+  if (socket) socket.disconnect();
+  socket = io(API, { auth: { token: Store.token }, transports: ['websocket','polling'] });
+  window._socket = socket;
+  socket.on('connect', () => {
+    socket.emit('join_channel', Store.activeChannel);
+    connbar.style.height = '0';
+  });
+  socket.on('new_message', (msg) => {
+    if (msg.channelId===Store.activeChannel&&msg.senderId!==Store.user?._id) {
+      Store.messages.push(msg);
+      if (Store.messages.length>MAX_MSGS) Store.messages.shift();
+      renderMessages();
+      saveStore();
+    }
+  });
+  socket.on('disconnect', () => {
+    connbar.style.height = '28px';
+    toast('Bağlantı koptu','e');
+  });
+}
+$('retryBtn').onclick = () => { if(socket) socket.connect(); };
+
+// ============ LOAD USER ============
+if (Store.token) {
+  loadUser().then(u => { if (u) showMain(); });
+}
+
+// ============ KEYBOARD SHORTCUTS ============
+document.addEventListener('keydown', (e) => {
+  if (e.ctrlKey && e.key==='k') { e.preventDefault(); openModal('search'); }
+  if (e.key==='Escape') { closeModal(); emojiPanel.classList.add('hidden'); }
+});
+
+// ============ ONLINE/OFFLINE ============
+window.addEventListener('online', () => { Store.isOnline=true; connbar.style.height='0'; });
+window.addEventListener('offline', () => { Store.isOnline=false; connbar.style.height='28px'; });
+
+console.log('✅ Gettic App');
