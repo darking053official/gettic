@@ -242,5 +242,14 @@ setTimeout(function() {
     document.body.appendChild(debug);
 }, 2000);
     </script>
+    <script>
+setTimeout(function() {
+    var root = document.getElementById('root');
+    if (root) {
+        root.innerHTML = '<div style="padding:40px;text-align:center;font-family:sans-serif;"><h2>Gettic</h2><p>Vue render edilemedi. Lütfen sayfayı yenileyin.</p><p>store: ' + (typeof store !== 'undefined' ? 'var' : 'yok') + '</p><p>user: ' + (typeof store !== 'undefined' && store.user ? store.user.username : 'yok') + '</p></div>';
+    }
+    document.getElementById('ls')?.remove();
+}, 3000);
+    </script>
 </body>
     </html>
