@@ -45,35 +45,34 @@
 }
 
 .ib {
-  background: var(--bg2);
-  border: none;
-  width: 30px;
-  height: 30px;
-  border-radius: 7px;
+  background: var(--bg3);
+  border: 1px solid var(--b2);
+  color: var(--t2);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background var(--tr), transform var(--tr);
+  transition: all .15s;
   flex-shrink: 0;
 }
 
 .ib svg {
-  width: 14px;
-  height: 14px;
+  width: 15px;
+  height: 15px;
   stroke: var(--t2);
   fill: none;
   stroke-width: 1.5;
 }
 
-.ib:hover,
-.ib.act {
+.ib:hover {
   background: var(--ac);
-  transform: scale(1.05);
+  border-color: var(--ac);
 }
 
-.ib:hover svg,
-.ib.act svg {
+.ib:hover svg {
   stroke: #fff;
 }
 
