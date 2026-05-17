@@ -18,7 +18,6 @@ async function doAuth(type, username, password) {
     localStorage.setItem('gt_token', data.token);
     localStorage.setItem('gt_user', JSON.stringify(data.user));
     
-    // Yeni kullanıcıya otomatik rol ata
     if (!Store.userRoles[data.user._id]) {
       Store.userRoles[data.user._id] = ['r4'];
       saveStore();
@@ -50,42 +49,13 @@ function logout() {
 // Otomatik kullanıcı yükleme
 async function loadUser() {
   if (!Store.token) return null;
-  try {
-    const res = await fetch(API + '/api/me', {
-      headers: { 'Authorization': 'Bearer ' + Store.token }
-    });
-    if (res.status === 401) {
-      Store.token = null;
-      localStorage.removeItem('gt_token');
-      return null;
-    }
-    const user = await res.json();
-    if (user && user._id) {
-      Store.user = user;
-      localStorage.setItem('gt_user', JSON.stringify(user));
-      return user;
-    }
-  } catch(e) {
-    // Çevrimdışıysa localStorage'dan al
-    const saved = localStorage.getItem('gt_user');
-    if (saved) {
-      try {
-        Store.user = JSON.parse(saved);
-        return Store.user;
-      } catch(e2) {}
-    }
-  }
-  return null;
-}
   
   // Token süresi kontrolü
   try {
     const payload = JSON.parse(atob(Store.token.split('.')[1]));
     if (payload.exp * 1000 < Date.now()) {
-      // Token süresi dolmuş
       localStorage.removeItem('gt_token');
       Store.token = null;
-      toast('Oturum süresi doldu, tekrar giriş yapın', 'e');
       return null;
     }
   } catch(e) {}
@@ -98,7 +68,6 @@ async function loadUser() {
     if (res.status === 401) {
       localStorage.removeItem('gt_token');
       Store.token = null;
-      toast('Oturum süresi doldu', 'e');
       return null;
     }
     
@@ -109,7 +78,6 @@ async function loadUser() {
       return user;
     }
   } catch(e) {
-    // Çevrimdışıysa localStorage'dan yükle
     const saved = localStorage.getItem('gt_user');
     if (saved) {
       try {
@@ -201,7 +169,7 @@ function isLoggedIn() {
   return !!(Store.token && Store.user);
 }
 
-// Otomatik token yenileme (her 30 dakikada bir)
+// Otomatik token yenileme
 setInterval(() => {
   if (Store.token && Store.user) {
     refreshToken().catch(() => {});
