@@ -279,3 +279,32 @@ window.addEventListener('beforeinstallprompt', (e) => {
 });
 
 console.log('✅ Gettic App hazır -', Store.messages.length, 'mesaj yüklü');
+
+function updateIcons() {
+  const iconMap = {
+    'serverIcon': I.hash,
+    'addChannelBtn': I.plus,
+    'themeBtn': I.settings,
+    'dmBtn': I.dm,
+    'serverSettingsBtn': I.settings,
+    'logoutBtn': I.logout,
+    'toggleSidebarBtn': I.menu,
+    'togglePanelBtn': I.user,
+    'searchBtn': I.search,
+    'notificationsBtn': I.bell,
+    'pinBtn': I.pin,
+    'emojiBtn': I.smile,
+    'fileBtn': I.plus,
+    'imageBtn': I.image,
+    'pollBtn': I.poll,
+    'sendBtn': I.send,
+    'retryBtn': I.refresh,
+  };
+  
+  Object.entries(iconMap).forEach(([id, icon]) => {
+    const el = document.getElementById(id);
+    if (el && icon) {
+      el.innerHTML = icon;
+    }
+  });
+}
