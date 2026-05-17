@@ -66,14 +66,50 @@ function navigateTo(path) {
   handleRoute(path);
 }
 
+function showInputs() {
+  const inputs = ['messageInput','sendBtn','emojiBtn','imageBtn','pollBtn'];
+  inputs.forEach(id => { const el = $(id); if(el) el.style.display = ''; });
+}
+
+function hideInputs() {
+  const inputs = ['messageInput','sendBtn','emojiBtn','imageBtn','pollBtn'];
+  inputs.forEach(id => { const el = $(id); if(el) el.style.display = 'none'; });
+}
+
 function handleRoute(path) {
   hideAll();
+  showInputs();
+  
   if (path==='/'||path==='') {
     $('homePanel').classList.remove('hidden');
     if(typeof loadFriendSuggestions==='function') loadFriendSuggestions();
   } else if (path==='/discover') {
     $('chatArea').classList.remove('hidden');
-    $('channelName').textContent='🔍 Keşfet';
+    $('chatArea').classList.add('flex');
+    $('channelName').textContent = '🔍 Keşfet';
+    $('messages').innerHTML = `
+      <div class="empty-ch">
+        <h4>🔍 Keşfet</h4>
+        <p>Popüler sunucular ve topluluklar</p>
+        <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:20px;max-width:500px;margin-left:auto;margin-right:auto">
+          <div style="background:var(--bg2);padding:20px;border-radius:16px;text-align:center;cursor:pointer;min-width:140px" onclick="navigateTo('/server/gettic/chat/genel-sohbet')">
+            <div style="width:50px;height:50px;border-radius:14px;background:var(--ac);color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;margin:0 auto 10px">G</div>
+            <div style="font-weight:600;font-size:14px">Gettic</div>
+            <div style="font-size:10px;color:var(--t3)">12 çevrimiçi</div>
+          </div>
+          <div style="background:var(--bg2);padding:20px;border-radius:16px;text-align:center;cursor:pointer;min-width:140px" onclick="navigateTo('/server/gettic/chat/genel-sohbet')">
+            <div style="width:50px;height:50px;border-radius:14px;background:#6366f1;color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;margin:0 auto 10px">T</div>
+            <div style="font-weight:600;font-size:14px">Tech Sohbet</div>
+            <div style="font-size:10px;color:var(--t3)">8 çevrimiçi</div>
+          </div>
+          <div style="background:var(--bg2);padding:20px;border-radius:16px;text-align:center;cursor:pointer;min-width:140px" onclick="navigateTo('/server/gettic/chat/genel-sohbet')">
+            <div style="width:50px;height:50px;border-radius:14px;background:#22c55e;color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;margin:0 auto 10px">O</div>
+            <div style="font-weight:600;font-size:14px">Oyun Dünyası</div>
+            <div style="font-size:10px;color:var(--t3)">5 çevrimiçi</div>
+          </div>
+        </div>
+      </div>`;
+    hideInputs();
   } else if (path==='/settings') {
     $('settingsPanel').classList.toggle('show');
   } else if (path.startsWith('/dm/')) {
@@ -111,54 +147,46 @@ window.addEventListener('popstate',()=>{
 
 // ============ BUTONLAR ============
 function bindButtons() {
-  // Ana navigasyon
-  $('homeBtn')?.setAttribute('onclick',''); $('homeBtn')?.addEventListener('click',()=>navigateTo('/'));
-  $('discoverBtn')?.setAttribute('onclick',''); $('discoverBtn')?.addEventListener('click',()=>navigateTo('/discover'));
-  $('dmBtn')?.setAttribute('onclick',''); $('dmBtn')?.addEventListener('click',()=>navigateTo('/dm/'));
-  $('createServerBtn')?.setAttribute('onclick',''); $('createServerBtn')?.addEventListener('click',()=>{if(typeof openModal==='function')openModal('addServer')});
-  $('homeSettingsBtn')?.setAttribute('onclick',''); $('homeSettingsBtn')?.addEventListener('click',()=>navigateTo('/settings'));
-  $('chatSettingsBtn')?.setAttribute('onclick',''); $('chatSettingsBtn')?.addEventListener('click',()=>navigateTo('/settings'));
-  $('homeNotificationsBtn')?.setAttribute('onclick',''); $('homeNotificationsBtn')?.addEventListener('click',()=>navigateTo('/notifications'));
+  $('homeBtn')?.addEventListener('click',()=>navigateTo('/'));
+  $('discoverBtn')?.addEventListener('click',()=>navigateTo('/discover'));
+  $('dmBtn')?.addEventListener('click',()=>navigateTo('/dm/'));
+  $('createServerBtn')?.addEventListener('click',()=>{if(typeof openModal==='function')openModal('addServer')});
+  $('homeSettingsBtn')?.addEventListener('click',()=>navigateTo('/settings'));
+  $('chatSettingsBtn')?.addEventListener('click',()=>navigateTo('/settings'));
+  $('homeNotificationsBtn')?.addEventListener('click',()=>navigateTo('/notifications'));
   
-  // Sidebar
-  $('addCategoryBtn')?.setAttribute('onclick',''); $('addCategoryBtn')?.addEventListener('click',()=>{if(typeof openModal==='function')openModal('addCategory')});
-  $('addChannelSidebarBtn')?.setAttribute('onclick',''); $('addChannelSidebarBtn')?.addEventListener('click',()=>{if(typeof openModal==='function')openModal('addChannel')});
-  $('sidebarUserBtn')?.setAttribute('onclick',''); $('sidebarUserBtn')?.addEventListener('click',()=>navigateTo('/me'));
+  $('addCategoryBtn')?.addEventListener('click',()=>{if(typeof openModal==='function')openModal('addCategory')});
+  $('addChannelSidebarBtn')?.addEventListener('click',()=>{if(typeof openModal==='function')openModal('addChannel')});
+  $('sidebarUserBtn')?.addEventListener('click',()=>navigateTo('/me'));
   
-  // Toggle
-  $('toggleSidebarBtn')?.setAttribute('onclick',''); $('toggleSidebarBtn')?.addEventListener('click',()=>{$('sidebar')?.classList.toggle('open')});
-  $('togglePanelBtn')?.setAttribute('onclick',''); $('togglePanelBtn')?.addEventListener('click',()=>{$('userPanel')?.classList.toggle('hidden')});
+  $('toggleSidebarBtn')?.addEventListener('click',()=>$('sidebar')?.classList.toggle('open'));
+  $('togglePanelBtn')?.addEventListener('click',()=>$('userPanel')?.classList.toggle('hidden'));
   
-  // Chat
-  $('searchBtn')?.setAttribute('onclick',''); $('searchBtn')?.addEventListener('click',()=>navigateTo('/search'));
-  $('sendBtn')?.setAttribute('onclick',''); $('sendBtn')?.addEventListener('click',()=>{if(typeof sendMessage==='function')sendMessage()});
-  $('emojiBtn')?.setAttribute('onclick',''); $('emojiBtn')?.addEventListener('click',()=>{$('emojiPanel')?.classList.toggle('hidden')});
-  $('imageBtn')?.setAttribute('onclick',''); $('imageBtn')?.addEventListener('click',()=>{if(typeof openModal==='function')openModal('imageGen')});
-  $('pollBtn')?.setAttribute('onclick',''); $('pollBtn')?.addEventListener('click',()=>{if(typeof openModal==='function')openModal('poll')});
+  $('searchBtn')?.addEventListener('click',()=>navigateTo('/search'));
+  $('sendBtn')?.addEventListener('click',()=>{if(typeof sendMessage==='function')sendMessage()});
+  $('emojiBtn')?.addEventListener('click',()=>$('emojiPanel')?.classList.toggle('hidden'));
+  $('imageBtn')?.addEventListener('click',()=>{if(typeof openModal==='function')openModal('imageGen')});
+  $('pollBtn')?.addEventListener('click',()=>{if(typeof openModal==='function')openModal('poll')});
   
-  // Logout
-  $('logoutBtn')?.setAttribute('onclick',''); $('logoutBtn')?.addEventListener('click',()=>{if(typeof logout==='function')logout()});
-  $('panelLogoutBtn')?.setAttribute('onclick',''); $('panelLogoutBtn')?.addEventListener('click',()=>{if(typeof logout==='function')logout()});
+  $('logoutBtn')?.addEventListener('click',()=>{if(typeof logout==='function')logout()});
+  $('panelLogoutBtn')?.addEventListener('click',()=>{if(typeof logout==='function')logout()});
   
-  // Panel
-  const panelMap = {
-    panelProfileBtn:'profile', panelDmBtn:'dm', panelAddFriendBtn:'addFriend',
-    panelThemeBtn:'theme', panelPollBtn:'poll', panelSearchBtn:'search',
-    panelServerBtn:'serverSettings', panelRolesBtn:'roles'
-  };
+  const panelMap={panelProfileBtn:'profile',panelDmBtn:'dm',panelAddFriendBtn:'addFriend',panelThemeBtn:'theme',panelPollBtn:'poll',panelSearchBtn:'search',panelServerBtn:'serverSettings',panelRolesBtn:'roles'};
   Object.entries(panelMap).forEach(([id,modal])=>{
-    const btn = document.getElementById(id);
-    if(btn){ btn.setAttribute('onclick',''); btn.addEventListener('click',()=>{if(typeof openModal==='function')openModal(modal)}); }
+    const btn=$(id); if(btn) btn.addEventListener('click',()=>{if(typeof openModal==='function')openModal(modal)});
   });
   
-  // Diğer
-  $('panelClearBtn')?.setAttribute('onclick',''); $('panelClearBtn')?.addEventListener('click',()=>{if(typeof clearMessages==='function')clearMessages()});
-  $('modalClose')?.setAttribute('onclick',''); $('modalClose')?.addEventListener('click',()=>{if(typeof closeModal==='function')closeModal()});
-  $('retryBtn')?.setAttribute('onclick',''); $('retryBtn')?.addEventListener('click',()=>{if(socket)socket.connect()});
+  $('panelClearBtn')?.addEventListener('click',()=>{if(typeof clearMessages==='function')clearMessages()});
+  $('modalClose')?.addEventListener('click',()=>{if(typeof closeModal==='function')closeModal()});
+  $('retryBtn')?.addEventListener('click',()=>{if(socket)socket.connect()});
   
-  // Mesaj input
   $('messageInput')?.addEventListener('keydown',(e)=>{
     if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();if(typeof sendMessage==='function')sendMessage();}
+  });
+  
+  // Mobil klavye
+  $('messageInput')?.addEventListener('focus',()=>{
+    setTimeout(()=>{const msgs=$('messages');if(msgs)msgs.scrollTop=msgs.scrollHeight},300);
   });
   
   console.log('✅ Tüm butonlar bağlandı');
