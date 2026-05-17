@@ -2,11 +2,8 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#c94d8c">
-    <meta name="description" content="Gettic - Modern Türkçe sohbet platformu">
-    <link rel="icon" href="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png">
-    <title>Gettic</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gettic - Stimulus</title>
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/reset.css">
     <link rel="stylesheet" href="css/layout.css">
@@ -15,241 +12,62 @@
     <link rel="stylesheet" href="css/modals.css">
     <link rel="stylesheet" href="css/responsive.css">
     <style>
-        [v-cloak] { display: none; }
-        #ls {
-            position: fixed; inset: 0; background: #faf6f0; z-index: 99999;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
-        }
-        .spin {
-            width: 34px; height: 34px; border-radius: 50%;
-            border: 3px solid rgba(0,0,0,.08); border-top-color: #c94d8c;
-            animation: spin .75s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .ls-logo {
-            font-size: 20px; font-weight: 800;
-            background: linear-gradient(135deg, #c94d8c, #d4689e);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        }
+        #ls { position:fixed;inset:0;background:#faf6f0;z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px; }
+        .spin { width:34px;height:34px;border-radius:50%;border:3px solid rgba(0,0,0,.08);border-top-color:#c94d8c;animation:spin .75s linear infinite; }
+        @keyframes spin { to{transform:rotate(360deg)} }
+        .ls-logo { font-size:20px;font-weight:800;background:linear-gradient(135deg,#c94d8c,#d4689e);-webkit-background-clip:text;-webkit-text-fill-color:transparent; }
     </style>
 </head>
 <body>
-    <noscript>
-        <div style="padding:20px;text-align:center;background:#c94d8c;color:#fff;font-family:sans-serif;">JavaScript gerekli</div>
-    </noscript>
-    
     <div id="ls"><div class="spin"></div><div class="ls-logo">gettic</div></div>
-    
-    <div id="root" v-cloak>
-        <!-- GİRİŞ EKRANI - test için -->
-<div v-if="!store.user" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#faf6f0;z-index:999">
-    <div style="background:white;padding:40px;border-radius:20px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.1)">
-        <h2 style="margin-bottom:20px">Gettic</h2>
-        <input v-model="username" placeholder="Kullanıcı adı" style="display:block;width:100%;padding:12px;margin-bottom:10px;border:1px solid #ddd;border-radius:10px;font-size:16px">
-        <input v-model="password" type="password" placeholder="Şifre" style="display:block;width:100%;padding:12px;margin-bottom:10px;border:1px solid #ddd;border-radius:10px;font-size:16px">
-        <button @click="submitAuth" style="width:100%;padding:14px;background:#c94d8c;color:white;border:none;border-radius:10px;font-size:16px;font-weight:bold">Giriş</button>
-    </div>
-</div>
-        
-        <!-- ANA ARAYÜZ -->
-        <div v-else class="app" :style="{'--ac': store.theme}">
-            <!-- SERVER RAIL -->
-            <nav class="rail">
-                <div class="ri act" v-html="I.hash"></div>
-                <div class="ri-sep"></div>
-                <div class="ri" @click="openModal('addChannel')" title="Kanal Ekle">+</div>
-                <div class="ri" @click="openModal('theme')" title="Tema" v-html="I.settings"></div>
-                <div class="ri ri-push" @click="logout" title="Çıkış" v-html="I.logout"></div>
-            </nav>
-            
-            <!-- SIDEBAR -->
-            <nav :class="['sidebar', store.sidebarOpen?'open':'']">
-                <div class="sidebar-header">
-                    <span v-html="I.hash"></span>
-                    <span>{{ store.serverSettings.name }}</span>
-                </div>
-                <div class="sidebar-scroll">
-                    <div v-for="cat in store.categories" :key="cat">
-                        <div class="ch-cat">{{ cat }} <button @click="openModal('addChannel')">+</button></div>
-                        <div v-for="ch in store.channels.filter(c=>c.category===cat)" :key="ch.id"
-                             :class="['ch-item', store.activeChannel.id===ch.id?'act':'']"
-                             @click="switchChannel(ch)">
-                            <span class="ch-name"># {{ ch.name }}</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="sidebar-user">
-                    <div class="su-av">{{ store.user?.username?.charAt(0)?.toUpperCase() }}</div>
-                    <div class="su-info">
-                        <div class="su-name">{{ store.user?.username }}</div>
-                        <div class="su-tag">Çevrimiçi</div>
-                    </div>
-                </div>
-            </nav>
-            
-            <!-- CHAT AREA -->
-            <main class="chat">
-                <header class="chat-header">
-                    <span v-html="I.hash"></span>
-                    <div class="ch-hname"># {{ store.activeChannel.name }}</div>
-                    <div class="hacts">
-                        <button class="ib" @click="store.sidebarOpen=!store.sidebarOpen" v-html="I.hash"></button>
-                        <button class="ib" @click="store.userPanelOpen=!store.userPanelOpen" v-html="I.user"></button>
-                    </div>
-                </header>
-                
-                <div class="msgs">
-                    <div v-if="store.messages.length===0" class="empty-ch">
-                        <h4># {{ store.activeChannel.name }}</h4>
-                        <p>Henüz mesaj yok</p>
-                    </div>
-                    <div v-for="msg in store.messages" :key="msg._id" class="msg">
-                        <div class="msg-av">{{ msg.senderName?.charAt(0)?.toUpperCase() }}</div>
-                        <div class="msg-body">
-                            <div class="msg-head">
-                                <span>{{ msg.senderName }}</span>
-                                <span class="msg-time">{{ formatTime(msg.createdAt) }}</span>
-                            </div>
-                            <div class="msg-text" v-html="formatMsg(msg.content)"></div>
-                            <img v-if="msg.image" :src="msg.image" style="max-width:100%;border-radius:12px;margin-top:8px">
-                            <div v-if="msg.poll" class="poll-box">
-                                <div class="poll-q">📊 {{ msg.poll.question }}</div>
-                                <div v-for="(opt, i) in msg.poll.options" :key="i" class="poll-opt" @click="votePoll(msg._id, i)">
-                                    <div class="poll-bar" :style="{width: getPollPercent(msg.poll, i)+'%'}"></div>
-                                    <span>{{ opt }}</span>
-                                    <span class="poll-pct">{{ getPollPercent(msg.poll, i) }}%</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="ma">
-                            <button @click="deleteMessage(msg._id)" v-html="I.trash"></button>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="input-area">
-                    <button class="ib" @click="store.emojiOpen=!store.emojiOpen" v-html="I.smile"></button>
-                    <div v-if="store.emojiOpen" class="epop show">
-                        <div class="egrid">
-                            <span v-for="e in emojis" :key="e" class="es" @click="store.input+=e;store.emojiOpen=false">{{ e }}</span>
-                        </div>
-                    </div>
-                    <button class="ib" @click="openModal('imageGen')" v-html="I.image"></button>
-                    <textarea class="msg-inp" placeholder="Mesaj yaz..." v-model="store.input" @keydown.enter.exact.prevent="sendMessage" rows="1"></textarea>
-                    <button class="ib" style="background:var(--gr)" @click="sendMessage" v-html="I.send"></button>
-                </div>
-            </main>
-            
-            <!-- USER PANEL -->
-            <aside v-if="store.userPanelOpen" class="sidebar" style="right:0;width:252px;border-right:none;border-left:1px solid var(--b2)">
-                <div class="sidebar-header">Panel</div>
-                <div class="sidebar-scroll" style="padding:8px">
-                    <button class="mb" @click="openModal('dm')">💬 DM</button>
-                    <button class="mb" @click="openModal('addFriend')">👤 Arkadaş Ekle</button>
-                    <button class="mb" @click="openModal('theme')">🎨 Tema</button>
-                    <button class="mb" @click="openModal('poll')">📊 Anket</button>
-                    <button class="mb danger" @click="logout">🚪 Çıkış</button>
-                </div>
-            </aside>
-        </div>
-        
-        <!-- MODALS -->
-        <div v-if="store.activeModal" class="modal show" @click.self="closeModal">
-            <div class="mbox">
-                <button class="mclose" @click="closeModal">×</button>
-                
-                <div v-if="store.activeModal==='addChannel'">
-                    <h2>Kanal Oluştur</h2>
-                    <input class="mi" v-model="modalInput" placeholder="Kanal adı">
-                    <button class="mb" @click="createChannel(modalInput)">Oluştur</button>
-                </div>
-                
-                <div v-if="store.activeModal==='dm'">
-                    <h2>DM</h2>
-                    <div v-for="f in dmStore.friends" :key="f.id" class="mitem" @click="startDM(f.username);closeModal()">
-                        <div class="mav">{{ f.username.charAt(0).toUpperCase() }}</div>
-                        <div class="minfo">
-                            <div class="mname">{{ f.username }}</div>
-                            <div class="msub">{{ f.last || 'DM başlat' }}</div>
-                        </div>
-                    </div>
-                    <div v-if="dmStore.friends.length===0" style="color:var(--t3);font-size:12px">Henüz DM yok</div>
-                </div>
-                
-                <div v-if="store.activeModal==='addFriend'">
-                    <h2>Arkadaş Ekle</h2>
-                    <input class="mi" v-model="modalInput" placeholder="Kullanıcı adı">
-                    <button class="mb" @click="addFriend(modalInput)">Ekle</button>
-                </div>
-                
-                <div v-if="store.activeModal==='theme'">
-                    <h2>Tema</h2>
-                    <div class="color-row">
-                        <div v-for="c in ['#c94d8c','#6366f1','#22c55e','#f59e0b','#ec4899','#3b82f6']" :key="c"
-                             class="color-swatch" :style="{background:c}" @click="setTheme(c)"></div>
-                    </div>
-                </div>
-                
-                <div v-if="store.activeModal==='poll'">
-                    <h2>Anket</h2>
-                    <input class="mi" v-model="pollQ" placeholder="Soru">
-                    <input class="mi" v-model="pollO1" placeholder="Seçenek 1">
-                    <input class="mi" v-model="pollO2" placeholder="Seçenek 2">
-                    <button class="mb" @click="createPoll(pollQ, [pollO1, pollO2])">Başlat</button>
-                </div>
-                
-                <div v-if="store.activeModal==='imageGen'">
-                    <h2>Görsel Oluştur</h2>
-                    <input class="mi" v-model="imagePrompt" placeholder="Görsel açıklaması..." @keydown.enter="generateImage">
-                    <button class="mb" @click="generateImage">Oluştur</button>
-                    <img v-if="generatedImage" :src="generatedImage" style="width:100%;border-radius:12px;margin-top:12px">
-                </div>
+
+    <div data-controller="app" id="root">
+        <!-- GİRİŞ EKRANI -->
+        <div data-app-target="login" class="auth-wrap">
+            <div class="auth-box">
+                <img src="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png" class="auth-logo" alt="Gettic">
+                <div class="auth-title">gettic</div>
+                <div class="auth-sub">Türkçe sohbet platformu</div>
+                <input class="mi" data-app-target="username" placeholder="Kullanıcı adı">
+                <input class="mi" type="password" data-app-target="password" placeholder="Şifre" data-action="keydown.enter->app#login">
+                <button class="mb" data-action="click->app#login">Giriş</button>
             </div>
         </div>
-        
-        <!-- TOAST -->
-        <div v-if="store.toastMsg" :class="['toast', store.toastMsg.type]">{{ store.toastMsg.msg }}</div>
+
+        <!-- ANA ARAYÜZ -->
+        <div data-app-target="main" class="app" style="display:none;--ac:#c94d8c">
+            <nav class="rail">
+                <div class="ri act">#</div>
+                <div class="ri-sep"></div>
+                <div class="ri" data-action="click->app#toggleSidebar">☰</div>
+            </nav>
+            <nav data-app-target="sidebar" class="sidebar">
+                <div class="sidebar-header">Genel</div>
+                <div class="sidebar-scroll">
+                    <div class="ch-item act" data-action="click->app#switchChannel">genel-sohbet</div>
+                </div>
+                <div class="sidebar-user">
+                    <div class="su-av" data-app-target="avatar">G</div>
+                    <div class="su-name" data-app-target="displayName">Kullanıcı</div>
+                </div>
+            </nav>
+            <main class="chat">
+                <header class="chat-header"><div class="ch-hname"># genel-sohbet</div></header>
+                <div class="msgs" data-app-target="messages">
+                    <div class="empty-ch"><h4># genel-sohbet</h4><p>Henüz mesaj yok</p></div>
+                </div>
+                <div class="input-area">
+                    <textarea class="msg-inp" data-app-target="input" placeholder="Mesaj yaz..." data-action="keydown.enter->app#sendMessage"></textarea>
+                    <button class="ib" style="background:var(--gr)" data-action="click->app#sendMessage">➤</button>
+                </div>
+            </main>
+        </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
-    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@hotwired/stimulus@3/dist/stimulus.min.js"></script>
     <script src="js/config.js"></script>
-    <script src="js/icons.js"></script>
-    <script src="js/roles.js"></script>
     <script src="js/store.js"></script>
-    <script src="js/ui.js"></script>
     <script src="js/auth.js"></script>
-    <script src="js/chat.js"></script>
-    <script src="js/channels.js"></script>
-    <script src="js/dm.js"></script>
-    <script src="js/voice.js"></script>
-    <script src="js/polls.js"></script>
-    <script src="js/app.js"></script>
-    <script>
-setTimeout(function() {
-    var ls = document.getElementById('ls');
-    if (ls) ls.remove();
-    
-    var root = document.getElementById('root');
-    var debug = document.createElement('div');
-    debug.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#000;color:#0f0;padding:10px;z-index:99999;font-size:11px;max-height:150px;overflow:auto';
-    debug.innerHTML = 'Vue: ' + (typeof Vue !== 'undefined' ? 'VAR ✅' : 'YOK ❌') + '<br>';
-    debug.innerHTML += 'store: ' + (typeof store !== 'undefined' ? 'VAR ✅' : 'YOK ❌') + '<br>';
-    debug.innerHTML += 'App: ' + (typeof app !== 'undefined' ? 'VAR ✅' : 'YOK ❌') + '<br>';
-    if (typeof store !== 'undefined') {
-        debug.innerHTML += 'user: ' + JSON.stringify(store.user) + '<br>';
-    }
-    document.body.appendChild(debug);
-}, 2000);
-    </script>
-    <script>
-setTimeout(function() {
-    var root = document.getElementById('root');
-    if (root) {
-        root.innerHTML = '<div style="padding:40px;text-align:center;font-family:sans-serif;"><h2>Gettic</h2><p>Vue render edilemedi. Lütfen sayfayı yenileyin.</p><p>store: ' + (typeof store !== 'undefined' ? 'var' : 'yok') + '</p><p>user: ' + (typeof store !== 'undefined' && store.user ? store.user.username : 'yok') + '</p></div>';
-    }
-    document.getElementById('ls')?.remove();
-}, 3000);
-    </script>
+    <script src="js/app-stimulus.js"></script>
 </body>
-    </html>
+</html>
