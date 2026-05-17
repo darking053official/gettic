@@ -28,16 +28,13 @@
         <img src="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png" class="auth-logo" alt="Gettic">
         <div class="auth-title">gettic</div>
         <div class="auth-sub">Türkçe sohbet platformu</div>
-        <div class="auth-tabs">
-            <button class="auth-tab act" onclick="window._app.setTab('login')">Giriş</button>
-            <button class="auth-tab" onclick="window._app.setTab('register')">Kayıt</button>
-        </div>
-        <input class="mi" data-app-target="username" placeholder="Kullanıcı adı">
-        <input class="mi" type="password" data-app-target="password" placeholder="Şifre">
-        <button class="mb" onclick="window._app.submitAuth()">Giriş</button>
+        <input class="mi" data-app-target="username" placeholder="Kullanıcı adı" autocomplete="username">
+        <input class="mi" type="password" data-app-target="password" placeholder="Şifre" autocomplete="current-password">
+        <button class="mb" id="loginBtn">Giriş</button>
+        <div data-app-target="authError" style="color:#e74c3c;font-size:11px;margin-top:8px;display:none"></div>
     </div>
 </div>
-
+        
         <!-- ANA ARAYÜZ -->
         <div data-app-target="main" class="app" style="display:none;--ac:#c94d8c">
             <nav class="rail">
