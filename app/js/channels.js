@@ -1,12 +1,6 @@
-function createChannelElement(ch, isActive) {
-  const div = document.createElement('div');
-  div.className = 'ch-item' + (isActive ? ' act' : '');
-  div.innerHTML = `<span class="ch-name"># ${ch.name}</span>`;
-  div.onclick = () => switchChannel(ch.id);
-  return div;
+function saveState(key, value) {
+  try { localStorage.setItem('gt_' + key, JSON.stringify(value)); } catch(e) {}
 }
-
-function switchChannel(channelId) {
-  const msgs = document.querySelector('[data-app-target="messages"]');
-  if (msgs) msgs.innerHTML = '<div class="empty-ch"><h4># ' + channelId + '</h4><p>Henüz mesaj yok</p></div>';
+function getState(key) {
+  try { const v = localStorage.getItem('gt_' + key); return v ? JSON.parse(v) : null; } catch(e) { return null; }
 }
