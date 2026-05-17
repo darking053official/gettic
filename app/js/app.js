@@ -389,101 +389,85 @@ function updateIcons() {
   });
 }
 
-// ============ APP.JS - BUTONLAR İÇİN EKLE ============
+// ============ TÜM BUTONLAR - KESİN ÇÖZÜM ============
+setTimeout(function() {
+  // HOME
+  var btn = document.getElementById('homeBtn');
+  if (btn) btn.onclick = function() {
+    document.getElementById('homePanel').classList.remove('hidden');
+    document.getElementById('sidebar').classList.add('hidden');
+    document.getElementById('chatArea').classList.add('hidden');
+  };
 
-// Sayfa yüklendikten sonra tüm butonları bağla
-document.addEventListener('DOMContentLoaded', function() {
-  setTimeout(function() {
-    // Home butonu
-    var homeBtn = document.getElementById('homeBtn');
-    if (homeBtn) {
-      homeBtn.onclick = function() {
-        document.getElementById('homePanel').classList.remove('hidden');
-        document.getElementById('sidebar').classList.add('hidden');
-        document.getElementById('chatArea').classList.add('hidden');
-        if (typeof loadFriendSuggestions === 'function') loadFriendSuggestions();
-      };
-    }
+  // DISCOVER
+  btn = document.getElementById('discoverBtn');
+  if (btn) btn.onclick = function() {
+    document.getElementById('homePanel').classList.add('hidden');
+    document.getElementById('sidebar').classList.add('hidden');
+    document.getElementById('chatArea').classList.remove('hidden','flex');
+    document.getElementById('chatArea').classList.add('flex');
+    document.getElementById('channelName').textContent = 'Keşfet';
+  };
 
-    // Discover butonu
-    var discoverBtn = document.getElementById('discoverBtn');
-    if (discoverBtn) {
-      discoverBtn.onclick = function() {
-        document.getElementById('homePanel').classList.add('hidden');
-        document.getElementById('sidebar').classList.add('hidden');
-        document.getElementById('chatArea').classList.remove('hidden');
-        document.getElementById('chatArea').classList.add('flex');
-        document.getElementById('channelName').textContent = 'Keşfet';
-        document.getElementById('messages').innerHTML = '<div class="empty-ch"><h4>🔍 Keşfet</h4><p>Popüler sunucular</p></div>';
-      };
-    }
+  // DM
+  btn = document.getElementById('dmBtn');
+  if (btn) btn.onclick = function() { if (typeof openModal === 'function') openModal('dm'); };
 
-    // DM butonu
-    var dmBtn = document.getElementById('dmBtn');
-    if (dmBtn) dmBtn.onclick = function() { openModal('dm'); };
+  // CREATE SERVER
+  btn = document.getElementById('createServerBtn');
+  if (btn) btn.onclick = function() { if (typeof openModal === 'function') openModal('addServer'); };
 
-    // Sunucu Oluştur
-    var createServerBtn = document.getElementById('createServerBtn');
-    if (createServerBtn) createServerBtn.onclick = function() { openModal('addServer'); };
+  // SETTINGS
+  btn = document.getElementById('homeSettingsBtn');
+  if (btn) btn.onclick = function() { document.getElementById('settingsPanel').classList.toggle('show'); };
 
-    // Ayarlar
-    var homeSettingsBtn = document.getElementById('homeSettingsBtn');
-    if (homeSettingsBtn) homeSettingsBtn.onclick = function() {
-      document.getElementById('settingsPanel').classList.toggle('show');
-    };
+  btn = document.getElementById('chatSettingsBtn');
+  if (btn) btn.onclick = function() { document.getElementById('settingsPanel').classList.toggle('show'); };
 
-    // Chat Settings
-    var chatSettingsBtn = document.getElementById('chatSettingsBtn');
-    if (chatSettingsBtn) chatSettingsBtn.onclick = function() {
-      document.getElementById('settingsPanel').classList.toggle('show');
-    };
+  // NOTIFICATIONS
+  btn = document.getElementById('homeNotificationsBtn');
+  if (btn) btn.onclick = function() { if (typeof openModal === 'function') openModal('notifications'); };
 
-    // Bildirimler
-    var homeNotificationsBtn = document.getElementById('homeNotificationsBtn');
-    if (homeNotificationsBtn) homeNotificationsBtn.onclick = function() { openModal('notifications'); };
+  // SIDEBAR
+  btn = document.getElementById('addCategoryBtn');
+  if (btn) btn.onclick = function() { if (typeof openModal === 'function') openModal('addCategory'); };
 
-    // Sidebar butonları
-    var addCategoryBtn = document.getElementById('addCategoryBtn');
-    if (addCategoryBtn) addCategoryBtn.onclick = function() { openModal('addCategory'); };
+  btn = document.getElementById('addChannelSidebarBtn');
+  if (btn) btn.onclick = function() { if (typeof openModal === 'function') openModal('addChannel'); };
 
-    var addChannelSidebarBtn = document.getElementById('addChannelSidebarBtn');
-    if (addChannelSidebarBtn) addChannelSidebarBtn.onclick = function() { openModal('addChannel'); };
+  btn = document.getElementById('sidebarUserBtn');
+  if (btn) btn.onclick = function() { if (typeof openModal === 'function') openModal('profile'); };
 
-    var sidebarUserBtn = document.getElementById('sidebarUserBtn');
-    if (sidebarUserBtn) sidebarUserBtn.onclick = function() { openModal('profile'); };
+  // TOGGLE
+  btn = document.getElementById('toggleSidebarBtn');
+  if (btn) btn.onclick = function() { document.getElementById('sidebar').classList.toggle('open'); };
 
-    // Panel butonları
-    var panelBtns = {
-      'panelProfileBtn': 'profile',
-      'panelDmBtn': 'dm',
-      'panelAddFriendBtn': 'addFriend',
-      'panelThemeBtn': 'theme',
-      'panelPollBtn': 'poll',
-      'panelSearchBtn': 'search',
-      'panelServerBtn': 'serverSettings',
-      'panelRolesBtn': 'roles',
-      'panelClearBtn': null,
-      'panelLogoutBtn': null
-    };
+  btn = document.getElementById('togglePanelBtn');
+  if (btn) btn.onclick = function() { document.getElementById('userPanel').classList.toggle('hidden'); };
 
-    Object.keys(panelBtns).forEach(function(id) {
-      var btn = document.getElementById(id);
-      if (btn) {
-        var modal = panelBtns[id];
-        if (modal) {
-          btn.onclick = function() { openModal(modal); };
-        }
-      }
-    });
+  // CHAT BUTTONLARI
+  btn = document.getElementById('searchBtn');
+  if (btn) btn.onclick = function() { if (typeof openModal === 'function') openModal('search'); };
 
-    // Panel Clear
-    var panelClearBtn = document.getElementById('panelClearBtn');
-    if (panelClearBtn) panelClearBtn.onclick = function() { if (typeof clearMessages === 'function') clearMessages(); };
+  btn = document.getElementById('sendBtn');
+  if (btn) btn.onclick = function() { if (typeof sendMessage === 'function') sendMessage(); };
 
-    // Panel Logout
-    var panelLogoutBtn = document.getElementById('panelLogoutBtn');
-    if (panelLogoutBtn) panelLogoutBtn.onclick = function() { if (typeof logout === 'function') logout(); };
+  btn = document.getElementById('emojiBtn');
+  if (btn) btn.onclick = function() { document.getElementById('emojiPanel').classList.toggle('hidden'); };
 
-    console.log('✅ Tüm butonlar bağlandı');
-  }, 1000);
-});
+  btn = document.getElementById('imageBtn');
+  if (btn) btn.onclick = function() { if (typeof openModal === 'function') openModal('imageGen'); };
+
+  btn = document.getElementById('pollBtn');
+  if (btn) btn.onclick = function() { if (typeof openModal === 'function') openModal('poll'); };
+
+  // LOGOUT
+  btn = document.getElementById('logoutBtn');
+  if (btn) btn.onclick = function() { if (typeof logout === 'function') logout(); };
+
+  // PANEL
+  btn = document.getElementById('panelLogoutBtn');
+  if (btn) btn.onclick = function() { if (typeof logout === 'function') logout(); };
+
+  console.log('✅ Tüm butonlar hazır');
+}, 1500);
