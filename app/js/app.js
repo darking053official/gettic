@@ -156,4 +156,4 @@ if (typeof Vue === 'undefined') {
     app.mount('#root');
     window.app = app;
     console.log('✅ Vue başlatıldı');
-            }
+                    }
