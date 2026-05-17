@@ -39,9 +39,11 @@
   white-space: nowrap;
 }
 
-.hacts {
-  display: flex;
-  gap: 4px;
+.hacts .ib {
+  width: 28px; height: 28px;
+}
+.hacts .ib svg {
+  width: 14px; height: 14px;
 }
 
 .ib {
