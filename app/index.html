@@ -82,5 +82,14 @@ setTimeout(function() {
     <script>
 alert('Sayfa yüklendi! Stimulus: ' + (typeof Stimulus !== 'undefined' ? 'VAR' : 'YOK'));
     </script>
+    <script>
+document.getElementById('loginBtn').addEventListener('click', function() {
+    if (window._app) {
+        window._app.submitAuth();
+    } else {
+        alert('Uygulama henüz yüklenmedi, lütfen bekleyin...');
+    }
+});
+    </script>
 </body>
 </html>
