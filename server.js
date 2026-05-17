@@ -96,6 +96,11 @@ app.get('/app', (req, res) => {
     res.sendFile(path.join(__dirname, 'app', 'index.html'));
 });
 
+// SPA - Tüm /app/* route'larını index.html'e yönlendir
+app.get('/app/*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'app', 'index.html'));
+});
+
 // app içindeki statik dosyalar
 app.use('/app', express.static(path.join(__dirname, 'app')));
 
