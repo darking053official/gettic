@@ -2,22 +2,37 @@ function renderChannels() {
   const el = document.getElementById('channelList');
   if (!el) return;
   
+  const isAdmin = hasPermission(Store.user?._id, 'manageChannels');
+  
   el.innerHTML = Store.categories.map(cat => `
     <div class="ch-cat">
       ${cat} 
-      <button onclick="openModal('addChannel')" title="Kanal Ekle">+</button>
+      ${isAdmin ? '<button onclick="openModal(\'addChannel\')">+</button>' : ''}
     </div>
     ${Store.channels.filter(ch => ch.category === cat).map(ch => `
       <div class="ch-item ${ch.id === Store.activeChannel ? 'act' : ''}" 
            onclick="switchChannel('${ch.id}')"
            title="${ch.topic || ch.name}">
-        <span>${ch.type === 'voice' ? '🔊' : ch.type === 'forum' ? '📋' : '#'}</span>
+        <span class="ch-icon">${ch.type === 'voice' ? '🔊' : ch.type === 'forum' ? '📋' : '#'}</span>
         <span class="ch-name">${ch.name}</span>
-        ${ch.type === 'voice' ? '<span class="ch-acts"><button onclick="event.stopPropagation();joinVoice(\''+ch.id+'\')">🎤</button></span>' : ''}
-        ${ch.id !== 'genel-sohbet' && ch.id !== 'genel-ses' ? '<span class="ch-acts"><button onclick="event.stopPropagation();deleteChannel(\''+ch.id+'\')" style="color:var(--re)">×</button></span>' : ''}
+        ${isAdmin && ch.id !== 'genel-sohbet' && ch.id !== 'genel-ses' ? 
+          `<button class="ch-acts-btn" onclick="event.stopPropagation();deleteChannel('${ch.id}')" title="Kanalı Sil">🗑️</button>` : ''}
       </div>
     `).join('')}
   `).join('');
+  
+  const chName = document.getElementById('channelName');
+  if (chName) {
+    const activeCh = Store.channels.find(c => c.id === Store.activeChannel);
+    chName.textContent = activeCh ? activeCh.name : Store.activeChannel;
+  }
+  
+  // Yetkiye göre butonları göster/gizle
+  const addCatBtn = document.getElementById('addCategoryBtn');
+  const addChBtn = document.getElementById('addChannelSidebarBtn');
+  if (addCatBtn) addCatBtn.style.display = isAdmin ? '' : 'none';
+  if (addChBtn) addChBtn.style.display = isAdmin ? '' : 'none';
+}
   
   // Kanal adını güncelle
   const chName = document.getElementById('channelName');
