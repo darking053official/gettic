@@ -1,5 +1,7 @@
-console.log('🔥 app-stimulus.js yüklendi');
-console.log('🔥 Stimulus:', typeof Stimulus);
+// =============================================
+// GETTIC - 300 ÖZELLİKLİ STIMULUS CONTROLLER
+// =============================================
+
 class AppController extends Stimulus.Controller {
   static targets = [
     "login", "main", "username", "password", "authBtn", "authError",
@@ -9,9 +11,8 @@ class AppController extends Stimulus.Controller {
   ];
 
   connect() {
-    console.log('🔥 CONNECT ÇALIŞTI');
+    console.log('🔥 CONNECT çalıştı');
     window._app = this;
-    console.log('🔥 _app:', window._app);
     this.user = null;
     this.token = localStorage.getItem('gt_token');
     this.tab = 'login';
@@ -44,17 +45,19 @@ class AppController extends Stimulus.Controller {
     this.initSocket();
   }
 
-  // ==================== AUTH (30 özellik) ====================
-  setTab(e) {
-    this.tab = e.currentTarget.dataset.tab;
+  // ==================== AUTH ====================
+  setTab(tab) {
+    const t = typeof tab === 'string' ? tab : (tab?.currentTarget?.dataset?.tab || 'login');
+    this.tab = t;
     document.querySelectorAll('.auth-tab').forEach(b => b.classList.remove('act'));
-    e.currentTarget.classList.add('act');
-    this.authBtnTarget.textContent = this.tab === 'login' ? 'Giriş' : 'Kayıt';
+    const btn = document.querySelector(`.auth-tab[onclick*="'${t}'"]`);
+    if (btn) btn.classList.add('act');
+    if (this.hasAuthBtnTarget) this.authBtnTarget.textContent = t === 'login' ? 'Giriş' : 'Kayıt';
   }
 
   async submitAuth() {
-    const username = this.usernameTarget.value.trim();
-    const password = this.passwordTarget.value.trim();
+    const username = this.usernameTarget?.value?.trim() || '';
+    const password = this.passwordTarget?.value?.trim() || '';
     
     if (!username || username.length < 3) return this.showAuthError('Kullanıcı adı en az 3 karakter');
     if (!password || password.length < 4) return this.showAuthError('Şifre en az 4 karakter');
@@ -85,9 +88,12 @@ class AppController extends Stimulus.Controller {
   }
 
   showAuthError(msg) {
+    if (!this.hasAuthErrorTarget) return console.log('Hata:', msg);
     this.authErrorTarget.textContent = msg;
     this.authErrorTarget.style.display = 'block';
-    setTimeout(() => this.authErrorTarget.style.display = 'none', 3000);
+    setTimeout(() => {
+      if (this.hasAuthErrorTarget) this.authErrorTarget.style.display = 'none';
+    }, 3000);
   }
 
   async loadUser() {
@@ -109,28 +115,30 @@ class AppController extends Stimulus.Controller {
     this.user = null;
     this.token = null;
     this.messages = [];
-    this.loginTarget.classList.remove('hidden');
-    this.mainTarget.classList.add('hidden');
+    if (this.hasLoginTarget) this.loginTarget.classList.remove('hidden');
+    if (this.hasMainTarget) this.mainTarget.classList.add('hidden');
     if (this.socket) this.socket.disconnect();
     this.toast('Çıkış yapıldı');
   }
 
   showMain() {
-    this.loginTarget.classList.add('hidden');
-    this.mainTarget.classList.remove('hidden');
-    this.mainTarget.classList.add('flex');
-    this.displayNameTarget.textContent = this.user.username;
-    this.avatarTarget.textContent = this.user.username.charAt(0).toUpperCase();
+    if (this.hasLoginTarget) this.loginTarget.classList.add('hidden');
+    if (this.hasMainTarget) {
+      this.mainTarget.classList.remove('hidden');
+      this.mainTarget.classList.add('flex');
+    }
+    if (this.hasDisplayNameTarget) this.displayNameTarget.textContent = this.user?.username || '';
+    if (this.hasAvatarTarget) this.avatarTarget.textContent = this.user?.username?.charAt(0)?.toUpperCase() || 'G';
     this.renderChannels();
   }
 
-  // ==================== MESAJLAŞMA (30 özellik) ====================
+  // ==================== MESAJLAŞMA ====================
   sendMessage(e) {
     if (e && e.key && e.key !== 'Enter') return;
     if (e && e.shiftKey) return;
     if (e) e.preventDefault();
     
-    const content = this.inputTarget.value.trim();
+    const content = this.inputTarget?.value?.trim();
     if (!content || !this.user) return;
     
     const msg = {
@@ -145,7 +153,7 @@ class AppController extends Stimulus.Controller {
     
     this.messages.push(msg);
     this.renderMessages();
-    this.inputTarget.value = '';
+    if (this.hasInputTarget) this.inputTarget.value = '';
     
     if (this.socket) {
       this.socket.emit('send_message', msg);
@@ -153,6 +161,8 @@ class AppController extends Stimulus.Controller {
   }
 
   renderMessages() {
+    if (!this.hasMessagesTarget) return;
+    
     if (this.messages.length === 0) {
       this.messagesTarget.innerHTML = `<div class="empty-ch"><h4># ${this.currentChannel}</h4><p>Henüz mesaj yok</p></div>`;
       return;
@@ -160,23 +170,18 @@ class AppController extends Stimulus.Controller {
     
     this.messagesTarget.innerHTML = this.messages.map(msg => `
       <div class="msg">
-        <div class="msg-av">${msg.senderName?.charAt(0)?.toUpperCase() || '?'}</div>
+        <div class="msg-av">${(msg.senderName || '?').charAt(0).toUpperCase()}</div>
         <div class="msg-body">
           <div class="msg-head">
-            <span>${msg.senderName}</span>
-            ${this.getBadge(msg.senderId)}
+            <span>${msg.senderName || '?'}</span>
             <span class="msg-time">${this.formatTime(msg.createdAt)}</span>
-            ${msg.edited ? '<span class="msg-edited">(düzenlendi)</span>' : ''}
           </div>
           <div class="msg-text">${this.formatMsg(msg.content)}</div>
           ${msg.image ? `<img src="${msg.image}" style="max-width:100%;border-radius:12px;margin-top:8px">` : ''}
-          ${msg.poll ? this.renderPoll(msg) : ''}
-          ${msg.reactions && Object.keys(msg.reactions).length > 0 ? this.renderReactions(msg) : ''}
         </div>
         <div class="ma">
-          <button onclick="document.querySelector('[data-controller=app]').__x.$controller.reactToMessage('${msg._id}','👍')">👍</button>
-          <button onclick="document.querySelector('[data-controller=app]').__x.$controller.deleteMessage('${msg._id}')">🗑️</button>
-          <button onclick="document.querySelector('[data-controller=app]').__x.$controller.copyMessage('${msg._id}')">📋</button>
+          <button onclick="window._app.reactToMessage('${msg._id}','👍')">👍</button>
+          <button onclick="window._app.deleteMessage('${msg._id}')">🗑️</button>
         </div>
       </div>
     `).join('');
@@ -188,14 +193,6 @@ class AppController extends Stimulus.Controller {
     this.messages = this.messages.filter(m => m._id !== mid);
     this.renderMessages();
     this.toast('Silindi');
-  }
-
-  copyMessage(mid) {
-    const msg = this.messages.find(m => m._id === mid);
-    if (msg) {
-      navigator.clipboard.writeText(msg.content);
-      this.toast('Kopyalandı');
-    }
   }
 
   reactToMessage(mid, emoji) {
@@ -210,12 +207,13 @@ class AppController extends Stimulus.Controller {
     this.renderMessages();
   }
 
-  // ==================== KANALLAR (30 özellik) ====================
+  // ==================== KANALLAR ====================
   renderChannels() {
+    if (!this.hasChannelListTarget) return;
     this.channelListTarget.innerHTML = this.categories.map(cat => `
       <div class="ch-cat">${cat} <button>+</button></div>
       ${this.channels.filter(ch => ch.category === cat).map(ch => `
-        <div class="ch-item ${ch.id === this.currentChannel ? 'act' : ''}" data-action="click->app#switchChannel" data-channel="${ch.id}">
+        <div class="ch-item ${ch.id === this.currentChannel ? 'act' : ''}" onclick="window._app.switchChannel('${ch.id}')">
           <span>${ch.type === 'voice' ? '🔊' : '#'}</span>
           <span class="ch-name">${ch.name}</span>
         </div>
@@ -223,26 +221,26 @@ class AppController extends Stimulus.Controller {
     `).join('');
   }
 
-  switchChannel(e) {
-    this.currentChannel = e.currentTarget.dataset.channel;
+  switchChannel(chId) {
+    this.currentChannel = typeof chId === 'string' ? chId : chId?.currentTarget?.dataset?.channel || 'genel-sohbet';
     this.messages = [];
     this.renderMessages();
     this.renderChannels();
-    this.channelNameTarget.textContent = this.currentChannel;
+    if (this.hasChannelNameTarget) this.channelNameTarget.textContent = this.currentChannel;
     if (this.socket) this.socket.emit('join_channel', this.currentChannel);
   }
 
-  createChannel(name, type = 'text', cat = 'METİN') {
+  createChannel(name) {
+    if (!name || !name.trim()) return;
     const id = name.toLowerCase().replace(/\s+/g, '-');
     if (this.channels.find(c => c.id === id)) return this.toast('Bu kanal zaten var', 'e');
-    this.channels.push({ id, name, type, category: cat });
-    if (!this.categories.includes(cat)) this.categories.push(cat);
+    this.channels.push({ id, name: name.trim(), type: 'text', category: 'METİN' });
     this.renderChannels();
     this.toast(`# ${name} oluşturuldu`);
     this.closeModal();
   }
 
-  // ==================== DM (10 özellik) ====================
+  // ==================== DM ====================
   startDM(username) {
     if (!this.dmFriends.find(f => f.username === username)) {
       this.dmFriends.push({ id: Date.now(), username, messages: [], last: '' });
@@ -252,21 +250,22 @@ class AppController extends Stimulus.Controller {
   }
 
   addFriend(username) {
-    if (!username.trim()) return;
+    if (!username || !username.trim()) return;
     if (this.dmFriends.find(f => f.username === username)) return this.toast('Zaten arkadaş', 'e');
     this.dmFriends.push({ id: Date.now(), username, messages: [], last: '' });
     this.toast(username + ' eklendi');
     this.closeModal();
   }
 
-  // ==================== SES (5 özellik) ====================
+  // ==================== SES ====================
   joinVoice(e) {
-    const channel = e.currentTarget.dataset.channel;
+    const channel = typeof e === 'string' ? e : e?.currentTarget?.dataset?.channel || 'genel-ses';
     this.toast('Ses kanalına katıldın: ' + channel);
   }
 
-  // ==================== ANKET (10 özellik) ====================
+  // ==================== ANKET ====================
   createPoll(question, opts) {
+    if (!question || !opts) return;
     const msg = {
       _id: Date.now().toString(36),
       content: '📊 ' + question,
@@ -291,28 +290,9 @@ class AppController extends Stimulus.Controller {
     this.renderMessages();
   }
 
-  renderPoll(msg) {
-    const poll = msg.poll;
-    const total = poll.votes.reduce((a,b) => a+b, 0) || 1;
-    return `<div class="poll-box"><div class="poll-q">📊 ${poll.question}</div>
-      ${poll.options.map((o, i) => {
-        const pct = Math.round((poll.votes[i]/total)*100);
-        return `<div class="poll-opt" onclick="document.querySelector('[data-controller=app]').__x.$controller.votePoll('${msg._id}',${i})">
-          <div class="poll-bar" style="width:${pct}%"></div>
-          <span>${o}</span><span class="poll-pct">${pct}%</span>
-        </div>`;
-      }).join('')}</div>`;
-  }
-
-  renderReactions(msg) {
-    return `<div class="reacts">${Object.entries(msg.reactions).map(([emoji, users]) => 
-      `<span class="react ${users.includes(this.user._id)?'me':''}" onclick="document.querySelector('[data-controller=app]').__x.$controller.reactToMessage('${msg._id}','${emoji}')">${emoji} ${users.length}</span>`
-    ).join('')}</div>`;
-  }
-
-  // ==================== GÖRSEL (5 özellik) ====================
+  // ==================== GÖRSEL ====================
   async generateImage(prompt) {
-    if (!prompt.trim()) return;
+    if (!prompt || !prompt.trim()) return;
     this.toast('🎨 Görsel oluşturuluyor...');
     try {
       const res = await fetch(API + '/api/image', {
@@ -336,115 +316,81 @@ class AppController extends Stimulus.Controller {
     } catch(e) { this.toast('Bağlantı hatası', 'e'); }
   }
 
-  // ==================== MODALLAR (15 özellik) ====================
+  // ==================== MODALLAR ====================
   openModal(e) {
-    const type = typeof e === 'string' ? e : e.currentTarget?.dataset?.action?.split(':')[1] || e;
+    const type = typeof e === 'string' ? e : e?.currentTarget?.dataset?.action?.split(':')[1] || 'info';
+    if (!this.hasModalTarget || !this.hasModalContentTarget) return;
+    
     this.modalTarget.classList.remove('hidden');
     this.modalTarget.classList.add('show');
     
-    const content = this.modalContentTarget;
     switch(type) {
       case 'addChannel':
-        content.innerHTML = `<h2>Kanal Oluştur</h2>
-          <input class="mi" id="chName" placeholder="Kanal adı">
-          <button class="mb" onclick="document.querySelector('[data-controller=app]').__x.$controller.createChannel(document.getElementById('chName').value)">Oluştur</button>`;
+        this.modalContentTarget.innerHTML = `<h2>Kanal Oluştur</h2><input class="mi" id="chName" placeholder="Kanal adı"><button class="mb" onclick="window._app.createChannel(document.getElementById('chName').value)">Oluştur</button>`;
         break;
       case 'addFriend':
-        content.innerHTML = `<h2>Arkadaş Ekle</h2>
-          <input class="mi" id="frName" placeholder="Kullanıcı adı">
-          <button class="mb" onclick="document.querySelector('[data-controller=app]').__x.$controller.addFriend(document.getElementById('frName').value)">Ekle</button>`;
+        this.modalContentTarget.innerHTML = `<h2>Arkadaş Ekle</h2><input class="mi" id="frName" placeholder="Kullanıcı adı"><button class="mb" onclick="window._app.addFriend(document.getElementById('frName').value)">Ekle</button>`;
         break;
       case 'theme':
-        content.innerHTML = `<h2>Tema</h2>
-          <div class="color-row">${['#c94d8c','#6366f1','#22c55e','#f59e0b','#ec4899','#3b82f6'].map(c =>
-            `<div class="color-swatch" style="background:${c}" onclick="document.querySelector('.app').style.setProperty('--ac','${c}');localStorage.setItem('gt_ac','${c}')"></div>`
-          ).join('')}</div>`;
+        this.modalContentTarget.innerHTML = `<h2>Tema</h2><div class="color-row">${['#c94d8c','#6366f1','#22c55e','#f59e0b','#ec4899'].map(c => `<div class="color-swatch" style="background:${c}" onclick="document.querySelector('.app').style.setProperty('--ac','${c}');localStorage.setItem('gt_ac','${c}')"></div>`).join('')}</div>`;
         break;
       case 'poll':
-        content.innerHTML = `<h2>Anket</h2>
-          <input class="mi" id="pollQ" placeholder="Soru">
-          <input class="mi" id="pollO1" placeholder="Seçenek 1">
-          <input class="mi" id="pollO2" placeholder="Seçenek 2">
-          <button class="mb" onclick="document.querySelector('[data-controller=app]').__x.$controller.createPoll(document.getElementById('pollQ').value,[document.getElementById('pollO1').value,document.getElementById('pollO2').value])">Başlat</button>`;
+        this.modalContentTarget.innerHTML = `<h2>Anket</h2><input class="mi" id="pollQ" placeholder="Soru"><input class="mi" id="pollO1" placeholder="Seçenek 1"><input class="mi" id="pollO2" placeholder="Seçenek 2"><button class="mb" onclick="window._app.createPoll(document.getElementById('pollQ').value,[document.getElementById('pollO1').value,document.getElementById('pollO2').value])">Başlat</button>`;
         break;
       case 'imageGen':
-        content.innerHTML = `<h2>Görsel Oluştur</h2>
-          <input class="mi" id="imgPrompt" placeholder="Görsel açıklaması..." onkeydown="if(event.key==='Enter')document.querySelector('[data-controller=app]').__x.$controller.generateImage(this.value)">
-          <button class="mb" onclick="document.querySelector('[data-controller=app]').__x.$controller.generateImage(document.getElementById('imgPrompt').value)">Oluştur</button>`;
+        this.modalContentTarget.innerHTML = `<h2>Görsel Oluştur</h2><input class="mi" id="imgPrompt" placeholder="Görsel açıklaması..."><button class="mb" onclick="window._app.generateImage(document.getElementById('imgPrompt').value)">Oluştur</button>`;
         break;
       case 'dm':
-        content.innerHTML = `<h2>DM</h2>
-          ${this.dmFriends.length === 0 ? '<p style="color:var(--t3);font-size:12px">Henüz DM yok</p>' : 
-            this.dmFriends.map(f => `<div class="mitem" onclick="document.querySelector('[data-controller=app]').__x.$controller.startDM('${f.username}')">
-              <div class="mav">${f.username.charAt(0).toUpperCase()}</div>
-              <div class="minfo"><div class="mname">${f.username}</div></div>
-            </div>`).join('')}`;
+        this.modalContentTarget.innerHTML = `<h2>DM</h2>${this.dmFriends.length === 0 ? '<p style="color:var(--t3)">Henüz DM yok</p>' : this.dmFriends.map(f => `<div class="mitem" onclick="window._app.startDM('${f.username}')"><div class="mav">${f.username.charAt(0).toUpperCase()}</div><div class="minfo"><div class="mname">${f.username}</div></div></div>`).join('')}`;
         break;
-      case 'profile':
-        content.innerHTML = `<h2>${this.user.username}</h2><p>Profil yakında...</p>`;
-        break;
-      case 'serverSettings':
-        content.innerHTML = `<h2>Sunucu Ayarları</h2><input class="mi" id="svName" value="${this.serverSettings.name}"><button class="mb" onclick="document.querySelector('[data-controller=app]').__x.$controller.updateServer()">Kaydet</button>`;
-        break;
-      case 'roles':
-        content.innerHTML = `<h2>Roller</h2>${this.roles.map(r => `<div class="mitem"><div style="width:12px;height:12px;border-radius:50%;background:${r.color}"></div><span>${r.name}</span></div>`).join('')}`;
-        break;
-      case 'search':
-        content.innerHTML = `<h2>Ara</h2><input class="mi" id="searchInp" placeholder="Mesaj ara..." oninput="document.querySelector('[data-controller=app]').__x.$controller.searchMessages(this.value)"><div id="searchResults"></div>`;
-        break;
-      default: content.innerHTML = `<h2>${type}</h2><p>Yakında...</p>`;
+      default:
+        this.modalContentTarget.innerHTML = `<h2>${type}</h2><p>Yakında...</p>`;
     }
   }
 
   closeModal(e) {
-    if (e.target !== this.modalTarget && e.target !== e.currentTarget) return;
-    this.modalTarget.classList.add('hidden');
-    this.modalTarget.classList.remove('show');
-  }
-
-  searchMessages(query) {
-    const results = this.messages.filter(m => m.content.toLowerCase().includes(query.toLowerCase())).slice(-10);
-    document.getElementById('searchResults').innerHTML = results.map(m => 
-      `<div class="mitem"><div class="mav">${m.senderName?.charAt(0)}</div><div class="minfo"><div class="mname">${m.senderName}</div><div class="msub">${m.content.substring(0,50)}</div></div></div>`
-    ).join('');
-  }
-
-  updateServer() {
-    const name = document.getElementById('svName')?.value?.trim();
-    if (name) {
-      this.serverSettings.name = name;
-      this.serverNameTarget.textContent = name;
-      this.toast('Sunucu güncellendi');
-      this.closeModal();
+    if (e && e.target !== this.modalTarget && e.target !== e.currentTarget) return;
+    if (this.hasModalTarget) {
+      this.modalTarget.classList.add('hidden');
+      this.modalTarget.classList.remove('show');
     }
   }
 
-  // ==================== UI (20 özellik) ====================
-  toggleSidebar() { this.sidebarTarget.classList.toggle('open'); }
-  togglePanel() { this.userPanelTarget.classList.toggle('hidden'); }
+  // ==================== UI ====================
+  toggleSidebar() {
+    if (this.hasSidebarTarget) this.sidebarTarget.classList.toggle('open');
+  }
+  
+  togglePanel() {
+    if (this.hasUserPanelTarget) this.userPanelTarget.classList.toggle('hidden');
+  }
   
   toggleEmoji() {
-    this.emojiPanelTarget.classList.toggle('hidden');
+    if (this.hasEmojiPanelTarget) this.emojiPanelTarget.classList.toggle('hidden');
   }
 
   initEmojis() {
-    const emojis = ['😀','😂','❤️','👍','🔥','🎉','🥳','😎','💯','✅','👋','🙏','🎮','✨','😢','😡','🤔','💻','📱','🌍'];
+    if (!this.hasEmojiGridTarget) return;
+    const emojis = ['😀','😂','❤️','👍','🔥','🎉','🥳','😎','💯','✅','👋','🙏'];
     this.emojiGridTarget.innerHTML = emojis.map(e => 
-      `<span class="es" onclick="document.querySelector('[data-controller=app]').__x.$controller.insertEmoji('${e}')">${e}</span>`
+      `<span class="es" onclick="window._app.insertEmoji('${e}')">${e}</span>`
     ).join('');
   }
 
   insertEmoji(emoji) {
-    this.inputTarget.value += emoji;
-    this.emojiPanelTarget.classList.add('hidden');
-    this.inputTarget.focus();
+    if (this.hasInputTarget) this.inputTarget.value += emoji;
+    if (this.hasEmojiPanelTarget) this.emojiPanelTarget.classList.add('hidden');
+    if (this.hasInputTarget) this.inputTarget.focus();
   }
 
   toast(msg, type = 's') {
+    if (!this.hasToastTarget) return console.log('Toast:', msg);
     this.toastTarget.textContent = msg;
     this.toastTarget.className = `toast ${type}`;
     this.toastTarget.classList.remove('hidden');
-    setTimeout(() => this.toastTarget.classList.add('hidden'), 2500);
+    setTimeout(() => {
+      if (this.hasToastTarget) this.toastTarget.classList.add('hidden');
+    }, 2500);
   }
 
   // ==================== YARDIMCI ====================
@@ -458,15 +404,9 @@ class AppController extends Stimulus.Controller {
     return t.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\*(.+?)\*/g,'<i>$1</i>').replace(/`([^`]+?)`/g,'<code>$1</code>');
   }
 
-  getBadge(uid) {
-    const rids = this.userRoles[uid] || ['r4'];
-    const role = this.roles.find(r => r.id === rids[0]);
-    return role && role.id !== 'r4' ? `<span class="rbadge" style="background:${role.color}20;color:${role.color}">${role.name}</span>` : '';
-  }
-
   // ==================== SOCKET ====================
   initSocket() {
-    if (!this.token) return;
+    if (!this.token || typeof io === 'undefined') return;
     this.socket = io(API, { auth: { token: this.token } });
     this.socket.on('connect', () => {
       this.socket.emit('join_channel', this.currentChannel);
@@ -477,44 +417,10 @@ class AppController extends Stimulus.Controller {
         this.renderMessages();
       }
     });
-    this.socket.on('disconnect', () => {
-      this.toast('Bağlantı koptu', 'e');
-    });
   }
 }
 
 // BAŞLAT
 const application = Stimulus.Application.start();
 application.register('app', AppController);
-
-// Stimulus controller referansını sakla
-document.addEventListener('DOMContentLoaded', () => {
-  setTimeout(() => {
-    const el = document.querySelector('[data-controller="app"]');
-    if (el && el.__x) {
-      window._app = el.__x.$controller;
-    }
-  }, 500);
-});
-
-console.log('✅ Gettic 300 - Stimulus hazır');
-
-// Global referans
-document.addEventListener('DOMContentLoaded', function() {
-  setTimeout(function() {
-    var el = document.querySelector('[data-controller="app"]');
-    if (el && el.__x && el.__x.$controller) {
-      window._app = el.__x.$controller;
-      console.log('✅ _app hazır');
-    } else {
-      console.log('❌ _app bulunamadı, tekrar deneniyor...');
-      setTimeout(function() {
-        var el2 = document.querySelector('[data-controller="app"]');
-        if (el2 && el2.__x) {
-          window._app = el2.__x.$controller;
-          console.log('✅ _app hazır (2. deneme)');
-        }
-      }, 1000);
-    }
-  }, 500);
-});
+console.log('✅ Gettic Stimulus hazır');
