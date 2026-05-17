@@ -58,12 +58,15 @@ authSubmit.onclick = async () => {
   authSubmit.textContent = 'Yükleniyor...';
   authSubmit.disabled = true;
   try {
-    await doAuth(tab, u, p);
+    const fn = typeof doAuth === 'function' ? doAuth : window.doAuth;
+    if (!fn) throw new Error('Auth sistemi yüklenemedi');
+    await fn(tab, u, p);
     showMain();
   } catch(e) { showAuthError(e.message); }
   authSubmit.textContent = tab==='login'?'Giriş':'Kayıt';
   authSubmit.disabled = false;
 };
+
 function showAuthError(msg) { authError.textContent=msg; authError.style.display='block'; }
 
 authPassword.onkeydown = (e) => { if(e.key==='Enter') authSubmit.click(); };
