@@ -1,86 +1,444 @@
-function toast(msg, type) {
-  const el = document.getElementById('toast');
-  if (!el) return;
-  el.textContent = msg;
-  el.className = `toast ${type||'s'}`;
-  el.classList.remove('hidden');
-  setTimeout(() => el.classList.add('hidden'), 2500);
+// ============ TOAST SİSTEMİ ============
+let toastTimer = null;
+let toastQueue = [];
+
+function toast(msg, type = 's') {
+  toastQueue.push({ msg, type });
+  if (toastQueue.length === 1) showNextToast();
 }
+
+function showNextToast() {
+  if (toastQueue.length === 0) return;
+  const { msg, type } = toastQueue[0];
+  const el = document.getElementById('toast');
+  if (!el) { toastQueue.shift(); return; }
+  
+  const icons = { s: '✅', e: '❌', w: '⚠️', i: 'ℹ️', dm: '💬', poll: '📊', image: '🖼️', role: '🛡️', channel: '#' };
+  el.innerHTML = `<span class="toast-icon">${icons[type] || '📢'}</span><span class="toast-msg">${msg}</span>`;
+  el.className = `toast toast-${type}`;
+  el.classList.remove('hidden');
+  el.style.animation = 'none';
+  el.offsetHeight;
+  el.style.animation = 'toastIn 0.3s ease';
+  
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    el.style.animation = 'toastOut 0.3s ease forwards';
+    setTimeout(() => {
+      el.classList.add('hidden');
+      toastQueue.shift();
+      showNextToast();
+    }, 300);
+  }, 2500);
+}
+
+// ============ MODAL SİSTEMİ ============
+const MODAL_TEMPLATES = {
+  addChannel: () => `
+    <h2>🔊 Kanal Oluştur</h2>
+    <div class="modal-form">
+      <label class="ml">Kanal Adı</label>
+      <input class="mi" id="modalChName" placeholder="örnek: genel-sohbet" maxlength="50">
+      <label class="ml">Kanal Türü</label>
+      <select class="ms" id="modalChType">
+        <option value="text">📝 Metin Kanalı</option>
+        <option value="voice">🔊 Ses Kanalı</option>
+        <option value="forum">📋 Forum Kanalı</option>
+      </select>
+      <label class="ml">Kategori</label>
+      <select class="ms" id="modalChCat">
+        ${Store.categories.map(c => `<option value="${c}">${c}</option>`).join('')}
+      </select>
+      <button class="mb" onclick="createChannel(document.getElementById('modalChName').value, document.getElementById('modalChType').value, document.getElementById('modalChCat').value)">Oluştur</button>
+    </div>
+  `,
+  
+  addCategory: () => `
+    <h2>📁 Kategori Ekle</h2>
+    <input class="mi" id="modalCatName" placeholder="Kategori adı">
+    <button class="mb" onclick="createCategory(document.getElementById('modalCatName').value)">Ekle</button>
+  `,
+  
+  addFriend: () => `
+    <h2>👤 Arkadaş Ekle</h2>
+    <input class="mi" id="modalFrName" placeholder="Kullanıcı adı" autocomplete="off">
+    <button class="mb" onclick="addFriend(document.getElementById('modalFrName').value)">Ekle</button>
+  `,
+  
+  theme: () => `
+    <h2>🎨 Tema</h2>
+    <div class="theme-section">
+      <h4>Hazır Renkler</h4>
+      <div class="color-row">
+        ${['#c94d8c','#6366f1','#22c55e','#f59e0b','#ec4899','#3b82f6','#14b8a6','#f97316','#8b5cf6','#ef4444'].map(c => `
+          <div class="color-swatch ${Store.theme===c?'act':''}" style="background:${c}" onclick="setTheme('${c}')" title="${c}"></div>
+        `).join('')}
+      </div>
+      <h4 style="margin-top:12px">Özel Renk</h4>
+      <input type="color" class="mi" id="customColor" value="${Store.theme}" onchange="setTheme(this.value)" style="height:45px;padding:4px;cursor:pointer">
+    </div>
+    <div class="msep"></div>
+    <h4>Görünüm</h4>
+    <div class="settings-row">
+      <div><div class="settings-row-label">Aydınlık Mod</div><div class="settings-row-sub">Açık tema kullan</div></div>
+      <div class="toggle ${Store.lightMode?'on':''}" onclick="toggleLightMode()"></div>
+    </div>
+    <div class="settings-row">
+      <div><div class="settings-row-label">Kompakt Mod</div><div class="settings-row-sub">Daha küçük aralıklar</div></div>
+      <div class="toggle ${Store.compactMode?'on':''}" onclick="toggleCompactMode()"></div>
+    </div>
+  `,
+  
+  poll: () => `
+    <h2>📊 Anket Oluştur</h2>
+    <div class="poll-form">
+      <input class="mi" id="modalPollQ" placeholder="Soru sor..." maxlength="200">
+      <div id="pollOptionsContainer">
+        <div class="poll-option-row"><input class="mi" placeholder="Seçenek 1"><button class="poll-remove-opt" style="display:none">×</button></div>
+        <div class="poll-option-row"><input class="mi" placeholder="Seçenek 2"><button class="poll-remove-opt" style="display:none">×</button></div>
+      </div>
+      <button class="mb sec" onclick="addPollOptionUI()">+ Seçenek Ekle</button>
+      <div class="poll-settings">
+        <label class="poll-setting"><input type="checkbox" id="pollMultiple"> Çoklu seçim</label>
+        <label class="poll-setting"><input type="checkbox" id="pollAnonymous" checked> Gizli oylama</label>
+        <input class="mi" type="number" id="pollDuration" placeholder="Süre (dk, 0=sınırsız)" min="0" value="0">
+      </div>
+      <button class="mb" onclick="submitPollUI()">📊 Anketi Başlat</button>
+    </div>
+  `,
+  
+  imageGen: () => `
+    <h2>🖼️ Görsel Oluştur</h2>
+    <div class="image-gen-form">
+      <input class="mi" id="modalImgPrompt" placeholder="Görsel açıklaması yazın..." maxlength="500" onkeydown="if(event.key==='Enter')generateImageUI()">
+      <div class="image-gen-options">
+        <select class="ms" id="imgSize">
+          <option value="1024x1024">1024×1024 (Kare)</option>
+          <option value="1024x768">1024×768 (Yatay)</option>
+          <option value="768x1024">768×1024 (Dikey)</option>
+          <option value="512x512">512×512 (Küçük)</option>
+        </select>
+      </div>
+      <button class="mb" onclick="generateImageUI()">🎨 Oluştur</button>
+      <div id="imgLoading" style="display:none;text-align:center;padding:20px">
+        <div class="spin" style="margin:0 auto"></div>
+        <p style="color:var(--t3);font-size:12px;margin-top:8px">Oluşturuluyor...</p>
+      </div>
+      <img id="modalImgResult" style="display:none;width:100%;border-radius:12px;margin-top:12px;cursor:pointer" onclick="viewFullImage(this.src)">
+      <div id="imgActions" style="display:none;margin-top:8px;gap:8px">
+        <button class="mb sec" onclick="sendImageToChat()">📨 Sohbete Gönder</button>
+        <button class="mb sec" onclick="downloadImage()">⬇️ İndir</button>
+      </div>
+    </div>
+  `,
+  
+  dm: () => `
+    <h2>💬 Direkt Mesajlar</h2>
+    <div class="dm-search">
+      <input class="mi" id="dmSearch" placeholder="DM ara..." oninput="filterDMList(this.value)">
+    </div>
+    <div id="dmListContainer">
+      ${Store.dmFriends.length === 0 ? '<p style="color:var(--t3);text-align:center;padding:20px">Henüz DM yok</p>' : 
+        Store.dmFriends.map(f => `
+          <div class="mitem dm-mitem" onclick="startDM('${f.username}')">
+            <div class="mav">${f.username.charAt(0).toUpperCase()}</div>
+            <div class="minfo">
+              <div class="mname">${f.username}</div>
+              <div class="msub">${f.last || 'DM başlat'}</div>
+            </div>
+            <div class="dm-mitem-actions">
+              ${f.unread > 0 ? `<span class="ub">${f.unread}</span>` : ''}
+              <button class="ib" onclick="event.stopPropagation();removeFriend('${f.username}')" title="Arkadaşlıktan Çıkar">×</button>
+            </div>
+          </div>
+        `).join('')
+      }
+    </div>
+  `,
+  
+  profile: () => `
+    <h2>👤 Profil</h2>
+    <div style="text-align:center">
+      <div class="avatar-big">${Store.user?.username?.charAt(0)?.toUpperCase() || '?'}</div>
+      <h3 style="margin-top:12px">${Store.user?.username || 'Kullanıcı'}</h3>
+      <p style="color:var(--t3);font-size:12px">${getHighestRole(Store.user?._id)?.name || 'Üye'}</p>
+    </div>
+    <div class="msep"></div>
+    <button class="mb sec" onclick="changeNickname(Store.user?._id, prompt('Yeni takma ad:'))">✏️ Takma Ad Değiştir</button>
+    <button class="mb sec" onclick="changePasswordUI()">🔒 Şifre Değiştir</button>
+    <button class="mb danger" onclick="if(confirm('Hesabınızı silmek istediğinize emin misiniz?'))deleteAccount(prompt('Şifrenizi girin:'))">🗑️ Hesabı Sil</button>
+  `,
+  
+  search: () => `
+    <h2>🔍 Arama</h2>
+    <input class="mi" id="searchInput" placeholder="Mesajlarda ara..." autofocus oninput="performSearch(this.value)">
+    <div id="searchResults" style="max-height:400px;overflow-y:auto"></div>
+  `,
+  
+  serverSettings: () => `
+    <h2>⚙️ Sunucu Ayarları</h2>
+    <label class="ml">Sunucu Adı</label>
+    <input class="mi" id="svName" value="${Store.serverSettings.name}" placeholder="Sunucu adı">
+    <label class="ml">Açıklama</label>
+    <input class="mi" id="svDesc" value="${Store.serverSettings.description || ''}" placeholder="Açıklama">
+    <button class="mb" onclick="updateServerSettings()">💾 Kaydet</button>
+  `,
+  
+  roles: () => `
+    <h2>🛡️ Roller</h2>
+    <div id="roleList">
+      ${Store.roles.map(r => `
+        <div class="mitem" style="justify-content:space-between">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="width:12px;height:12px;border-radius:50%;background:${r.color}"></div>
+            <span>${r.name}</span>
+            <span style="font-size:9px;color:var(--t3)">(${Object.values(r.permissions).filter(Boolean).length} yetki)</span>
+          </div>
+          ${r.editable ? `<button class="ib" onclick="editRoleUI('${r.id}')">✏️</button>` : ''}
+        </div>
+      `).join('')}
+    </div>
+    <button class="mb sec" onclick="createRoleUI()">+ Rol Ekle</button>
+  `,
+  
+  imageView: () => `<div style="text-align:center"><img src="${window._viewImage}" style="max-width:100%;max-height:80vh;border-radius:12px"></div>`,
+  
+  default: (type) => `<h2>📋 ${type}</h2><p style="color:var(--t3)">Bu bölüm yapım aşamasında...</p>`
+};
 
 function openModal(type) {
   const modal = document.getElementById('modal');
   const content = document.getElementById('modalContent');
   if (!modal || !content) return;
   
+  const template = MODAL_TEMPLATES[type] || MODAL_TEMPLATES.default;
+  content.innerHTML = typeof template === 'function' ? template(type) : template;
+  
   modal.classList.remove('hidden');
   modal.classList.add('show');
   
-  switch(type) {
-    case 'addChannel':
-      content.innerHTML = `<h2>Kanal Oluştur</h2><input class="mi" id="modalChName" placeholder="Kanal adı"><button class="mb" onclick="createChannel(document.getElementById('modalChName').value,'text','METİN')">Oluştur</button>`;
-      break;
-    case 'addFriend':
-      content.innerHTML = `<h2>Arkadaş Ekle</h2><input class="mi" id="modalFrName" placeholder="Kullanıcı adı"><button class="mb" onclick="addFriend(document.getElementById('modalFrName').value)">Ekle</button>`;
-      break;
-    case 'theme':
-      content.innerHTML = `<h2>Tema</h2><div class="color-row">${['#c94d8c','#6366f1','#22c55e','#f59e0b','#ec4899','#3b82f6'].map(c => `<div class="color-swatch" style="background:${c}" onclick="setTheme('${c}')"></div>`).join('')}</div>`;
-      break;
-    case 'poll':
-      content.innerHTML = `<h2>Anket</h2><input class="mi" id="modalPollQ" placeholder="Soru"><input class="mi" id="modalPollO1" placeholder="Seçenek 1"><input class="mi" id="modalPollO2" placeholder="Seçenek 2"><button class="mb" onclick="createPoll(document.getElementById('modalPollQ').value,[document.getElementById('modalPollO1').value,document.getElementById('modalPollO2').value])">Başlat</button>`;
-      break;
-    case 'imageGen':
-      content.innerHTML = `<h2>Görsel Oluştur</h2><input class="mi" id="modalImgPrompt" placeholder="Görsel açıklaması..."><button class="mb" onclick="generateImage(document.getElementById('modalImgPrompt').value)">Oluştur</button><img id="modalImgResult" style="width:100%;border-radius:12px;margin-top:12px">`;
-      break;
-    case 'dm':
-      content.innerHTML = `<h2>DM</h2>${Store.dmFriends.length===0?'<p style="color:var(--t3)">Henüz DM yok</p>':Store.dmFriends.map(f=>`<div class="mitem" onclick="startDM('${f.username}')"><div class="mav">${f.username.charAt(0).toUpperCase()}</div><div class="minfo"><div class="mname">${f.username}</div><div class="msub">${f.last||'DM başlat'}</div></div></div>`).join('')}`;
-      break;
-    case 'profile':
-      content.innerHTML = `<h2>${Store.user?.username}</h2><p>Profil yakında...</p>`;
-      break;
-    default:
-      content.innerHTML = `<h2>${type}</h2><p>Yakında...</p>`;
-  }
+  // İlk input'a odaklan
+  setTimeout(() => {
+    const firstInput = content.querySelector('input:not([type="hidden"])');
+    if (firstInput) firstInput.focus();
+  }, 100);
 }
 
 function closeModal() {
   const modal = document.getElementById('modal');
-  if (modal) { modal.classList.add('hidden'); modal.classList.remove('show'); }
+  if (modal) { 
+    modal.classList.add('hidden'); 
+    modal.classList.remove('show'); 
+  }
+  window._viewImage = null;
 }
 
+// ============ TEMA ============
 function setTheme(color) {
   Store.theme = color;
   saveStore();
   document.querySelector('.app')?.style.setProperty('--ac', color);
+  document.querySelector('.app')?.style.setProperty('--ac2', color);
   toast('Tema değiştirildi');
   closeModal();
 }
 
+function toggleLightMode() {
+  Store.lightMode = !Store.lightMode;
+  saveStore();
+  document.body.classList.toggle('light-mode', Store.lightMode);
+  closeModal();
+}
+
+function toggleCompactMode() {
+  Store.compactMode = !Store.compactMode;
+  saveStore();
+  document.body.classList.toggle('compact-mode', Store.compactMode);
+  closeModal();
+}
+
+// ============ SIDEBAR & PANEL ============
 function toggleSidebar() {
-  document.getElementById('sidebar')?.classList.toggle('open');
+  const sidebar = document.getElementById('sidebar');
+  if (sidebar) {
+    sidebar.classList.toggle('open');
+    Store.sidebarOpen = sidebar.classList.contains('open');
+    saveStore();
+  }
 }
 
 function togglePanel() {
   document.getElementById('userPanel')?.classList.toggle('hidden');
 }
 
-async function generateImage(prompt) {
-  if (!prompt || !prompt.trim()) return;
-  toast('🎨 Görsel oluşturuluyor...');
+// ============ GÖRSEL OLUŞTURMA ============
+async function generateImageUI() {
+  const prompt = document.getElementById('modalImgPrompt')?.value?.trim();
+  if (!prompt) return toast('Açıklama gerekli', 'e');
+  
+  const sizeEl = document.getElementById('imgSize');
+  const size = sizeEl?.value || '1024x1024';
+  const [width, height] = size.split('x');
+  
+  document.getElementById('imgLoading').style.display = 'block';
+  document.getElementById('modalImgResult').style.display = 'none';
+  document.getElementById('imgActions').style.display = 'none';
+  
   try {
     const res = await fetch(API + '/api/image', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt })
+      body: JSON.stringify({ prompt, width, height })
     });
     const data = await res.json();
+    
+    document.getElementById('imgLoading').style.display = 'none';
+    
     if (data.image) {
-      document.getElementById('modalImgResult').src = data.image;
-      Store.messages.push({
-        _id: genId(), content: '🎨 ' + prompt,
-        senderName: Store.user.username, senderId: Store.user._id,
-        channelId: Store.activeChannel, createdAt: new Date().toISOString(), image: data.image
-      });
-      renderMessages();
+      const img = document.getElementById('modalImgResult');
+      img.src = data.image;
+      img.style.display = 'block';
+      document.getElementById('imgActions').style.display = 'flex';
+      window._generatedImage = data.image;
       toast('✅ Görsel oluşturuldu');
-    } else toast('Görsel oluşturulamadı', 'e');
-  } catch(e) { toast('Bağlantı hatası', 'e'); }
-                                 }
+    } else {
+      toast('Görsel oluşturulamadı', 'e');
+    }
+  } catch(e) { 
+    document.getElementById('imgLoading').style.display = 'none';
+    toast('Bağlantı hatası', 'e'); 
+  }
+}
+
+function sendImageToChat() {
+  if (!window._generatedImage) return;
+  Store.messages.push({
+    _id: genId(), content: '🖼️ Görsel',
+    senderName: Store.user.username, senderId: Store.user._id,
+    channelId: Store.activeChannel, createdAt: new Date().toISOString(),
+    image: window._generatedImage
+  });
+  renderMessages();
+  saveStore();
+  closeModal();
+  toast('📨 Görsel sohbete gönderildi');
+}
+
+function downloadImage() {
+  if (!window._generatedImage) return;
+  const a = document.createElement('a');
+  a.href = window._generatedImage;
+  a.download = 'gettic-image-' + Date.now() + '.png';
+  a.click();
+}
+
+function viewFullImage(src) {
+  window._viewImage = src;
+  openModal('imageView');
+}
+
+// ============ ARAMA ============
+function performSearch(query) {
+  const container = document.getElementById('searchResults');
+  if (!container) return;
+  
+  if (!query || query.trim().length < 2) {
+    container.innerHTML = '<p style="color:var(--t3);text-align:center;padding:20px">Aramak için en az 2 karakter yazın</p>';
+    return;
+  }
+  
+  const q = query.toLowerCase();
+  const results = Store.messages.filter(m => m.content.toLowerCase().includes(q)).slice(-30).reverse();
+  
+  if (results.length === 0) {
+    container.innerHTML = '<p style="color:var(--t3);text-align:center;padding:20px">Sonuç bulunamadı</p>';
+    return;
+  }
+  
+  container.innerHTML = results.map(m => `
+    <div class="mitem" onclick="jumpToMessage('${m._id}')">
+      <div class="mav">${(m.senderName||'?').charAt(0).toUpperCase()}</div>
+      <div class="minfo">
+        <div class="mname">${m.senderName}</div>
+        <div class="msub">${m.content.substring(0, 80)}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function jumpToMessage(mid) {
+  closeModal();
+  setTimeout(() => {
+    const el = document.getElementById('msg-' + mid);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.style.background = 'var(--acd)';
+      setTimeout(() => el.style.background = '', 2000);
+    }
+  }, 300);
+}
+
+// ============ DM FİLTRELEME ============
+function filterDMList(query) {
+  const container = document.getElementById('dmListContainer');
+  if (!container) return;
+  const q = query.toLowerCase();
+  const filtered = query ? Store.dmFriends.filter(f => f.username.toLowerCase().includes(q)) : Store.dmFriends;
+  container.innerHTML = filtered.length === 0 
+    ? '<p style="color:var(--t3);text-align:center;padding:20px">Sonuç bulunamadı</p>'
+    : filtered.map(f => `
+      <div class="mitem dm-mitem" onclick="startDM('${f.username}')">
+        <div class="mav">${f.username.charAt(0).toUpperCase()}</div>
+        <div class="minfo">
+          <div class="mname">${f.username}</div>
+          <div class="msub">${f.last || 'DM başlat'}</div>
+        </div>
+        ${f.unread > 0 ? `<span class="ub">${f.unread}</span>` : ''}
+      </div>
+    `).join('');
+}
+
+// ============ SUNUCU AYARLARI ============
+function updateServerSettings() {
+  const name = document.getElementById('svName')?.value?.trim();
+  const desc = document.getElementById('svDesc')?.value?.trim();
+  if (name) {
+    Store.serverSettings.name = name;
+    Store.serverSettings.description = desc || '';
+    document.getElementById('serverName').textContent = name;
+    saveStore();
+    toast('✅ Sunucu güncellendi');
+    closeModal();
+  }
+}
+
+// ============ POLL UI ============
+function addPollOptionUI() {
+  const container = document.getElementById('pollOptionsContainer');
+  if (!container) return;
+  if (container.children.length >= 10) return toast('En fazla 10 seçenek', 'e');
+  const div = document.createElement('div');
+  div.className = 'poll-option-row';
+  div.innerHTML = `<input class="mi" placeholder="Seçenek ${container.children.length+1}"><button class="poll-remove-opt" onclick="this.parentElement.remove()">×</button>`;
+  container.appendChild(div);
+}
+
+function submitPollUI() {
+  const question = document.getElementById('modalPollQ')?.value;
+  const options = [...document.querySelectorAll('#pollOptionsContainer input')].map(i => i.value).filter(v => v.trim());
+  const multiple = document.getElementById('pollMultiple')?.checked;
+  const anonymous = document.getElementById('pollAnonymous')?.checked;
+  const duration = parseInt(document.getElementById('pollDuration')?.value || '0');
+  
+  if (!question || question.trim().length < 3) return toast('Soru en az 3 karakter', 'e');
+  if (options.length < 2) return toast('En az 2 seçenek gerekli', 'e');
+  
+  createPoll(question, options, { multipleChoice: multiple, anonymous, duration });
+}
+
+function changePasswordUI() {
+  const oldP = prompt('Mevcut şifreniz:');
+  if (!oldP) return;
+  const newP = prompt('Yeni şifreniz:');
+  if (!newP || newP.length < 4) return toast('Şifre en az 4 karakter', 'e');
+  changePassword(oldP, newP).then(() => toast('✅ Şifre değiştirildi')).catch(e => toast(e.message, 'e'));
+              }
