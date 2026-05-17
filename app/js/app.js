@@ -274,12 +274,15 @@ $('retryBtn').onclick = () => { if(socket) socket.connect(); };
 if (Store.token) {
   loadUser().then(u => { 
     if (u) {
-      const saved = localStorage.getItem('gt_messages');
-      if (saved && !Store.messages.length) {
-        try { Store.messages = JSON.parse(saved); } catch(e) {}
-      }
-      showMain(); 
+      showMain();
+    } else {
+      // Token geçersizse login ekranını göster
+      document.getElementById('ls')?.classList.add('hide');
+      document.getElementById('loginScreen')?.classList.remove('hidden');
     }
+  }).catch(() => {
+    document.getElementById('ls')?.classList.add('hide');
+    document.getElementById('loginScreen')?.classList.remove('hidden');
   });
 }
 
