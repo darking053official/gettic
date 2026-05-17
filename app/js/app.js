@@ -1,124 +1,163 @@
-// ============ INIT ============
-document.getElementById('ls')?.classList.add('hide');
-document.getElementById('loginScreen')?.classList.remove('hidden');
+// ============ GETTIC APP.JS - FULL ============
+console.log('🚀 Gettic başlatılıyor...');
 
+// ============ DOM REFS ============
+const $ = (id) => document.getElementById(id);
+const ls = $('ls');
+const loginScreen = $('loginScreen');
+const mainScreen = $('mainScreen');
+const authUsername = $('authUsername');
+const authPassword = $('authPassword');
+const authSubmit = $('authSubmit');
+const authError = $('authError');
+const tabLogin = $('tabLogin');
+const tabRegister = $('tabRegister');
+const messagesEl = $('messages');
+const messageInput = $('messageInput');
+const sendBtn = $('sendBtn');
+const displayName = $('displayName');
+const avatar = $('avatar');
+const serverName = $('serverName');
+const channelName = $('channelName');
+const channelList = $('channelList');
+const sidebar = $('sidebar');
+const userPanel = $('userPanel');
+const modal = $('modal');
+const modalContent = $('modalContent');
+const modalClose = $('modalClose');
+const toastEl = $('toast');
+const emojiPanel = $('emojiPanel');
+const typing = $('typing');
+const connbar = $('connbar');
+
+// ============ STATE ============
 let tab = 'login';
 let socket = null;
-let user = null;
+
+// ============ INIT ============
+setTimeout(() => { ls?.classList.add('hide'); loginScreen?.classList.remove('hidden'); }, 500);
 
 // ============ AUTH ============
-document.getElementById('tabLogin').onclick = () => { tab='login'; updateAuthUI(); };
-document.getElementById('tabRegister').onclick = () => { tab='register'; updateAuthUI(); };
-
+tabLogin.onclick = () => { tab='login'; updateAuthUI(); };
+tabRegister.onclick = () => { tab='register'; updateAuthUI(); };
 function updateAuthUI() {
-  document.getElementById('tabLogin').classList.toggle('act', tab==='login');
-  document.getElementById('tabRegister').classList.toggle('act', tab==='register');
-  document.getElementById('authSubmit').textContent = tab==='login'?'Giriş':'Kayıt';
+  tabLogin.classList.toggle('act', tab==='login');
+  tabRegister.classList.toggle('act', tab==='register');
+  authSubmit.textContent = tab==='login'?'Giriş':'Kayıt';
 }
 
-document.getElementById('authSubmit').onclick = async () => {
-  const u = document.getElementById('authUsername').value.trim();
-  const p = document.getElementById('authPassword').value.trim();
-  const err = document.getElementById('authError');
-  
-  if (!u||u.length<3) { err.textContent='Kullanıcı adı en az 3 karakter'; err.style.display='block'; return; }
-  if (!p||p.length<4) { err.textContent='Şifre en az 4 karakter'; err.style.display='block'; return; }
-  err.style.display='none';
-  
+authSubmit.onclick = async () => {
+  const u = authUsername.value.trim();
+  const p = authPassword.value.trim();
+  if (!u||u.length<3) { showAuthError('Kullanıcı adı en az 3 karakter'); return; }
+  if (!p||p.length<4) { showAuthError('Şifre en az 4 karakter'); return; }
+  authError.style.display='none';
   try {
-    user = await doAuth(tab, u, p);
-    if (user) showMain();
-  } catch(e) {
-    err.textContent = e.message;
-    err.style.display = 'block';
-  }
+    await doAuth(tab, u, p);
+    showMain();
+  } catch(e) { showAuthError(e.message); }
 };
+function showAuthError(msg) { authError.textContent=msg; authError.style.display='block'; }
+
+authPassword.onkeydown = (e) => { if(e.key==='Enter') authSubmit.click(); };
 
 function showMain() {
-  document.getElementById('loginScreen').classList.add('hidden');
-  document.getElementById('mainScreen').classList.remove('hidden');
-  document.getElementById('mainScreen').classList.add('flex');
-  document.getElementById('displayName').textContent = Store.user.username;
-  document.getElementById('avatar').textContent = Store.user.username.charAt(0).toUpperCase();
-  document.getElementById('serverName').textContent = Store.serverSettings.name;
-  
+  loginScreen.classList.add('hidden');
+  mainScreen.classList.remove('hidden','flex');
+  mainScreen.classList.add('flex');
+  displayName.textContent = Store.user?.username || '';
+  avatar.textContent = Store.user?.username?.charAt(0)?.toUpperCase() || 'G';
+  serverName.textContent = Store.serverSettings?.name || 'Gettic';
+  channelName.textContent = Store.activeChannel || 'genel-sohbet';
   renderChannels();
   renderMessages();
   initEmojiPanel();
   connectSocket();
+  saveStore();
 }
-
-// ============ MESAJ ============
-document.getElementById('sendBtn').onclick = sendMessage;
-document.getElementById('messageInput').onkeydown = (e) => {
-  if (e.key==='Enter'&&!e.shiftKey) { e.preventDefault(); sendMessage(); }
-};
 
 // ============ LOGOUT ============
-document.getElementById('logoutBtn').onclick = logout;
-document.getElementById('panelLogoutBtn').onclick = logout;
+$('logoutBtn').onclick = logout;
+$('panelLogoutBtn').onclick = logout;
 
-// ============ SIDEBAR ============
-document.getElementById('addChannelBtn').onclick = () => openModal('addChannel');
-document.getElementById('themeBtn').onclick = () => openModal('theme');
-document.getElementById('dmBtn').onclick = () => openModal('dm');
-document.getElementById('emojiBtn').onclick = toggleEmoji;
-document.getElementById('imageBtn').onclick = () => openModal('imageGen');
-document.getElementById('pollBtn').onclick = () => openModal('poll');
-document.getElementById('modalClose').onclick = closeModal;
-document.getElementById('modal').onclick = (e) => { if(e.target===e.currentTarget) closeModal(); };
+// ============ MESAJ ============
+sendBtn.onclick = sendMessage;
+sendBtn.addEventListener('touchend', (e) => { e.preventDefault(); sendMessage(); });
+messageInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+
+// ============ SIDEBAR TOGGLE ============
+$('toggleSidebarBtn').onclick = () => sidebar.classList.toggle('open');
+$('togglePanelBtn').onclick = () => userPanel.classList.toggle('hidden');
+
+// ============ MODALS ============
+modalClose.onclick = closeModal;
+$('addChannelBtn').onclick = () => openModal('addChannel');
+$('themeBtn').onclick = () => openModal('theme');
+$('dmBtn').onclick = () => openModal('dm');
+$('imageBtn').onclick = () => openModal('imageGen');
+$('pollBtn').onclick = () => openModal('poll');
+$('searchBtn').onclick = () => openModal('search');
 
 // Panel butonları
-document.getElementById('panelDmBtn').onclick = () => openModal('dm');
-document.getElementById('panelAddFriendBtn').onclick = () => openModal('addFriend');
-document.getElementById('panelThemeBtn').onclick = () => openModal('theme');
-document.getElementById('panelPollBtn').onclick = () => openModal('poll');
+$('panelDmBtn').onclick = () => openModal('dm');
+$('panelAddFriendBtn').onclick = () => openModal('addFriend');
+$('panelThemeBtn').onclick = () => openModal('theme');
+$('panelPollBtn').onclick = () => openModal('poll');
+$('panelSearchBtn').onclick = () => openModal('search');
+$('panelClearBtn').onclick = clearMessages;
 
 // ============ EMOJI ============
+$('emojiBtn').onclick = () => emojiPanel.classList.toggle('hidden');
 function initEmojiPanel() {
-  const emojis = ['😀','😂','❤️','👍','🔥','🎉','🥳','😎','💯','✅','👋','🙏','🎮','✨','😢','😡','🤔','💻','📱','🌍'];
-  const grid = document.getElementById('emojiPanel');
-  grid.innerHTML = emojis.map(e => `<span class="es" onclick="insertEmoji('${e}')">${e}</span>`).join('');
+  const emojis = ['😀','😂','❤️','👍','🔥','🎉','🥳','😎','💯','✅','👋','🙏','🎮','✨','😢','😡','🤔','💻','📱','🌍','🎵','⭐','💎','🍕','🚀'];
+  emojiPanel.innerHTML = '<div class="egrid">'+emojis.map(e => `<span class="es" onclick="insertEmoji('${e}')">${e}</span>`).join('')+'</div>';
 }
-
-function toggleEmoji() {
-  document.getElementById('emojiPanel').classList.toggle('hidden');
-}
-
 function insertEmoji(emoji) {
-  const inp = document.getElementById('messageInput');
-  inp.value += emoji;
-  inp.focus();
-  document.getElementById('emojiPanel').classList.add('hidden');
+  messageInput.value += emoji;
+  messageInput.focus();
+  emojiPanel.classList.add('hidden');
 }
 
 // ============ SOCKET ============
 function connectSocket() {
   if (!Store.token||typeof io==='undefined') return;
-  socket = io(API, { auth: { token: Store.token } });
+  if (socket) socket.disconnect();
+  socket = io(API, { auth: { token: Store.token }, transports: ['websocket','polling'] });
   window._socket = socket;
-  socket.on('connect', () => socket.emit('join_channel', Store.activeChannel));
+  socket.on('connect', () => {
+    socket.emit('join_channel', Store.activeChannel);
+    connbar.style.height = '0';
+  });
   socket.on('new_message', (msg) => {
     if (msg.channelId===Store.activeChannel&&msg.senderId!==Store.user?._id) {
       Store.messages.push(msg);
       if (Store.messages.length>MAX_MSGS) Store.messages.shift();
       renderMessages();
+      saveStore();
     }
   });
-  socket.on('disconnect', () => toast('Bağlantı koptu','e'));
+  socket.on('disconnect', () => {
+    connbar.style.height = '28px';
+    toast('Bağlantı koptu','e');
+  });
 }
+$('retryBtn').onclick = () => { if(socket) socket.connect(); };
 
 // ============ LOAD USER ============
 if (Store.token) {
-  loadUser().then(u => {
-    if (u) showMain();
-  });
+  loadUser().then(u => { if (u) showMain(); });
 }
 
 // ============ KEYBOARD SHORTCUTS ============
 document.addEventListener('keydown', (e) => {
-  if (e.ctrlKey && e.key === 'k') { e.preventDefault(); openModal('search'); }
-  if (e.key === 'Escape') { closeModal(); document.getElementById('emojiPanel')?.classList.add('hidden'); }
+  if (e.ctrlKey && e.key==='k') { e.preventDefault(); openModal('search'); }
+  if (e.key==='Escape') { closeModal(); emojiPanel.classList.add('hidden'); }
 });
 
-console.log('✅ Gettic başlatıldı - 300+ özellik hazır');
+// ============ ONLINE/OFFLINE ============
+window.addEventListener('online', () => { Store.isOnline=true; connbar.style.height='0'; });
+window.addEventListener('offline', () => { Store.isOnline=false; connbar.style.height='28px'; });
+
+console.log('✅ Gettic App');
