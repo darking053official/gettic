@@ -41,21 +41,15 @@
     <div id="ls"><div class="spin"></div><div class="ls-logo">gettic</div></div>
     
     <div id="root" v-cloak>
-        <!-- GİRİŞ EKRANI -->
-        <div v-if="!store.user" class="auth-wrap">
-            <div class="auth-box">
-                <img src="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png" class="auth-logo" alt="Gettic">
-                <div class="auth-title">gettic</div>
-                <div class="auth-sub">Türkçe sohbet platformu</div>
-                <div class="auth-tabs">
-                    <button :class="['auth-tab', tab==='login'?'act':'']" @click="tab='login'">Giriş</button>
-                    <button :class="['auth-tab', tab==='register'?'act':'']" @click="tab='register'">Kayıt</button>
-                </div>
-                <input class="mi" v-model="username" placeholder="Kullanıcı adı" @keydown.enter="submitAuth">
-                <input class="mi" type="password" v-model="password" placeholder="Şifre" @keydown.enter="submitAuth">
-                <button class="mb" @click="submitAuth">{{ tab === 'login' ? 'Giriş' : 'Kayıt' }}</button>
-            </div>
-        </div>
+        <!-- GİRİŞ EKRANI - test için -->
+<div v-if="!store.user" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#faf6f0;z-index:999">
+    <div style="background:white;padding:40px;border-radius:20px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.1)">
+        <h2 style="margin-bottom:20px">Gettic</h2>
+        <input v-model="username" placeholder="Kullanıcı adı" style="display:block;width:100%;padding:12px;margin-bottom:10px;border:1px solid #ddd;border-radius:10px;font-size:16px">
+        <input v-model="password" type="password" placeholder="Şifre" style="display:block;width:100%;padding:12px;margin-bottom:10px;border:1px solid #ddd;border-radius:10px;font-size:16px">
+        <button @click="submitAuth" style="width:100%;padding:14px;background:#c94d8c;color:white;border:none;border-radius:10px;font-size:16px;font-weight:bold">Giriş</button>
+    </div>
+</div>
         
         <!-- ANA ARAYÜZ -->
         <div v-else class="app" :style="{'--ac': store.theme}">
