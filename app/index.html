@@ -30,7 +30,7 @@
                 <div class="auth-sub">Türkçe sohbet platformu</div>
                 <input class="mi" data-app-target="username" placeholder="Kullanıcı adı">
                 <input class="mi" type="password" data-app-target="password" placeholder="Şifre" data-action="keydown.enter->app#login">
-                <button class="mb" data-action="click->app#login">Giriş</button>
+                <button class="mb" onclick="document.querySelector('[data-controller=app]').__x.$controller.submitAuth()">Giriş</button>
             </div>
         </div>
 
