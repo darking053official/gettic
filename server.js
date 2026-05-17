@@ -383,6 +383,42 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date() });
 });
 
+// ==================== KULLANICI ENDPOINT'LERİ ====================
+
+// Tüm kullanıcıları getir
+app.get('/api/users', async (req, res) => {
+    try {
+        const users = await User.find({}, 'username createdAt').sort({ createdAt: -1 }).limit(50);
+        res.json(users);
+    } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Son kayıtlı kullanıcılar
+app.get('/api/users/recent', async (req, res) => {
+    try {
+        const limit = parseInt(req.query.limit) || 10;
+        const users = await User.find({}, 'username createdAt').sort({ createdAt: -1 }).limit(limit);
+        res.json(users);
+    } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Kullanıcı ara
+app.get('/api/users/search', async (req, res) => {
+    try {
+        const q = req.query.q || '';
+        const users = await User.find({ username: { $regex: q, $options: 'i' } }, 'username').limit(20);
+        res.json(users);
+    } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Arkadaş önerileri
+app.get('/api/users/suggestions', authMiddleware, async (req, res) => {
+    try {
+        const users = await User.find({ _id: { $ne: req.userId } }, 'username createdAt').sort({ createdAt: -1 }).limit(10);
+        res.json(users);
+    } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 // ==================== GÖRSEL OLUŞTURMA ====================
 
 app.post('/api/image', async (req, res) => {
