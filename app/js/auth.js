@@ -1,7 +1,6 @@
 async function doLogin(username, password) {
   const res = await fetch(API + '/api/auth/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ username, password })
   });
   const data = await res.json();
@@ -15,8 +14,7 @@ async function doLogin(username, password) {
 
 async function doRegister(username, password) {
   const res = await fetch(API + '/api/auth/register', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ username, password })
   });
   const data = await res.json();
@@ -26,10 +24,4 @@ async function doRegister(username, password) {
     return data.user;
   }
   throw new Error(data.error || 'Kayıt başarısız');
-}
-
-function logout() {
-  localStorage.removeItem('gt_token');
-  localStorage.removeItem('gt_user');
-  location.reload();
 }
