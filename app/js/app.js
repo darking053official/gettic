@@ -77,6 +77,7 @@ function hideInputs() {
 }
 
 function handleRoute(path) {
+  console.log('🔄 Route işleniyor:', path);
   hideAll();
   showInputs();
   
@@ -219,3 +220,8 @@ if('serviceWorker' in navigator){
 }
 
 console.log('✅ App.js yüklendi');
+
+// Sayfa yüklendiğinde route'u işle
+const currentPath = location.pathname.replace('/app', '') || '/';
+console.log('📍 Current path:', currentPath);
+handleRoute(currentPath);
