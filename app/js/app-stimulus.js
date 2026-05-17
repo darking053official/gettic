@@ -2,16 +2,12 @@ class AppController extends Stimulus.Controller {
   static targets = ["login", "main", "username", "password", "messages", "input", "displayName", "avatar", "sidebar"];
 
   connect() {
-    document.getElementById('ls')?.remove();
-    this.token = localStorage.getItem('gt_token');
-    if (this.token) {
-      fetch(API + '/api/me', { headers: { 'Authorization': 'Bearer ' + this.token } })
-        .then(r => r.json())
-        .then(user => {
-          if (user && user._id) {
-            this.user = user;
-            this.showMain();
-          }
+    console.log('Connect çalıştı');
+    const ls = document.getElementById('ls');
+    if (ls) {
+        ls.style.display = 'none';
+        console.log('Loading kaldırıldı');
+    }
         });
     }
   }
