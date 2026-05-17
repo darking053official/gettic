@@ -23,16 +23,20 @@
 
     <div data-controller="app" id="root">
         <!-- GİRİŞ EKRANI -->
-        <div data-app-target="login" class="auth-wrap">
-            <div class="auth-box">
-                <img src="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png" class="auth-logo" alt="Gettic">
-                <div class="auth-title">gettic</div>
-                <div class="auth-sub">Türkçe sohbet platformu</div>
-                <input class="mi" data-app-target="username" placeholder="Kullanıcı adı">
-                <input class="mi" type="password" data-app-target="password" placeholder="Şifre" data-action="keydown.enter->app#login">
-                <button class="mb" onclick="document.querySelector('[data-controller=app]').__x.$controller.submitAuth()">Giriş</button>
-            </div>
+<div data-app-target="login" class="auth-wrap">
+    <div class="auth-box">
+        <img src="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png" class="auth-logo" alt="Gettic">
+        <div class="auth-title">gettic</div>
+        <div class="auth-sub">Türkçe sohbet platformu</div>
+        <div class="auth-tabs">
+            <button class="auth-tab act" onclick="window._app.setTab('login')">Giriş</button>
+            <button class="auth-tab" onclick="window._app.setTab('register')">Kayıt</button>
         </div>
+        <input class="mi" data-app-target="username" placeholder="Kullanıcı adı">
+        <input class="mi" type="password" data-app-target="password" placeholder="Şifre">
+        <button class="mb" onclick="window._app.submitAuth()">Giriş</button>
+    </div>
+</div>
 
         <!-- ANA ARAYÜZ -->
         <div data-app-target="main" class="app" style="display:none;--ac:#c94d8c">
