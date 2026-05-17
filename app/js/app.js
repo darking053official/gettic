@@ -1,4 +1,4 @@
-// ============ GETTIC APP.JS - FULL ROUTING SİSTEMİ ============
+// ============ GETTIC APP.JS - FULL & EKSİKSİZ ============
 console.log('🚀 Gettic başlatılıyor...');
 
 function $(id) { return document.getElementById(id); }
@@ -51,8 +51,6 @@ function showMain() {
   document.title='Gettic - '+(Store.user?.username||'Sohbet');
   if(typeof renderChannels==='function') renderChannels();
   if(typeof saveStore==='function') saveStore();
-  
-  // URL routing'i başlat
   handleRoute(location.pathname.replace('/app','')||'/');
 }
 
@@ -70,47 +68,33 @@ function navigateTo(path) {
 
 function handleRoute(path) {
   hideAll();
-  
   if (path==='/'||path==='') {
     $('homePanel').classList.remove('hidden');
     if(typeof loadFriendSuggestions==='function') loadFriendSuggestions();
-  }
-  else if (path==='/discover') {
+  } else if (path==='/discover') {
     $('chatArea').classList.remove('hidden');
     $('channelName').textContent='🔍 Keşfet';
-    $('messages').innerHTML='<div class="empty-ch"><h4>🔍 Keşfet</h4><p>Sunucuları keşfet</p></div>';
-  }
-  else if (path==='/settings') {
+  } else if (path==='/settings') {
     $('settingsPanel').classList.toggle('show');
-  }
-  else if (path.startsWith('/dm/')) {
-    const user=path.split('/')[2];
+  } else if (path.startsWith('/dm/')) {
     $('chatArea').classList.remove('hidden');
+    const user=path.split('/')[2];
     if(user&&typeof startDM==='function') startDM(user);
     else if(typeof openModal==='function') openModal('dm');
-  }
-  else if (path.startsWith('/server/')) {
+  } else if (path.startsWith('/server/')) {
     const parts=path.split('/');
-    const serverId=parts[2];
-    const type=parts[3];
-    const channelId=parts[4];
     $('sidebar').classList.remove('hidden');
     $('chatArea').classList.remove('hidden');
-    if(type==='chat'&&channelId&&typeof switchChannel==='function') switchChannel(channelId);
-    else if(type==='voice'&&channelId&&typeof joinVoice==='function') joinVoice(channelId);
+    if(parts[3]==='chat'&&parts[4]&&typeof switchChannel==='function') switchChannel(parts[4]);
+    else if(parts[3]==='voice'&&parts[4]&&typeof joinVoice==='function') joinVoice(parts[4]);
     else if(typeof switchChannel==='function') switchChannel('genel-sohbet');
-  }
-  else if (path.startsWith('/user/')) {
-    $('chatArea').classList.remove('hidden');
+  } else if (path.startsWith('/user/')) {
     if(typeof openModal==='function') openModal('profile');
-  }
-  else if (path==='/search') {
+  } else if (path==='/search') {
     if(typeof openModal==='function') openModal('search');
-  }
-  else if (path==='/notifications') {
+  } else if (path==='/notifications') {
     if(typeof openModal==='function') openModal('notifications');
-  }
-  else {
+  } else {
     $('homePanel').classList.remove('hidden');
   }
 }
@@ -121,46 +105,56 @@ function hideAll() {
   });
 }
 
-// Geri/ileri
 window.addEventListener('popstate',()=>{
   handleRoute(location.pathname.replace('/app','')||'/');
 });
 
 // ============ BUTONLAR ============
 function bindButtons() {
-  $('homeBtn')&&($('homeBtn').onclick=()=>navigateTo('/'));
-  $('discoverBtn')&&($('discoverBtn').onclick=()=>navigateTo('/discover'));
-  $('dmBtn')&&($('dmBtn').onclick=()=>navigateTo('/dm/'));
-  $('createServerBtn')&&($('createServerBtn').onclick=()=>{if(typeof openModal==='function')openModal('addServer')});
-  $('homeSettingsBtn')&&($('homeSettingsBtn').onclick=()=>navigateTo('/settings'));
-  $('chatSettingsBtn')&&($('chatSettingsBtn').onclick=()=>navigateTo('/settings'));
-  $('homeNotificationsBtn')&&($('homeNotificationsBtn').onclick=()=>navigateTo('/notifications'));
+  // Ana navigasyon
+  $('homeBtn')?.setAttribute('onclick',''); $('homeBtn')?.addEventListener('click',()=>navigateTo('/'));
+  $('discoverBtn')?.setAttribute('onclick',''); $('discoverBtn')?.addEventListener('click',()=>navigateTo('/discover'));
+  $('dmBtn')?.setAttribute('onclick',''); $('dmBtn')?.addEventListener('click',()=>navigateTo('/dm/'));
+  $('createServerBtn')?.setAttribute('onclick',''); $('createServerBtn')?.addEventListener('click',()=>{if(typeof openModal==='function')openModal('addServer')});
+  $('homeSettingsBtn')?.setAttribute('onclick',''); $('homeSettingsBtn')?.addEventListener('click',()=>navigateTo('/settings'));
+  $('chatSettingsBtn')?.setAttribute('onclick',''); $('chatSettingsBtn')?.addEventListener('click',()=>navigateTo('/settings'));
+  $('homeNotificationsBtn')?.setAttribute('onclick',''); $('homeNotificationsBtn')?.addEventListener('click',()=>navigateTo('/notifications'));
   
-  $('addCategoryBtn')&&($('addCategoryBtn').onclick=()=>{if(typeof openModal==='function')openModal('addCategory')});
-  $('addChannelSidebarBtn')&&($('addChannelSidebarBtn').onclick=()=>{if(typeof openModal==='function')openModal('addChannel')});
-  $('sidebarUserBtn')&&($('sidebarUserBtn').onclick=()=>navigateTo('/me'));
+  // Sidebar
+  $('addCategoryBtn')?.setAttribute('onclick',''); $('addCategoryBtn')?.addEventListener('click',()=>{if(typeof openModal==='function')openModal('addCategory')});
+  $('addChannelSidebarBtn')?.setAttribute('onclick',''); $('addChannelSidebarBtn')?.addEventListener('click',()=>{if(typeof openModal==='function')openModal('addChannel')});
+  $('sidebarUserBtn')?.setAttribute('onclick',''); $('sidebarUserBtn')?.addEventListener('click',()=>navigateTo('/me'));
   
-  $('toggleSidebarBtn')&&($('toggleSidebarBtn').onclick=()=>$('sidebar').classList.toggle('open'));
-  $('togglePanelBtn')&&($('togglePanelBtn').onclick=()=>$('userPanel').classList.toggle('hidden'));
+  // Toggle
+  $('toggleSidebarBtn')?.setAttribute('onclick',''); $('toggleSidebarBtn')?.addEventListener('click',()=>{$('sidebar')?.classList.toggle('open')});
+  $('togglePanelBtn')?.setAttribute('onclick',''); $('togglePanelBtn')?.addEventListener('click',()=>{$('userPanel')?.classList.toggle('hidden')});
   
-  $('searchBtn')&&($('searchBtn').onclick=()=>navigateTo('/search'));
-  $('sendBtn')&&($('sendBtn').onclick=()=>{if(typeof sendMessage==='function')sendMessage()});
-  $('emojiBtn')&&($('emojiBtn').onclick=()=>$('emojiPanel').classList.toggle('hidden'));
-  $('imageBtn')&&($('imageBtn').onclick=()=>{if(typeof openModal==='function')openModal('imageGen')});
-  $('pollBtn')&&($('pollBtn').onclick=()=>{if(typeof openModal==='function')openModal('poll')});
+  // Chat
+  $('searchBtn')?.setAttribute('onclick',''); $('searchBtn')?.addEventListener('click',()=>navigateTo('/search'));
+  $('sendBtn')?.setAttribute('onclick',''); $('sendBtn')?.addEventListener('click',()=>{if(typeof sendMessage==='function')sendMessage()});
+  $('emojiBtn')?.setAttribute('onclick',''); $('emojiBtn')?.addEventListener('click',()=>{$('emojiPanel')?.classList.toggle('hidden')});
+  $('imageBtn')?.setAttribute('onclick',''); $('imageBtn')?.addEventListener('click',()=>{if(typeof openModal==='function')openModal('imageGen')});
+  $('pollBtn')?.setAttribute('onclick',''); $('pollBtn')?.addEventListener('click',()=>{if(typeof openModal==='function')openModal('poll')});
   
-  $('logoutBtn')&&($('logoutBtn').onclick=()=>{if(typeof logout==='function')logout()});
-  $('panelLogoutBtn')&&($('panelLogoutBtn').onclick=()=>{if(typeof logout==='function')logout()});
+  // Logout
+  $('logoutBtn')?.setAttribute('onclick',''); $('logoutBtn')?.addEventListener('click',()=>{if(typeof logout==='function')logout()});
+  $('panelLogoutBtn')?.setAttribute('onclick',''); $('panelLogoutBtn')?.addEventListener('click',()=>{if(typeof logout==='function')logout()});
   
-  // Panel butonları
-  const panelMap={panelProfileBtn:'profile',panelDmBtn:'dm',panelAddFriendBtn:'addFriend',panelThemeBtn:'theme',panelPollBtn:'poll',panelSearchBtn:'search',panelServerBtn:'serverSettings',panelRolesBtn:'roles'};
+  // Panel
+  const panelMap = {
+    panelProfileBtn:'profile', panelDmBtn:'dm', panelAddFriendBtn:'addFriend',
+    panelThemeBtn:'theme', panelPollBtn:'poll', panelSearchBtn:'search',
+    panelServerBtn:'serverSettings', panelRolesBtn:'roles'
+  };
   Object.entries(panelMap).forEach(([id,modal])=>{
-    $('id')&&($('id').onclick=()=>{if(typeof openModal==='function')openModal(modal)});
+    const btn = document.getElementById(id);
+    if(btn){ btn.setAttribute('onclick',''); btn.addEventListener('click',()=>{if(typeof openModal==='function')openModal(modal)}); }
   });
   
-  $('panelClearBtn')&&($('panelClearBtn').onclick=()=>{if(typeof clearMessages==='function')clearMessages()});
-  $('modalClose')&&($('modalClose').onclick=()=>{if(typeof closeModal==='function')closeModal()});
-  $('retryBtn')&&($('retryBtn').onclick=()=>{if(socket)socket.connect()});
+  // Diğer
+  $('panelClearBtn')?.setAttribute('onclick',''); $('panelClearBtn')?.addEventListener('click',()=>{if(typeof clearMessages==='function')clearMessages()});
+  $('modalClose')?.setAttribute('onclick',''); $('modalClose')?.addEventListener('click',()=>{if(typeof closeModal==='function')closeModal()});
+  $('retryBtn')?.setAttribute('onclick',''); $('retryBtn')?.addEventListener('click',()=>{if(socket)socket.connect()});
   
   // Mesaj input
   $('messageInput')?.addEventListener('keydown',(e)=>{
@@ -182,13 +176,18 @@ window.addEventListener('load',()=>setTimeout(bindButtons,300));
 if(document.readyState==='complete'||document.readyState==='interactive') setTimeout(bindButtons,100);
 
 // ============ ONLINE/OFFLINE ============
-window.addEventListener('online',()=>{Store.isOnline=true});
-window.addEventListener('offline',()=>{Store.isOnline=false});
+window.addEventListener('online',()=>{if(Store)Store.isOnline=true});
+window.addEventListener('offline',()=>{if(Store)Store.isOnline=false});
 
 // ============ KEYBOARD ============
 document.addEventListener('keydown',(e)=>{
   if(e.ctrlKey&&e.key==='k'){e.preventDefault();navigateTo('/search')}
   if(e.key==='Escape'){if(typeof closeModal==='function')closeModal();$('emojiPanel')?.classList.add('hidden')}
 });
+
+// ============ SERVICE WORKER ============
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('/service-worker.js').catch(()=>{});
+}
 
 console.log('✅ App.js yüklendi');
