@@ -9,7 +9,9 @@ class AppController extends Stimulus.Controller {
   ];
 
   connect() {
-    console.log('✅ Stimulus başladı');
+    console.log('🔥 CONNECT ÇALIŞTI');
+    window._app = this;
+    console.log('🔥 _app:', window._app);
     this.user = null;
     this.token = localStorage.getItem('gt_token');
     this.tab = 'login';
