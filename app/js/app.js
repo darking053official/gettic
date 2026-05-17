@@ -1,3 +1,8 @@
+// Auth fonksiyonlarını güvenceye al
+window._doAuth = typeof doAuth !== 'undefined' ? doAuth : null;
+window._logout = typeof logout !== 'undefined' ? logout : function() { location.reload(); };
+window._loadUser = typeof loadUser !== 'undefined' ? loadUser : async function() { return null; };
+
 // ============ DOM REFS ============
 const $ = (id) => document.getElementById(id);
 const ls = $('ls');
