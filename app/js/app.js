@@ -135,6 +135,75 @@ $('panelThemeBtn').onclick = () => openModal('theme');
 $('panelPollBtn').onclick = () => openModal('poll');
 $('panelSearchBtn').onclick = () => openModal('search');
 $('panelClearBtn').onclick = clearMessages;
+// Arkadaş önerileri - API'den gerçek kullanıcılar
+async function loadFriendSuggestions() {
+  const container = document.getElementById('friendSuggestions');
+  if (!container) return;
+  
+  if (!Store.token) {
+    container.innerHTML = '<p style="color:var(--t3);font-size:12px">Arkadaş önerileri için giriş yapın</p>';
+    return;
+  }
+  
+  try {
+    const res = await fetch(API + '/api/users/suggestions', {
+      headers: { 'Authorization': 'Bearer ' + Store.token }
+    });
+    
+    if (res.ok) {
+      const users = await res.json();
+      if (users.length === 0) {
+        container.innerHTML = '<p style="color:var(--t3);font-size:12px">Henüz öneri yok</p>';
+        return;
+      }
+      
+      container.innerHTML = users.map(u => `
+        <div class="friend-suggestion">
+          <div class="friend-suggestion-av">${(u.username||'?').charAt(0).toUpperCase()}</div>
+          <div class="friend-suggestion-info">
+            <div class="friend-suggestion-name">${u.username}</div>
+            <div class="friend-suggestion-mutual">${u.mutualFriends || 0} ortak arkadaş</div>
+          </div>
+          <button class="friend-suggestion-btn" onclick="addFriend('${u.username}')">Ekle</button>
+        </div>
+      `).join('');
+      
+    } else {
+      // API yoksa en son kayıtlı kullanıcıları getir
+      const usersRes = await fetch(API + '/api/users/recent?limit=5');
+      if (usersRes.ok) {
+        const users = await usersRes.json();
+        container.innerHTML = users.map(u => `
+          <div class="friend-suggestion">
+            <div class="friend-suggestion-av">${(u.username||'?').charAt(0).toUpperCase()}</div>
+            <div class="friend-suggestion-info">
+              <div class="friend-suggestion-name">${u.username}</div>
+              <div class="friend-suggestion-mutual">Yeni kullanıcı</div>
+            </div>
+            <button class="friend-suggestion-btn" onclick="addFriend('${u.username}')">Ekle</button>
+          </div>
+        `).join('');
+      }
+    }
+  } catch(e) {
+    // API yoksa en son mesaj atanları göster
+    const recentUsers = [...new Set(Store.messages.map(m => m.senderName).filter(n => n !== Store.user?.username))].slice(0, 5);
+    if (recentUsers.length === 0) {
+      container.innerHTML = '<p style="color:var(--t3);font-size:12px">Henüz öneri yok</p>';
+      return;
+    }
+    container.innerHTML = recentUsers.map(name => `
+      <div class="friend-suggestion">
+        <div class="friend-suggestion-av">${name.charAt(0).toUpperCase()}</div>
+        <div class="friend-suggestion-info">
+          <div class="friend-suggestion-name">${name}</div>
+          <div class="friend-suggestion-mutual">Sohbetten tanıyorsun</div>
+        </div>
+        <button class="friend-suggestion-btn" onclick="addFriend('${name}')">Ekle</button>
+      </div>
+    `).join('');
+  }
+}
 
 // ============ EMOJI ============
 $('emojiBtn').onclick = () => emojiPanel.classList.toggle('hidden');
