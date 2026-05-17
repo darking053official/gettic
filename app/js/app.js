@@ -166,6 +166,7 @@ function bindButtons() {
   $('searchBtn')?.addEventListener('click',()=>navigateTo('/search'));
   $('sendBtn')?.addEventListener('click',()=>{if(typeof sendMessage==='function')sendMessage()});
   $('emojiBtn')?.addEventListener('click',()=>$('emojiPanel')?.classList.toggle('hidden'));
+  $('gifBtn')?.addEventListener('click', () => { if (typeof openGifPicker === 'function') openGifPicker(); });
   $('imageBtn')?.addEventListener('click',()=>{if(typeof openModal==='function')openModal('imageGen')});
   $('pollBtn')?.addEventListener('click',()=>{if(typeof openModal==='function')openModal('poll')});
   
