@@ -43,14 +43,16 @@ function logout() {
   Store.token = null;
   Store.messages = [];
   Store.activeDM = null;
-  location.reload();
+  
+  // Login ekranına dön
+  document.getElementById('mainScreen').classList.add('hidden');
+  document.getElementById('loginScreen').classList.remove('hidden');
 }
 
 // Otomatik kullanıcı yükleme
 async function loadUser() {
   if (!Store.token) return null;
   
-  // Token süresi kontrolü
   try {
     const payload = JSON.parse(atob(Store.token.split('.')[1]));
     if (payload.exp * 1000 < Date.now()) {
@@ -88,7 +90,7 @@ async function loadUser() {
     }
   }
   return null;
-}
+        }
 
 // Şifre değiştirme
 async function changePassword(oldPass, newPass) {
