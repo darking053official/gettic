@@ -30,6 +30,15 @@ async function joinVoice(channelId) {
     leaveVoice();
     await new Promise(r => setTimeout(r, 300));
   }
+
+    // Ses ekranını göster
+  if (typeof navigateTo === 'function') {
+    navigateTo('/server/gettic/voice/' + channelId);
+  }
+  
+  toast('Ses kanalına katıldın');
+  return true;
+}
   
   try {
     // Ses kısıtlamaları
