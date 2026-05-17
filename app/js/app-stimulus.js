@@ -1,3 +1,5 @@
+console.clear();
+console.log('=== STIMULUS BAŞLADI ===');
 class AppController extends Stimulus.Controller {
   static targets = [
     "login", "main", "username", "password", "authBtn", "authError",
