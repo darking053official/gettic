@@ -17,7 +17,13 @@ async function doAuth(type, username, password) {
     Store.user = data.user;
     localStorage.setItem('gt_token', data.token);
     localStorage.setItem('gt_user', JSON.stringify(data.user));
-    saveStore();
+    
+    // Yeni kullanıcıya otomatik rol ata
+    if (!Store.userRoles[data.user._id]) {
+      Store.userRoles[data.user._id] = ['r4'];
+      saveStore();
+    }
+    
     return data.user;
   }
   
