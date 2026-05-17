@@ -284,14 +284,19 @@ if (Store.token) {
     if (u) {
       showMain();
     } else {
-      // Token geçersizse login ekranını göster
-      document.getElementById('ls')?.classList.add('hide');
-      document.getElementById('loginScreen')?.classList.remove('hidden');
+      showLogin();
     }
   }).catch(() => {
-    document.getElementById('ls')?.classList.add('hide');
-    document.getElementById('loginScreen')?.classList.remove('hidden');
+    showLogin();
   });
+} else {
+  showLogin();
+}
+
+function showLogin() {
+  document.getElementById('ls')?.classList.add('hide');
+  document.getElementById('loginScreen')?.classList.remove('hidden');
+  document.getElementById('mainScreen')?.classList.add('hidden');
 }
 
 // ============ BİLDİRİM İZNİ ============
