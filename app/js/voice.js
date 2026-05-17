@@ -277,8 +277,12 @@ function setVolume(vol) {
 
 // Sesten ayrıl
 function leaveVoice() {
+function leaveVoice() {
   if (voiceState.localStream) {
-    voiceState.localStream.getTracks().forEach(t => t.stop());
+    voiceState.localStream.getTracks().forEach(track => {
+      track.stop();  // Mikrofonu kapat
+    });
+    voiceState.localStream = null;
   }
   voiceState.peerConnections.forEach(pc => pc.close());
   voiceState.peerConnections.clear();
@@ -287,24 +291,23 @@ function leaveVoice() {
   voiceState.remoteStreams.clear();
   voiceState.participants.clear();
   
-  if (audioContext) {
-    audioContext.close();
-    audioContext = null;
-  }
-  
   voiceState.isInVoice = false;
   voiceState.activeChannelId = null;
-  voiceState.localStream = null;
   voiceState.isMuted = false;
   voiceState.isDeafened = false;
   
   hideVoicePanel();
   
   if (window._socket) {
-    window._socket.emit('voice_leave', { channel: voiceState.activeChannelId });
+    window._socket.emit('voice_leave');
   }
   
-  toast('Sesten ayrıldın');
+  // Ana sayfaya dön
+  if (typeof navigateTo === 'function') {
+    navigateTo('/');
+  }
+  
+  toast('Ses kanalından ayrıldın');
 }
 
 // Ekran paylaşımı
