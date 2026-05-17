@@ -1,20 +1,25 @@
-async function sendMessage() {
-  if (!store.input.trim() || !store.user) return;
-  const msg = {
-    _id: genId(),
-    content: store.input.trim(),
-    senderName: store.user.username,
-    senderId: store.user._id,
-    channelId: store.activeChannel.id,
-    createdAt: new Date().toISOString()
-  };
-  store.messages.push(msg);
-  store.input = '';
-  
-  if (socket) socket.emit('send_message', msg);
+function formatTime(d) {
+  try { return new Date(d).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }); }
+  catch(e) { return ''; }
 }
 
-function deleteMessage(mid) {
-  store.messages = store.messages.filter(m => m._id !== mid);
-  toast('Silindi');
+function formatMsg(t) {
+  if (!t) return '';
+  return t.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/\*(.+?)\*/g, '<i>$1</i>');
+}
+
+function createMessageElement(msg, isOwn) {
+  const div = document.createElement('div');
+  div.className = 'msg';
+  div.innerHTML = `
+    <div class="msg-av">${msg.senderName?.charAt(0)?.toUpperCase() || '?'}</div>
+    <div class="msg-body">
+      <div class="msg-head">
+        <span>${msg.senderName || '?'}</span>
+        <span class="msg-time">${formatTime(msg.createdAt)}</span>
+      </div>
+      <div class="msg-text">${formatMsg(msg.content)}</div>
+    </div>
+  `;
+  return div;
 }
