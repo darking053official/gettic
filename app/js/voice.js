@@ -1,4 +1,5 @@
-// Ses state
+// ============ GETTIC VOICE.JS - GERÇEK SESLİ KANAL ============
+
 let voiceState = {
   localStream: null,
   peerConnections: new Map(),
@@ -10,70 +11,43 @@ let voiceState = {
   isDeafened: false,
   isSpeaking: false,
   volume: 100,
-  inputDevice: 'default',
-  outputDevice: 'default',
-  noiseSuppression: true,
-  echoCancellation: true,
-  autoGainControl: true,
-  bitrate: 64000,
-  participants: new Map(), // userId -> { username, speaking, muted, deafened }
+  participants: new Map(),
   screenStream: null,
   isScreenSharing: false,
   pushToTalk: false,
-  pushToTalkKey: 'Space',
-  vadLevel: -50 // dB, ses aktivite algılama seviyesi
+  pushToTalkKey: 'Space'
 };
 
 // Ses kanalına katıl
 async function joinVoice(channelId) {
   if (voiceState.isInVoice) {
     leaveVoice();
-    await new Promise(r => setTimeout(r, 300));
+    await new Promise(r => setTimeout(r, 500));
   }
-
-    // Ses ekranını göster
-  if (typeof navigateTo === 'function') {
-    navigateTo('/server/gettic/voice/' + channelId);
-  }
-  
-  toast('Ses kanalına katıldın');
-  return true;
-}
   
   try {
-    // Ses kısıtlamaları
-    const constraints = {
+    const stream = await navigator.mediaDevices.getUserMedia({ 
       audio: {
-        deviceId: voiceState.inputDevice !== 'default' ? { exact: voiceState.inputDevice } : undefined,
-        echoCancellation: voiceState.echoCancellation,
-        noiseSuppression: voiceState.noiseSuppression,
-        autoGainControl: voiceState.autoGainControl,
-        sampleRate: 48000,
-        channelCount: 1
-      }
-    };
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true
+      } 
+    });
     
-    voiceState.localStream = await navigator.mediaDevices.getUserMedia(constraints);
+    voiceState.localStream = stream;
     voiceState.isInVoice = true;
     voiceState.activeChannelId = channelId;
     voiceState.isMuted = false;
     voiceState.isDeafened = false;
     
-    // Ses seviyesi göstergesi için AudioContext
-    setupAudioAnalyser();
+    // Ses seviyesi analizi
+    setupAudioAnalyser(stream);
     
-    // Mevcut bağlantıları temizle
-    voiceState.peerConnections.forEach(pc => pc.close());
-    voiceState.peerConnections.clear();
-    voiceState.audioElements.forEach(a => a.remove());
-    voiceState.audioElements.clear();
-    voiceState.participants.clear();
-    
-    // Yeni bağlantı oluştur
-    const pc = createPeerConnection(channelId);
+    // Peer connection oluştur
+    const pc = createPeerConnection(channelId, stream);
     voiceState.peerConnections.set(channelId, pc);
     
-    // Sunucuya katıldığını bildir
+    // Sunucuya bildir
     if (window._socket) {
       window._socket.emit('voice_join', { 
         channel: channelId,
@@ -82,48 +56,36 @@ async function joinVoice(channelId) {
       });
     }
     
-    // Ses kontrol panelini göster
-    showVoicePanel();
+    showVoicePanel(channelId);
     
-    // Kanal adını güncelle
-    const channel = Store.channels.find(c => c.id === channelId);
+    const channel = Store.channels?.find(c => c.id === channelId);
     toast('🔊 ' + (channel?.name || channelId) + ' kanalına katıldın');
+    
+    if (typeof navigateTo === 'function') {
+      navigateTo('/server/gettic/voice/' + channelId);
+    }
     
     return true;
   } catch(e) {
-    console.error('Ses hatası:', e);
-    if (e.name === 'NotAllowedError') {
-      toast('Mikrofon izni reddedildi', 'e');
-    } else if (e.name === 'NotFoundError') {
-      toast('Mikrofon bulunamadı', 'e');
-    } else {
-      toast('Ses başlatılamadı: ' + e.message, 'e');
-    }
+    if (e.name === 'NotAllowedError') toast('Mikrofon izni reddedildi', 'e');
+    else if (e.name === 'NotFoundError') toast('Mikrofon bulunamadı', 'e');
+    else toast('Ses başlatılamadı', 'e');
     return false;
   }
 }
 
-// PeerConnection oluştur
-function createPeerConnection(channelId) {
-  const config = {
+function createPeerConnection(channelId, stream) {
+  const pc = new RTCPeerConnection({
     iceServers: [
       { urls: 'stun:stun.l.google.com:19302' },
-      { urls: 'stun:stun1.l.google.com:19302' },
-      { urls: 'stun:stun2.l.google.com:19302' }
-    ],
-    iceCandidatePoolSize: 2
-  };
+      { urls: 'stun:stun1.l.google.com:19302' }
+    ]
+  });
   
-  const pc = new RTCPeerConnection(config);
-  
-  // Lokal ses ekle
-  if (voiceState.localStream) {
-    voiceState.localStream.getTracks().forEach(track => {
-      if (track.kind === 'audio') {
-        pc.addTrack(track, voiceState.localStream);
-      }
-    });
-  }
+  // Lokal sesi ekle
+  stream.getTracks().forEach(track => {
+    pc.addTrack(track, stream);
+  });
   
   // ICE adayı
   pc.onicecandidate = (e) => {
@@ -135,54 +97,33 @@ function createPeerConnection(channelId) {
     }
   };
   
-  // ICE bağlantı durumu
-  pc.oniceconnectionstatechange = () => {
-    if (pc.iceConnectionState === 'disconnected' || pc.iceConnectionState === 'failed') {
-      handleParticipantDisconnect(channelId);
-    }
-  };
-  
   // Bağlantı durumu
   pc.onconnectionstatechange = () => {
-    updateVoiceStatus();
-  };
-  
-  // Uzaktan ses geldiğinde
-  pc.ontrack = (e) => {
-    if (e.streams && e.streams[0]) {
-      handleRemoteStream(e.streams[0], channelId);
+    if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
+      removeParticipant(channelId);
     }
   };
   
-  // Offer oluştur ve gönder
-  pc.createOffer()
-    .then(offer => pc.setLocalDescription(offer))
-    .then(() => {
-      if (window._socket) {
-        window._socket.emit('voice_offer', { 
-          sdp: pc.localDescription, 
-          channel: channelId 
-        });
-      }
-    });
+  // Uzaktan ses
+  pc.ontrack = (e) => {
+    if (e.streams && e.streams[0]) {
+      addRemoteStream(e.streams[0], channelId);
+    }
+  };
   
   return pc;
 }
 
-// Uzaktan ses akışını işle
-function handleRemoteStream(stream, userId) {
+function addRemoteStream(stream, userId) {
   voiceState.remoteStreams.set(userId, stream);
   
   const audio = new Audio();
   audio.srcObject = stream;
   audio.autoplay = true;
   audio.volume = voiceState.isDeafened ? 0 : (voiceState.volume / 100);
-  audio.setAttribute('data-user', userId);
   document.body.appendChild(audio);
   
   voiceState.audioElements.set(userId, audio);
-  
-  // Katılımcıyı ekle
   voiceState.participants.set(userId, {
     id: userId,
     username: userId,
@@ -192,43 +133,47 @@ function handleRemoteStream(stream, userId) {
     joinedAt: new Date().toISOString()
   });
   
-  updateVoiceParticipantList();
+  updateParticipantList();
 }
 
-// Ses analizörü
+function removeParticipant(userId) {
+  voiceState.remoteStreams.delete(userId);
+  const audio = voiceState.audioElements.get(userId);
+  if (audio) { audio.remove(); voiceState.audioElements.delete(userId); }
+  voiceState.participants.delete(userId);
+  updateParticipantList();
+}
+
+// Ses analizi
 let audioContext = null;
 let analyserNode = null;
+let speakingInterval = null;
 
-function setupAudioAnalyser() {
-  if (!voiceState.localStream) return;
-  
+function setupAudioAnalyser(stream) {
+  if (!stream) return;
   audioContext = new (window.AudioContext || window.webkitAudioContext)();
-  const source = audioContext.createMediaStreamSource(voiceState.localStream);
+  const source = audioContext.createMediaStreamSource(stream);
   analyserNode = audioContext.createAnalyser();
   analyserNode.fftSize = 256;
   source.connect(analyserNode);
   
-  // Ses seviyesi kontrolü
   checkSpeaking();
 }
 
-let speakingCheckInterval = null;
-
 function checkSpeaking() {
   if (!analyserNode || !voiceState.isInVoice) {
-    clearInterval(speakingCheckInterval);
+    clearInterval(speakingInterval);
     return;
   }
   
   const dataArray = new Uint8Array(analyserNode.frequencyBinCount);
   analyserNode.getByteFrequencyData(dataArray);
-  
   const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
-  const isSpeaking = average > 30; // Eşik değeri
+  const isSpeaking = average > 30;
   
   if (isSpeaking !== voiceState.isSpeaking) {
     voiceState.isSpeaking = isSpeaking;
-    updateVoiceStatus();
+    updateVoicePanelButtons();
     if (window._socket) {
       window._socket.emit('voice_speaking', {
         channel: voiceState.activeChannelId,
@@ -240,7 +185,7 @@ function checkSpeaking() {
   requestAnimationFrame(checkSpeaking);
 }
 
-// Sesi kapat/aç
+// Ses kontrol
 function toggleMute() {
   if (!voiceState.localStream) return;
   voiceState.isMuted = !voiceState.isMuted;
@@ -253,28 +198,19 @@ function toggleMute() {
     });
   }
   
-  updateVoiceStatus();
+  updateVoicePanelButtons();
   return voiceState.isMuted;
 }
 
-// Sağırlaştır
 function toggleDeafen() {
   voiceState.isDeafened = !voiceState.isDeafened;
   voiceState.audioElements.forEach(audio => {
     audio.volume = voiceState.isDeafened ? 0 : (voiceState.volume / 100);
   });
   
-  if (window._socket) {
-    window._socket.emit('voice_deafen', {
-      channel: voiceState.activeChannelId,
-      deafened: voiceState.isDeafened
-    });
-  }
-  
-  updateVoiceStatus();
+  updateVoicePanelButtons();
 }
 
-// Ses seviyesi ayarı
 function setVolume(vol) {
   voiceState.volume = Math.max(0, Math.min(200, vol));
   if (!voiceState.isDeafened) {
@@ -282,41 +218,6 @@ function setVolume(vol) {
       audio.volume = voiceState.volume / 100;
     });
   }
-}
-
-// Sesten ayrıl
-function leaveVoice() {
-function leaveVoice() {
-  if (voiceState.localStream) {
-    voiceState.localStream.getTracks().forEach(track => {
-      track.stop();  // Mikrofonu kapat
-    });
-    voiceState.localStream = null;
-  }
-  voiceState.peerConnections.forEach(pc => pc.close());
-  voiceState.peerConnections.clear();
-  voiceState.audioElements.forEach(a => a.remove());
-  voiceState.audioElements.clear();
-  voiceState.remoteStreams.clear();
-  voiceState.participants.clear();
-  
-  voiceState.isInVoice = false;
-  voiceState.activeChannelId = null;
-  voiceState.isMuted = false;
-  voiceState.isDeafened = false;
-  
-  hideVoicePanel();
-  
-  if (window._socket) {
-    window._socket.emit('voice_leave');
-  }
-  
-  // Ana sayfaya dön
-  if (typeof navigateTo === 'function') {
-    navigateTo('/');
-  }
-  
-  toast('Ses kanalından ayrıldın');
 }
 
 // Ekran paylaşımı
@@ -332,14 +233,7 @@ async function startScreenShare() {
       });
     }
     
-    voiceState.screenStream.getVideoTracks()[0].onended = () => {
-      stopScreenShare();
-    };
-    
-    if (window._socket) {
-      window._socket.emit('screen_share_start', { channel: voiceState.activeChannelId });
-    }
-    
+    voiceState.screenStream.getVideoTracks()[0].onended = () => stopScreenShare();
     toast('🖥️ Ekran paylaşımı başladı');
   } catch(e) {
     toast('Ekran paylaşımı başlatılamadı', 'e');
@@ -352,16 +246,51 @@ function stopScreenShare() {
     voiceState.screenStream = null;
   }
   voiceState.isScreenSharing = false;
-  
-  if (window._socket) {
-    window._socket.emit('screen_share_stop', { channel: voiceState.activeChannelId });
-  }
-  
   toast('Ekran paylaşımı durduruldu');
 }
 
+// Ses kanalından ayrıl
+function leaveVoice() {
+  if (voiceState.localStream) {
+    voiceState.localStream.getTracks().forEach(track => track.stop());
+    voiceState.localStream = null;
+  }
+  
+  voiceState.peerConnections.forEach(pc => pc.close());
+  voiceState.peerConnections.clear();
+  voiceState.audioElements.forEach(a => a.remove());
+  voiceState.audioElements.clear();
+  voiceState.remoteStreams.clear();
+  voiceState.participants.clear();
+  
+  if (audioContext) {
+    audioContext.close();
+    audioContext = null;
+    analyserNode = null;
+  }
+  
+  voiceState.isInVoice = false;
+  voiceState.activeChannelId = null;
+  voiceState.isMuted = false;
+  voiceState.isDeafened = false;
+  voiceState.isSpeaking = false;
+  voiceState.isScreenSharing = false;
+  
+  hideVoicePanel();
+  
+  if (window._socket) {
+    window._socket.emit('voice_leave');
+  }
+  
+  if (typeof navigateTo === 'function') {
+    navigateTo('/');
+  }
+  
+  toast('Ses kanalından ayrıldın');
+}
+
 // Ses paneli
-function showVoicePanel() {
+function showVoicePanel(channelId) {
   let panel = document.getElementById('voicePanel');
   if (!panel) {
     panel = document.createElement('div');
@@ -369,30 +298,29 @@ function showVoicePanel() {
     panel.className = 'voice-panel';
     panel.innerHTML = `
       <div class="voice-panel-header">
-        <span class="voice-panel-channel">🔊 Sesli Kanal</span>
-        <span class="voice-panel-status" id="voiceStatus">Bağlanıyor...</span>
+        🔊 <span id="voiceChannelName">Sesli Kanal</span>
+        <span id="voiceStatus" style="font-size:10px;color:var(--t3)">Bağlanıyor...</span>
       </div>
       <div class="voice-panel-controls">
-        <button class="voice-btn" id="muteBtn" onclick="toggleMute()" title="Mikrofon">
-          <span class="voice-btn-icon">🎤</span>
-        </button>
-        <button class="voice-btn" id="deafenBtn" onclick="toggleDeafen()" title="Sağır">
-          <span class="voice-btn-icon">🔇</span>
-        </button>
-        <input type="range" id="volumeSlider" min="0" max="200" value="100" oninput="setVolume(this.value)" title="Ses">
-        <button class="voice-btn danger" onclick="leaveVoice()" title="Ayrıl">
-          <span class="voice-btn-icon">📴</span>
-        </button>
+        <button class="voice-btn" id="muteBtn" title="Mikrofon">🎤</button>
+        <button class="voice-btn" id="deafenBtn" title="Sağır">🔇</button>
+        <button class="voice-btn" id="screenShareBtn" title="Ekran Paylaş">🖥️</button>
+        <button class="voice-btn danger" id="leaveVoiceBtn" title="Ayrıl">📴</button>
       </div>
-      <div class="voice-panel-participants" id="voiceParticipants"></div>
+      <div id="voiceParticipants" class="voice-participants" style="max-height:100px;overflow-y:auto;font-size:11px"></div>
     `;
     document.body.appendChild(panel);
+    
+    document.getElementById('muteBtn').onclick = toggleMute;
+    document.getElementById('deafenBtn').onclick = toggleDeafen;
+    document.getElementById('screenShareBtn').onclick = startScreenShare;
+    document.getElementById('leaveVoiceBtn').onclick = leaveVoice;
   }
-  panel.style.display = 'flex';
   
-  // Ses seviyesi slider'ı
-  const slider = document.getElementById('volumeSlider');
-  if (slider) slider.value = voiceState.volume;
+  panel.style.display = 'flex';
+  document.getElementById('voiceChannelName').textContent = Store.channels?.find(c => c.id === channelId)?.name || 'Sesli Kanal';
+  updateVoicePanelButtons();
+  updateParticipantList();
 }
 
 function hideVoicePanel() {
@@ -400,80 +328,43 @@ function hideVoicePanel() {
   if (panel) panel.style.display = 'none';
 }
 
-function updateVoiceStatus() {
-  const statusEl = document.getElementById('voiceStatus');
-  if (!statusEl) return;
-  
-  if (voiceState.isDeafened) {
-    statusEl.textContent = '🔇 Sağır';
-  } else if (voiceState.isMuted) {
-    statusEl.textContent = '🔴 Susturuldu';
-  } else if (voiceState.isSpeaking) {
-    statusEl.textContent = '🟢 Konuşuyor';
-  } else {
-    statusEl.textContent = '🟡 Bağlı';
-  }
-  
-  // Mikrofon butonu
+function updateVoicePanelButtons() {
   const muteBtn = document.getElementById('muteBtn');
-  if (muteBtn) {
-    muteBtn.classList.toggle('muted', voiceState.isMuted);
-  }
-  
-  // Sağır butonu
   const deafenBtn = document.getElementById('deafenBtn');
-  if (deafenBtn) {
-    deafenBtn.classList.toggle('deafened', voiceState.isDeafened);
+  const statusEl = document.getElementById('voiceStatus');
+  
+  if (muteBtn) muteBtn.classList.toggle('active', voiceState.isMuted);
+  if (deafenBtn) deafenBtn.classList.toggle('active', voiceState.isDeafened);
+  if (statusEl) {
+    if (voiceState.isDeafened) statusEl.textContent = '🔇 Sağır';
+    else if (voiceState.isMuted) statusEl.textContent = '🔴 Susturuldu';
+    else if (voiceState.isSpeaking) statusEl.textContent = '🟢 Konuşuyor';
+    else statusEl.textContent = '🟡 Bağlı';
   }
 }
 
-function updateVoiceParticipantList() {
+function updateParticipantList() {
   const container = document.getElementById('voiceParticipants');
   if (!container) return;
   
   if (voiceState.participants.size === 0) {
-    container.innerHTML = '<span class="voice-no-users">Henüz kimse yok</span>';
+    container.innerHTML = '<div style="color:var(--t3);text-align:center;padding:4px">Henüz kimse yok</div>';
     return;
   }
   
   container.innerHTML = [...voiceState.participants.values()].map(p => `
-    <div class="voice-participant">
-      <span class="voice-participant-av">${(p.username||p.id).charAt(0).toUpperCase()}</span>
-      <span class="voice-participant-name">${p.username||p.id}</span>
-      <span class="voice-participant-status">${p.muted ? '🔴' : p.speaking ? '🟢' : '🟡'}</span>
+    <div class="voice-participant" style="display:flex;align-items:center;gap:6px;padding:2px 0">
+      <span style="width:22px;height:22px;border-radius:50%;background:var(--ac);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700">${(p.username||p.id).charAt(0).toUpperCase()}</span>
+      <span>${p.username||p.id}</span>
+      <span>${p.muted ? '🔴' : p.speaking ? '🟢' : '🟡'}</span>
     </div>
   `).join('');
 }
 
-function handleParticipantDisconnect(userId) {
-  voiceState.remoteStreams.delete(userId);
-  const audio = voiceState.audioElements.get(userId);
-  if (audio) { audio.remove(); voiceState.audioElements.delete(userId); }
-  voiceState.participants.delete(userId);
-  updateVoiceParticipantList();
-}
-
-// Ses cihazlarını al
-async function getAudioDevices() {
-  try {
-    const devices = await navigator.mediaDevices.enumerateDevices();
-    return {
-      inputs: devices.filter(d => d.kind === 'audioinput').map(d => ({ id: d.deviceId, label: d.label || 'Mikrofon' })),
-      outputs: devices.filter(d => d.kind === 'audiooutput').map(d => ({ id: d.deviceId, label: d.label || 'Hoparlör' }))
-    };
-  } catch(e) {
-    return { inputs: [], outputs: [] };
-  }
-}
-
-// Push-to-talk
-let pushToTalkActive = false;
-
+// Push to talk
 function enablePushToTalk(key = 'Space') {
   voiceState.pushToTalk = true;
   voiceState.pushToTalkKey = key;
-  
-  // Başlangıçta mute
   if (!voiceState.isMuted) toggleMute();
   
   document.addEventListener('keydown', handlePushToTalk);
@@ -486,9 +377,9 @@ function disablePushToTalk() {
   document.removeEventListener('keyup', handlePushToTalk);
 }
 
+let pushToTalkActive = false;
 function handlePushToTalk(e) {
-  if (e.code !== voiceState.pushToTalkKey) return;
-  if (e.repeat) return;
+  if (e.code !== voiceState.pushToTalkKey || e.repeat) return;
   
   if (e.type === 'keydown' && !pushToTalkActive) {
     pushToTalkActive = true;
@@ -499,7 +390,7 @@ function handlePushToTalk(e) {
   }
 }
 
-// Socket ses olayları
+// Socket olayları
 function initVoiceSocket() {
   if (!window._socket) return;
   
@@ -536,20 +427,15 @@ function initVoiceSocket() {
       deafened: data.deafened || false,
       joinedAt: new Date().toISOString()
     });
-    updateVoiceParticipantList();
+    updateParticipantList();
   });
   
   window._socket.on('user_left_voice', (data) => {
-    handleParticipantDisconnect(data.userId);
+    removeParticipant(data.userId);
   });
-  
-  window._socket.on('user_muted', (data) => {
-    const p = voiceState.participants.get(data.userId);
-    if (p) { p.muted = data.muted; updateVoiceParticipantList(); }
-  });
-  
-  window._socket.on('user_speaking', (data) => {
-    const p = voiceState.participants.get(data.userId);
-    if (p) { p.speaking = data.speaking; updateVoiceParticipantList(); }
-  });
-  }
+}
+
+// Sayfa yüklendiğinde başlat
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(initVoiceSocket, 1000);
+});
