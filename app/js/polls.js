@@ -1,175 +1,199 @@
-// Anket oluşturma
+// ============ GETTIC POLLS.JS - GELİŞMİŞ ANKET SİSTEMİ ============
+
+const pollState = {
+  polls: JSON.parse(localStorage.getItem('gt_polls_v2') || '{}'),
+  templates: [
+    { name: 'Haftasonu Etkinliği', options: ['Sinema', 'Yemek', 'Oyun', 'Spor', 'Diğer'] },
+    { name: 'Oylama', options: ['Evet', 'Hayır', 'Çekimser'] },
+    { name: 'Derecelendirme', options: ['⭐', '⭐⭐', '⭐⭐⭐', '⭐⭐⭐⭐', '⭐⭐⭐⭐⭐'] }
+  ]
+};
+
+// Anket oluştur
 function createPoll(question, options, settings = {}) {
-  if (!question || !question.trim()) return toast('Soru gerekli', 'e');
+  if (!question?.trim()) return toast('Soru gerekli', 'e');
   if (!options || options.length < 2) return toast('En az 2 seçenek gerekli', 'e');
-  if (options.some(o => !o || !o.trim())) return toast('Tüm seçenekleri doldurun', 'e');
+  if (options.length > 10) return toast('En fazla 10 seçenek', 'e');
+  if (options.some(o => !o?.trim())) return toast('Tüm seçenekleri doldurun', 'e');
   
-  const mid = genId();
+  const pollId = genId();
   const poll = {
-    id: mid,
+    id: pollId,
     question: question.trim(),
-    options: options.map(o => o.trim()),
-    votes: new Array(options.length).fill(0),
-    voters: {},
+    options: options.map((o, i) => ({
+      id: 'opt_' + i,
+      text: o.trim(),
+      votes: 0,
+      voters: []
+    })),
+    settings: {
+      multipleChoice: settings.multipleChoice || false,
+      maxChoices: settings.maxChoices || 1,
+      showResults: settings.showResults !== false,
+      anonymous: settings.anonymous || false,
+      duration: settings.duration || 0, // dakika, 0 = sınırsız
+      allowAddOptions: settings.allowAddOptions || false
+    },
     createdBy: Store.user._id,
     creatorName: Store.user.username,
     channelId: Store.activeChannel,
     createdAt: new Date().toISOString(),
-    settings: {
-      multipleChoice: settings.multipleChoice || false,
-      showResults: settings.showResults !== false,
-      anonymous: settings.anonymous || false,
-      duration: settings.duration || 0, // dakika, 0 = sınırsız
-      maxVotes: settings.maxVotes || 100
-    },
-    active: true,
+    endsAt: settings.duration ? new Date(Date.now() + settings.duration * 60000).toISOString() : null,
+    isActive: true,
+    isPinned: false,
     totalVoters: 0
   };
   
-  Store.polls[mid] = poll;
+  pollState.polls[pollId] = poll;
+  savePollState();
   
+  // Anket mesajı
   const msg = {
-    _id: mid,
-    content: '📊 ' + question.trim(),
+    _id: pollId,
+    content: `📊 **${poll.question}**`,
     senderName: Store.user.username,
     senderId: Store.user._id,
     channelId: Store.activeChannel,
     createdAt: new Date().toISOString(),
-    type: 'poll',
-    pollId: mid
+    pollId
   };
   
   Store.messages.push(msg);
-  renderMessages();
-  saveStore();
-  toast('📊 Anket başlatıldı');
-  closeModal();
+  if (typeof renderMessages === 'function') renderMessages();
+  if (typeof saveStore === 'function') saveStore();
   
-  // Süre sınırı varsa otomatik kapat
+  // Süreli anket
   if (settings.duration > 0) {
     setTimeout(() => {
-      if (Store.polls[mid]) {
-        Store.polls[mid].active = false;
-        renderMessages();
-        saveStore();
+      const p = pollState.polls[pollId];
+      if (p) {
+        p.isActive = false;
+        savePollState();
+        if (typeof renderMessages === 'function') renderMessages();
+        toast('⏰ Anket süresi doldu: ' + poll.question);
       }
-    }, settings.duration * 60 * 1000);
+    }, settings.duration * 60000);
   }
   
-  if (window._socket) {
-    window._socket.emit('poll_created', { poll, channelId: Store.activeChannel });
-  }
+  toast('📊 Anket başlatıldı');
+  closeModal();
+  return pollId;
 }
 
-// Oy verme
-function votePoll(mid, optIndex) {
-  const poll = Store.polls[mid];
+// Oy ver
+function votePoll(pollId, optionIds) {
+  const poll = pollState.polls[pollId];
   if (!poll) return toast('Anket bulunamadı', 'e');
-  if (!poll.active) return toast('Anket sona erdi', 'e');
-  if (!Store.user) return toast('Önce giriş yapın', 'e');
+  if (!poll.isActive) return toast('Anket sona erdi', 'e');
+  if (!Store.user) return toast('Giriş yapın', 'e');
   
   const userId = Store.user._id;
   
-  // Çoklu seçim kontrolü
-  if (!poll.settings.multipleChoice && poll.voters[userId] !== undefined) {
-    // Aynı seçeneğe tekrar tıklanırsa oyu kaldır
-    if (poll.voters[userId] === optIndex) {
-      delete poll.voters[userId];
-      poll.votes[optIndex]--;
-      poll.totalVoters--;
-      renderMessages();
-      saveStore();
-      toast('Oy geri alındı');
-      return;
-    }
-    return toast('Zaten oy verdiniz. Çoklu seçim kapalı.', 'e');
-  }
-  
   // Çoklu seçim
   if (poll.settings.multipleChoice) {
-    if (!Array.isArray(poll.voters[userId])) poll.voters[userId] = [];
-    const idx = poll.voters[userId].indexOf(optIndex);
-    if (idx !== -1) {
-      poll.voters[userId].splice(idx, 1);
-      poll.votes[optIndex]--;
-      poll.totalVoters--;
-      if (poll.voters[userId].length === 0) delete poll.voters[userId];
-      renderMessages();
-      saveStore();
-      toast('Oy geri alındı');
-      return;
-    }
+    if (!Array.isArray(optionIds)) optionIds = [optionIds];
     
-    if (poll.voters[userId].length >= (poll.settings.maxVotes || 10)) {
-      return toast('Maksimum oy sayısına ulaştınız', 'e');
-    }
+    // Önceki oyları kaldır
+    let removedCount = 0;
+    poll.options.forEach(opt => {
+      const idx = opt.voters.indexOf(userId);
+      if (idx !== -1 && !optionIds.includes(opt.id)) {
+        opt.voters.splice(idx, 1);
+        opt.votes--;
+        removedCount++;
+      }
+    });
     
-    poll.voters[userId].push(optIndex);
-    poll.votes[optIndex]++;
-    poll.totalVoters++;
-    renderMessages();
-    saveStore();
-    toast('Oy verildi ✅');
-    return;
+    // Yeni oyları ekle
+    let addedCount = 0;
+    optionIds.forEach(optId => {
+      const opt = poll.options.find(o => o.id === optId);
+      if (opt && !opt.voters.includes(userId)) {
+        if (poll.settings.maxChoices > 0 && 
+            poll.options.reduce((sum, o) => sum + (o.voters.includes(userId) ? 1 : 0), 0) >= poll.settings.maxChoices) {
+          return;
+        }
+        opt.voters.push(userId);
+        opt.votes++;
+        addedCount++;
+      }
+    });
+    
+    if (removedCount === 0 && addedCount === 0) return;
+    
+  } else {
+    // Tekli seçim
+    const opt = poll.options.find(o => o.id === optionIds);
+    if (!opt) return;
+    
+    // Aynı seçeneğe tıklanınca oyu kaldır
+    if (opt.voters.includes(userId)) {
+      opt.voters = opt.voters.filter(id => id !== userId);
+      opt.votes--;
+      poll.totalVoters = Math.max(0, poll.totalVoters - 1);
+    } else {
+      // Önceki oyu kaldır
+      poll.options.forEach(o => {
+        const idx = o.voters.indexOf(userId);
+        if (idx !== -1) {
+          o.voters.splice(idx, 1);
+          o.votes--;
+        }
+      });
+      
+      // Yeni oyu ekle
+      opt.voters.push(userId);
+      opt.votes++;
+      poll.totalVoters++;
+    }
   }
   
-  // Tekli seçim
-  poll.voters[userId] = optIndex;
-  poll.votes[optIndex]++;
-  poll.totalVoters++;
-  renderMessages();
-  saveStore();
-  toast('Oy verildi ✅');
-  
-  if (window._socket) {
-    window._socket.emit('poll_vote', { pollId: mid, option: optIndex, userId });
-  }
+  savePollState();
+  if (typeof renderMessages === 'function') renderMessages();
 }
 
 // Anket render
-function renderPoll(mid, poll) {
+function renderPoll(pollId) {
+  const poll = pollState.polls[pollId];
   if (!poll) return '';
   
-  const total = poll.votes.reduce((a, b) => a + b, 0) || 1;
-  const userVoted = poll.voters[Store.user?._id] !== undefined;
-  const isCreator = poll.createdBy === Store.user?._id;
-  const showResults = poll.settings.showResults || userVoted || isCreator;
+  const total = poll.options.reduce((sum, o) => sum + o.votes, 0) || 1;
+  const userVoted = poll.options.some(o => o.voters.includes(Store.user?._id));
+  const showResults = poll.settings.showResults || userVoted || poll.createdBy === Store.user?._id;
+  const winner = poll.options.reduce((max, o) => o.votes > (max?.votes || -1) ? o : max, null);
   
-  // Kazanan seçeneği bul
-  let winnerIndex = -1;
-  if (showResults) {
-    winnerIndex = poll.votes.indexOf(Math.max(...poll.votes));
-  }
+  const timeLeft = poll.endsAt ? getTimeLeft(poll.endsAt) : '';
   
   return `
-    <div class="poll-box ${!poll.active ? 'poll-ended' : ''}" id="poll-${mid}">
+    <div class="poll-box ${!poll.isActive ? 'poll-ended' : ''}" id="poll-${pollId}">
       <div class="poll-header">
         <div class="poll-q">📊 ${poll.question}</div>
         <div class="poll-meta">
-          <span class="poll-total">${total} oy</span>
-          ${poll.settings.anonymous ? '<span class="poll-anon">🔒 Gizli</span>' : ''}
-          ${!poll.active ? '<span class="poll-ended-badge">Sona erdi</span>' : ''}
-          ${isCreator ? `<button class="poll-close-btn" onclick="closePoll('${mid}')" title="Anketi Kapat">✕</button>` : ''}
+          <span class="poll-total">${total} oy · ${poll.totalVoters} kişi</span>
+          ${poll.settings.anonymous ? '<span>🔒 Gizli</span>' : ''}
+          ${poll.settings.multipleChoice ? '<span>🔢 Çoklu seçim</span>' : ''}
+          ${!poll.isActive ? '<span class="poll-ended-badge" style="color:var(--re)">Sona erdi</span>' : ''}
+          ${timeLeft ? `<span style="color:var(--ye)">⏰ ${timeLeft}</span>` : ''}
         </div>
       </div>
       
       <div class="poll-opts">
-        ${poll.options.map((o, i) => {
-          const pct = showResults ? Math.round((poll.votes[i] / total) * 100) : 0;
-          const voted = Array.isArray(poll.voters[Store.user?._id])
-            ? poll.voters[Store.user?._id]?.includes(i)
-            : poll.voters[Store.user?._id] === i;
-          const isWinner = i === winnerIndex && total > 0;
+        ${poll.options.map(o => {
+          const pct = showResults ? Math.round((o.votes / total) * 100) : 0;
+          const voted = o.voters.includes(Store.user?._id);
+          const isWinner = o.id === winner?.id && !poll.isActive && total > 0;
           
           return `
             <div class="poll-opt ${voted ? 'voted' : ''} ${isWinner ? 'winner' : ''}" 
-                 onclick="votePoll('${mid}', ${i})"
-                 title="${showResults ? pct + '%' : 'Oy vermek için tıkla'}">
+                 onclick="votePoll('${pollId}','${o.id}')">
               ${showResults ? `<div class="poll-bar" style="width:${pct}%"></div>` : ''}
-              <span class="poll-opt-text">${o}</span>
-              ${showResults ? `<span class="poll-pct">${pct}% (${poll.votes[i]})</span>` : ''}
+              <span class="poll-opt-text">${o.text}</span>
+              ${showResults ? `
+                <span class="poll-pct">${pct}%</span>
+                ${!poll.settings.anonymous ? `<span class="poll-voter-count">(${o.votes})</span>` : ''}
+              ` : ''}
               ${voted ? '<span class="poll-check">✓</span>' : ''}
-              ${isWinner && poll.active === false ? '<span class="poll-crown">👑</span>' : ''}
+              ${isWinner ? '<span class="poll-crown">👑</span>' : ''}
             </div>
           `;
         }).join('')}
@@ -178,87 +202,126 @@ function renderPoll(mid, poll) {
       ${showResults ? `
         <div class="poll-footer">
           <div class="poll-progress">
-            <div class="poll-progress-bar" style="width:${Math.round((poll.totalVoters / (poll.settings.maxVotes || 100)) * 100)}%"></div>
+            <div class="poll-progress-bar" style="width:${Math.min(100, (poll.totalVoters / 20) * 100)}%"></div>
           </div>
-          <span class="poll-footer-text">${poll.totalVoters} kişi oy verdi</span>
         </div>
       ` : ''}
+      
+      ${poll.settings.allowAddOptions && poll.isActive ? `
+        <div style="display:flex;gap:6px;margin-top:8px">
+          <input class="mi" id="newOption-${pollId}" placeholder="Seçenek ekle..." style="margin-bottom:0">
+          <button class="ib" onclick="addPollOption('${pollId}')" title="Ekle">+</button>
+        </div>
+      ` : ''}
+      
+      <div style="display:flex;gap:4px;margin-top:8px;justify-content:flex-end">
+        ${poll.createdBy === Store.user?._id ? `
+          <button class="ib" onclick="togglePollPin('${pollId}')" title="${poll.isPinned?'Sabitlemeyi Kaldır':'Sabitle'}" style="width:24px;height:24px;font-size:12px">${poll.isPinned?'📌':'📍'}</button>
+          <button class="ib" onclick="endPoll('${pollId}')" title="Anketi Bitir" style="width:24px;height:24px;font-size:12px">⏹️</button>
+          <button class="ib" onclick="deletePoll('${pollId}')" title="Anketi Sil" style="width:24px;height:24px;font-size:12px;color:var(--re)">🗑️</button>
+        ` : ''}
+        ${showResults ? `
+          <button class="ib" onclick="exportPollResults('${pollId}')" title="Sonuçları İndir" style="width:24px;height:24px;font-size:12px">📥</button>
+        ` : ''}
+      </div>
     </div>
   `;
 }
 
-// Anket kapatma
-function closePoll(mid) {
-  const poll = Store.polls[mid];
-  if (!poll) return;
-  if (poll.createdBy !== Store.user?._id && !hasPermission(Store.user?._id, 'manageMessages')) {
-    return toast('Yetkiniz yok', 'e');
-  }
-  poll.active = false;
-  renderMessages();
-  saveStore();
-  toast('📊 Anket sona erdi');
+// Seçenek ekle
+function addPollOption(pollId) {
+  const input = document.getElementById('newOption-' + pollId);
+  const poll = pollState.polls[pollId];
+  if (!input?.value.trim() || !poll) return;
   
-  if (window._socket) {
-    window._socket.emit('poll_closed', { pollId: mid, channelId: Store.activeChannel });
-  }
+  poll.options.push({
+    id: 'opt_' + poll.options.length,
+    text: input.value.trim(),
+    votes: 0,
+    voters: []
+  });
+  
+  input.value = '';
+  savePollState();
+  if (typeof renderMessages === 'function') renderMessages();
 }
 
-// Anket silme
-function deletePoll(mid) {
-  const poll = Store.polls[mid];
-  if (!poll) return;
-  if (poll.createdBy !== Store.user?._id && !hasPermission(Store.user?._id, 'deleteMsg')) {
-    return toast('Yetkiniz yok', 'e');
-  }
-  delete Store.polls[mid];
-  Store.messages = Store.messages.filter(m => m.pollId !== mid);
-  renderMessages();
-  saveStore();
+// Anket bitir
+function endPoll(pollId) {
+  const poll = pollState.polls[pollId];
+  if (!poll || poll.createdBy !== Store.user?._id) return;
+  poll.isActive = false;
+  savePollState();
+  if (typeof renderMessages === 'function') renderMessages();
+  toast('⏹️ Anket sonlandırıldı');
+}
+
+// Anket sil
+function deletePoll(pollId) {
+  const poll = pollState.polls[pollId];
+  if (!poll || poll.createdBy !== Store.user?._id) return;
+  delete pollState.polls[pollId];
+  Store.messages = Store.messages.filter(m => m.pollId !== pollId);
+  savePollState();
+  if (typeof renderMessages === 'function') renderMessages();
+  if (typeof saveStore === 'function') saveStore();
   toast('🗑️ Anket silindi');
 }
 
-// Anket sonuçlarını dışa aktar
-function exportPollResults(mid) {
-  const poll = Store.polls[mid];
+// Anket sabitle
+function togglePollPin(pollId) {
+  const poll = pollState.polls[pollId];
+  if (!poll) return;
+  poll.isPinned = !poll.isPinned;
+  savePollState();
+  if (typeof renderMessages === 'function') renderMessages();
+}
+
+// Sonuç dışa aktar
+function exportPollResults(pollId) {
+  const poll = pollState.polls[pollId];
   if (!poll) return;
   
-  const total = poll.votes.reduce((a, b) => a + b, 0) || 1;
+  const total = poll.options.reduce((s, o) => s + o.votes, 0) || 1;
   let csv = 'Seçenek,Oy,Yüzde\n';
-  poll.options.forEach((o, i) => {
-    csv += `"${o}",${poll.votes[i]},${Math.round((poll.votes[i]/total)*100)}%\n`;
+  poll.options.forEach(o => {
+    csv += `"${o.text}",${o.votes},${Math.round((o.votes/total)*100)}%\n`;
   });
   
-  const blob = new Blob([csv], { type: 'text/csv' });
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `anket-${mid}.csv`;
+  a.download = `anket-${poll.question.substring(0,20)}.csv`;
   a.click();
   URL.revokeObjectURL(url);
   toast('📥 Sonuçlar indirildi');
 }
 
-// Anket Modal - Gelişmiş
+// Anket oluşturma modal
 function showPollModal() {
   const content = document.getElementById('modalContent');
   if (!content) return;
   
   content.innerHTML = `
     <h2>📊 Anket Oluştur</h2>
+    
     <div class="poll-form">
-      <input class="mi" id="pollQuestion" placeholder="Soru sor...">
-      <div id="pollOptions">
+      <input class="mi" id="pollQuestion" placeholder="Soru sor..." maxlength="200">
+      
+      <div id="pollOptionsContainer">
         <div class="poll-option-row">
-          <input class="mi" placeholder="Seçenek 1" data-opt="1">
-          <button class="poll-remove-opt" onclick="removePollOption(this)" style="display:none">×</button>
+          <input class="mi" placeholder="Seçenek 1">
+          <button class="poll-remove-opt" style="display:none">×</button>
         </div>
         <div class="poll-option-row">
-          <input class="mi" placeholder="Seçenek 2" data-opt="2">
-          <button class="poll-remove-opt" onclick="removePollOption(this)" style="display:none">×</button>
+          <input class="mi" placeholder="Seçenek 2">
+          <button class="poll-remove-opt" style="display:none">×</button>
         </div>
       </div>
-      <button class="mb sec" onclick="addPollOption()">+ Seçenek Ekle</button>
+      
+      <button class="mb sec" onclick="addPollOptionUI()">+ Seçenek Ekle (max 10)</button>
+      
       <div class="poll-settings">
         <label class="poll-setting">
           <input type="checkbox" id="pollMultiple"> Çoklu seçim
@@ -267,43 +330,99 @@ function showPollModal() {
           <input type="checkbox" id="pollAnonymous" checked> Gizli oylama
         </label>
         <label class="poll-setting">
-          <input type="number" id="pollDuration" placeholder="Süre (dk, 0=sınırsız)" min="0" value="0" style="width:100%;padding:8px;border:1px solid var(--b2);border-radius:8px;margin-top:5px">
+          <input type="checkbox" id="pollAllowAdd"> Seçenek eklemeye izin ver
         </label>
+        <input class="mi" type="number" id="pollMaxChoices" placeholder="Maks. seçim (çoklu için)" value="1" min="1" max="10">
+        <input class="mi" type="number" id="pollDuration" placeholder="Süre (dk, 0=sınırsız)" value="0" min="0">
       </div>
+      
+      <div class="settings-group">
+        <div class="settings-group-title">Şablonlar</div>
+        ${pollState.templates.map((t, i) => `
+          <div class="settings-item" onclick="applyPollTemplate(${i})">
+            <div class="settings-item-left">📋 ${t.name}</div>
+            <div class="settings-item-right">${t.options.length} seçenek</div>
+          </div>
+        `).join('')}
+      </div>
+      
       <button class="mb" onclick="submitPollForm()">📊 Anketi Başlat</button>
     </div>
   `;
+  
+  openModal('poll');
 }
 
-function addPollOption() {
-  const container = document.getElementById('pollOptions');
-  if (!container) return;
-  const count = container.children.length + 1;
-  if (count > 10) return toast('En fazla 10 seçenek', 'e');
-  const row = document.createElement('div');
-  row.className = 'poll-option-row';
-  row.innerHTML = `
-    <input class="mi" placeholder="Seçenek ${count}" data-opt="${count}">
-    <button class="poll-remove-opt" onclick="removePollOption(this)">×</button>
+// Anket UI yardımcıları
+function addPollOptionUI() {
+  const container = document.getElementById('pollOptionsContainer');
+  if (!container || container.children.length >= 10) return;
+  
+  const div = document.createElement('div');
+  div.className = 'poll-option-row';
+  div.innerHTML = `
+    <input class="mi" placeholder="Seçenek ${container.children.length + 1}">
+    <button class="poll-remove-opt" onclick="this.parentElement.remove()">×</button>
   `;
-  container.appendChild(row);
-}
-
-function removePollOption(btn) {
-  const container = document.getElementById('pollOptions');
-  if (!container || container.children.length <= 2) return toast('En az 2 seçenek gerekli', 'e');
-  btn.parentElement.remove();
+  container.appendChild(div);
 }
 
 function submitPollForm() {
   const question = document.getElementById('pollQuestion')?.value;
-  const options = [...document.querySelectorAll('#pollOptions input')].map(i => i.value).filter(v => v.trim());
+  const options = [...document.querySelectorAll('#pollOptionsContainer input')]
+    .map(i => i.value).filter(v => v.trim());
   const multiple = document.getElementById('pollMultiple')?.checked;
   const anonymous = document.getElementById('pollAnonymous')?.checked;
+  const allowAdd = document.getElementById('pollAllowAdd')?.checked;
+  const maxChoices = parseInt(document.getElementById('pollMaxChoices')?.value || '1');
   const duration = parseInt(document.getElementById('pollDuration')?.value || '0');
   
-  if (!question || question.trim().length < 3) return toast('Soru en az 3 karakter', 'e');
-  if (options.length < 2) return toast('En az 2 seçenek gerekli', 'e');
+  createPoll(question, options, {
+    multipleChoice: multiple,
+    anonymous,
+    allowAddOptions: allowAdd,
+    maxChoices: multiple ? maxChoices : 1,
+    duration
+  });
+}
+
+function applyPollTemplate(index) {
+  const template = pollState.templates[index];
+  if (!template) return;
   
-  createPoll(question, options, { multipleChoice: multiple, anonymous, duration });
-                                         }
+  document.getElementById('pollQuestion').value = template.name;
+  document.getElementById('pollOptionsContainer').innerHTML = template.options.map((o, i) => `
+    <div class="poll-option-row">
+      <input class="mi" value="${o}" placeholder="Seçenek ${i+1}">
+      <button class="poll-remove-opt" onclick="this.parentElement.remove()">×</button>
+    </div>
+  `).join('');
+}
+
+function getTimeLeft(endTime) {
+  const diff = new Date(endTime) - Date.now();
+  if (diff <= 0) return 'Süre doldu';
+  const min = Math.floor(diff / 60000);
+  if (min < 60) return min + 'dk';
+  const hours = Math.floor(min / 60);
+  return hours + 'sa ' + (min % 60) + 'dk';
+}
+
+function savePollState() {
+  localStorage.setItem('gt_polls_v2', JSON.stringify(pollState.polls));
+}
+
+// CSS
+const pollStyle = document.createElement('style');
+pollStyle.textContent = `
+  .poll-voter-count {
+    font-size: 9px;
+    color: var(--t3);
+    min-width: 20px;
+    text-align: right;
+  }
+  .poll-footer {
+    margin-top: 6px;
+  }
+`;
+document.head.appendChild(pollStyle);
