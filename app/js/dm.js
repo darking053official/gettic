@@ -1,4 +1,4 @@
-// ============ GETTIC DM.JS - FULL GERÇEK DM SİSTEMİ ============
+// ============ GETTIC DM.JS - FULL GÜNCEL ============
 
 // DM State
 const dmState = {
@@ -10,7 +10,7 @@ const dmState = {
   onlineUsers: {}
 };
 
-// DM Başlat
+// ============ DM BAŞLAT ============
 function startDM(username) {
   if (!username || !username.trim()) return toast('Kullanıcı adı gerekli', 'e');
   if (username === Store.user?.username) return toast('Kendine DM atamazsın', 'e');
@@ -37,8 +37,19 @@ function startDM(username) {
     dmState.messages[username] = [];
   }
   
+  // MongoDB'den DM mesajlarını yükle
+  if (typeof MongoSync !== 'undefined' && MongoSync.loadDMMessages) {
+    MongoSync.loadDMMessages(username).then(msgs => {
+      if (msgs && msgs.length > 0) {
+        dmState.messages[username] = msgs;
+      }
+      renderDMChat(username);
+    });
+  } else {
+    renderDMChat(username);
+  }
+  
   saveDMState();
-  renderDMChat(username);
   
   // DM ekranına geç
   if (typeof navigateTo === 'function') {
@@ -46,9 +57,10 @@ function startDM(username) {
   }
   
   toast('💬 ' + username + ' ile DM');
+  closeModal();
 }
 
-// DM Mesaj Gönder
+// ============ DM MESAJ GÖNDER ============
 function sendDMMessage(username, text) {
   if (!text || !text.trim() || !username) return;
   if (!dmState.messages[username]) dmState.messages[username] = [];
@@ -59,7 +71,8 @@ function sendDMMessage(username, text) {
     senderId: Store.user._id,
     text: text.trim(),
     time: new Date().toISOString(),
-    reactions: {}
+    reactions: {},
+    read: false
   };
   
   dmState.messages[username].push(msg);
@@ -73,6 +86,11 @@ function sendDMMessage(username, text) {
   
   saveDMState();
   renderDMChat(username);
+  
+  // MongoDB'ye kaydet
+  if (typeof MongoSync !== 'undefined' && MongoSync.saveDMMessage) {
+    MongoSync.saveDMMessage(Store.user.username, username, text);
+  }
   
   // Socket ile gönder
   if (window._socket) {
@@ -89,7 +107,7 @@ function sendDMMessage(username, text) {
   if (input) { input.value = ''; input.focus(); }
 }
 
-// DM Sohbet Render
+// ============ DM SOHBET RENDER ============
 function renderDMChat(username) {
   const messagesEl = document.getElementById('messages');
   const channelName = document.getElementById('channelName');
@@ -114,20 +132,21 @@ function renderDMChat(username) {
     const isOwn = msg.sender === Store.user?.username;
     return `
     <div class="msg" id="dm-msg-${msg.id}">
-      <div class="msg-av">${msg.sender.charAt(0).toUpperCase()}</div>
+      <div class="msg-av">${(msg.sender||'?').charAt(0).toUpperCase()}</div>
       <div class="msg-body">
         <div class="msg-head">
-          <span>${msg.sender}</span>
+          <span>${msg.sender||'?'}</span>
           <span class="msg-time">${formatTime(msg.time)}</span>
+          ${msg.read ? '<span style="font-size:9px;color:var(--gr)">✓✓</span>' : ''}
         </div>
         <div class="msg-text">${formatMsg(msg.text)}</div>
         ${msg.reactions && Object.keys(msg.reactions).length > 0 ? renderDMReactions(username, msg) : ''}
       </div>
       <div class="ma">
-        <button onclick="reactToDM('${username}','${msg.id}','👍')">👍</button>
-        <button onclick="reactToDM('${username}','${msg.id}','❤️')">❤️</button>
-        <button onclick="copyDMText('${username}','${msg.id}')">📋</button>
-        ${isOwn ? `<button onclick="deleteDMMessage('${username}','${msg.id}')" style="color:var(--re)">🗑️</button>` : ''}
+        <button onclick="reactToDM('${username}','${msg.id}','👍')" title="Beğen">👍</button>
+        <button onclick="reactToDM('${username}','${msg.id}','❤️')" title="Kalp">❤️</button>
+        <button onclick="copyDMText('${username}','${msg.id}')" title="Kopyala">📋</button>
+        ${isOwn ? `<button onclick="deleteDMMessage('${username}','${msg.id}')" style="color:var(--re)" title="Sil">🗑️</button>` : ''}
       </div>
     </div>`;
   }).join('');
@@ -138,7 +157,7 @@ function renderDMChat(username) {
   showDMInput(username);
 }
 
-// DM Input Göster
+// ============ DM INPUT ============
 function showDMInput(username) {
   const inputArea = document.querySelector('.input-area');
   if (!inputArea) return;
@@ -146,10 +165,12 @@ function showDMInput(username) {
   inputArea.innerHTML = `
     <textarea class="msg-inp" id="dmInput" placeholder="@${username} mesaj yaz..." rows="1"></textarea>
     <button class="ib" style="background:var(--gr)" id="dmSendBtn">➤</button>
+    <button class="ib" id="dmCloseBtn" title="Kapat">×</button>
   `;
   
   const dmInput = document.getElementById('dmInput');
   const dmSendBtn = document.getElementById('dmSendBtn');
+  const dmCloseBtn = document.getElementById('dmCloseBtn');
   
   if (dmInput) {
     dmInput.addEventListener('keydown', (e) => {
@@ -164,55 +185,13 @@ function showDMInput(username) {
   if (dmSendBtn) {
     dmSendBtn.onclick = () => sendDMMessage(username, dmInput?.value || '');
   }
-}
-
-// DM Mesaj Sil
-function deleteDMMessage(username, msgId) {
-  if (!dmState.messages[username]) return;
-  dmState.messages[username] = dmState.messages[username].filter(m => m.id !== msgId);
   
-  const friend = dmState.friends.find(f => f.username === username);
-  if (friend) {
-    const remaining = dmState.messages[username];
-    friend.lastMessage = remaining.length > 0 ? remaining[remaining.length - 1].text : '';
-  }
-  
-  saveDMState();
-  renderDMChat(username);
-  toast('🗑️ Mesaj silindi');
-}
-
-// DM Metin Kopyala
-function copyDMText(username, msgId) {
-  const msg = dmState.messages[username]?.find(m => m.id === msgId);
-  if (msg) {
-    navigator.clipboard.writeText(msg.text).then(() => toast('📋 Kopyalandı'));
+  if (dmCloseBtn) {
+    dmCloseBtn.onclick = closeDM;
   }
 }
 
-// DM Reaksiyon
-function reactToDM(username, msgId, emoji) {
-  const msg = dmState.messages[username]?.find(m => m.id === msgId);
-  if (!msg) return;
-  if (!msg.reactions) msg.reactions = {};
-  if (!msg.reactions[emoji]) msg.reactions[emoji] = [];
-  
-  const idx = msg.reactions[emoji].indexOf(Store.user._id);
-  if (idx === -1) msg.reactions[emoji].push(Store.user._id);
-  else msg.reactions[emoji].splice(idx, 1);
-  if (msg.reactions[emoji].length === 0) delete msg.reactions[emoji];
-  
-  saveDMState();
-  renderDMChat(username);
-}
-
-function renderDMReactions(username, msg) {
-  return `<div class="reacts">${Object.entries(msg.reactions).map(([emoji, users]) => 
-    `<span class="react ${users.includes(Store.user?._id)?'me':''}" onclick="reactToDM('${username}','${msg.id}','${emoji}')">${emoji} ${users.length}</span>`
-  ).join('')}</div>`;
-}
-
-// DM Kapat
+// ============ DM KAPAT ============
 function closeDM() {
   dmState.activeDM = null;
   saveDMState();
@@ -234,7 +213,53 @@ function closeDM() {
   if (typeof navigateTo === 'function') navigateTo('/dm');
 }
 
-// DM Listesi
+// ============ DM MESAJ SİL ============
+function deleteDMMessage(username, msgId) {
+  if (!dmState.messages[username]) return;
+  dmState.messages[username] = dmState.messages[username].filter(m => m.id !== msgId);
+  
+  const friend = dmState.friends.find(f => f.username === username);
+  if (friend) {
+    const remaining = dmState.messages[username];
+    friend.lastMessage = remaining.length > 0 ? remaining[remaining.length - 1].text : '';
+  }
+  
+  saveDMState();
+  renderDMChat(username);
+  toast('🗑️ Mesaj silindi');
+}
+
+// ============ DM METİN KOPYALA ============
+function copyDMText(username, msgId) {
+  const msg = dmState.messages[username]?.find(m => m.id === msgId);
+  if (msg) {
+    navigator.clipboard.writeText(msg.text).then(() => toast('📋 Kopyalandı'));
+  }
+}
+
+// ============ DM REAKSİYON ============
+function reactToDM(username, msgId, emoji) {
+  const msg = dmState.messages[username]?.find(m => m.id === msgId);
+  if (!msg) return;
+  if (!msg.reactions) msg.reactions = {};
+  if (!msg.reactions[emoji]) msg.reactions[emoji] = [];
+  
+  const idx = msg.reactions[emoji].indexOf(Store.user._id);
+  if (idx === -1) msg.reactions[emoji].push(Store.user._id);
+  else msg.reactions[emoji].splice(idx, 1);
+  if (msg.reactions[emoji].length === 0) delete msg.reactions[emoji];
+  
+  saveDMState();
+  renderDMChat(username);
+}
+
+function renderDMReactions(username, msg) {
+  return `<div class="reacts">${Object.entries(msg.reactions).map(([emoji, users]) => 
+    `<span class="react ${users.includes(Store.user?._id)?'me':''}" onclick="reactToDM('${username}','${msg.id}','${emoji}')">${emoji} ${users.length}</span>`
+  ).join('')}</div>`;
+}
+
+// ============ DM LİSTESİ ============
 function renderDMList() {
   const el = document.getElementById('messages');
   const channelName = document.getElementById('channelName');
@@ -254,8 +279,9 @@ function renderDMList() {
   
   el.innerHTML = sorted.map(f => `
     <div class="friend-suggestion" onclick="startDM('${f.username}')" style="cursor:pointer">
-      <div class="friend-suggestion-av">${f.username.charAt(0).toUpperCase()}
-        <span class="dm-dot ${f.online ? 'online' : ''}" style="position:absolute;bottom:0;right:0;width:10px;height:10px;border-radius:50%;background:${f.online?'var(--gr)':'var(--t3)'};border:2px solid var(--bg1)"></span>
+      <div class="friend-suggestion-av" style="position:relative">
+        ${f.username.charAt(0).toUpperCase()}
+        <span style="position:absolute;bottom:0;right:0;width:10px;height:10px;border-radius:50%;background:${f.online?'var(--gr)':'var(--t3)'};border:2px solid var(--bg1)"></span>
       </div>
       <div class="friend-suggestion-info">
         <div class="friend-suggestion-name">${f.username}</div>
@@ -268,10 +294,47 @@ function renderDMList() {
     </div>
   `).join('');
   
-  closeDM(); // Input'u normal hale getir
+  closeDM();
 }
 
-// Arkadaş Ekle
+// ============ DM ARAMA ============
+function searchDM(query) {
+  if (!query || query.trim().length < 2) return [];
+  const q = query.toLowerCase();
+  const results = [];
+  Object.entries(dmState.messages).forEach(([username, msgs]) => {
+    msgs.forEach(msg => {
+      if (msg.text.toLowerCase().includes(q)) {
+        results.push({ ...msg, friend: username });
+      }
+    });
+  });
+  return results.slice(-20);
+}
+
+// ============ DM FİLTRELEME ============
+function filterDMList(query) {
+  const container = document.getElementById('dmListContainer');
+  if (!container) return;
+  
+  const q = query.toLowerCase();
+  const filtered = query ? dmState.friends.filter(f => f.username.toLowerCase().includes(q)) : dmState.friends;
+  
+  container.innerHTML = filtered.length === 0 
+    ? '<p style="color:var(--t3);text-align:center;padding:20px">Sonuç bulunamadı</p>'
+    : filtered.map(f => `
+      <div class="mitem dm-mitem" onclick="startDM('${f.username}')">
+        <div class="mav">${f.username.charAt(0).toUpperCase()}</div>
+        <div class="minfo">
+          <div class="mname">${f.username}</div>
+          <div class="msub">${f.lastMessage || 'DM başlat'}</div>
+        </div>
+        ${f.unread > 0 ? `<span class="ub">${f.unread}</span>` : ''}
+      </div>
+    `).join('');
+}
+
+// ============ ARKADAŞ EKLE ============
 function addFriend(username) {
   if (!username || !username.trim()) return;
   if (username === Store.user?.username) return toast('Kendini ekleyemezsin', 'e');
@@ -292,50 +355,50 @@ function addFriend(username) {
   closeModal();
 }
 
-// Arkadaş Sil
+// ============ ARKADAŞ SİL ============
 function removeFriend(username) {
+  if (!confirm(username + ' arkadaşlıktan çıkarılsın mı?')) return;
+  
   dmState.friends = dmState.friends.filter(f => f.username !== username);
   delete dmState.messages[username];
   delete dmState.unread[username];
+  
   if (dmState.activeDM === username) {
     dmState.activeDM = null;
+    if (typeof renderMessages === 'function') renderMessages();
   }
+  
   saveDMState();
   toast(username + ' arkadaşlıktan çıkarıldı');
 }
 
-// DM Ara
-function searchDM(query) {
-  if (!query || query.trim().length < 2) return [];
-  const q = query.toLowerCase();
-  const results = [];
-  Object.entries(dmState.messages).forEach(([username, msgs]) => {
-    msgs.forEach(msg => {
-      if (msg.text.toLowerCase().includes(q)) {
-        results.push({ ...msg, friend: username });
-      }
-    });
-  });
-  return results.slice(-20);
+// ============ DM OKUNDU ============
+function markDMRead(username) {
+  const friend = dmState.friends.find(f => f.username === username);
+  if (friend) {
+    friend.unread = 0;
+    dmState.unread[username] = 0;
+    saveDMState();
+  }
 }
 
-// DM Durumu Kaydet
+// ============ DM KAYDET ============
 function saveDMState() {
   localStorage.setItem('gt_dm_friends', JSON.stringify(dmState.friends));
   localStorage.setItem('gt_dm_messages', JSON.stringify(dmState.messages));
   localStorage.setItem('gt_dm_unread', JSON.stringify(dmState.unread));
 }
 
-// Socket DM Dinleyici
+// ============ SOCKET DM DİNLEYİCİ ============
 function initDMSocket() {
   if (!window._socket) return;
   
   window._socket.on('dm_message', (data) => {
     if (data.senderId === Store.user?._id) return;
     
-    // Yeni arkadaş ekle
-    if (!dmState.friends.find(f => f.username === data.sender)) {
-      dmState.friends.unshift({
+    let friend = dmState.friends.find(f => f.username === data.sender);
+    if (!friend) {
+      friend = {
         id: genId(),
         username: data.sender,
         lastMessage: '',
@@ -343,10 +406,10 @@ function initDMSocket() {
         unread: 0,
         online: true,
         createdAt: new Date().toISOString()
-      });
+      };
+      dmState.friends.unshift(friend);
     }
     
-    // Mesajı kaydet
     if (!dmState.messages[data.sender]) dmState.messages[data.sender] = [];
     dmState.messages[data.sender].push({
       id: genId(),
@@ -354,36 +417,36 @@ function initDMSocket() {
       senderId: data.senderId,
       text: data.text,
       time: new Date().toISOString(),
-      reactions: {}
+      reactions: {},
+      read: false
     });
     
-    // Arkadaş bilgisini güncelle
-    const friend = dmState.friends.find(f => f.username === data.sender);
-    if (friend) {
-      friend.lastMessage = data.text;
-      friend.lastTime = 'Az önce';
-      if (dmState.activeDM !== data.sender) {
-        friend.unread = (friend.unread || 0) + 1;
-      }
+    friend.lastMessage = data.text;
+    friend.lastTime = 'Az önce';
+    
+    if (dmState.activeDM !== data.sender) {
+      friend.unread = (friend.unread || 0) + 1;
     }
     
     saveDMState();
     
-    // Aktif DM ise render et
     if (dmState.activeDM === data.sender) {
       renderDMChat(data.sender);
-      dmState.unread[data.sender] = 0;
-      friend.unread = 0;
-      saveDMState();
+      markDMRead(data.sender);
+    } else {
+      renderDMList();
     }
     
     // Bildirim
-    if (dmState.activeDM !== data.sender) {
-      toast('💬 ' + data.sender + ': ' + data.text.substring(0, 30), 'dm');
+    if (typeof sendNotification === 'function') {
+      sendNotification(data.sender, data.text.substring(0, 80), '💬');
+    }
+    
+    if (typeof NotificationCenter !== 'undefined') {
+      NotificationCenter.push(data.sender, data.text.substring(0, 50), '💬');
     }
   });
   
-  // Kullanıcı çevrimiçi durumu
   window._socket.on('user_online', (data) => {
     const friend = dmState.friends.find(f => f.username === data.username);
     if (friend) friend.online = true;
@@ -395,7 +458,32 @@ function initDMSocket() {
   });
 }
 
-// Sayfa yüklendiğinde başlat
+// ============ DM CSS ============
+const dmStyle = document.createElement('style');
+dmStyle.textContent = `
+  .dm-mitem { justify-content: space-between; }
+  .dm-mitem-actions { display: flex; align-items: center; gap: 6px; }
+  .dm-unread { background: var(--re); color: #fff; font-size: 9px; padding: 1px 5px; border-radius: 8px; font-weight: 700; }
+  .dm-dot { display: inline-block; }
+`;
+document.head.appendChild(dmStyle);
+
+// ============ BAŞLAT ============
 document.addEventListener('DOMContentLoaded', () => {
-  setTimeout(initDMSocket, 1000);
+  setTimeout(initDMSocket, 1500);
+  
+  // DM butonu
+  const dmBtn = document.getElementById('dmBtn');
+  if (dmBtn) dmBtn.onclick = () => {
+    if (typeof navigateTo === 'function') navigateTo('/dm');
+    else renderDMList();
+  };
+  
+  const panelDmBtn = document.getElementById('panelDmBtn');
+  if (panelDmBtn) panelDmBtn.onclick = () => {
+    if (typeof navigateTo === 'function') navigateTo('/dm');
+    else renderDMList();
+  };
 });
+
+console.log('✅ DM.js yüklendi');
