@@ -1,4 +1,4 @@
-// ============ GETTIC APP.JS - FULL & EKSİKSİZ ============
+// ============ GETTIC APP.JS - FULL GÜNCEL ============
 console.log('🚀 Gettic başlatılıyor...');
 
 function $(id) { return document.getElementById(id); }
@@ -52,8 +52,6 @@ function showMain() {
   if(typeof renderChannels==='function') renderChannels();
   if(typeof saveStore==='function') saveStore();
   handleRoute(location.pathname.replace('/app','')||'/');
-  
-  // Yetkiye göre butonları güncelle
   updateUIPermissions();
 }
 
@@ -61,17 +59,6 @@ function updateUIPermissions() {
   const isAdmin = hasPermission(Store.user?._id, 'manageChannels');
   const addCatBtn = $('addCategoryBtn');
   const addChBtn = $('addChannelSidebarBtn');
-  if (addCatBtn) addCatBtn.style.display = isAdmin ? '' : 'none';
-  if (addChBtn) addChBtn.style.display = isAdmin ? '' : 'none';
-}
-
-// app.js'de showMain fonksiyonunun sonuna ekle
-function updateUIPermissions() {
-  const isAdmin = hasPermission(Store.user?._id, 'manageChannels');
-  
-  const addCatBtn = $('addCategoryBtn');
-  const addChBtn = $('addChannelSidebarBtn');
-  
   if (addCatBtn) addCatBtn.style.display = isAdmin ? '' : 'none';
   if (addChBtn) addChBtn.style.display = isAdmin ? '' : 'none';
 }
@@ -89,13 +76,15 @@ function navigateTo(path) {
 }
 
 function showInputs() {
-  const inputs = ['messageInput','sendBtn','emojiBtn','imageBtn','pollBtn'];
-  inputs.forEach(id => { const el = $(id); if(el) el.style.display = ''; });
+  ['messageInput','sendBtn','emojiBtn','gifBtn','imageBtn','pollBtn'].forEach(id => {
+    const el = $(id); if(el) el.style.display = '';
+  });
 }
 
 function hideInputs() {
-  const inputs = ['messageInput','sendBtn','emojiBtn','imageBtn','pollBtn'];
-  inputs.forEach(id => { const el = $(id); if(el) el.style.display = 'none'; });
+  ['messageInput','sendBtn','emojiBtn','gifBtn','imageBtn','pollBtn'].forEach(id => {
+    const el = $(id); if(el) el.style.display = 'none';
+  });
 }
 
 function handleRoute(path) {
@@ -153,6 +142,10 @@ function handleRoute(path) {
     if(typeof openModal==='function') openModal('search');
   } else if (path==='/notifications') {
     if(typeof openModal==='function') openModal('notifications');
+  } else if (path==='/games') {
+    if(typeof showGameList==='function') showGameList();
+  } else if (path==='/calendar') {
+    if(typeof showCalendar==='function') showCalendar();
   } else {
     $('homePanel').classList.remove('hidden');
   }
@@ -208,7 +201,6 @@ function bindButtons() {
     if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();if(typeof sendMessage==='function')sendMessage();}
   });
   
-  // Mobil klavye
   $('messageInput')?.addEventListener('focus',()=>{
     setTimeout(()=>{const msgs=$('messages');if(msgs)msgs.scrollTop=msgs.scrollHeight},300);
   });
@@ -242,11 +234,9 @@ if('serviceWorker' in navigator){
   navigator.serviceWorker.register('/service-worker.js').catch(()=>{});
 }
 
-console.log('✅ App.js yüklendi');
-
 // Sayfa yüklendiğinde route'u işle
 const currentPath = location.pathname.replace('/app', '') || '/';
-console.log('📍 Current path:', currentPath);
 handleRoute(currentPath);
-
 window.handleRoute = handleRoute;
+
+console.log('✅ App.js yüklendi');
