@@ -1,10 +1,10 @@
-// ============ GETTIC AUTH.JS - FULL & HATASIZ ============
+// ============ GETTIC AUTH.JS - FULL GÜNCEL ============
 
 // Giriş / Kayıt
 async function doAuth(type, username, password) {
   if (!username || !password) throw new Error('Kullanıcı adı ve şifre gerekli');
-  if (username.length < 3) throw new Error('Kullanıcı adı en az 3 karakter');
-  if (password.length < 4) throw new Error('Şifre en az 4 karakter');
+  if (username.length < 3) throw new Error('Kullanıcı adı en az 3 karakter olmalı');
+  if (password.length < 4) throw new Error('Şifre en az 4 karakter olmalı');
   
   try {
     const res = await fetch(API + '/api/auth/' + type, {
@@ -26,13 +26,20 @@ async function doAuth(type, username, password) {
         if (typeof saveStore === 'function') saveStore();
       }
       
+      if (typeof MongoSync !== 'undefined' && MongoSync.syncAll) {
+        setTimeout(() => MongoSync.syncAll(), 1500);
+      }
+      
       return data.user;
     }
     
-    if (res.status === 429) throw new Error('Çok fazla deneme. Bekleyin.');
+    if (res.status === 429) throw new Error('Çok fazla deneme. Lütfen bekleyin.');
+    if (res.status === 401) throw new Error(data.error || 'Geçersiz kullanıcı adı veya şifre');
     throw new Error(data.error || 'İşlem başarısız');
   } catch(e) {
-    if (e.message.includes('Failed to fetch')) throw new Error('Sunucuya bağlanılamadı');
+    if (e.message.includes('Failed to fetch') || e.message.includes('NetworkError')) {
+      throw new Error('Sunucuya bağlanılamadı. İnternet bağlantınızı kontrol edin.');
+    }
     throw e;
   }
 }
@@ -42,9 +49,12 @@ function logout() {
   if (window._socket) {
     window._socket.emit('leave_all');
     window._socket.disconnect();
+    window._socket = null;
   }
+  
   localStorage.removeItem('gt_token');
   localStorage.removeItem('gt_user');
+  
   if (typeof Store !== 'undefined') {
     Store.user = null;
     Store.token = null;
@@ -56,17 +66,31 @@ function logout() {
   const login = document.getElementById('loginScreen');
   if (main) main.classList.add('hidden');
   if (login) login.classList.remove('hidden');
+  
+  // Input'ları temizle
+  const authUser = document.getElementById('authUsername');
+  const authPass = document.getElementById('authPassword');
+  if (authUser) authUser.value = '';
+  if (authPass) authPass.value = '';
+  
+  if (typeof NotificationCenter !== 'undefined') {
+    NotificationCenter.push('Çıkış Yapıldı', 'Başarıyla çıkış yaptınız.', '👋');
+  }
 }
 
 // Kullanıcı yükleme
 async function loadUser() {
   if (!Store || !Store.token) return null;
   
+  // Token süresi kontrolü
   try {
     const payload = JSON.parse(atob(Store.token.split('.')[1]));
     if (payload.exp * 1000 < Date.now()) {
       localStorage.removeItem('gt_token');
       Store.token = null;
+      if (typeof NotificationCenter !== 'undefined') {
+        NotificationCenter.push('Oturum Süresi Doldu', 'Lütfen tekrar giriş yapın.', '⏰');
+      }
       return null;
     }
   } catch(e) {}
@@ -91,15 +115,116 @@ async function loadUser() {
   } catch(e) {
     const saved = localStorage.getItem('gt_user');
     if (saved) {
-      try { Store.user = JSON.parse(saved); return Store.user; } catch(e2) {}
+      try {
+        const user = JSON.parse(saved);
+        Store.user = user;
+        return user;
+      } catch(e2) {}
     }
   }
   return null;
 }
 
+// Şifre değiştirme
+async function changePassword(oldPass, newPass) {
+  if (!oldPass || !newPass) throw new Error('Mevcut ve yeni şifre gerekli');
+  if (newPass.length < 4) throw new Error('Yeni şifre en az 4 karakter olmalı');
+  
+  const res = await fetch(API + '/api/auth/change-password', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + Store.token
+    },
+    body: JSON.stringify({ oldPassword: oldPass, newPassword: newPass })
+  });
+  
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Şifre değiştirilemedi');
+  return data;
+}
+
+// Profil güncelleme
+async function updateProfile(updates) {
+  const res = await fetch(API + '/api/me', {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + Store.token
+    },
+    body: JSON.stringify(updates)
+  });
+  
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Profil güncellenemedi');
+  Store.user = data;
+  localStorage.setItem('gt_user', JSON.stringify(data));
+  
+  // UI güncelle
+  const displayName = document.getElementById('displayName');
+  const avatar = document.getElementById('avatar');
+  if (displayName && data.username) displayName.textContent = data.username;
+  if (avatar && data.username) avatar.textContent = data.username.charAt(0).toUpperCase();
+  
+  return data;
+}
+
+// Hesap silme
+async function deleteAccount(password) {
+  if (!password) throw new Error('Şifre gerekli');
+  
+  const res = await fetch(API + '/api/me', {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + Store.token
+    },
+    body: JSON.stringify({ password })
+  });
+  
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Hesap silinemedi');
+  logout();
+  return data;
+}
+
+// Token yenileme
+async function refreshToken() {
+  if (!Store.token) return null;
+  try {
+    const res = await fetch(API + '/api/auth/refresh', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + Store.token }
+    });
+    const data = await res.json();
+    if (data.token) {
+      Store.token = data.token;
+      localStorage.setItem('gt_token', data.token);
+      return data.token;
+    }
+  } catch(e) {}
+  return null;
+}
+
+// Oturum kontrolü
+function isLoggedIn() {
+  return !!(Store && Store.token && Store.user);
+}
+
+// Otomatik token yenileme (her 25 dakikada bir)
+setInterval(() => {
+  if (Store && Store.token && Store.user) {
+    refreshToken().catch(() => {});
+  }
+}, 25 * 60 * 1000);
+
 // Global yap
 window.doAuth = doAuth;
 window.logout = logout;
 window.loadUser = loadUser;
+window.changePassword = changePassword;
+window.updateProfile = updateProfile;
+window.deleteAccount = deleteAccount;
+window.isLoggedIn = isLoggedIn;
 
 console.log('✅ Auth.js yüklendi');
