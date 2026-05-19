@@ -560,28 +560,68 @@ app.post('/api/image', async (req, res) => {
     } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
-const mailerSend = new MailerSend({
-    apiKey: process.env.EMAIL_TOKEN
+// ==================== EMAİL GÖNDERME (SMTP) ====================
+const nodemailer = require('nodemailer');
+
+const transporter = nodemailer.createTransport({
+    host: 'smtp.mailersend.net',
+    port: 587,
+    secure: false,
+    requireTLS: true,
+    auth: {
+        user: 'MS_FLXcSl@test-86org8em12zgew13.mlsender.net',
+        pass: process.env.EMAIL_TOKEN
+    },
+    tls: {
+        ciphers: 'SSLv3',
+        rejectUnauthorized: false
+    }
+});
+
+// Test bağlantısı
+transporter.verify(function(error, success) {
+    if (error) {
+        console.log('❌ SMTP bağlantı hatası:', error.message);
+    } else {
+        console.log('✅ SMTP sunucusu hazır');
+    }
 });
 
 app.post('/api/email/send', async (req, res) => {
     try {
         const { to, subject, html } = req.body;
         
-        const sentFrom = new Sender("gettic@test-86org8em12zgew13.mlsender.net", "Gettic");
-        const recipients = [new Recipient(to, to.split('@')[0])];
-        
-        const emailParams = new EmailParams()
-            .setFrom(sentFrom)
-            .setTo(recipients)
-            .setSubject(subject)
-            .setHtml(html)
-            .setText(html.replace(/<[^>]*>/g, ''));
-        
-        await mailerSend.email.send(emailParams);
-        res.json({ success: true });
+        if (!to || !subject || !html) {
+            return res.status(400).json({ error: 'Alıcı, konu ve içerik gerekli' });
+        }
+
+        const info = await transporter.sendMail({
+            from: '"Gettic" <gettic@test-86org8em12zgew13.mlsender.net>',
+            to: to,
+            subject: subject,
+            html: html
+        });
+
+        console.log('✅ Email gönderildi:', info.messageId);
+        res.json({ success: true, message: 'Email gönderildi', id: info.messageId });
+
     } catch (error) {
+        console.error('❌ Email hatası:', error.message);
         res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/api/email/test', async (req, res) => {
+    try {
+        const info = await transporter.sendMail({
+            from: '"Gettic" <gettic@test-86org8em12zgew13.mlsender.net>',
+            to: 'tahakrky@protonmail.com',
+            subject: 'Gettic Test Email',
+            html: '<h2>Gettic Email Testi</h2><p>SMTP başarıyla çalışıyor! ✅</p>'
+        });
+        res.json({ success: true, id: info.messageId });
+    } catch (error) {
+        res.json({ error: error.message });
     }
 });
 
