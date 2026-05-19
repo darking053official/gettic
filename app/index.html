@@ -308,17 +308,5 @@
     <script src="js/system.js"></script>
     <script src="js/mongoSync.js"></script>
     <script src="js/app.js"></script>
-    <script>
-(function() {
-    var path = window.location.pathname;
-    // /app/ ile başlayan ve statik dosya olmayan her şeyi ana sayfaya yönlendir
-    if (path.startsWith('/app/') && !path.match(/\.(js|css|png|jpg|svg|ico|woff|ttf|map)$/)) {
-        var main = document.getElementById('mainScreen');
-        if (!main || main.classList.contains('hidden')) {
-            window.location.replace('/app');
-        }
-    }
-})();
-        </script>
 </body>
-                                                                                                                        </html>
+</html>
