@@ -1,4 +1,3 @@
-const { MailerSend, EmailParams, Sender, Recipient } = require('mailersend');
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -555,7 +554,7 @@ app.post('/api/image', async (req, res) => {
     } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
-// ==================== EMAİL GÖNDERME (API) ====================
+// ==================== EMAİL GÖNDERME (RESEND) ====================
 
 app.post('/api/email/send', async (req, res) => {
     try {
@@ -565,31 +564,32 @@ app.post('/api/email/send', async (req, res) => {
             return res.status(400).json({ error: 'Alıcı, konu ve içerik gerekli' });
         }
 
-        const response = await fetch('https://api.mailersend.com/v1/email', {
+        const response = await fetch('https://api.resend.com/emails', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${process.env.EMAIL_TOKEN}`
             },
             body: JSON.stringify({
-                from: {
-                    email: 'gettic@test-86org8em12zgew13.mlsender.net',
-                    name: 'Gettic'
-                },
-                to: [{ email: to }],
+                from: 'Gettic <onboarding@resend.dev>',
+                to: [to],
                 subject: subject,
                 html: html
             })
         });
 
+        const data = await response.json();
+
         if (response.ok) {
-            res.json({ success: true });
+            console.log('✅ Email gönderildi:', data.id);
+            res.json({ success: true, id: data.id });
         } else {
-            const data = await response.json();
+            console.error('❌ Email hatası:', data);
             res.status(500).json({ error: data.message || 'Email gönderilemedi' });
         }
 
     } catch (error) {
+        console.error('❌ Email hatası:', error.message);
         res.status(500).json({ error: error.message });
     }
 });
