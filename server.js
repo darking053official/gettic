@@ -172,11 +172,6 @@ app.get('/apis/list/add', (req, res) => { res.sendFile(path.join(__dirname, 'api
 app.get('/app', (req, res) => { res.sendFile(path.join(__dirname, 'app', 'index.html')); });
 app.get('/app/*', (req, res) => { res.sendFile(path.join(__dirname, 'app', 'index.html')); });
 
-// ==================== 404 ====================
-app.use((req, res) => {
-    res.status(404).sendFile(path.join(__dirname, '404.html'));
-});
-
 // ==================== AUTH ENDPOINTS ====================
 app.post('/api/auth/register', async (req, res) => {
     try {
@@ -629,6 +624,11 @@ app.post('/api/list/reset', async (req, res) => {
 
 // ==================== HEALTH CHECK ====================
 app.get('/api/health', (req, res) => { res.json({ status: 'ok', timestamp: new Date() }); });
+
+// ==================== 404 ====================
+app.use((req, res) => {
+    res.status(404).sendFile(path.join(__dirname, '404.html'));
+});
 
 // ==================== SOCKET.IO ====================
 io.on('connection', (socket) => {
