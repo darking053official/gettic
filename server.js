@@ -15,16 +15,10 @@ const io = new Server(httpServer, {
     cors: { origin: '*', methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'] }
 });
 
-// Express'in kendi sıkıştırması - en hızlı, en uyumlu
 app.use(express.json({ limit: '10mb' }));
 app.use((req, res, next) => {
-    // Manuel GZIP kntrolü
-    const acceptEncoding = req.headers['accept-encoding'] || '';
-    if (acceptEncoding.includes('gzip')) {
-        res.setHeader('Content-Encoding', 'gzip');
-    }
-    // Önbellek
-    if (req.url.match(/\.(js|css|png|jpg|svg|ico)$/)) {
+    // Sadece statik dosyaları önbelleğe al, API'leri elleme
+    if (req.url.match(/\.(js|css|png|jpg|svg|ico|woff|woff2|ttf)$/)) {
         res.setHeader('Cache-Control', 'public, max-age=604800, immutable');
     }
     next();
