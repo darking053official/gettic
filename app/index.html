@@ -93,7 +93,7 @@
         }
     </style>
 </head>
-<body>
+<body onload="if(window.location.pathname.startsWith('/app/')&&!document.getElementById('mainScreen')){window.location.href='/app'}">
     <noscript>
         <div style="padding:20px;text-align:center;background:#ec4899;color:#fff;font-family:sans-serif">
             Gettic çalışmak için JavaScript gerektirir. Lütfen etkinleştirin.
