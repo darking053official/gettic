@@ -1,10 +1,11 @@
-// ============ GETTIC APP.JS ============
+// ============ GETTIC APP.JS - FULL & EKSİKSİZ ============
 console.log('🚀 Gettic başlatılıyor...');
 
 function $(id) { return document.getElementById(id); }
 
 let tab = 'login';
 let socket = null;
+let sendTimeout;
 
 // ============ INIT ============
 setTimeout(() => {
@@ -40,7 +41,6 @@ $('authUsername').onkeydown = (e) => { if(e.key==='Enter') $('authPassword').foc
 
 // ============ SHOW MAIN ============
 function showMain() {
-  // localStorage'dan mesajları geri yükle
   const saved = localStorage.getItem('gt_messages');
   if (saved && (!Store.messages || Store.messages.length === 0)) {
     try { Store.messages = JSON.parse(saved); } catch(e) {}
@@ -55,11 +55,24 @@ function showMain() {
   }
   $('serverName').textContent=Store.serverSettings?.name||'Gettic';
   document.title='Gettic - '+(Store.user?.username||'Sohbet');
+  
+  // İlk girişte hoş geldin mesajı
+  if (Store.messages.length === 0 && Store.activeChannel === 'genel-sohbet') {
+    Store.messages.push({
+      _id: 'welcome-msg',
+      content: '**🎉 Gettic\'e hoş geldiniz!**\n\nBurası genel sohbet kanalı. Herkes burada mesajlaşabilir, dosya paylaşabilir ve sesli sohbete katılabilir.\n\nSohbeti başlatmak için alttaki kutuya bir şeyler yaz! 😊',
+      senderName: 'Gettic',
+      senderId: 'system',
+      channelId: 'genel-sohbet',
+      createdAt: new Date().toISOString()
+    });
+  }
+  
   if(typeof renderChannels==='function') renderChannels();
   if(typeof renderMessages==='function') renderMessages();
   if(typeof saveStore==='function') saveStore();
-  
-  // MongoDB'den veri çek
+  if(typeof loadActiveServers==='function') loadActiveServers();
+  updateUIPermissions();
   if (typeof MongoSync !== 'undefined') setTimeout(() => MongoSync.syncAll(), 2000);
 }
 
@@ -69,9 +82,32 @@ function showLogin() {
   $('mainScreen')?.classList.add('hidden');
 }
 
+function updateUIPermissions() {
+  const isAdmin = typeof hasPermission === 'function' ? hasPermission(Store.user?._id, 'manageChannels') : false;
+  const addCatBtn = $('addCategoryBtn');
+  const addChBtn = $('addChannelSidebarBtn');
+  if (addCatBtn) addCatBtn.style.display = isAdmin ? '' : 'none';
+  if (addChBtn) addChBtn.style.display = isAdmin ? '' : 'none';
+}
+
+function loadActiveServers() {
+  const container = document.getElementById('activeServers');
+  if (!container) return;
+  container.innerHTML = `
+    <div class="friend-suggestion" onclick="navigateTo('/server/gettic/chat/genel-sohbet')" style="cursor:pointer">
+      <div class="friend-suggestion-av" style="background:var(--ac);color:#fff;font-weight:700">G</div>
+      <div class="friend-suggestion-info">
+        <div class="friend-suggestion-name">Gettic</div>
+        <div class="friend-suggestion-mutual">${Store.messages?.length || 0} mesaj · 12 çevrimiçi</div>
+      </div>
+    </div>
+    <button class="friend-suggestion-btn" onclick="openModal('addServer')" style="width:100%;margin-top:8px">+ Sunucu Ekle / Keşfet</button>
+  `;
+}
+
 // ============ BUTONLAR ============
 function bindButtons() {
-  $('homeBtn')?.addEventListener('click',()=>{ $('homePanel').classList.remove('hidden'); $('sidebar').classList.add('hidden'); $('chatArea').classList.add('hidden'); });
+  $('homeBtn')?.addEventListener('click',()=>{ $('homePanel').classList.remove('hidden'); $('sidebar').classList.add('hidden'); $('chatArea').classList.add('hidden'); if(typeof loadActiveServers==='function')loadActiveServers(); });
   $('discoverBtn')?.addEventListener('click',()=>{ $('homePanel').classList.add('hidden'); $('sidebar').classList.add('hidden'); $('chatArea').classList.remove('hidden'); $('chatArea').classList.add('flex'); });
   $('dmBtn')?.addEventListener('click',()=>{ if(typeof openModal==='function')openModal('dm'); });
   $('createServerBtn')?.addEventListener('click',()=>{ if(typeof openModal==='function')openModal('addServer'); });
@@ -81,7 +117,7 @@ function bindButtons() {
   $('addChannelSidebarBtn')?.addEventListener('click',()=>{ if(typeof openModal==='function')openModal('addChannel'); });
   $('sidebarUserBtn')?.addEventListener('click',()=>{ if(typeof openModal==='function')openModal('profile'); });
   $('toggleSidebarBtn')?.addEventListener('click',()=>$('sidebar')?.classList.toggle('open'));
-  $('togglePanelBtn')?.addEventListener('click',()=>$('userPanel')?.classList.toggle('hidden'));
+  $('togglePanelBtn')?.addEventListener('click',()=>{ const p=$('userPanel'); if(p)p.style.display=p.style.display==='none'||p.style.display===''?'block':'none'; });
   $('searchBtn')?.addEventListener('click',()=>{ if(typeof openModal==='function')openModal('search'); });
   $('sendBtn')?.addEventListener('click',()=>{ if(typeof sendMessage==='function')sendMessage(); });
   $('emojiBtn')?.addEventListener('click',()=>$('emojiPanel')?.classList.toggle('hidden'));
@@ -97,8 +133,21 @@ function bindButtons() {
   Object.entries(panelMap).forEach(([id,modal])=>{ const btn=$(id); if(btn) btn.addEventListener('click',()=>{ if(typeof openModal==='function')openModal(modal); }); });
   
   $('panelClearBtn')?.addEventListener('click',()=>{ if(typeof clearMessages==='function')clearMessages(); });
-  
-  $('messageInput')?.addEventListener('keydown',(e)=>{ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();if(typeof sendMessage==='function')sendMessage();} });
+
+  // Mesaj input - debounce
+  $('messageInput')?.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      clearTimeout(sendTimeout);
+      sendTimeout = setTimeout(() => { if (typeof sendMessage === 'function') sendMessage(); }, 50);
+    }
+  });
+
+  // Ses kaydı
+  $('voiceMsgBtn')?.addEventListener('mousedown', ()=>{ if(typeof startRecording==='function')startRecording(); });
+  $('voiceMsgBtn')?.addEventListener('mouseup', ()=>{ if(typeof stopRecording==='function')stopRecording(); });
+  $('voiceMsgBtn')?.addEventListener('touchstart', (e)=>{ e.preventDefault(); if(typeof startRecording==='function')startRecording(); });
+  $('voiceMsgBtn')?.addEventListener('touchend', ()=>{ if(typeof stopRecording==='function')stopRecording(); });
 
   console.log('✅ Tüm butonlar bağlandı');
 }
@@ -120,5 +169,16 @@ window.addEventListener('offline',()=>{if(Store)Store.isOnline=false});
 
 // ============ KAYDET ============
 window.addEventListener('beforeunload', ()=>{ if(typeof saveStore==='function') saveStore(); });
+
+// ============ KLİVYE KISAYOLLARI ============
+document.addEventListener('keydown', function(e) {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); if (typeof openModal === 'function') openModal('search'); }
+  if (e.key === 'Escape') { if (typeof closeModal === 'function') closeModal(); $('emojiPanel')?.classList.add('hidden'); }
+});
+
+// ============ SERVICE WORKER ============
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/service-worker.js').catch(()=>{});
+}
 
 console.log('✅ App.js yüklendi');
