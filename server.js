@@ -554,15 +554,13 @@ app.post('/api/image', async (req, res) => {
     } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
-// ==================== EMAİL GÖNDERME (BREVO SMTP) ====================
-const nodemailer = require('nodemailer');
-
+// ==================== EMAİL GÖNDERME ====================
 const transporter = nodemailer.createTransport({
-    host: 'smtp-relay.brevo.com',
-    port: 587,
+    host: 'smtp.elasticemail.com',
+    port: 2525,
     secure: false,
     auth: {
-        user: 'abd43b001@smtp-brevo.com',
+        user: 'tahakrky@protonmail.com',
         pass: process.env.EMAIL_TOKEN
     }
 });
@@ -572,8 +570,8 @@ app.post('/api/email/send', async (req, res) => {
         const { to, subject, html } = req.body;
         if (!to || !subject || !html) return res.status(400).json({ error: 'Eksik bilgi' });
 
-        const info = await transporter.sendMail({
-            from: '"Gettic" <gettic@brevo.com>',
+        await transporter.sendMail({
+            from: '"Gettic" <tahakrky@protonmail.com>',
             to: to,
             subject: subject,
             html: html
