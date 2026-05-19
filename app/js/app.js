@@ -234,9 +234,14 @@ if('serviceWorker' in navigator){
   navigator.serviceWorker.register('/service-worker.js').catch(()=>{});
 }
 
-// Sayfa yüklendiğinde route'u işle
-const currentPath = location.pathname.replace('/app', '') || '/';
-handleRoute(currentPath);
 window.handleRoute = handleRoute;
 
-console.log('✅ App.js yüklendi');
+// SAYFA YÜKLENİNCE ROUTE'U İŞLE (404 ÇÖZÜMÜ)
+(function initRoute() {
+    var path = window.location.pathname.replace('/app', '') || '/';
+    if (path === '') path = '/';
+    
+    if (typeof handleRoute === 'function') {
+        handleRoute(path);
+    }
+})();
