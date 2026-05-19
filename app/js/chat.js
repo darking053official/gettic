@@ -36,11 +36,18 @@ function renderMessages() {
   if (!el) return;
 
   if (!Store.messages || Store.messages.length === 0) {
-    el.innerHTML = `<div class="empty-ch">
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" opacity="0.3"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8"/></svg>
-      <h4># ${Store.activeChannel || 'genel-sohbet'}</h4>
-      <p>Sohbete hoş geldin! İlk mesajı sen gönder.</p>
-    </div>`;
+    el.innerHTML = `
+      <div class="empty-ch">
+        <div class="welcome-avatar">#</div>
+        <h3>${Store.activeChannel || 'genel-sohbet'} kanalına hoş geldin!</h3>
+        <p>Bu kanalın başlangıcı. Sohbeti başlatan ilk mesajı sen gönder.</p>
+        <div class="welcome-tips">
+          <div class="welcome-tip">💬 Mesaj yazmak için alttaki kutuyu kullan</div>
+          <div class="welcome-tip">📎 Dosya paylaşmak için 📎 butonuna tıkla</div>
+          <div class="welcome-tip">😊 Emoji eklemek için 😊 butonuna tıkla</div>
+          <div class="welcome-tip">🎤 Ses kanalına katılmak için 🔊 kanalına tıkla</div>
+        </div>
+      </div>`;
     return;
   }
 
