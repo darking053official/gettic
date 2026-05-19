@@ -14,12 +14,16 @@ const io = new Server(httpServer, {
     cors: { origin: '*', methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'] }
 });
 
-// Brotli + GZIP sıkıştırma (GZIP'ten %20 daha iyi)
-const shrinkRay = require('shrink-ray-current');
-app.use(shrinkRay({ 
-    brotli: true, 
-    cache: true,
-    threshold: 0  // tüm dosyaları sıkıştır
+// Hızlı sıkıştırma (Brotli + GZIP + Deflate)
+const fastifyCompress = require('@fastify/compress');
+app.use((req, res, next) => {
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    next();
+});
+app.use(fastifyCompress({ 
+    threshold: 0,
+    brotli: true,
+    zlib: true 
 }));
 
 // ==================== MIDDLEWARE ====================
