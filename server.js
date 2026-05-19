@@ -18,7 +18,7 @@ const io = new Server(httpServer, {
 // Express'in kendi sıkıştırması - en hızlı, en uyumlu
 app.use(express.json({ limit: '10mb' }));
 app.use((req, res, next) => {
-    // Manuel GZIP kontrolü
+    // Manuel GZIP kntrolü
     const acceptEncoding = req.headers['accept-encoding'] || '';
     if (acceptEncoding.includes('gzip')) {
         res.setHeader('Content-Encoding', 'gzip');
