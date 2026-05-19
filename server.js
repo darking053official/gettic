@@ -559,6 +559,45 @@ app.post('/api/image', async (req, res) => {
     } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
+// ==================== EMAIL GÖNDERME ====================
+app.post('/api/email/send', async (req, res) => {
+    try {
+        const { to, subject, html } = req.body;
+        
+        if (!to || !subject || !html) {
+            return res.status(400).json({ error: 'Alıcı, konu ve içerik gerekli' });
+        }
+
+        const response = await fetch('https://api.mailersend.com/v1/email', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.EMAIL_TOKEN}`
+            },
+            body: JSON.stringify({
+                from: {
+                    email: 'gettic@trial-ynrw7gyewjrl2k8e.mlsender.net',
+                    name: 'Gettic'
+                },
+                to: [{ email: to }],
+                subject: subject,
+                html: html
+            })
+        });
+
+        const data = await response.json();
+        
+        if (response.ok) {
+            res.json({ success: true, message: 'Email gönderildi', id: data.id });
+        } else {
+            res.status(500).json({ error: data.message || 'Email gönderilemedi' });
+        }
+
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // ==================== API LIST ====================
 app.get('/api/list', async (req, res) => {
     try {
