@@ -555,32 +555,40 @@ app.post('/api/image', async (req, res) => {
     } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
-// ==================== EMAİL GÖNDERME (SMTP) ====================
-// ==================== EMAİL GÖNDERME (SMTP) ====================
-const nodemailer = require('nodemailer');
-
-const transporter = nodemailer.createTransport({
-    host: 'smtp.mailersend.net',
-    port: 587,
-    secure: false,
-    auth: {
-        user: 'MS_FLXcSl@test-86org8em12zgew13.mlsender.net',
-        pass: process.env.EMAIL_TOKEN
-    }
-});
+// ==================== EMAİL GÖNDERME (API) ====================
 
 app.post('/api/email/send', async (req, res) => {
     try {
         const { to, subject, html } = req.body;
-        if (!to || !subject || !html) return res.status(400).json({ error: 'Eksik bilgi' });
+        
+        if (!to || !subject || !html) {
+            return res.status(400).json({ error: 'Alıcı, konu ve içerik gerekli' });
+        }
 
-        const info = await transporter.sendMail({
-            from: '"Gettic" <gettic@test-86org8em12zgew13.mlsender.net>',
-            to: to,
-            subject: subject,
-            html: html
+        const response = await fetch('https://api.mailersend.com/v1/email', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.EMAIL_TOKEN}`
+            },
+            body: JSON.stringify({
+                from: {
+                    email: 'gettic@test-86org8em12zgew13.mlsender.net',
+                    name: 'Gettic'
+                },
+                to: [{ email: to }],
+                subject: subject,
+                html: html
+            })
         });
-        res.json({ success: true });
+
+        if (response.ok) {
+            res.json({ success: true });
+        } else {
+            const data = await response.json();
+            res.status(500).json({ error: data.message || 'Email gönderilemedi' });
+        }
+
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
