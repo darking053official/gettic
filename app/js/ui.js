@@ -1,4 +1,4 @@
-// ============ GETTIC UI.JS - FULL GÜNCEL ============
+// ============ GETTIC UI.JS - FULL DETAYLI ============
 
 // ============ TOAST SİSTEMİ ============
 let toastTimer = null;
@@ -15,8 +15,12 @@ function showNextToast() {
   const el = document.getElementById('toast');
   if (!el) { toastQueue.shift(); return; }
   
-  const icons = { s: '✅', e: '❌', w: '⚠️', i: 'ℹ️', dm: '💬', poll: '📊', image: '🖼️', role: '🛡️', channel: '#', voice: '🔊' };
-  el.innerHTML = `<span class="toast-icon">${icons[type] || '📢'}</span><span class="toast-msg">${msg}</span>`;
+  const icons = { s: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>', 
+                  e: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>', 
+                  w: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+                  i: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>' };
+  
+  el.innerHTML = `<span class="toast-icon">${icons[type] || icons['i']}</span><span class="toast-msg">${msg}</span>`;
   el.className = `toast toast-${type}`;
   el.classList.remove('hidden');
   el.style.animation = 'none';
@@ -26,138 +30,123 @@ function showNextToast() {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => {
     el.style.animation = 'toastOut 0.3s ease forwards';
-    setTimeout(() => {
-      el.classList.add('hidden');
-      toastQueue.shift();
-      showNextToast();
-    }, 300);
+    setTimeout(() => { el.classList.add('hidden'); toastQueue.shift(); showNextToast(); }, 300);
   }, 2500);
 }
 
 // ============ MODAL SİSTEMİ ============
 const MODAL_TEMPLATES = {
   addChannel: () => `
-    <h2>🔊 Kanal Oluştur</h2>
-    <div class="modal-form">
-      <label class="ml">Kanal Adı</label>
-      <input class="mi" id="modalChName" placeholder="örnek: genel-sohbet" maxlength="50">
-      <label class="ml">Kanal Türü</label>
-      <select class="ms" id="modalChType">
-        <option value="text">📝 Metin Kanalı</option>
-        <option value="voice">🔊 Ses Kanalı</option>
-        <option value="forum">📋 Forum Kanalı</option>
-        <option value="stage">🎙️ Stage Kanalı</option>
-      </select>
-      <label class="ml">Kategori</label>
-      <select class="ms" id="modalChCat">
-        ${(Store.categories || ['METİN', 'SES']).map(c => `<option value="${c}">${c}</option>`).join('')}
-      </select>
-      <button class="mb" onclick="submitChannelForm()">Oluştur</button>
-    </div>
+    <h2><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Kanal Oluştur</h2>
+    <label class="ml">Kanal Adı</label>
+    <input class="mi" id="modalChName" placeholder="örnek: genel-sohbet" maxlength="50">
+    <label class="ml">Kanal Türü</label>
+    <select class="ms" id="modalChType">
+      <option value="text">📝 Metin Kanalı</option>
+      <option value="voice">🔊 Ses Kanalı</option>
+      <option value="forum">📋 Forum Kanalı</option>
+      <option value="stage">🎙️ Stage Kanalı</option>
+    </select>
+    <label class="ml">Kategori</label>
+    <select class="ms" id="modalChCat">
+      ${(Store.categories || ['METİN', 'SES']).map(c => `<option value="${c}">${c}</option>`).join('')}
+    </select>
+    <button class="mb" onclick="submitChannelForm()">Oluştur</button>
   `,
 
   addCategory: () => `
-    <h2>📁 Kategori Ekle</h2>
+    <h2><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg> Kategori Ekle</h2>
     <input class="mi" id="modalCatName" placeholder="Kategori adı">
     <button class="mb" onclick="createCategory(document.getElementById('modalCatName').value)">Ekle</button>
   `,
 
   addFriend: () => `
-    <h2>👤 Arkadaş Ekle</h2>
+    <h2><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg> Arkadaş Ekle</h2>
     <input class="mi" id="modalFrName" placeholder="Kullanıcı adı" autocomplete="off">
     <button class="mb" onclick="addFriend(document.getElementById('modalFrName').value)">Ekle</button>
   `,
 
   addServer: () => `
-    <h2>🖥️ Sunucu Oluştur</h2>
+    <h2><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><circle cx="6" cy="6" r="1"/><circle cx="6" cy="18" r="1"/></svg> Sunucu Oluştur</h2>
     <input class="mi" id="modalSvName" placeholder="Sunucu adı">
     <button class="mb" onclick="createServer(document.getElementById('modalSvName').value)">Oluştur</button>
   `,
 
   theme: () => `
-    <h2>🎨 Tema</h2>
-    <div class="theme-section">
-      <h4>Hazır Renkler</h4>
-      <div class="color-row">
-        ${['#ec4899','#6366f1','#22c55e','#f59e0b','#ec4899','#3b82f6','#14b8a6','#f97316','#8b5cf6','#ef4444'].map(c => `
-          <div class="color-swatch ${Store.theme===c?'act':''}" style="background:${c}" onclick="setTheme('${c}')" title="${c}"></div>
-        `).join('')}
-      </div>
-      <h4 style="margin-top:12px">Özel Renk</h4>
-      <input type="color" class="mi" id="customColor" value="${Store.theme}" onchange="setTheme(this.value)" style="height:45px;padding:4px;cursor:pointer">
+    <h2><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/></svg> Tema</h2>
+    <h4 style="font-size:11px;color:var(--t3);margin-bottom:8px">Hazır Renkler</h4>
+    <div class="color-row">
+      ${['#ec4899','#6366f1','#10b981','#f59e0b','#ef4444','#3b82f6','#14b8a6','#f97316','#8b5cf6','#ec4899'].map(c => `
+        <div class="color-swatch ${Store.theme===c?'act':''}" style="background:${c}" onclick="setTheme('${c}')" title="${c}">
+          ${Store.theme===c ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+        </div>
+      `).join('')}
     </div>
+    <h4 style="font-size:11px;color:var(--t3);margin:12px 0 8px">Özel Renk</h4>
+    <input type="color" class="mi" id="customColor" value="${Store.theme}" onchange="setTheme(this.value)" style="height:45px;padding:4px;cursor:pointer">
     <div class="msep"></div>
-    <h4>Görünüm</h4>
-    <div class="settings-row">
+    <h4 style="font-size:11px;color:var(--t3);margin-bottom:8px">Görünüm</h4>
+    <div class="settings-row" onclick="toggleCompactMode()">
       <div><div class="settings-row-label">Kompakt Mod</div><div class="settings-row-sub">Daha küçük aralıklar</div></div>
-      <div class="toggle ${Store.compactMode?'on':''}" onclick="toggleCompactMode()"></div>
+      <div class="toggle ${Store.compactMode?'on':''}"></div>
     </div>
-    <div class="settings-row">
-      <div><div class="settings-row-label">Glass Efekti</div><div class="settings-row-sub">Modern bulanık arkaplan</div></div>
-      <div class="toggle ${localStorage.getItem('gt_glass')==='1'?'on':''}" onclick="toggleGlassEffect()"></div>
-    </div>
-    <div class="settings-row">
-      <div><div class="settings-row-label">Partikül Arkaplan</div><div class="settings-row-sub">Hareketli parçacıklar</div></div>
-      <div class="toggle ${typeof ParticleBG !== 'undefined' && ParticleBG.isRunning?'on':''}" onclick="toggleParticles()"></div>
+    <div class="settings-row" onclick="toggleGlassEffect()">
+      <div><div class="settings-row-label">Glass Efekti</div><div class="settings-row-sub">Bulanık arkaplan</div></div>
+      <div class="toggle ${localStorage.getItem('gt_glass')==='1'?'on':''}"></div>
     </div>
   `,
 
   poll: () => `
-    <h2>📊 Anket Oluştur</h2>
-    <div class="poll-form">
-      <input class="mi" id="modalPollQ" placeholder="Soru sor..." maxlength="200">
-      <div id="pollOptionsContainer">
-        <div class="poll-option-row"><input class="mi" placeholder="Seçenek 1"><button class="poll-remove-opt" style="display:none">×</button></div>
-        <div class="poll-option-row"><input class="mi" placeholder="Seçenek 2"><button class="poll-remove-opt" style="display:none">×</button></div>
-      </div>
-      <button class="mb sec" onclick="addPollOptionUI()">+ Seçenek Ekle (max 10)</button>
-      <div class="poll-settings">
-        <label class="poll-setting"><input type="checkbox" id="pollMultiple"> Çoklu seçim</label>
-        <label class="poll-setting"><input type="checkbox" id="pollAnonymous" checked> Gizli oylama</label>
-        <input class="mi" type="number" id="pollDuration" placeholder="Süre (dk, 0=sınırsız)" value="0" min="0">
-      </div>
-      <button class="mb" onclick="submitPollForm()">📊 Anketi Başlat</button>
+    <h2><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> Anket Oluştur</h2>
+    <input class="mi" id="modalPollQ" placeholder="Soru sor..." maxlength="200">
+    <div id="pollOptionsContainer">
+      <div class="poll-option-row"><input class="mi" placeholder="Seçenek 1"><button class="poll-remove-opt" style="display:none">×</button></div>
+      <div class="poll-option-row"><input class="mi" placeholder="Seçenek 2"><button class="poll-remove-opt" style="display:none">×</button></div>
     </div>
+    <button class="mb sec" onclick="addPollOptionUI()">+ Seçenek Ekle</button>
+    <div class="poll-settings">
+      <label class="poll-setting"><input type="checkbox" id="pollMultiple"> Çoklu seçim</label>
+      <label class="poll-setting"><input type="checkbox" id="pollAnonymous" checked> Gizli oylama</label>
+      <input class="mi" type="number" id="pollDuration" placeholder="Süre (dk, 0=sınırsız)" value="0" min="0">
+    </div>
+    <button class="mb" onclick="submitPollForm()">Anketi Başlat</button>
   `,
 
   imageGen: () => `
-    <h2>🖼️ Görsel Oluştur</h2>
-    <div class="image-gen-form">
-      <input class="mi" id="modalImgPrompt" placeholder="Görsel açıklaması yazın..." maxlength="500" onkeydown="if(event.key==='Enter')generateImageUI()">
-      <select class="ms" id="imgSize">
-        <option value="1024x1024">1024×1024 (Kare)</option>
-        <option value="1024x768">1024×768 (Yatay)</option>
-        <option value="768x1024">768×1024 (Dikey)</option>
-        <option value="512x512">512×512 (Küçük)</option>
-      </select>
-      <button class="mb" onclick="generateImageUI()">🎨 Oluştur</button>
-      <div id="imgLoading" style="display:none;text-align:center;padding:20px">
-        <div class="spin" style="margin:0 auto"></div>
-        <p style="color:var(--t3);font-size:12px;margin-top:8px">Oluşturuluyor...</p>
-      </div>
-      <img id="modalImgResult" style="display:none;width:100%;border-radius:12px;margin-top:12px;cursor:pointer" onclick="viewFullImage(this.src)">
-      <div id="imgActions" style="display:none;margin-top:8px;gap:8px">
-        <button class="mb sec" onclick="sendImageToChat()">📨 Sohbete Gönder</button>
-        <button class="mb sec" onclick="downloadImage()">⬇️ İndir</button>
-      </div>
+    <h2><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> Görsel Oluştur</h2>
+    <input class="mi" id="modalImgPrompt" placeholder="Görsel açıklaması yazın..." maxlength="500" onkeydown="if(event.key==='Enter')generateImageUI()">
+    <select class="ms" id="imgSize">
+      <option value="1024x1024">1024×1024 (Kare)</option>
+      <option value="1024x768">1024×768 (Yatay)</option>
+      <option value="768x1024">768×1024 (Dikey)</option>
+      <option value="512x512">512×512 (Küçük)</option>
+    </select>
+    <button class="mb" onclick="generateImageUI()">Oluştur</button>
+    <div id="imgLoading" style="display:none;text-align:center;padding:20px"><div class="spin" style="margin:0 auto"></div><p style="color:var(--t3);font-size:12px;margin-top:8px">Oluşturuluyor...</p></div>
+    <img id="modalImgResult" style="display:none;width:100%;border-radius:12px;margin-top:12px;cursor:pointer" onclick="viewFullImage(this.src)">
+    <div id="imgActions" style="display:none;margin-top:8px;gap:8px">
+      <button class="mb sec" onclick="sendImageToChat()">📨 Sohbete Gönder</button>
+      <button class="mb sec" onclick="downloadImage()">⬇️ İndir</button>
     </div>
   `,
 
   dm: () => `
-    <h2>💬 Direkt Mesajlar</h2>
+    <h2><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Direkt Mesajlar</h2>
     <input class="mi" id="dmSearch" placeholder="DM ara..." oninput="filterDMList(this.value)">
     <div id="dmListContainer" style="max-height:400px;overflow-y:auto;margin-top:8px">
       ${(typeof dmState !== 'undefined' ? dmState.friends : []).length === 0 ? 
         '<p style="color:var(--t3);text-align:center;padding:20px">Henüz DM yok</p>' : 
         (typeof dmState !== 'undefined' ? dmState.friends : []).map(f => `
-          <div class="mitem dm-mitem" onclick="startDM('${f.username}')">
+          <div class="mitem dm-mitem" onclick="startDM('${f.username}')" style="cursor:pointer">
             <div class="mav">${f.username.charAt(0).toUpperCase()}</div>
             <div class="minfo">
               <div class="mname">${f.username}</div>
               <div class="msub">${f.lastMessage || 'DM başlat'}</div>
             </div>
             ${f.unread > 0 ? `<span class="ub">${f.unread}</span>` : ''}
-            <button class="ib" onclick="event.stopPropagation();removeFriend('${f.username}')" title="Çıkar" style="width:22px;height:22px">×</button>
+            <button class="ib" onclick="event.stopPropagation();removeFriend('${f.username}')" title="Çıkar" style="width:22px;height:22px">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
           </div>
         `).join('')
       }
@@ -165,7 +154,7 @@ const MODAL_TEMPLATES = {
   `,
 
   profile: () => `
-    <h2>👤 Profil</h2>
+    <h2><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Profil</h2>
     <div style="text-align:center">
       <div class="avatar-big">${Store.user?.username?.charAt(0)?.toUpperCase() || '?'}</div>
       <h3 style="margin-top:12px">${Store.user?.username || 'Kullanıcı'}</h3>
@@ -179,13 +168,13 @@ const MODAL_TEMPLATES = {
   `,
 
   search: () => `
-    <h2>🔍 Arama</h2>
+    <h2><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Arama</h2>
     <input class="mi" id="searchInput" placeholder="Mesajlarda ara..." autofocus oninput="performSearch(this.value)">
     <div id="searchResults" style="max-height:400px;overflow-y:auto"></div>
   `,
 
   serverSettings: () => `
-    <h2>⚙️ Sunucu Ayarları</h2>
+    <h2><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg> Sunucu Ayarları</h2>
     <label class="ml">Sunucu Adı</label>
     <input class="mi" id="svName" value="${Store.serverSettings?.name || 'Gettic'}" placeholder="Sunucu adı">
     <label class="ml">Açıklama</label>
@@ -194,7 +183,7 @@ const MODAL_TEMPLATES = {
   `,
 
   roles: () => `
-    <h2>🛡️ Roller</h2>
+    <h2><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Roller</h2>
     <div id="roleList">
       ${(Store.roles || []).map(r => `
         <div class="mitem" style="justify-content:space-between">
@@ -203,7 +192,9 @@ const MODAL_TEMPLATES = {
             <span>${r.name}</span>
             <span style="font-size:9px;color:var(--t3)">(${Object.values(r.permissions||{}).filter(Boolean).length} yetki)</span>
           </div>
-          ${r.editable ? `<button class="ib" onclick="editRoleUI('${r.id}')" style="width:24px;height:24px">✏️</button>` : ''}
+          ${r.editable ? `<button class="ib" onclick="editRoleUI('${r.id}')" style="width:24px;height:24px">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>` : ''}
         </div>
       `).join('')}
     </div>
@@ -211,7 +202,7 @@ const MODAL_TEMPLATES = {
   `,
 
   notifications: () => `
-    <h2>🔔 Bildirimler</h2>
+    <h2><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> Bildirimler</h2>
     <div class="settings-group">
       <div class="settings-item" onclick="toggleNotifDesktop()">
         <div class="settings-item-left">🖥️ Masaüstü Bildirimi</div>
@@ -229,26 +220,12 @@ const MODAL_TEMPLATES = {
           <span style="font-size:20px">🔔</span>
           <div class="minfo">
             <div class="mname">${n.text}</div>
-            <div style="font-size:9px;color:var(--t3)">${formatTime(n.time)}</div>
+            <div style="font-size:9px;color:var(--t3)">${typeof formatTime === 'function' ? formatTime(n.time) : ''}</div>
           </div>
         </div>
       `).join('') || '<p style="color:var(--t3);text-align:center;padding:20px">Henüz bildirim yok</p>'}
     </div>
-  `,
-
-  imageView: () => `<div style="text-align:center"><img src="${window._viewImage}" style="max-width:100%;max-height:80vh;border-radius:12px"></div>`,
-
-  discover: () => `
-    <h2>🔍 Keşfet</h2>
-    <p style="color:var(--t3)">Popüler sunucular ve topluluklar</p>
-  `,
-
-  members: () => `
-    <h2>👥 Üyeler</h2>
-    <p style="color:var(--t3)">Üye listesi yakında...</p>
-  `,
-
-  default: (type) => `<h2>📋 ${type}</h2><p style="color:var(--t3)">Bu bölüm yapım aşamasında...</p>`
+  `
 };
 
 function openModal(type) {
@@ -256,8 +233,12 @@ function openModal(type) {
   const content = document.getElementById('modalContent');
   if (!modal || !content) return;
   
-  const template = MODAL_TEMPLATES[type] || MODAL_TEMPLATES.default;
-  content.innerHTML = typeof template === 'function' ? template(type) : template;
+  const template = MODAL_TEMPLATES[type];
+  if (template) {
+    content.innerHTML = template();
+  } else {
+    content.innerHTML = `<h2>📋 ${type}</h2><p style="color:var(--t3)">Bu bölüm yapım aşamasında...</p>`;
+  }
   
   modal.classList.remove('hidden');
   modal.classList.add('show');
@@ -270,11 +251,7 @@ function openModal(type) {
 
 function closeModal() {
   const modal = document.getElementById('modal');
-  if (modal) { 
-    modal.classList.add('hidden'); 
-    modal.classList.remove('show'); 
-  }
-  window._viewImage = null;
+  if (modal) { modal.classList.add('hidden'); modal.classList.remove('show'); }
 }
 
 // ============ TEMA ============
@@ -282,9 +259,8 @@ function setTheme(color) {
   Store.theme = color;
   localStorage.setItem('gt_ac', color);
   document.querySelector('.app')?.style.setProperty('--ac', color);
-  document.querySelector('.app')?.style.setProperty('--ac2', color);
   if (typeof saveStore === 'function') saveStore();
-  toast('🎨 Tema değiştirildi');
+  toast('Tema değiştirildi');
   closeModal();
 }
 
@@ -293,6 +269,7 @@ function toggleCompactMode() {
   localStorage.setItem('gt_compact', Store.compactMode ? '1' : '0');
   document.body.classList.toggle('compact-mode', Store.compactMode);
   if (typeof saveStore === 'function') saveStore();
+  openModal('theme');
 }
 
 function toggleGlassEffect() {
@@ -302,22 +279,7 @@ function toggleGlassEffect() {
     if (isGlass) GlassEffect.enable('.modal .mbox, .auth-box, .voice-panel');
     else GlassEffect.disable('.modal .mbox, .auth-box, .voice-panel');
   }
-  toast(isGlass ? '✨ Glass efekt açıldı' : 'Glass efekt kapandı');
-}
-
-function toggleParticles() {
-  if (typeof ParticleBG !== 'undefined') {
-    if (ParticleBG.isRunning) {
-      ParticleBG.isRunning = false;
-      ParticleBG.canvas.style.display = 'none';
-      toast('🔮 Partiküller durduruldu');
-    } else {
-      ParticleBG.isRunning = true;
-      ParticleBG.canvas.style.display = '';
-      ParticleBG.animate();
-      toast('🔮 Partiküller başladı');
-    }
-  }
+  openModal('theme');
 }
 
 // ============ SIDEBAR & PANEL ============
@@ -339,10 +301,6 @@ async function generateImageUI() {
   const prompt = document.getElementById('modalImgPrompt')?.value?.trim();
   if (!prompt) return toast('Açıklama gerekli', 'e');
   
-  const sizeEl = document.getElementById('imgSize');
-  const size = sizeEl?.value || '1024x1024';
-  const [width, height] = size.split('x');
-  
   document.getElementById('imgLoading').style.display = 'block';
   document.getElementById('modalImgResult').style.display = 'none';
   document.getElementById('imgActions').style.display = 'none';
@@ -350,19 +308,17 @@ async function generateImageUI() {
   try {
     const res = await fetch(API + '/api/image', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt, width, height })
+      body: JSON.stringify({ prompt })
     });
     const data = await res.json();
-    
     document.getElementById('imgLoading').style.display = 'none';
     
     if (data.image) {
-      const img = document.getElementById('modalImgResult');
-      img.src = data.image;
-      img.style.display = 'block';
+      document.getElementById('modalImgResult').src = data.image;
+      document.getElementById('modalImgResult').style.display = 'block';
       document.getElementById('imgActions').style.display = 'flex';
       window._generatedImage = data.image;
-      toast('✅ Görsel oluşturuldu');
+      toast('Görsel oluşturuldu');
     } else {
       toast('Görsel oluşturulamadı', 'e');
     }
@@ -377,13 +333,12 @@ function sendImageToChat() {
   Store.messages.push({
     _id: genId(), content: '🖼️ Görsel',
     senderName: Store.user.username, senderId: Store.user._id,
-    channelId: Store.activeChannel, createdAt: new Date().toISOString(),
-    image: window._generatedImage
+    channelId: Store.activeChannel, createdAt: new Date().toISOString(), image: window._generatedImage
   });
   if (typeof renderMessages === 'function') renderMessages();
   if (typeof saveStore === 'function') saveStore();
   closeModal();
-  toast('📨 Görsel sohbete gönderildi');
+  toast('Görsel sohbete gönderildi');
 }
 
 function downloadImage() {
@@ -403,27 +358,20 @@ function viewFullImage(src) {
 function performSearch(query) {
   const container = document.getElementById('searchResults');
   if (!container) return;
-  
   if (!query || query.trim().length < 2) {
-    container.innerHTML = '<p style="color:var(--t3);text-align:center;padding:20px">Aramak için en az 2 karakter yazın</p>';
+    container.innerHTML = '<p style="color:var(--t3);text-align:center;padding:20px">En az 2 karakter yazın</p>';
     return;
   }
-  
   const q = query.toLowerCase();
   const results = (Store.messages || []).filter(m => (m.content||'').toLowerCase().includes(q)).slice(-30).reverse();
-  
   if (results.length === 0) {
     container.innerHTML = '<p style="color:var(--t3);text-align:center;padding:20px">Sonuç bulunamadı</p>';
     return;
   }
-  
   container.innerHTML = results.map(m => `
     <div class="mitem" onclick="jumpToMessage('${m._id}')">
       <div class="mav">${(m.senderName||'?').charAt(0).toUpperCase()}</div>
-      <div class="minfo">
-        <div class="mname">${m.senderName}</div>
-        <div class="msub">${m.content.substring(0, 80)}</div>
-      </div>
+      <div class="minfo"><div class="mname">${m.senderName}</div><div class="msub">${m.content.substring(0, 80)}</div></div>
     </div>
   `).join('');
 }
@@ -449,7 +397,7 @@ function updateServerSettings() {
     Store.serverSettings.description = desc || '';
     document.getElementById('serverName').textContent = name;
     if (typeof saveStore === 'function') saveStore();
-    toast('✅ Sunucu güncellendi');
+    toast('Sunucu güncellendi');
     closeModal();
   }
 }
@@ -467,16 +415,10 @@ function addPollOptionUI() {
 function submitPollForm() {
   const question = document.getElementById('modalPollQ')?.value;
   const options = [...document.querySelectorAll('#pollOptionsContainer input')].map(i => i.value).filter(v => v.trim());
-  const multiple = document.getElementById('pollMultiple')?.checked;
-  const anonymous = document.getElementById('pollAnonymous')?.checked;
-  const duration = parseInt(document.getElementById('pollDuration')?.value || '0');
-  
   if (!question || question.trim().length < 3) return toast('Soru en az 3 karakter', 'e');
   if (options.length < 2) return toast('En az 2 seçenek gerekli', 'e');
-  
-  if (typeof createPoll === 'function') {
-    createPoll(question, options, { multipleChoice: multiple, anonymous, duration });
-  }
+  if (typeof createPoll === 'function') createPoll(question, options);
+  closeModal();
 }
 
 function submitChannelForm() {
@@ -486,33 +428,18 @@ function submitChannelForm() {
   if (typeof createChannel === 'function') createChannel(name, type, cat);
 }
 
-// ============ PROFİL İŞLEMLERİ ============
 function changePasswordUI() {
   const oldP = prompt('Mevcut şifreniz:');
   if (!oldP) return;
   const newP = prompt('Yeni şifreniz:');
   if (!newP || newP.length < 4) return toast('Şifre en az 4 karakter', 'e');
-  if (typeof changePassword === 'function') {
-    changePassword(oldP, newP).then(() => toast('✅ Şifre değiştirildi')).catch(e => toast(e.message, 'e'));
-  }
+  if (typeof changePassword === 'function') changePassword(oldP, newP).then(() => toast('Şifre değiştirildi')).catch(e => toast(e.message, 'e'));
 }
 
-function changeNickname(uid, nickname) {
-  if (!nickname || !nickname.trim()) return;
-  if (typeof window.changeNickname === 'function') {
-    window.changeNickname(uid, nickname);
-  } else {
-    toast('✅ Takma ad değiştirildi');
-  }
-}
-
-// ============ BİLDİRİM AYARLARI ============
 function toggleNotifDesktop() {
   const current = localStorage.getItem('gt_notif_desktop') !== '0';
   localStorage.setItem('gt_notif_desktop', current ? '0' : '1');
-  if (!current && 'Notification' in window) {
-    Notification.requestPermission();
-  }
+  if (!current && 'Notification' in window) Notification.requestPermission();
   openModal('notifications');
 }
 
@@ -522,89 +449,28 @@ function toggleNotifSound() {
   openModal('notifications');
 }
 
-// ============ İKON GÜNCELLEME ============
-function updateIcons() {
-  const iconMap = {
-    'serverIcon': I?.hash, 'addChannelBtn': I?.plus, 'themeBtn': I?.settings,
-    'dmBtn': I?.dm, 'serverSettingsBtn': I?.settings, 'logoutBtn': I?.logout,
-    'toggleSidebarBtn': I?.menu, 'togglePanelBtn': I?.user,
-    'searchBtn': I?.search, 'sendBtn': I?.send, 'emojiBtn': I?.smile,
-    'imageBtn': I?.image, 'pollBtn': I?.poll, 'retryBtn': I?.refresh,
-    'notificationsBtn': I?.bell, 'pinBtn': I?.pin
-  };
-  
-  Object.entries(iconMap).forEach(([id, icon]) => {
-    const el = document.getElementById(id);
-    if (el && icon) el.innerHTML = icon;
-  });
-}
-
-// ============ MOBİL SİDEBAR ============
-function openMobileSidebar() {
-  const sidebar = document.getElementById('sidebar');
-  if (sidebar) {
-    sidebar.classList.add('open');
-    showOverlay();
-  }
-}
-
-function closeMobileSidebar() {
-  const sidebar = document.getElementById('sidebar');
-  if (sidebar) {
-    sidebar.classList.remove('open');
-    hideOverlay();
-  }
-}
-
-function showOverlay() {
-  let overlay = document.getElementById('mobileOverlay');
-  if (!overlay) {
-    overlay = document.createElement('div');
-    overlay.id = 'mobileOverlay';
-    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:40;display:block';
-    overlay.addEventListener('click', closeMobileSidebar);
-    document.body.appendChild(overlay);
-  }
-  overlay.style.display = 'block';
-}
-
-function hideOverlay() {
-  const overlay = document.getElementById('mobileOverlay');
-  if (overlay) overlay.style.display = 'none';
-}
-
 // ============ CSS ============
 const uiStyle = document.createElement('style');
 uiStyle.textContent = `
   @keyframes toastIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
   @keyframes toastOut { from{opacity:1;transform:translateY(0)} to{opacity:0;transform:translateY(10px)} }
-  .toast-s { border-color:var(--gr);color:var(--gr) }
-  .toast-e { border-color:var(--re);color:var(--re) }
-  .toast-w { border-color:var(--ye);color:var(--ye) }
-  .toast-i { border-color:var(--bl);color:var(--bl) }
-  .compact-mode .msg { padding: 2px 4px }
-  .compact-mode .msg-av { width: 24px;height:24px;font-size:10px }
-  .compact-mode .ch-item { padding: 4px 10px }
+  .toast-s { border-color:#10b981;color:#10b981 }
+  .toast-e { border-color:#ef4444;color:#ef4444 }
+  .toast-w { border-color:#f59e0b;color:#f59e0b }
+  .toast-i { border-color:#8b5cf6;color:#8b5cf6 }
+  .toast-icon { display:flex;align-items:center;margin-right:8px }
+  .toast-msg { flex:1 }
+  .compact-mode .msg { padding:2px 4px }
+  .compact-mode .msg-av { width:24px;height:24px;font-size:10px }
+  .compact-mode .ch-item { padding:4px 10px }
+  .color-swatch { display:flex;align-items:center;justify-content:center }
+  .poll-option-row { display:flex;gap:6px;align-items:center }
+  .poll-option-row input { flex:1;margin-bottom:0 }
+  .poll-remove-opt { background:none;border:none;color:var(--re);cursor:pointer;font-size:18px;padding:0 4px }
+  .poll-settings { margin:8px 0 }
+  .poll-setting { display:flex;align-items:center;gap:8px;font-size:12px;color:var(--t2);cursor:pointer;padding:4px 0 }
+  .poll-setting input[type="checkbox"] { width:16px;height:16px;cursor:pointer }
 `;
 document.head.appendChild(uiStyle);
 
-// ============ BAŞLAT ============
-document.addEventListener('DOMContentLoaded', () => {
-  // Sidebar toggle
-  const toggleSidebarBtn = document.getElementById('toggleSidebarBtn');
-  if (toggleSidebarBtn) toggleSidebarBtn.onclick = toggleSidebar;
-  
-  // Panel toggle
-  const togglePanelBtn = document.getElementById('togglePanelBtn');
-  if (togglePanelBtn) togglePanelBtn.onclick = togglePanel;
-  
-  // Kompakt mod
-  if (Store.compactMode) document.body.classList.add('compact-mode');
-  
-  // Glass efekt
-  if (localStorage.getItem('gt_glass') === '1' && typeof GlassEffect !== 'undefined') {
-    GlassEffect.enable('.modal .mbox, .auth-box, .voice-panel');
-  }
-  
-  console.log('✅ UI.js yüklendi');
-});
+console.log('✅ UI.js yüklendi');
