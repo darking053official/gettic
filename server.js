@@ -14,9 +14,13 @@ const io = new Server(httpServer, {
     cors: { origin: '*', methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'] }
 });
 
-// gzip
-const compression = require('compression');
-app.use(compression());
+// Brotli + GZIP sıkıştırma (GZIP'ten %20 daha iyi)
+const shrinkRay = require('shrink-ray-current');
+app.use(shrinkRay({ 
+    brotli: true, 
+    cache: true,
+    threshold: 0  // tüm dosyaları sıkıştır
+}));
 
 // ==================== MIDDLEWARE ====================
 app.use(cors());
