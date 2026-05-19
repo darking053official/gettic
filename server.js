@@ -554,42 +554,32 @@ app.post('/api/image', async (req, res) => {
     } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
-// ==================== EMAİL GÖNDERME (RESEND) ====================
+// ==================== EMAİL GÖNDERME (BREVO SMTP) ====================
+const nodemailer = require('nodemailer');
+
+const transporter = nodemailer.createTransport({
+    host: 'smtp-relay.brevo.com',
+    port: 587,
+    secure: false,
+    auth: {
+        user: 'abd43b001@smtp-brevo.com',
+        pass: process.env.EMAIL_TOKEN
+    }
+});
 
 app.post('/api/email/send', async (req, res) => {
     try {
         const { to, subject, html } = req.body;
-        
-        if (!to || !subject || !html) {
-            return res.status(400).json({ error: 'Alıcı, konu ve içerik gerekli' });
-        }
+        if (!to || !subject || !html) return res.status(400).json({ error: 'Eksik bilgi' });
 
-        const response = await fetch('https://api.resend.com/emails', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${process.env.EMAIL_TOKEN}`
-            },
-            body: JSON.stringify({
-                from: 'Gettic <onboarding@resend.dev>',
-                to: [to],
-                subject: subject,
-                html: html
-            })
+        const info = await transporter.sendMail({
+            from: '"Gettic" <gettic@brevo.com>',
+            to: to,
+            subject: subject,
+            html: html
         });
-
-        const data = await response.json();
-
-        if (response.ok) {
-            console.log('✅ Email gönderildi:', data.id);
-            res.json({ success: true, id: data.id });
-        } else {
-            console.error('❌ Email hatası:', data);
-            res.status(500).json({ error: data.message || 'Email gönderilemedi' });
-        }
-
+        res.json({ success: true });
     } catch (error) {
-        console.error('❌ Email hatası:', error.message);
         res.status(500).json({ error: error.message });
     }
 });
