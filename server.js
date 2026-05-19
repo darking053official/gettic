@@ -1,3 +1,4 @@
+const { MailerSend, EmailParams, Sender, Recipient } = require('mailersend');
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -559,36 +560,26 @@ app.post('/api/image', async (req, res) => {
     } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
-// ==================== EMAİL GÖNDERME (SMTP) ====================
-const nodemailer = require('nodemailer');
-
-const transporter = nodemailer.createTransport({
-    host: 'smtp.mailersend.net',
-    port: 587,
-    secure: false,
-    auth: {
-        user: 'MS_FLXcSl@test-86org8em12zgew13.mlsender.net',
-        pass: process.env.EMAIL_TOKEN
-    }
+const mailerSend = new MailerSend({
+    apiKey: process.env.EMAIL_TOKEN
 });
 
 app.post('/api/email/send', async (req, res) => {
     try {
         const { to, subject, html } = req.body;
         
-        if (!to || !subject || !html) {
-            return res.status(400).json({ error: 'Alıcı, konu ve içerik gerekli' });
-        }
-
-        const info = await transporter.sendMail({
-            from: '"Gettic" <gettic@test-86org8em12zgew13.mlsender.net>',
-            to: to,
-            subject: subject,
-            html: html
-        });
-
-        res.json({ success: true, message: 'Email gönderildi', id: info.messageId });
-
+        const sentFrom = new Sender("gettic@test-86org8em12zgew13.mlsender.net", "Gettic");
+        const recipients = [new Recipient(to, to.split('@')[0])];
+        
+        const emailParams = new EmailParams()
+            .setFrom(sentFrom)
+            .setTo(recipients)
+            .setSubject(subject)
+            .setHtml(html)
+            .setText(html.replace(/<[^>]*>/g, ''));
+        
+        await mailerSend.email.send(emailParams);
+        res.json({ success: true });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
