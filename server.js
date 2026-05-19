@@ -559,7 +559,19 @@ app.post('/api/image', async (req, res) => {
     } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
-// ==================== EMAIL GÖNDERME ====================
+// ==================== EMAİL GÖNDERME (SMTP) ====================
+const nodemailer = require('nodemailer');
+
+const transporter = nodemailer.createTransport({
+    host: 'smtp.mailersend.net',
+    port: 587,
+    secure: false,
+    auth: {
+        user: 'MS_FLXcSl@test-86org8em12zgew13.mlsender.net',
+        pass: process.env.EMAIL_TOKEN
+    }
+});
+
 app.post('/api/email/send', async (req, res) => {
     try {
         const { to, subject, html } = req.body;
@@ -568,30 +580,14 @@ app.post('/api/email/send', async (req, res) => {
             return res.status(400).json({ error: 'Alıcı, konu ve içerik gerekli' });
         }
 
-        const response = await fetch('https://api.mailersend.com/v1/email', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${process.env.EMAIL_TOKEN}`
-            },
-            body: JSON.stringify({
-                from: {
-                    email: 'gettic@trial-ynrw7gyewjrl2k8e.mlsender.net',
-                    name: 'Gettic'
-                },
-                to: [{ email: to }],
-                subject: subject,
-                html: html
-            })
+        const info = await transporter.sendMail({
+            from: '"Gettic" <gettic@test-86org8em12zgew13.mlsender.net>',
+            to: to,
+            subject: subject,
+            html: html
         });
 
-        const data = await response.json();
-        
-        if (response.ok) {
-            res.json({ success: true, message: 'Email gönderildi', id: data.id });
-        } else {
-            res.status(500).json({ error: data.message || 'Email gönderilemedi' });
-        }
+        res.json({ success: true, message: 'Email gönderildi', id: info.messageId });
 
     } catch (error) {
         res.status(500).json({ error: error.message });
