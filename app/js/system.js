@@ -1,3 +1,5 @@
+var perfState = perfState || { debugMode: false };
+
 // ============ GETTIC SYSTEM.JS - 10 SİSTEMSEL ÖZELLİK TEK PAKET ============
 
 // ============ 1. VERİTABANI SENKRONİZASYONU ============
