@@ -583,6 +583,19 @@ app.post('/api/email/send', async (req, res) => {
     }
 });
 
+app.get('/api/email/test', async (req, res) => {
+    try {
+        const info = await transporter.sendMail({
+            from: '"Gettic" <tahakrky@protonmail.com>',
+            to: 'tahakrky@protonmail.com',
+            subject: 'Gettic Test Email',
+            html: '<h2>Gettic Email Testi</h2><p>SMTP başarıyla çalışıyor! ✅</p>'
+        });
+        res.json({ success: true, id: info.messageId });
+    } catch (error) {
+        res.json({ error: error.message });
+    }
+});
 // ==================== API LIST ====================
 app.get('/api/list', async (req, res) => {
     try {
