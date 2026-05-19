@@ -1,4 +1,4 @@
-// ============ GETTIC APP.JS - FULL & EKSİKSİZ (EMAIL + KOD) ============
+// ============ GETTIC APP.JS - FULL (EMAIL KODLU, TEST KODSUZ) ============
 console.log('🚀 Gettic başlatılıyor...');
 
 function $(id) { return document.getElementById(id); }
@@ -76,25 +76,21 @@ async function sendVerificationCode() {
   $('codeMsg').style.color = 'var(--t3)';
   
   try {
-    const res = await fetch(API + '/api/email/send', {
+    await fetch(API + '/api/email/send', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         to: email,
         subject: 'Gettic - Doğrulama Kodunuz',
-        html: `<h2>Gettic Doğrulama Kodu</h2><p>Doğrulama kodunuz: <b style="font-size:24px;letter-spacing:4px">${verificationCode}</b></p>`
+        html: `<h2>Gettic Doğrulama Kodu</h2><p>Kodunuz: <b style="font-size:24px;letter-spacing:4px">${verificationCode}</b></p><p>5 dakika geçerlidir.</p>`
       })
     });
-    
     $('codeSection').style.display = '';
     $('sendCodeBtn').style.display = 'none';
-    $('codeMsg').textContent = res.ok ? '✅ Kod gönderildi!' : '✅ Test kodu: ' + verificationCode;
+    $('codeMsg').textContent = '✅ Kod e-posta adresinize gönderildi!';
     $('codeMsg').style.color = 'var(--gr)';
   } catch(e) {
-    console.log('Doğrulama kodu:', verificationCode);
-    $('codeSection').style.display = '';
-    $('sendCodeBtn').style.display = 'none';
-    $('codeMsg').textContent = '✅ Test kodu: ' + verificationCode;
-    $('codeMsg').style.color = 'var(--gr)';
+    $('codeMsg').textContent = '❌ Kod gönderilemedi. Lütfen tekrar deneyin.';
+    $('codeMsg').style.color = 'var(--re)';
   }
 }
 
@@ -135,7 +131,7 @@ async function sendResetCode() {
   $('resetMsg').textContent = 'Kod gönderiliyor...'; $('resetMsg').style.color = 'var(--t3)';
   
   try {
-    const res = await fetch(API + '/api/email/send', {
+    await fetch(API + '/api/email/send', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         to: email, subject: 'Gettic - Şifre Sıfırlama Kodu',
@@ -143,11 +139,9 @@ async function sendResetCode() {
       })
     });
     $('resetCodeSection').style.display = '';
-    $('resetMsg').textContent = '✅ Kod gönderildi!'; $('resetMsg').style.color = 'var(--gr)';
+    $('resetMsg').textContent = '✅ Kod e-posta adresinize gönderildi!'; $('resetMsg').style.color = 'var(--gr)';
   } catch(e) {
-    console.log('Reset kodu:', resetVerificationCode);
-    $('resetCodeSection').style.display = '';
-    $('resetMsg').textContent = '✅ Test kodu: ' + resetVerificationCode; $('resetMsg').style.color = 'var(--gr)';
+    $('resetMsg').textContent = '❌ Kod gönderilemedi.'; $('resetMsg').style.color = 'var(--re)';
   }
 }
 
@@ -200,10 +194,6 @@ function updateUIPermissions() {
   if (addCatBtn) addCatBtn.style.display = isAdmin ? '' : 'none';
   if (addChBtn) addChBtn.style.display = isAdmin ? '' : 'none';
 }
-function loadActiveServers() {
-  const container = document.getElementById('activeServers'); if (!container) return;
-  container.innerHTML = `<div class="friend-suggestion" onclick="navigateTo('/server/gettic/chat/genel-sohbet')" style="cursor:pointer"><div class="friend-suggestion-av" style="background:var(--ac);color:#fff;font-weight:700">G</div><div class="friend-suggestion-info"><div class="friend-suggestion-name">Gettic</div><div class="friend-suggestion-mutual">${Store.messages?.length||0} mesaj</div></div></div><button class="friend-suggestion-btn" onclick="openModal('addServer')" style="width:100%;margin-top:8px">+ Sunucu Ekle</button>`;
-}
 
 // ============ BUTONLAR ============
 function bindButtons() {
@@ -232,10 +222,6 @@ function bindButtons() {
   Object.entries(panelMap).forEach(([id,modal])=>{ const btn=$(id); if(btn) btn.addEventListener('click',()=>{ if(typeof openModal==='function')openModal(modal); }); });
   $('panelClearBtn')?.addEventListener('click',()=>{ if(typeof clearMessages==='function')clearMessages(); });
   $('messageInput')?.addEventListener('keydown', function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); clearTimeout(sendTimeout); sendTimeout = setTimeout(() => { if (typeof sendMessage === 'function') sendMessage(); }, 50); } });
-  $('voiceMsgBtn')?.addEventListener('mousedown', ()=>{ if(typeof startRecording==='function')startRecording(); });
-  $('voiceMsgBtn')?.addEventListener('mouseup', ()=>{ if(typeof stopRecording==='function')stopRecording(); });
-  $('voiceMsgBtn')?.addEventListener('touchstart', (e)=>{ e.preventDefault(); if(typeof startRecording==='function')startRecording(); });
-  $('voiceMsgBtn')?.addEventListener('touchend', ()=>{ if(typeof stopRecording==='function')stopRecording(); });
   console.log('✅ Tüm butonlar bağlandı');
 }
 
