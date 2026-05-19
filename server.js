@@ -153,33 +153,28 @@ app.use((req, res, next) => {
     next();
 });
 
+// ==================== STATİK DOSYALAR ====================
+app.use('/app', express.static(path.join(__dirname, 'app'), {
+    maxAge: '7d',
+    fallthrough: true
+}));
+app.use(express.static(path.join(__dirname)));
+
 // ==================== ANA SAYFALAR ====================
 app.get('/', (req, res) => { res.sendFile(path.join(__dirname, 'index.html')); });
-
 app.get('/ai', (req, res) => { res.sendFile(path.join(__dirname, 'ai', 'index.html')); });
 app.get('/mc', (req, res) => { res.sendFile(path.join(__dirname, 'mc', 'index.html')); });
 app.get('/apis/list', (req, res) => { res.sendFile(path.join(__dirname, 'apis', 'list.html')); });
 app.get('/apis/list/add', (req, res) => { res.sendFile(path.join(__dirname, 'apis', 'add.html')); });
 
-// Statik dosyalar (js, css, resim) - ÖNCE gelsin
-app.use('/app', express.static(path.join(__dirname, 'app'), {
-    maxAge: '7d',
-    setHeaders: (res, path) => {
-        if (path.endsWith('.js')) res.setHeader('Content-Type', 'application/javascript');
-        if (path.endsWith('.css')) res.setHeader('Content-Type', 'text/css');
-    }
-}));
-
-// SPA route - statik dosyalardan SONRA gelsin
+// ==================== SPA - EN ALTTA ====================
 app.get('/app', (req, res) => { res.sendFile(path.join(__dirname, 'app', 'index.html')); });
 app.get('/app/*', (req, res) => { res.sendFile(path.join(__dirname, 'app', 'index.html')); });
 
-// Genel statik dosyalar
-app.use(express.static(path.join(__dirname)));
-
-// ==================== STATİK DOSYALAR ====================
-app.use('/app', express.static(path.join(__dirname, 'app')));
-app.use(express.static(path.join(__dirname)));
+// ==================== 404 ====================
+app.use((req, res) => {
+    res.status(404).sendFile(path.join(__dirname, '404.html'));
+});
 
 // ==================== AUTH ENDPOINTS ====================
 app.post('/api/auth/register', async (req, res) => {
@@ -623,9 +618,6 @@ io.on('connection', (socket) => {
     
     socket.on('disconnect', () => { console.log('🔌 Socket ayrıldı:', socket.id); });
 });
-
-// ==================== 404 ====================
-app.use((req, res) => { res.status(404).sendFile(path.join(__dirname, '404.html')); });
 
 // ==================== SERVER START ====================
 const PORT = process.env.PORT || 3000;
