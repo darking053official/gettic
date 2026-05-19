@@ -39,6 +39,47 @@ function showAuthError(msg) { const e=$('authError'); if(e){e.textContent=msg;e.
 $('authPassword').onkeydown = (e) => { if(e.key==='Enter') $('authSubmit').click(); };
 $('authUsername').onkeydown = (e) => { if(e.key==='Enter') $('authPassword').focus(); };
 
+// ============ ŞİFREMİ UNUTTUM ============
+function showForgotPassword() {
+  $('forgotPasswordScreen')?.classList.remove('hidden');
+  const authBox = $('loginScreen')?.querySelector('.auth-box');
+  if (authBox) authBox.style.display = 'none';
+}
+
+function hideForgotPassword() {
+  $('forgotPasswordScreen')?.classList.add('hidden');
+  const authBox = $('loginScreen')?.querySelector('.auth-box');
+  if (authBox) authBox.style.display = '';
+}
+
+async function sendResetEmail() {
+  const email = $('resetEmail')?.value?.trim();
+  if (!email) return;
+  
+  const msg = $('resetMsg');
+  if (msg) { msg.textContent = 'Gönderiliyor...'; msg.style.color = 'var(--t3)'; }
+  
+  try {
+    const res = await fetch(API + '/api/email/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        to: email,
+        subject: 'Gettic - Şifre Sıfırlama',
+        html: `<h2>Gettic Şifre Sıfırlama</h2><p>Şifrenizi sıfırlamak için <a href="https://gettic.js.org/reset">buraya tıklayın</a>.</p>`
+      })
+    });
+    
+    if (res.ok) {
+      if (msg) { msg.textContent = '✅ Şifre sıfırlama linki gönderildi!'; msg.style.color = 'var(--gr)'; }
+    } else {
+      if (msg) { msg.textContent = '❌ Gönderilemedi, tekrar deneyin.'; msg.style.color = 'var(--re)'; }
+    }
+  } catch(e) {
+    if (msg) { msg.textContent = '❌ Bağlantı hatası.'; msg.style.color = 'var(--re)'; }
+  }
+}
+
 // ============ SHOW MAIN ============
 function showMain() {
   const saved = localStorage.getItem('gt_messages');
@@ -56,15 +97,11 @@ function showMain() {
   $('serverName').textContent=Store.serverSettings?.name||'Gettic';
   document.title='Gettic - '+(Store.user?.username||'Sohbet');
   
-  // İlk girişte hoş geldin mesajı
   if (Store.messages.length === 0 && Store.activeChannel === 'genel-sohbet') {
     Store.messages.push({
       _id: 'welcome-msg',
       content: '**🎉 Gettic\'e hoş geldiniz!**\n\nBurası genel sohbet kanalı. Herkes burada mesajlaşabilir, dosya paylaşabilir ve sesli sohbete katılabilir.\n\nSohbeti başlatmak için alttaki kutuya bir şeyler yaz! 😊',
-      senderName: 'Gettic',
-      senderId: 'system',
-      channelId: 'genel-sohbet',
-      createdAt: new Date().toISOString()
+      senderName: 'Gettic', senderId: 'system', channelId: 'genel-sohbet', createdAt: new Date().toISOString()
     });
   }
   
@@ -134,16 +171,10 @@ function bindButtons() {
   
   $('panelClearBtn')?.addEventListener('click',()=>{ if(typeof clearMessages==='function')clearMessages(); });
 
-  // Mesaj input - debounce
   $('messageInput')?.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      clearTimeout(sendTimeout);
-      sendTimeout = setTimeout(() => { if (typeof sendMessage === 'function') sendMessage(); }, 50);
-    }
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); clearTimeout(sendTimeout); sendTimeout = setTimeout(() => { if (typeof sendMessage === 'function') sendMessage(); }, 50); }
   });
 
-  // Ses kaydı
   $('voiceMsgBtn')?.addEventListener('mousedown', ()=>{ if(typeof startRecording==='function')startRecording(); });
   $('voiceMsgBtn')?.addEventListener('mouseup', ()=>{ if(typeof stopRecording==='function')stopRecording(); });
   $('voiceMsgBtn')?.addEventListener('touchstart', (e)=>{ e.preventDefault(); if(typeof startRecording==='function')startRecording(); });
