@@ -160,18 +160,20 @@
             <div class="reply-bar" id="replyBar"></div>
             <div class="msgs" id="messages"><div class="empty-ch"><h4># genel-sohbet</h4><p>İlk mesajı sen gönder!</p></div></div>
             <div class="typing" id="typing"></div>
-            <div class="input-area">
-                <button class="ib" id="emojiBtn" title="Emoji">😊</button>
-                <div id="emojiPanel" class="epop hidden" style="bottom:60px;left:10px"></div>
-                <button class="ib" id="gifBtn" title="GIF">🎬</button>
-                <button class="ib" id="imageBtn" title="Görsel">🖼️</button>
-                <button class="ib" id="pollBtn" title="Anket">📊</button>
-                <button class="ib" id="fileBtn" title="Dosya">📎</button>
-                <textarea class="msg-inp" id="messageInput" placeholder="Mesaj yaz..." rows="1" inputmode="text" enterkeyhint="send"></textarea>
-                <button class="ib send-btn-main" id="sendBtn" title="Gönder (Enter)">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-                </button>
-            </div>
+            <!-- index.html'de input alanına ses butonu ekle -->
+<div class="input-area">
+    <button class="ib" id="emojiBtn" title="Emoji">😊</button>
+    <div id="emojiPanel" class="epop hidden" style="bottom:60px;left:10px"></div>
+    <button class="ib" id="gifBtn" title="GIF">🎬</button>
+    <button class="ib" id="imageBtn" title="Görsel">🖼️</button>
+    <button class="ib" id="pollBtn" title="Anket">📊</button>
+    <button class="ib" id="fileBtn" title="Dosya">📎</button>
+    <button class="ib" id="voiceMsgBtn" title="Sesli Mesaj (Basılı Tut)">🎤</button>
+    <textarea class="msg-inp" id="messageInput" placeholder="Mesaj yaz..." rows="1" inputmode="text" enterkeyhint="send"></textarea>
+    <button class="ib send-btn-main" id="sendBtn" title="Gönder (Enter)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </button>
+</div>
         </main>
 
         <!-- User Panel -->
