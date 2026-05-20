@@ -25,7 +25,13 @@ app.use((req, res, next) => {
 });
 
 // ==================== MIDDLEWARE ====================
-app.use(cors());
+// ESKİ 2 middleware'i SİL, tek bunu koy:
+app.use(cors({
+    origin: ['https://gettic.js.org', 'http://localhost:3000'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    credentials: true
+}));
+
 app.use(express.json({ limit: '10mb' }));
 
 app.use((req, res, next) => {
@@ -167,7 +173,7 @@ app.get('/app', (req, res) => { res.sendFile(path.join(__dirname, 'app', 'index.
 app.get('/app/*', (req, res) => { res.sendFile(path.join(__dirname, 'app', 'index.html')); });
 
 // ==================== AUTH ENDPOINTS ====================
-app.post('/api/auth/register', async (req, res) => {
+app.post('/api/auth/register', authLimiter, async (req, res) => {
     try {
         const { username, password } = req.body;
         if (!username || username.length < 3) return res.status(400).json({ error: 'Kullanıcı adı en az 3 karakter' });
@@ -185,8 +191,7 @@ app.post('/api/auth/register', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.post('/api/auth/login', async (req, res) => {
-    try {
+app.post('/api/auth/login', authLimiter, async (req, res) => {
         const { username, password } = req.body;
         const user = await User.findOne({ username });
         if (!user) return res.status(401).json({ error: 'Kullanıcı bulunamadı' });
@@ -572,21 +577,14 @@ app.post('/api/email/send', async (req, res) => {
         const { to, subject, html } = req.body;
         if (!to || !subject || !html) return res.status(400).json({ error: 'Eksik bilgi' });
 
-        transporter.sendMail({
-            from: '"Gettic Güvenlik" <MS_FLXcSl@test-86org8em12zgew13.mlsender.net>',
+        const info = await transporter.sendMail({
+            from: '"Gettic" <MS_FLXcSl@test-86org8em12zgew13.mlsender.net>',
             to: to,
             subject: subject,
             html: html
-        }, (error, info) => {
-            if (error) {
-                console.error('❌ Render SMTP Hatası:', error.message);
-            } else {
-                console.log('✅ Doğrulama kodu gönderildi:', info.response);
-            }
         });
 
-        res.json({ success: true, message: 'Doğrulama kodu gönderildi' });
-
+        res.json({ success: true, id: info.messageId });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -637,6 +635,24 @@ app.use((req, res) => {
 });
 
 // ==================== SOCKET.IO ====================
+// Socket.io Authentication
+io.use((socket, next) => {
+    const token = socket.handshake.auth.token;
+    if (!token) {
+        console.log('❌ Socket bağlantısı reddedildi: Token yok');
+        return next(new Error('Token gerekli'));
+    }
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        socket.userId = decoded.userId;
+        console.log('✅ Socket bağlandı:', socket.userId);
+        next();
+    } catch (err) {
+        console.log('❌ Socket bağlantısı reddedildi: Geçersiz token');
+        next(new Error('Geçersiz token'));
+    }
+});
+
 io.on('connection', (socket) => {
     console.log('🔌 Yeni socket:', socket.id);
     
