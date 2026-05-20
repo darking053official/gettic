@@ -193,6 +193,7 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
 });
 
 app.post('/api/auth/login', authLimiter, async (req, res) => {
+    try {
         const { username, password } = req.body;
         const user = await User.findOne({ username });
         if (!user) return res.status(401).json({ error: 'Kullanıcı bulunamadı' });
