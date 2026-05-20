@@ -7,6 +7,7 @@ const { createServer } = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
 const fs = require('fs');
+const nodemailer = require('nodemailer');
 
 const app = express();
 const httpServer = createServer(app);
@@ -548,33 +549,44 @@ app.post('/api/image', async (req, res) => {
     } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
-// ==================== EMAİL GÖNDERME (SMASHSEND) ====================
+// ==================== EMAİL GÖNDERME (MAILERSEND SMTP) ====================
+
+const transporter = nodemailer.createTransport({
+    host: 'smtp.mailersend.net',
+    port: 587,
+    secure: false,
+    connectionTimeout: 20000,
+    greetingTimeout: 20000,
+    auth: {
+        user: 'MS_FLXcSl@test-86org8em12zgew13.mlsender.net',
+        pass: process.env.EMAIL_TOKEN
+    },
+    tls: {
+        ciphers: 'SSLv3',
+        rejectUnauthorized: false
+    }
+});
 
 app.post('/api/email/send', async (req, res) => {
     try {
         const { to, subject, html } = req.body;
         if (!to || !subject || !html) return res.status(400).json({ error: 'Eksik bilgi' });
 
-        const response = await fetch('https://api.smashsend.com/v1/emails', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${process.env.EMAIL_TOKEN}`
-            },
-            body: JSON.stringify({
-                to: to,
-                from: 'gettic@smashsend.com',
-                subject: subject,
-                html: html
-            })
+        transporter.sendMail({
+            from: '"Gettic Güvenlik" <MS_FLXcSl@test-86org8em12zgew13.mlsender.net>',
+            to: to,
+            subject: subject,
+            html: html
+        }, (error, info) => {
+            if (error) {
+                console.error('❌ Render SMTP Hatası:', error.message);
+            } else {
+                console.log('✅ Doğrulama kodu gönderildi:', info.response);
+            }
         });
 
-        const data = await response.json();
-        if (response.ok) {
-            res.json({ success: true, id: data.messageId });
-        } else {
-            res.status(500).json({ error: data.message || 'Email gönderilemedi' });
-        }
+        res.json({ success: true, message: 'Doğrulama kodu gönderildi' });
+
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
