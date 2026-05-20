@@ -10,6 +10,12 @@ const fs = require('fs');
 const nodemailer = require('nodemailer');
 const rateLimit = require('express-rate-limit');
 
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    message: { error: 'Çok fazla deneme yaptınız, 15 dakika bekleyin' }
+});
+
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
