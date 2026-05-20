@@ -86,7 +86,7 @@ async function sendVerificationCode() {
     });
     $('codeSection').style.display = '';
     $('sendCodeBtn').style.display = 'none';
-    $('codeMsg').textContent = '✅ Kod e-posta adresinize gönderildi!';
+    $('codeMsg').textContent = 'Kod e-posta adresinize gönderildi! Kod görünmüyorsa spam klasörünü kontrol edin.';
     $('codeMsg').style.color = 'var(--gr)';
   } catch(e) {
     $('codeMsg').textContent = '❌ Kod gönderilemedi. Lütfen tekrar deneyin.';
