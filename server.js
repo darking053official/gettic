@@ -7,7 +7,6 @@ const { createServer } = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
 const fs = require('fs');
-const nodemailer = require('nodemailer');
 
 const app = express();
 const httpServer = createServer(app);
@@ -549,50 +548,35 @@ app.post('/api/image', async (req, res) => {
     } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
-// ==================== EMAİL GÖNDERME ====================
-const transporter = nodemailer.createTransport({
-    host: 'smtp.elasticemail.com',
-    port: 2525,
-    secure: false,
-    auth: {
-        user: 'tahakrky@protonmail.com',
-        pass: process.env.EMAIL_TOKEN
-    }
-});
+// ==================== EMAİL GÖNDERME (SMASHSEND) ====================
 
 app.post('/api/email/send', async (req, res) => {
     try {
         const { to, subject, html } = req.body;
         if (!to || !subject || !html) return res.status(400).json({ error: 'Eksik bilgi' });
 
-        await transporter.sendMail({
-            from: '"Gettic" <tahakrky@protonmail.com>',
-            to: to,
-            subject: subject,
-            html: html
+        const response = await fetch('https://api.smashsend.com/v1/emails', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.EMAIL_TOKEN}`
+            },
+            body: JSON.stringify({
+                to: to,
+                from: 'gettic@smashsend.com',
+                subject: subject,
+                html: html
+            })
         });
-        res.json({ success: true });
+
+        const data = await response.json();
+        if (response.ok) {
+            res.json({ success: true, id: data.messageId });
+        } else {
+            res.status(500).json({ error: data.message || 'Email gönderilemedi' });
+        }
     } catch (error) {
         res.status(500).json({ error: error.message });
-    }
-});
-
-app.get('/api/email/test', async (req, res) => {
-    try {
-        // Önce transporter'ın çalıştığını kontrol et
-        if (!transporter) {
-            return res.json({ error: 'transporter tanımlı değil' });
-        }
-        
-        const info = await transporter.sendMail({
-            from: '"Gettic" <tahakrky@protonmail.com>',
-            to: 'tahakrky@protonmail.com',
-            subject: 'Gettic Test',
-            html: '<p>Test</p>'
-        });
-        res.json({ success: true, id: info.messageId });
-    } catch (error) {
-        res.json({ error: error.message });
     }
 });
 
