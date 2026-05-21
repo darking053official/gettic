@@ -7,8 +7,9 @@ const { createServer } = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
 const fs = require('fs');
-const nodemailer = require('nodemailer');
 const rateLimit = require('express-rate-limit');
+const { google } = require('googleapis');
+const nodemailer = require('nodemailer');
 
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
@@ -562,39 +563,59 @@ app.post('/api/image', async (req, res) => {
     } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
-// ==================== EMAİL GÖNDERME (MAILERSEND SMTP) ====================
+// OAuth2 transporter oluşturma
+async function createTransporter() {
+    const oauth2Client = new google.auth.OAuth2(
+        process.env.GMAIL_CLIENT_ID,
+        process.env.GMAIL_CLIENT_SECRET,
+        'https://developers.google.com/oauthplayground'
+    );
 
-const transporter = nodemailer.createTransport({
-    host: 'smtp.mailersend.net',
-    port: 587,
-    secure: false,
-    connectionTimeout: 20000,
-    greetingTimeout: 20000,
-    auth: {
-        user: 'MS_FLXcSl@test-86org8em12zgew13.mlsender.net',
-        pass: process.env.EMAIL_TOKEN
-    },
-    tls: {
-        ciphers: 'SSLv3',
-        rejectUnauthorized: false
-    }
-});
+    oauth2Client.setCredentials({ 
+        refresh_token: process.env.GMAIL_REFRESH_TOKEN 
+    });
 
+    const accessToken = await new Promise((resolve, reject) => {
+        oauth2Client.getAccessToken((err, token) => {
+            if (err) return reject('Token alınamadı: ' + err.message);
+            resolve(token);
+        });
+    });
+
+    return nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            type: 'OAuth2',
+            user: process.env.GMAIL_USER,
+            clientId: process.env.GMAIL_CLIENT_ID,
+            clientSecret: process.env.GMAIL_CLIENT_SECRET,
+            refreshToken: process.env.GMAIL_REFRESH_TOKEN,
+            accessToken: accessToken,
+        }
+    });
+}
+
+// Email gönderme endpoint'i
 app.post('/api/email/send', async (req, res) => {
     try {
         const { to, subject, html } = req.body;
         if (!to || !subject || !html) return res.status(400).json({ error: 'Eksik bilgi' });
 
-        const info = await transporter.sendMail({
-            from: '"Gettic" <MS_FLXcSl@test-86org8em12zgew13.mlsender.net>',
+        const transporter = await createTransporter();
+        
+        await transporter.sendMail({
+            from: `"Gettic Güvenlik" <${process.env.GMAIL_USER}>`,
             to: to,
             subject: subject,
             html: html
         });
 
-        res.json({ success: true, id: info.messageId });
+        console.log('✅ Email gönderildi:', to);
+        res.json({ success: true, message: 'Doğrulama kodu gönderildi' });
+
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('❌ Email hatası:', error.message);
+        res.status(500).json({ error: 'Email gönderilemedi' });
     }
 });
 
