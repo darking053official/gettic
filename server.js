@@ -71,7 +71,7 @@ dns.resolveSrv = function(hostname, callback) {
 const mongoose = require('mongoose');
 
 // MongoDB'ye HTTPS üzerinden bağlanmak için özel çözüm
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://getticUser:darking05322122012@gettic.b0khszl.mongodb.net/gettic';
+const MONGODB_URI = process.env.MONGODB_URI
 
 require('dotenv').config();
 
