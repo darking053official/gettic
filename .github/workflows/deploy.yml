@@ -37,16 +37,17 @@ jobs:
           sleep 5
       
       - name: Install Tailscale
-        run: |
-          curl -fsSL https://tailscale.com/install.sh | sh
-          sudo tailscale up --authkey=${{ secrets.TAILSCALE_AUTHKEY }} --hostname=gettic
-          sleep 10
-      
-      - name: Enable Tailscale Funnel
-        run: |
-          sudo tailscale serve --bg --https=443 http://localhost:3000
-          sudo tailscale funnel 3000
-          echo "✅ Funnel aktif!"
-      
-      - name: Keep alive
-        run: sleep infinity
+  run: |
+    curl -fsSL https://tailscale.com/install.sh | sh
+    sudo tailscale up --authkey=${{ secrets.TAILSCALE_AUTHKEY }} --hostname=gettic
+    sleep 5
+
+- name: Enable Tailscale Serve
+  run: |
+    sudo tailscale serve --bg --https=443 http://localhost:3000
+    sleep 5
+    sudo tailscale funnel 3000 || echo "Funnel already enabled"
+    echo "✅ Erişim adresi: https://gettic.tailc20df2.ts.net"
+
+- name: Keep alive
+  run: sleep infinity
