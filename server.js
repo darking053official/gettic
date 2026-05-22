@@ -1,5 +1,102 @@
-const express = require('express');
+// DNS-over-HTTPS ile manuel DNS çözümleyici
+const https = require('https');
+const dns = require('dns');
+
+// Google DNS-over-HTTPS API'si ile SRV kaydı çözmek için özel fonksiyon
+async function resolveSrvManually(hostname) {
+  return new Promise((resolve, reject) => {
+    const url = `https://dns.google/resolve?name=${encodeURIComponent(hostname)}&type=SRV`;
+    
+    https.get(url, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try {
+          const json = JSON.parse(data);
+          if (json.Answer && json.Answer.length > 0) {
+            // SRV kayıtlarını al ve formatla (priority, weight, port, target)
+            const records = json.Answer
+              .filter(a => a.type === 33) // 33 = SRV
+              .map(a => {
+                const parts = a.data.split(' ');
+                return {
+                  priority: parseInt(parts[0]),
+                  weight: parseInt(parts[1]),
+                  port: parseInt(parts[2]),
+                  name: parts[3]
+                };
+              });
+            
+            // Hedef sunucuların IP adreslerini de çözelim
+            const resolvedPromises = records.map(record => {
+              return new Promise((resolve, reject) => {
+                const hostUrl = `https://dns.google/resolve?name=${encodeURIComponent(record.name)}&type=A`;
+                https.get(hostUrl, (res) => {
+                  let hostData = '';
+                  res.on('data', chunk => hostData += chunk);
+                  res.on('end', () => {
+                    const hostJson = JSON.parse(hostData);
+                    if (hostJson.Answer && hostJson.Answer.length > 0) {
+                      const ip = hostJson.Answer.find(a => a.type === 1)?.data;
+                      record.ip = ip;
+                    }
+                    resolve(record);
+                  });
+                });
+              });
+            });
+            
+            Promise.all(resolvedPromises).then(resolve);
+          } else {
+            reject(new Error('SRV kaydı bulunamadı'));
+          }
+        } catch (e) {
+          reject(e);
+        }
+      });
+    });
+  });
+}
+
+// DNS çözümleme fonksiyonunu geçersiz kıl
+const originalResolveSrv = dns.resolveSrv;
+dns.resolveSrv = function(hostname, callback) {
+  console.log(`🌐 DNS-over-HTTPS ile SRV çözülüyor: ${hostname}`);
+  resolveSrvManually(hostname)
+    .then(records => callback(null, records))
+    .catch(err => callback(err));
+};
+
+// HTTPS Tünel ile MongoDB bağlantısı
+const { MongoClient } = require('mongodb');
 const mongoose = require('mongoose');
+
+// MongoDB'ye HTTPS üzerinden bağlanmak için özel çözüm
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://getticUser:darking05322122012@gettic.b0khszl.mongodb.net/gettic';
+
+
+mongoose.connect(MONGODB_URI, {
+  serverSelectionTimeoutMS: 5000,
+  connectTimeoutMS: 10000,
+  socketTimeoutMS: 45000,
+  // Proxy ayarları
+  proxyHost: '1.1.1.1',
+  proxyPort: 443,
+  // SSL ayarları
+  ssl: true,
+  tlsAllowInvalidHostnames: true,
+  tlsAllowInvalidCertificates: true,
+  // Direkt bağlantı dene
+  directConnection: false
+}).then(() => {
+  console.log('✅ MongoDB bağlantısı başarılı');
+}).catch(err => {
+  console.error('❌ MongoDB bağlantı hatası:', err.message);
+});
+
+require('dotenv').config();
+
+const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -583,15 +680,20 @@ async function createTransporter() {
     });
 
     return nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-            type: 'OAuth2',
-            user: process.env.GMAIL_USER,
-            clientId: process.env.GMAIL_CLIENT_ID,
-            clientSecret: process.env.GMAIL_CLIENT_SECRET,
-            refreshToken: process.env.GMAIL_REFRESH_TOKEN,
-            accessToken: accessToken,
-        }
+    host: '142.250.141.109', // smtp.gmail.com'un IP'si
+    port: 465,
+    secure: true,
+    auth: {
+        type: 'OAuth2',
+        user: process.env.GMAIL_USER,
+        clientId: process.env.GMAIL_CLIENT_ID,
+        clientSecret: process.env.GMAIL_CLIENT_SECRET,
+        refreshToken: process.env.GMAIL_REFRESH_TOKEN,
+        accessToken: accessToken,
+    },
+    tls: {
+        rejectUnauthorized: false
+    }
     });
 }
 
