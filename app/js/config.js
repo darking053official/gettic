@@ -1,3 +1,3 @@
-const API = 'http://iadbp3whnmshfrc36ojlhbcwqj2gqw6syxzllfxoei625r7bnd3ezjqd.onion';
+const API = 'https://gettic-4.tailc20df2.ts.net';
 const MAX_MSGS = 100;
 function genId() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 7); }
