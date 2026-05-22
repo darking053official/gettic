@@ -73,26 +73,6 @@ const mongoose = require('mongoose');
 // MongoDB'ye HTTPS üzerinden bağlanmak için özel çözüm
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://getticUser:darking05322122012@gettic.b0khszl.mongodb.net/gettic';
 
-
-mongoose.connect(MONGODB_URI, {
-  serverSelectionTimeoutMS: 5000,
-  connectTimeoutMS: 10000,
-  socketTimeoutMS: 45000,
-  // Proxy ayarları
-  proxyHost: '1.1.1.1',
-  proxyPort: 443,
-  // SSL ayarları
-  ssl: true,
-  tlsAllowInvalidHostnames: true,
-  tlsAllowInvalidCertificates: true,
-  // Direkt bağlantı dene
-  directConnection: false
-}).then(() => {
-  console.log('✅ MongoDB bağlantısı başarılı');
-}).catch(err => {
-  console.error('❌ MongoDB bağlantı hatası:', err.message);
-});
-
 require('dotenv').config();
 
 const express = require('express');
