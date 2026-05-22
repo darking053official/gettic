@@ -1,16 +1,14 @@
-name: Run Gettic Server
+name: Run Gettic with Tailscale
 
 on:
   push:
     branches: [main]
   workflow_dispatch:
-  schedule:
-    - cron: '0 */6 * * *'  # Her 6 saatte bir yeniden başlat
 
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 360  # 6 saat
+    timeout-minutes: 360
     
     steps:
       - uses: actions/checkout@v4
@@ -33,5 +31,22 @@ jobs:
           echo "GMAIL_USER=${{ secrets.GMAIL_USER }}" >> .env
           echo "PORT=3000" >> .env
       
-      - name: Run server
-        run: node server.js
+      - name: Start server
+        run: |
+          node server.js &
+          sleep 5
+      
+      - name: Install Tailscale
+        run: |
+          curl -fsSL https://tailscale.com/install.sh | sh
+          sudo tailscale up --authkey=${{ secrets.TAILSCALE_AUTHKEY }} --hostname=gettic
+          sleep 10
+      
+      - name: Enable Tailscale Funnel
+        run: |
+          sudo tailscale serve --bg --https=443 http://localhost:3000
+          sudo tailscale funnel 3000
+          echo "✅ Funnel aktif!"
+      
+      - name: Keep alive
+        run: sleep infinity
