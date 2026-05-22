@@ -68,7 +68,6 @@ dns.resolveSrv = function(hostname, callback) {
 };
 
 // HTTPS Tünel ile MongoDB bağlantısı
-const { MongoClient } = require('mongodb');
 const mongoose = require('mongoose');
 
 // MongoDB'ye HTTPS üzerinden bağlanmak için özel çözüm
