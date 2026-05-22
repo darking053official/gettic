@@ -659,7 +659,7 @@ async function createTransporter() {
     });
 
     return nodemailer.createTransport({
-    host: '142.250.141.109', // smtp.gmail.com'un IP'si
+    host: 'smtp.gmail.com',
     port: 465,
     secure: true,
     auth: {
