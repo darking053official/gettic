@@ -1,0 +1,37 @@
+name: Run Gettic Server
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: '0 */6 * * *'  # Her 6 saatte bir yeniden başlat
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360  # 6 saat
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      - name: Install dependencies
+        run: npm install
+      
+      - name: Create .env
+        run: |
+          echo "MONGODB_URI=${{ secrets.MONGODB_URI }}" >> .env
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+          echo "GMAIL_CLIENT_ID=${{ secrets.GMAIL_CLIENT_ID }}" >> .env
+          echo "GMAIL_CLIENT_SECRET=${{ secrets.GMAIL_CLIENT_SECRET }}" >> .env
+          echo "GMAIL_REFRESH_TOKEN=${{ secrets.GMAIL_REFRESH_TOKEN }}" >> .env
+          echo "GMAIL_USER=${{ secrets.GMAIL_USER }}" >> .env
+          echo "PORT=3000" >> .env
+      
+      - name: Run server
+        run: node server.js
