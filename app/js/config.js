@@ -1,3 +1,3 @@
-const API = 'https://ppm-host-staff-viewer.trycloudflare.com';
+const API = 'https://phase-treaty-compiler-perth.trycloudflare.com';
 const MAX_MSGS = 100;
 function genId() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 7); }
