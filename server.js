@@ -41,9 +41,9 @@ const apiLimiter = rateLimit({
 });
 
 const messageLimiter = rateLimit({
-    windowMs: 10 * 1000,
-    max: 5,
-    message: { error: 'Spam yapma! 10 saniye bekle.' }
+    windowMs: 3 * 1000, // 3 saniye
+    max: 1, // 3 saniyede 1 mesaj
+    message: { error: '3 saniye bekleyin.' }
 });
 
 // ==================== EXPRESS APP ====================
