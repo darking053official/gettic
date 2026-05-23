@@ -2,6 +2,8 @@
 const https = require('https');
 const dns = require('dns');
 
+require('dotenv').config();
+
 // Google DNS-over-HTTPS API'si ile SRV kaydı çözmek için özel fonksiyon
 async function resolveSrvManually(hostname) {
   return new Promise((resolve, reject) => {
@@ -69,12 +71,6 @@ dns.resolveSrv = function(hostname, callback) {
 
 // HTTPS Tünel ile MongoDB bağlantısı
 const mongoose = require('mongoose');
-
-// MongoDB'ye HTTPS üzerinden bağlanmak için özel çözüm
-const MONGODB_URI = process.env.MONGODB_URI
-
-require('dotenv').config();
-
 const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
