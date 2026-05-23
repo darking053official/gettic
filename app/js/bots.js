@@ -108,10 +108,8 @@ function handleBotMessage(msg) {
   if (!activeBot) return null;
   if (!activeBot.commands.includes(command)) return null;
   
-  // Bot cevabını oluştur
   const response = cmd.execute(msg, args);
   
-  // Bot mesajını kanala ekle
   const botMsg = {
     _id: 'bot_' + genId(),
     content: response,
@@ -123,10 +121,14 @@ function handleBotMessage(msg) {
     botId: activeBot.id
   };
   
-  // Aktif botu güncelle
   activeBot.messageCount++;
   activeBot.lastActive = new Date().toISOString();
   saveBotState();
+  
+  // Socket.IO ile gerçek zamanlı gönder
+  if (socket && socket.connected) {
+    socket.emit('send_message', botMsg);
+  }
   
   return botMsg;
 }
@@ -141,50 +143,30 @@ function showBotDetail(botId) {
   
   content.innerHTML = `
     <h2>🤖 ${bot.name}</h2>
-    
     <div style="text-align:center;margin-bottom:12px">
       <img src="${bot.avatar}" style="width:60px;height:60px;border-radius:50%">
     </div>
-    
     <div class="settings-group">
       <div class="settings-group-title">Bilgi</div>
-      <div class="settings-item">
-        <div class="settings-item-left">📝 İsim</div>
-        <div class="settings-item-right">${bot.name}</div>
-      </div>
-      <div class="settings-item">
-        <div class="settings-item-left"># Prefix</div>
-        <div class="settings-item-right">${bot.prefix}</div>
-      </div>
-      <div class="settings-item">
-        <div class="settings-item-left">👤 Oluşturan</div>
-        <div class="settings-item-right">${bot.creatorName}</div>
-      </div>
-      <div class="settings-item">
-        <div class="settings-item-left">💬 Mesaj</div>
-        <div class="settings-item-right">${bot.messageCount}</div>
-      </div>
+      <div class="settings-item"><div class="settings-item-left">📝 İsim</div><div class="settings-item-right">${bot.name}</div></div>
+      <div class="settings-item"><div class="settings-item-left"># Prefix</div><div class="settings-item-right">${bot.prefix}</div></div>
+      <div class="settings-item"><div class="settings-item-left">👤 Oluşturan</div><div class="settings-item-right">${bot.creatorName}</div></div>
+      <div class="settings-item"><div class="settings-item-left">💬 Mesaj</div><div class="settings-item-right">${bot.messageCount}</div></div>
       <div class="settings-item" onclick="toggleBot('${botId}')">
         <div class="settings-item-left">✅ Aktif</div>
         <div class="settings-item-right"><div class="toggle ${bot.active?'on':''}"></div></div>
       </div>
     </div>
-    
     <div class="settings-group">
       <div class="settings-group-title">Komutlar (${bot.commands.length})</div>
       ${bot.commands.map(c => `
-        <div class="settings-item">
-          <div class="settings-item-left">!${c}</div>
-          <div class="settings-item-right">${botState.commands[c]?.description || ''}</div>
-        </div>
+        <div class="settings-item"><div class="settings-item-left">!${c}</div><div class="settings-item-right">${botState.commands[c]?.description || ''}</div></div>
       `).join('')}
     </div>
-    
     <div class="settings-group">
       <div class="settings-group-title">Token</div>
       <code style="font-size:10px;word-break:break-all">${bot.token}</code>
     </div>
-    
     <div class="msep"></div>
     <button class="mb danger" onclick="deleteBot('${botId}');closeModal()">🗑️ Botu Sil</button>
   `;
@@ -206,17 +188,13 @@ function showBotList() {
   content.innerHTML = `
     <h2>🤖 Botlar</h2>
     <button class="mb sec" onclick="showCreateBotForm()">+ Bot Oluştur</button>
-    
     ${botState.bots.length === 0 ? 
       '<p style="color:var(--t3);text-align:center;padding:20px">Henüz bot yok</p>' :
       botState.bots.map(b => `
         <div class="mitem" onclick="showBotDetail('${b.id}')" style="justify-content:space-between">
           <div style="display:flex;align-items:center;gap:8px">
             <img src="${b.avatar}" style="width:32px;height:32px;border-radius:50%">
-            <div>
-              <div class="mname">${b.name}</div>
-              <div class="msub">${b.messageCount} mesaj · ${b.commands.length} komut</div>
-            </div>
+            <div><div class="mname">${b.name}</div><div class="msub">${b.messageCount} mesaj · ${b.commands.length} komut</div></div>
           </div>
           <span style="font-size:10px;color:${b.active?'var(--gr)':'var(--re)'}">${b.active?'Aktif':'Pasif'}</span>
         </div>
@@ -230,7 +208,6 @@ function showBotList() {
 function showCreateBotForm() {
   const content = document.getElementById('modalContent');
   if (!content) return;
-  
   content.innerHTML = `
     <h2>🤖 Bot Oluştur</h2>
     <input class="mi" id="newBotName" placeholder="Bot adı">
@@ -245,10 +222,9 @@ function submitCreateBot() {
   if (name?.trim()) { createBot(name, prefix); closeModal(); }
 }
 
-// Mesaj gönderme öncesi bot kontrolü (chat.js sendMessage içinde)
+// Mesaj gönderme öncesi bot kontrolü
 function checkBotCommand(content) {
   if (!content?.startsWith('!')) return false;
-  
   const botMsg = handleBotMessage({ 
     content, 
     channelId: Store.activeChannel,
@@ -256,7 +232,6 @@ function checkBotCommand(content) {
     senderId: Store.user?._id,
     createdAt: new Date().toISOString()
   });
-  
   if (botMsg) {
     Store.messages.push(botMsg);
     if (typeof renderMessages === 'function') renderMessages();
@@ -273,29 +248,10 @@ function saveBotState() {
 // CSS
 const botStyle = document.createElement('style');
 botStyle.textContent = `
-  .msg.bot-msg {
-    border-left: 3px solid #6366f1;
-    padding-left: 10px;
-  }
-  .msg.bot-msg .msg-av {
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  }
-  .bot-badge {
-    font-size: 8px;
-    background: #6366f1;
-    color: #fff;
-    padding: 1px 5px;
-    border-radius: 3px;
-    margin-left: 4px;
-  }
+  .msg.bot-msg { border-left: 3px solid #6366f1; padding-left: 10px; }
+  .msg.bot-msg .msg-av { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+  .bot-badge { font-size: 8px; background: #6366f1; color: #fff; padding: 1px 5px; border-radius: 3px; margin-left: 4px; }
 `;
 document.head.appendChild(botStyle);
 
-// Başlat
-document.addEventListener('DOMContentLoaded', () => {
-  const btn = document.getElementById('botBtn');
-  if (btn) btn.onclick = showBotList;
-});
-
-// Mesaj render'da bot badge ekle (chat.js renderMessages içinde)
-// senderName'den sonra: ${msg.isBot ? '<span class="bot-badge">BOT</span>' : ''}
+console.log('✅ Bots.js yüklendi');
