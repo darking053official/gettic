@@ -25,26 +25,23 @@ jobs:
         run: |
           echo "=== SECRETS CHECK ==="
           echo "MONGODB_URI uzunluk: $(echo '${{ secrets.MONGODB_URI }}' | wc -c)"
-          echo "JWT_SECRET: ${{ secrets.JWT_SECRET }}"
-          echo "GMAIL_CLIENT_ID: ${{ secrets.GMAIL_CLIENT_ID }}"
           echo "GMAIL_CLIENT_SECRET uzunluk: $(echo '${{ secrets.GMAIL_CLIENT_SECRET }}' | wc -c)"
           echo "GMAIL_REFRESH_TOKEN uzunluk: $(echo '${{ secrets.GMAIL_REFRESH_TOKEN }}' | wc -c)"
-          echo "GMAIL_REFRESH_TOKEN ilk 20 karakter: ${{ secrets.GMAIL_REFRESH_TOKEN }}"
           echo "GMAIL_USER: ${{ secrets.GMAIL_USER }}"
       
       - name: Create .env
         run: |
-          echo "MONGODB_URI=${{ secrets.MONGODB_URI }}" >> .env
-          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
-          echo "GMAIL_CLIENT_ID=${{ secrets.GMAIL_CLIENT_ID }}" >> .env
-          echo "GMAIL_CLIENT_SECRET=${{ secrets.GMAIL_CLIENT_SECRET }}" >> .env
-          echo "GMAIL_REFRESH_TOKEN=${{ secrets.GMAIL_REFRESH_TOKEN }}" >> .env
-          echo "GMAIL_USER=${{ secrets.GMAIL_USER }}" >> .env
-          echo "PORT=3000" >> .env
+          cat > .env << 'ENVEOF'
+          MONGODB_URI=${{ secrets.MONGODB_URI }}
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          GMAIL_CLIENT_ID=${{ secrets.GMAIL_CLIENT_ID }}
+          GMAIL_CLIENT_SECRET=${{ secrets.GMAIL_CLIENT_SECRET }}
+          GMAIL_REFRESH_TOKEN=${{ secrets.GMAIL_REFRESH_TOKEN }}
+          GMAIL_USER=${{ secrets.GMAIL_USER }}
+          PORT=3000
+          ENVEOF
           echo "=== .env OLUŞTURULDU ==="
           cat .env | grep -v "SECRET\|TOKEN\|PASS\|KEY"
-          echo "GMAIL_USER=$(grep GMAIL_USER .env)"
-          echo "GMAIL_REFRESH_TOKEN uzunluk=$(grep GMAIL_REFRESH_TOKEN .env | wc -c)"
       
       - name: Start server
         run: |
@@ -53,15 +50,13 @@ jobs:
           echo "=== SERVER STATUS ==="
           curl -s http://localhost:3000/api/health || echo "Server not ready"
       
-      - name: Test Email - Debug
+      - name: Test Email
         run: |
           echo "=== EMAIL TEST ==="
-          echo "Request:"
-          curl -v -X POST http://localhost:3000/api/email/send \
+          curl -s -X POST http://localhost:3000/api/email/send \
             -H "Content-Type: application/json" \
-            -d '{"to":"tahakrky@protonmail.com","subject":"Actions Debug Test","html":"<h2>Debug testi</h2>"}' 2>&1
+            -d '{"to":"tahakrky@protonmail.com","subject":"Actions Test","html":"<h2>Test</h2>"}'
           echo ""
-          echo "=== RESPONSE ABOVE ==="
       
       - name: Start Cloudflare Tunnel
         run: |
@@ -77,11 +72,11 @@ jobs:
       - name: Update config.js
         run: |
           echo "=== UPDATING config.js ==="
-          OLD_API=$(grep "const API" app/js/config.js)
-          echo "Old: $OLD_API"
+          OLD=$(grep "const API" app/js/config.js)
+          echo "Old: $OLD"
           sed -i "s|const API = .*|const API = '${{ env.TUNNEL_URL }}';|" app/js/config.js
-          NEW_API=$(grep "const API" app/js/config.js)
-          echo "New: $NEW_API"
+          NEW=$(grep "const API" app/js/config.js)
+          echo "New: $NEW"
       
       - name: Commit & Push
         run: |
@@ -89,7 +84,7 @@ jobs:
           git config user.name "GitHub Actions"
           git add app/js/config.js
           git diff --cached --quiet && echo "No changes" || git commit -m "Auto-update: ${{ env.TUNNEL_URL }}"
-          git push || echo "Push failed, check permissions"
+          git push || echo "Push failed"
       
       - name: Keep alive
         run: sleep infinity
