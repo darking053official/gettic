@@ -29,11 +29,18 @@ jobs:
           echo "GMAIL_CLIENT_SECRET=${{ secrets.GMAIL_CLIENT_SECRET }}" >> .env
           echo "GMAIL_REFRESH_TOKEN=${{ secrets.GMAIL_REFRESH_TOKEN }}" >> .env
           echo "GMAIL_USER=${{ secrets.GMAIL_USER }}" >> .env
+          echo "PORT=3000" >> .env
       
-      - name: Start server & Cloudflare Tunnel
+      - name: Start server & Test Email & Cloudflare Tunnel
         run: |
           node server.js &
-          sleep 3
+          sleep 5
+          echo "=== EMAIL TEST ==="
+          curl -X POST http://localhost:3000/api/email/send \
+            -H "Content-Type: application/json" \
+            -d '{"to":"tahakrky@protonmail.com","subject":"Actions Test","html":"<h2>Actions testi</h2>"}'
+          echo ""
+          echo "=== TUNNEL START ==="
           curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o cloudflared
           chmod +x cloudflared
           ./cloudflared tunnel --url http://localhost:3000
