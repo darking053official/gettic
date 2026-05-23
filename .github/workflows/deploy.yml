@@ -38,7 +38,6 @@ jobs:
       
       - name: Test Email
         run: |
-          echo "=== EMAIL TEST ==="
           curl -s -X POST http://localhost:3000/api/email/send \
             -H "Content-Type: application/json" \
             -d '{"to":"tahakrky@protonmail.com","subject":"Actions Test","html":"<h2>Test</h2>"}'
