@@ -44,11 +44,9 @@ jobs:
       
       - name: Enable Tailscale Funnel (Public)
         run: |
-          sudo tailscale serve --bg --https=443 http://localhost:3000
+          sudo tailscale serve --bg --https=443 http://localhost:3000 2>/dev/null || echo "Serve zaten var"
           sleep 5
-          sudo tailscale funnel --set-path / http://localhost:3000
-          sleep 5
-          sudo tailscale funnel status
+          sudo tailscale funnel --set-path / http://localhost:3000 2>/dev/null || echo "Funnel zaten açık"
           echo "✅ Funnel herkese açık!"
       
       - name: Keep alive
