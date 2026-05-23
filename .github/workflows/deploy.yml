@@ -42,12 +42,14 @@ jobs:
           sudo tailscale up --authkey=${{ secrets.TAILSCALE_AUTHKEY }} --hostname=gettic
           sleep 10
       
-      - name: Enable Tailscale Funnel
+      - name: Enable Tailscale Funnel (Public)
         run: |
           sudo tailscale serve --bg --https=443 http://localhost:3000
           sleep 5
-          sudo tailscale funnel 3000 || echo "Funnel already enabled"
-          echo "✅ Erişim adresi: https://gettic.tailc20df2.ts.net"
+          sudo tailscale funnel --set-path / http://localhost:3000
+          sleep 5
+          sudo tailscale funnel status
+          echo "✅ Funnel herkese açık!"
       
       - name: Keep alive
         run: sleep infinity
