@@ -1,4 +1,4 @@
-// ============ GETTIC BOTS.JS - BOT SİSTEMİ ============
+// =========== GETTIC BOTS.JS - BOT SİSTEMİ ============
 
 const botState = {
   bots: JSON.parse(localStorage.getItem('gt_bots') || '[]'),
