@@ -33,15 +33,8 @@ jobs:
         run: |
           node server.js &
           sleep 5
-          echo "=== SERVER STATUS ==="
-          curl -s http://localhost:3000/api/health || echo "Server not ready"
-      
-      - name: Test Email
-        run: |
-          curl -s -X POST http://localhost:3000/api/email/send \
-            -H "Content-Type: application/json" \
-            -d '{"to":"tahakrky@protonmail.com","subject":"Actions Test","html":"<h2>Test</h2>"}'
-          echo ""
+          echo "=== SERVER READY ==="
+          curl -s http://localhost:3000/api/health
       
       - name: Start Cloudflare Tunnel
         run: |
@@ -56,19 +49,15 @@ jobs:
       
       - name: Update config.js
         run: |
-          echo "=== UPDATING config.js ==="
-          OLD=$(grep "const API" app/js/config.js)
-          echo "Old: $OLD"
           sed -i "s|const API = .*|const API = '${{ env.TUNNEL_URL }}';|" app/js/config.js
-          NEW=$(grep "const API" app/js/config.js)
-          echo "New: $NEW"
+          echo "Updated API to: ${{ env.TUNNEL_URL }}"
       
       - name: Commit & Push
         run: |
           git config user.email "actions@github.com"
           git config user.name "GitHub Actions"
           git add app/js/config.js
-          git diff --cached --quiet && echo "No changes" || git commit -m "Auto-update: ${{ env.TUNNEL_URL }}"
+          git diff --cached --quiet && echo "No changes" || git commit -m "🔗 API: ${{ env.TUNNEL_URL }}"
           git push || echo "Push failed"
       
       - name: Keep alive
