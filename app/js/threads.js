@@ -1,4 +1,11 @@
-// ============ GETTIC THREADS.JS - KONU BAŞLIKLARI ============
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║   GETTIC THREADS.JS - SVG İKONLU + TÜRKÇE DÜZELTMELER           ║
+// ╚══════════════════════════════════════════════════════════════════╝
+
+// SVG ikon yardımcı
+function thrIcon(name, size = 16) {
+  return window.Icons?.[name] ? `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle">${Icons[name]}</svg>` : '';
+}
 
 const threadState = {
   threads: JSON.parse(localStorage.getItem('gt_threads') || '{}'),
@@ -6,28 +13,22 @@ const threadState = {
   threadOrder: JSON.parse(localStorage.getItem('gt_thread_order') || '[]')
 };
 
-// Thread oluştur
+// Konu oluştur
 function createThread(parentMsgId) {
   const parentMsg = Store.messages.find(m => m._id === parentMsgId);
   if (!parentMsg) return;
   
   const threadId = genId();
   const thread = {
-    id: threadId,
-    parentId: parentMsgId,
+    id: threadId, parentId: parentMsgId,
     parentContent: parentMsg.content?.substring(0, 100),
-    parentAuthor: parentMsg.senderName,
-    parentTime: parentMsg.createdAt,
+    parentAuthor: parentMsg.senderName, parentTime: parentMsg.createdAt,
     channelId: Store.activeChannel,
     title: parentMsg.content?.substring(0, 50) || 'Konu',
-    messages: [],
-    participants: [Store.user._id, parentMsg.senderId],
+    messages: [], participants: [Store.user._id, parentMsg.senderId],
     participantNames: [Store.user.username, parentMsg.senderName],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    messageCount: 0,
-    isArchived: false,
-    isLocked: false
+    createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+    messageCount: 0, isArchived: false, isLocked: false
   };
   
   threadState.threads[threadId] = thread;
@@ -36,10 +37,10 @@ function createThread(parentMsgId) {
   
   saveThreadState();
   openThread(threadId);
-  toast('💬 Konu başlatıldı');
+  toast(thrIcon('message-square') + ' Konu başlatıldı');
 }
 
-// Thread aç
+// Konu aç
 function openThread(threadId) {
   const thread = threadState.threads[threadId];
   if (!thread) return;
@@ -50,37 +51,34 @@ function openThread(threadId) {
   const channelName = document.getElementById('channelName');
   const inputArea = document.querySelector('.input-area');
   
-  if (channelName) channelName.textContent = '💬 ' + (thread.title || 'Konu');
+  if (channelName) channelName.textContent = (thread.title || 'Konu');
   
   if (messagesEl) {
-    // Ana mesajı göster
     let html = `
       <div class="thread-parent-msg" style="background:var(--bg2);padding:12px;border-radius:8px;margin-bottom:12px;border-left:3px solid var(--ac)">
         <div class="msg-head">
-          <span style="font-weight:700">${thread.parentAuthor}</span>
+          <span style="font-weight:700">${escapeHtml(thread.parentAuthor)}</span>
           <span class="msg-time">${formatTime(thread.parentTime)}</span>
         </div>
         <div class="msg-text">${formatMsg(thread.parentContent || '')}</div>
       </div>
-      <div style="font-size:11px;color:var(--t3);margin-bottom:12px">
-        ${thread.messageCount} yanıt · ${thread.participantNames.length} katılımcı
-        ${thread.isLocked ? '🔒 Kilitli' : ''} ${thread.isArchived ? '📦 Arşivlendi' : ''}
+      <div style="font-size:11px;color:var(--t3);margin-bottom:12px;display:flex;align-items:center;gap:8px">
+        <span>${thrIcon('message-square',12)} ${thread.messageCount} yanıt</span>
+        <span>${thrIcon('users',12)} ${thread.participantNames.length} katılımcı</span>
+        ${thread.isLocked ? `<span>${thrIcon('lock',12)} Kilitli</span>` : ''}
+        ${thread.isArchived ? `<span>${thrIcon('archive',12)} Arşivlendi</span>` : ''}
       </div>
     `;
     
-    // Thread mesajları
     if (thread.messages.length === 0) {
-      html += '<p style="color:var(--t3);text-align:center;padding:20px">Henüz yanıt yok</p>';
+      html += `<p style="color:var(--t3);text-align:center;padding:20px">${thrIcon('message-square',20)}<br>Henüz yanıt yok</p>`;
     } else {
       thread.messages.forEach(msg => {
         html += `
           <div class="msg">
             <div class="msg-av">${(msg.senderName||'?').charAt(0).toUpperCase()}</div>
             <div class="msg-body">
-              <div class="msg-head">
-                <span>${msg.senderName}</span>
-                <span class="msg-time">${formatTime(msg.time)}</span>
-              </div>
+              <div class="msg-head"><span>${escapeHtml(msg.senderName)}</span><span class="msg-time">${formatTime(msg.time)}</span></div>
               <div class="msg-text">${formatMsg(msg.content)}</div>
             </div>
           </div>
@@ -92,12 +90,11 @@ function openThread(threadId) {
     messagesEl.scrollTop = messagesEl.scrollHeight;
   }
   
-  // Input alanını thread için değiştir
   if (inputArea) {
     inputArea.innerHTML = `
       <textarea class="msg-inp" id="threadInput" placeholder="Konuya yanıt yaz..." rows="1"></textarea>
-      <button class="ib" style="background:var(--gr)" id="threadSendBtn">➤</button>
-      <button class="ib" id="threadCloseBtn" title="Konuyu Kapat">×</button>
+      <button class="ib" style="background:var(--gr)" id="threadSendBtn">${thrIcon('send',16)}</button>
+      <button class="ib" id="threadCloseBtn" title="Konuyu Kapat">${thrIcon('x',16)}</button>
     `;
     
     document.getElementById('threadSendBtn').onclick = () => {
@@ -106,29 +103,20 @@ function openThread(threadId) {
     };
     
     document.getElementById('threadInput').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        document.getElementById('threadSendBtn').click();
-      }
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); document.getElementById('threadSendBtn').click(); }
     });
     
     document.getElementById('threadCloseBtn').onclick = closeThread;
   }
 }
 
-// Thread mesajı gönder
+// Konu mesajı gönder
 function sendThreadMessage(threadId, content) {
   const thread = threadState.threads[threadId];
   if (!thread || thread.isLocked) return;
   if (!content?.trim()) return;
   
-  const msg = {
-    id: genId(),
-    senderId: Store.user._id,
-    senderName: Store.user.username,
-    content: content.trim(),
-    time: new Date().toISOString()
-  };
+  const msg = { id: genId(), senderId: Store.user._id, senderName: Store.user.username, content: content.trim(), time: new Date().toISOString() };
   
   thread.messages.push(msg);
   thread.messageCount = thread.messages.length;
@@ -142,25 +130,26 @@ function sendThreadMessage(threadId, content) {
   saveThreadState();
   openThread(threadId);
   
-  // Thread sırasını güncelle
   threadState.threadOrder = threadState.threadOrder.filter(id => id !== threadId);
   threadState.threadOrder.unshift(threadId);
 }
 
-// Thread kapat
+// Konu kapat
 function closeThread() {
   threadState.activeThread = null;
   
   const inputArea = document.querySelector('.input-area');
   if (inputArea) {
     inputArea.innerHTML = `
-      <button class="ib" id="emojiBtn">😊</button>
+      <button class="ib" id="emojiBtn">${thrIcon('smile',18)}</button>
       <div id="emojiPanel" class="epop hidden" style="bottom:60px;left:10px"></div>
-      <button class="ib" id="gifBtn">🎬</button>
-      <button class="ib" id="imageBtn">🖼️</button>
-      <button class="ib" id="pollBtn">📊</button>
+      <button class="ib" id="gifBtn">${thrIcon('gif',18)}</button>
+      <button class="ib" id="imageBtn">${thrIcon('image',18)}</button>
+      <button class="ib" id="pollBtn">${thrIcon('bar-chart',18)}</button>
+      <button class="ib" id="fileBtn">${thrIcon('paperclip',18)}</button>
+      <button class="ib" id="voiceMsgBtn">${thrIcon('mic',18)}</button>
       <textarea class="msg-inp" id="messageInput" placeholder="Mesaj yaz..." rows="1"></textarea>
-      <button class="ib" style="background:var(--gr)" id="sendBtn">➤</button>
+      <button class="ib send-btn-main" id="sendBtn">${thrIcon('send',18)}</button>
     `;
   }
   
@@ -168,57 +157,50 @@ function closeThread() {
   if (typeof navigateTo === 'function') navigateTo('/');
 }
 
-// Thread arşivle
+// Arşivle
 function archiveThread(threadId) {
   const thread = threadState.threads[threadId];
   if (!thread) return;
   thread.isArchived = !thread.isArchived;
   saveThreadState();
-  toast(thread.isArchived ? '📦 Arşivlendi' : '📂 Arşivden çıkarıldı');
+  toast(thread.isArchived ? thrIcon('archive') + ' Arşivlendi' : thrIcon('folder') + ' Arşivden çıkarıldı');
 }
 
-// Thread kilitle
+// Kilitle
 function lockThread(threadId) {
   const thread = threadState.threads[threadId];
   if (!thread) return;
-  if (!hasPermission(Store.user?._id, 'manageMessages')) return toast('❌ Yetkiniz yok', 'e');
+  if (!hasPermission(Store.user?._id, 'manageMessages')) return toast('Yetkiniz yok', 'e');
   thread.isLocked = !thread.isLocked;
   saveThreadState();
-  toast(thread.isLocked ? '🔒 Konu kilitlendi' : '🔓 Konu kilidi açıldı');
+  toast(thread.isLocked ? thrIcon('lock') + ' Konu kilitlendi' : thrIcon('unlock') + ' Konu kilidi açıldı');
 }
 
-// Thread listesi
+// Konu listesi
 function showThreadList() {
   const content = document.getElementById('modalContent');
   if (!content) return;
   
-  const activeThreads = threadState.threadOrder
-    .map(id => threadState.threads[id])
-    .filter(t => t && !t.isArchived);
-  
-  const archivedThreads = threadState.threadOrder
-    .map(id => threadState.threads[id])
-    .filter(t => t && t.isArchived);
+  const activeThreads = threadState.threadOrder.map(id => threadState.threads[id]).filter(t => t && !t.isArchived);
+  const archivedThreads = threadState.threadOrder.map(id => threadState.threads[id]).filter(t => t && t.isArchived);
   
   content.innerHTML = `
-    <h2>💬 Konu Başlıkları</h2>
-    
+    <h2>${thrIcon('message-square',24)} Konu Başlıkları</h2>
     <div style="max-height:400px;overflow-y:auto">
-      ${activeThreads.length === 0 && archivedThreads.length === 0 ? 
-        '<p style="color:var(--t3);text-align:center;padding:20px">Henüz konu yok</p>' : ''}
+      ${activeThreads.length === 0 && archivedThreads.length === 0 ? `<p style="color:var(--t3);text-align:center;padding:20px">Henüz konu yok</p>` : ''}
       
       ${activeThreads.length > 0 ? `
         <div class="search-section-title">Aktif Konular (${activeThreads.length})</div>
         ${activeThreads.map(t => `
           <div class="mitem" onclick="openThread('${t.id}');closeModal()">
-            <div class="mav">💬</div>
+            <div class="mav" style="background:var(--acd)">${thrIcon('message-square',16)}</div>
             <div class="minfo">
-              <div class="mname">${t.title}</div>
+              <div class="mname">${escapeHtml(t.title)}</div>
               <div class="msub">${t.messageCount} yanıt · ${t.participantNames.length} kişi · ${formatTime(t.updatedAt)}</div>
             </div>
-            <div style="display:flex;gap:4px">
-              ${t.isLocked ? '<span>🔒</span>' : ''}
-              <button class="ib" onclick="event.stopPropagation();archiveThread('${t.id}')" style="width:22px;height:22px" title="Arşivle">📦</button>
+            <div style="display:flex;gap:4px;align-items:center">
+              ${t.isLocked ? thrIcon('lock',12) : ''}
+              <button class="ib" onclick="event.stopPropagation();archiveThread('${t.id}')" style="width:22px;height:22px" title="Arşivle">${thrIcon('archive',14)}</button>
             </div>
           </div>
         `).join('')}
@@ -228,9 +210,9 @@ function showThreadList() {
         <div class="search-section-title">Arşivlenenler (${archivedThreads.length})</div>
         ${archivedThreads.map(t => `
           <div class="mitem" onclick="openThread('${t.id}');closeModal()" style="opacity:0.6">
-            <div class="mav">📦</div>
+            <div class="mav">${thrIcon('archive',16)}</div>
             <div class="minfo">
-              <div class="mname">${t.title}</div>
+              <div class="mname">${escapeHtml(t.title)}</div>
               <div class="msub">${t.messageCount} yanıt</div>
             </div>
           </div>
@@ -242,7 +224,7 @@ function showThreadList() {
   openModal('threads');
 }
 
-// Thread render (mesajlarda thread butonu)
+// Mesajlarda konu butonu
 function renderThreadButton(msgId) {
   const thread = Object.values(threadState.threads).find(t => t.parentId === msgId);
   const count = thread?.messageCount || 0;
@@ -250,35 +232,25 @@ function renderThreadButton(msgId) {
   return `
     <div class="thread-indicator" onclick="openThread('${thread?.id}');${!thread ? `createThread('${msgId}')` : ''}" 
          style="font-size:11px;color:var(--ac);cursor:pointer;margin-top:4px">
-      ${count > 0 ? `💬 ${count} yanıt` : '💬 Yanıtla'}
+      ${count > 0 ? `${thrIcon('message-square',12)} ${count} yanıt` : `${thrIcon('corner-up-left',12)} Yanıtla`}
     </div>
   `;
 }
 
-// Thread CSS
+// HTML kaçış
+function escapeHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str || '';
+  return d.innerHTML;
+}
+
+// CSS
 const threadStyle = document.createElement('style');
 threadStyle.textContent = `
-  .thread-parent-msg {
-    position: relative;
-  }
-  .thread-parent-msg::after {
-    content: '';
-    position: absolute;
-    left: 20px;
-    bottom: -12px;
-    width: 2px;
-    height: 12px;
-    background: var(--ac);
-  }
-  .thread-indicator {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 4px;
-    transition: background .15s;
-  }
-  .thread-indicator:hover {
-    background: var(--acd);
-  }
+  .thread-parent-msg { position: relative; }
+  .thread-parent-msg::after { content: ''; position: absolute; left: 20px; bottom: -12px; width: 2px; height: 12px; background: var(--ac); }
+  .thread-indicator { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 4px; transition: background .15s; }
+  .thread-indicator:hover { background: var(--acd); }
 `;
 document.head.appendChild(threadStyle);
 
@@ -288,12 +260,10 @@ function saveThreadState() {
   localStorage.setItem('gt_thread_order', JSON.stringify(threadState.threadOrder));
 }
 
-// Thread butonunu mesajlara ekle (chat.js renderMessages içinde)
-// msg-text'ten sonra: ${renderThreadButton(msg._id)}
-
 // Başlat
 document.addEventListener('DOMContentLoaded', () => {
-  // Thread modal butonu
   const threadBtn = document.getElementById('threadBtn');
   if (threadBtn) threadBtn.onclick = showThreadList;
 });
+
+console.log('Threads.js yüklendi (SVG ikonlu + Türkçe düzeltmeler)');
