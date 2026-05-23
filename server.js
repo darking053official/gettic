@@ -685,13 +685,24 @@ async function createTransporter() {
 
 // Email gönderme endpoint'i
 app.post('/api/email/send', async (req, res) => {
+    console.log('📧 Email isteği alındı');
+    
     try {
         const { to, subject, html } = req.body;
-        if (!to || !subject || !html) return res.status(400).json({ error: 'Eksik bilgi' });
-
-        const transporter = await createTransporter();
+        console.log('Alıcı:', to);
+        console.log('Konu:', subject);
         
-        await transporter.sendMail({
+        if (!to || !subject || !html) {
+            console.log('❌ Eksik bilgi');
+            return res.status(400).json({ error: 'Eksik bilgi', missing: { to: !to, subject: !subject, html: !html } });
+        }
+
+        console.log('🔧 Transporter oluşturuluyor...');
+        const transporter = await createTransporter();
+        console.log('✅ Transporter hazır');
+        
+        console.log('📨 Email gönderiliyor...');
+        const info = await transporter.sendMail({
             from: `"Gettic Güvenlik" <${process.env.GMAIL_USER}>`,
             to: to,
             subject: subject,
@@ -699,11 +710,18 @@ app.post('/api/email/send', async (req, res) => {
         });
 
         console.log('✅ Email gönderildi:', to);
-        res.json({ success: true, message: 'Doğrulama kodu gönderildi' });
+        console.log('Message ID:', info.messageId);
+        res.json({ success: true, message: 'Doğrulama kodu gönderildi', messageId: info.messageId });
 
     } catch (error) {
-        console.error('❌ Email hatası:', error.message);
-        res.status(500).json({ error: 'Email gönderilemedi' });
+        const errMsg = error.message || error.toString() || 'Bilinmeyen hata';
+        console.error('❌ Email hatası:', errMsg);
+        console.error('Stack:', error.stack);
+        res.status(500).json({ 
+            error: 'Email gönderilemedi', 
+            detail: errMsg,
+            stack: error.stack?.split('\n')[0] || 'no stack'
+        });
     }
 });
 
