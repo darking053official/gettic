@@ -1,5 +1,5 @@
 // ╔══════════════════════════════════════════════════════════════════╗
-// ║                    GETTIC APP.JS - FULL FINAL                     ║
+// ║                    GETTIC APP.JS - SVG İKONLU FINAL              ║
 // ╚══════════════════════════════════════════════════════════════════╝
 
 console.log('🚀 Gettic başlatılıyor...');
@@ -38,10 +38,29 @@ $('tabRegister').onclick = () => {
 
 // ============ ALTCHA ============
 function getAltchaPayload() {
-  try {
-    const widget = document.querySelector('altcha-widget');
-    return widget?.getValue() || null;
-  } catch(e) { return null; }
+  try { return document.querySelector('altcha-widget')?.getValue() || null; }
+  catch(e) { return null; }
+}
+
+// ============ SVG İKON YERLEŞTİR ============
+function setSvgIcon(id, iconName) {
+  const el = $(id);
+  if (el && window.Icons && Icons[iconName]) {
+    el.innerHTML = Icons[iconName];
+  }
+}
+
+function placeAllIcons() {
+  const icons = {
+    homeBtn: 'home', discoverBtn: 'search', dmBtn: 'mail', createServerBtn: 'plus',
+    logoutBtn: 'logout', panelLogoutBtn: 'logout',
+    homeSettingsBtn: 'settings', homeNotificationsBtn: 'bell',
+    chatSettingsBtn: 'settings',
+    sendBtn: 'send', emojiBtn: 'smile', gifBtn: 'gif', imageBtn: 'image',
+    pollBtn: 'poll', fileBtn: 'file', voiceMsgBtn: 'mic',
+    searchBtn: 'search', toggleSidebarBtn: 'menu', togglePanelBtn: 'user'
+  };
+  Object.entries(icons).forEach(([id, name]) => setSvgIcon(id, name));
 }
 
 // ============ GİRİŞ ============
@@ -166,6 +185,7 @@ function showMain(){
   if(typeof renderChannels==='function')renderChannels();if(typeof renderMessages==='function')renderMessages();saveStore();
   if(typeof loadActiveServers==='function')loadActiveServers();updateUIPermissions();
   if(typeof MongoSync!=='undefined')setTimeout(()=>MongoSync.syncAll(),2000);initSocket();
+  placeAllIcons(); // SVG ikonları yerleştir
 }
 
 function showLogin(){$('ls')?.classList.add('hide');$('loginScreen')?.classList.remove('hidden');$('mainScreen')?.classList.add('hidden');}
@@ -203,6 +223,7 @@ function bindButtons(){
   Object.entries(panelMap).forEach(([id,modal])=>{const btn=$(id);if(btn)btn.addEventListener('click',()=>{if(typeof openModal==='function')openModal(modal);});});
   $('panelClearBtn')?.addEventListener('click',()=>{if(typeof clearMessages==='function')clearMessages();});
   $('messageInput')?.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();clearTimeout(sendTimeout);sendTimeout=setTimeout(()=>{if(typeof sendMessage==='function')sendMessage();},50);}});
+  placeAllIcons();
   console.log('✅ Tüm butonlar bağlandı');
 }
 
