@@ -58,7 +58,6 @@ function renderMessages(){
           ${msg.linkPreview?`<a href="${msg.linkPreview.url}" target="_blank" style="display:block;margin-top:4px;padding:8px;background:var(--bg2);border-radius:8px;border-left:3px solid var(--ac);text-decoration:none;color:var(--t1)"><div style="font-weight:600;font-size:12px">${msg.linkPreview.title||msg.linkPreview.url}</div><div style="font-size:10px;color:var(--t3)">${msg.linkPreview.description||''}</div></a>`:''}
           ${poll?renderPoll(msg._id,poll):''}
           ${msg.reactions?renderReactions(msg):''}
-          ${typeof renderThreadButton==='function'?renderThreadButton(msg._id):''}
         </div>
         <div class="ma">
           <button onclick="reactToMessage('${msg._id}','👍')" title="Beğen">👍</button>
@@ -127,32 +126,124 @@ function sendMessage(){
   renderMessages();
   input.value='';input.style.height='auto';input.focus();
   if(typeof MongoSync!=='undefined'&&MongoSync.saveMessage)MongoSync.saveMessage(msg);
-  if(window._socket)window._socket.emit('send_message',msg);
+  if(socket)socket.emit('send_message',msg);
   if(typeof OfflineMode!=='undefined'&&!navigator.onLine)OfflineMode.addPending(msg);
   if(typeof incrementStats==='function')incrementStats();
   if(typeof saveStore==='function')saveStore();
 }
 
 // Delete / Edit / Copy / Pin / Reply
-function deleteMessage(mid){const msg=Store.messages.find(m=>m._id===mid);if(!msg)return;if(msg.senderId!==Store.user?._id&&typeof hasPermission==='function'&&!hasPermission(Store.user?._id,'deleteMsg'))return toast('❌ Yetkiniz yok','e');Store.messages=Store.messages.filter(m=>m._id!==mid);delete Store.polls?.[mid];renderMessages();if(typeof MongoSync!=='undefined'&&MongoSync.deleteMessage)MongoSync.deleteMessage(mid,Store.activeChannel);toast('🗑️ Mesaj silindi');if(window._socket)window._socket.emit('delete_message',{id:mid,channelId:Store.activeChannel});if(typeof saveStore==='function')saveStore();}
-function editMessage(mid){const msg=Store.messages.find(m=>m._id===mid);if(!msg||msg.senderId!==Store.user?._id)return;const newContent=prompt('Mesajı düzenle:',msg.content);if(newContent&&newContent.trim()&&newContent.trim()!==msg.content){msg.content=newContent.trim();msg.edited=true;renderMessages();if(typeof MongoSync!=='undefined'&&MongoSync.editMessage)MongoSync.editMessage(mid,Store.activeChannel,msg.content);if(window._socket)window._socket.emit('edit_message',{id:mid,content:msg.content,channelId:Store.activeChannel});if(typeof saveStore==='function')saveStore();}}
-function copyMessage(mid){const msg=Store.messages.find(m=>m._id===mid);if(msg){navigator.clipboard.writeText(msg.content).then(()=>toast('📋 Kopyalandı')).catch(()=>toast('Kopyalanamadı','e'));}}
-function pinMessage(mid){const msg=Store.messages.find(m=>m._id===mid);if(!msg)return;msg.pinned=!msg.pinned;if(msg.pinned)Store.messages=[msg,...Store.messages.filter(m=>m._id!==mid)];renderMessages();toast(msg.pinned?'📌 Sabitlendi':'📌 Sabitleme kaldırıldı');if(typeof saveStore==='function')saveStore();}
-function replyToMessage(mid){const msg=Store.messages.find(m=>m._id===mid);if(!msg)return;window._replyingTo=msg;updateReplyUI();document.getElementById('messageInput')?.focus();}
-function updateReplyUI(){const bar=document.getElementById('replyBar');if(!bar)return;if(window._replyingTo){bar.innerHTML=`<span style="color:var(--t3)">↩️ ${window._replyingTo.senderName}: ${window._replyingTo.content.substring(0,50)}</span><button onclick="window._replyingTo=null;updateReplyUI();document.getElementById('messageInput').focus()" style="background:none;border:none;color:var(--re);cursor:pointer;font-weight:700">×</button>`;bar.style.display='flex';}else{bar.style.display='none';}}
-function scrollToMessage(mid){const el=document.getElementById('msg-'+mid);if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.style.background='var(--acd)';setTimeout(()=>el.style.background='',2000);}}
+function deleteMessage(mid){
+  const msg=Store.messages.find(m=>m._id===mid);
+  if(!msg)return;
+  if(msg.senderId!==Store.user?._id&&typeof hasPermission==='function'&&!hasPermission(Store.user?._id,'deleteMsg'))return toast('❌ Yetkiniz yok','e');
+  Store.messages=Store.messages.filter(m=>m._id!==mid);
+  delete Store.polls?.[mid];
+  renderMessages();
+  if(typeof MongoSync!=='undefined'&&MongoSync.deleteMessage)MongoSync.deleteMessage(mid,Store.activeChannel);
+  toast('🗑️ Mesaj silindi');
+  if(socket)socket.emit('delete_message',{id:mid,channelId:Store.activeChannel});
+  if(typeof saveStore==='function')saveStore();
+}
+
+function editMessage(mid){
+  const msg=Store.messages.find(m=>m._id===mid);
+  if(!msg||msg.senderId!==Store.user?._id)return;
+  const newContent=prompt('Mesajı düzenle:',msg.content);
+  if(newContent&&newContent.trim()&&newContent.trim()!==msg.content){
+    msg.content=newContent.trim();msg.edited=true;
+    renderMessages();
+    if(typeof MongoSync!=='undefined'&&MongoSync.editMessage)MongoSync.editMessage(mid,Store.activeChannel,msg.content);
+    if(socket)socket.emit('edit_message',{id:mid,content:msg.content,channelId:Store.activeChannel});
+    if(typeof saveStore==='function')saveStore();
+  }
+}
+
+function copyMessage(mid){
+  const msg=Store.messages.find(m=>m._id===mid);
+  if(msg){navigator.clipboard.writeText(msg.content).then(()=>toast('📋 Kopyalandı')).catch(()=>toast('Kopyalanamadı','e'));}
+}
+
+function pinMessage(mid){
+  const msg=Store.messages.find(m=>m._id===mid);
+  if(!msg)return;
+  msg.pinned=!msg.pinned;
+  if(msg.pinned)Store.messages=[msg,...Store.messages.filter(m=>m._id!==mid)];
+  renderMessages();
+  toast(msg.pinned?'📌 Sabitlendi':'📌 Sabitleme kaldırıldı');
+  if(typeof saveStore==='function')saveStore();
+}
+
+function replyToMessage(mid){
+  const msg=Store.messages.find(m=>m._id===mid);
+  if(!msg)return;
+  window._replyingTo=msg;
+  updateReplyUI();
+  document.getElementById('messageInput')?.focus();
+}
+
+function updateReplyUI(){
+  const bar=document.getElementById('replyBar');
+  if(!bar)return;
+  if(window._replyingTo){
+    bar.innerHTML=`<span style="color:var(--t3)">↩️ ${window._replyingTo.senderName}: ${window._replyingTo.content.substring(0,50)}</span><button onclick="window._replyingTo=null;updateReplyUI();document.getElementById('messageInput').focus()" style="background:none;border:none;color:var(--re);cursor:pointer;font-weight:700">×</button>`;
+    bar.style.display='flex';
+  }else{bar.style.display='none';}
+}
+
+function scrollToMessage(mid){
+  const el=document.getElementById('msg-'+mid);
+  if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.style.background='var(--acd)';setTimeout(()=>el.style.background='',2000);}
+}
 
 // Reactions
-function reactToMessage(mid,emoji){const msg=Store.messages.find(m=>m._id===mid);if(!msg)return;if(!msg.reactions)msg.reactions={};if(!msg.reactions[emoji])msg.reactions[emoji]=[];const idx=msg.reactions[emoji].indexOf(Store.user._id);if(idx===-1)msg.reactions[emoji].push(Store.user._id);else msg.reactions[emoji].splice(idx,1);if(msg.reactions[emoji].length===0)delete msg.reactions[emoji];renderMessages();if(typeof saveStore==='function')saveStore();}
-function renderReactions(msg){if(!msg.reactions||Object.keys(msg.reactions).length===0)return'';return`<div class="reacts">${Object.entries(msg.reactions).map(([emoji,users])=>`<span class="react ${users.includes(Store.user?._id)?'me':''}" onclick="reactToMessage('${msg._id}','${emoji}')">${emoji} <span>${users.length}</span></span>`).join('')}</div>`;}
+function reactToMessage(mid,emoji){
+  const msg=Store.messages.find(m=>m._id===mid);
+  if(!msg)return;
+  if(!msg.reactions)msg.reactions={};
+  if(!msg.reactions[emoji])msg.reactions[emoji]=[];
+  const idx=msg.reactions[emoji].indexOf(Store.user._id);
+  if(idx===-1)msg.reactions[emoji].push(Store.user._id);
+  else msg.reactions[emoji].splice(idx,1);
+  if(msg.reactions[emoji].length===0)delete msg.reactions[emoji];
+  renderMessages();
+  if(typeof saveStore==='function')saveStore();
+}
+
+function renderReactions(msg){
+  if(!msg.reactions||Object.keys(msg.reactions).length===0)return'';
+  return`<div class="reacts">${Object.entries(msg.reactions).map(([emoji,users])=>`<span class="react ${users.includes(Store.user?._id)?'me':''}" onclick="reactToMessage('${msg._id}','${emoji}')">${emoji} <span>${users.length}</span></span>`).join('')}</div>`;
+}
 
 // Clear / View Image / User Info
-function clearMessages(){if(typeof hasPermission==='function'&&!hasPermission(Store.user?._id,'deleteMsg'))return toast('❌ Yetkiniz yok','e');if(confirm('Bu kanaldaki tüm mesajlar silinsin mi?')){Store.messages=[];Store.polls={};renderMessages();if(typeof saveStore==='function')saveStore();toast('🗑️ Tüm mesajlar silindi');}}
-function viewImage(src){if(typeof openModal==='function'){openModal('imageView');const c=document.getElementById('modalContent');if(c)c.innerHTML=`<img src="${src}" style="max-width:100%;max-height:80vh;border-radius:12px;cursor:pointer" onclick="closeModal()">`;}}
-function showUserInfo(uid){if(typeof openModal==='function'){openModal('profile');const c=document.getElementById('modalContent');if(c)c.innerHTML=`<div style="text-align:center"><div class="avatar-big">${uid.charAt(0)?.toUpperCase()||'?'}</div><h3>${uid}</h3><button class="mb" onclick="startDM('${uid}')">💬 DM Gönder</button>${typeof hasPermission==='function'&&hasPermission(Store.user?._id,'kick')?`<button class="mb sec" onclick="kickUser('${uid}')">👢 At</button>`:''}</div>`;}}
+function clearMessages(){
+  if(typeof hasPermission==='function'&&!hasPermission(Store.user?._id,'deleteMsg'))return toast('❌ Yetkiniz yok','e');
+  if(confirm('Bu kanaldaki tüm mesajlar silinsin mi?')){Store.messages=[];Store.polls={};renderMessages();if(typeof saveStore==='function')saveStore();toast('🗑️ Tüm mesajlar silindi');}
+}
+
+function viewImage(src){
+  if(typeof openModal==='function'){openModal('imageView');const c=document.getElementById('modalContent');if(c)c.innerHTML=`<img src="${src}" style="max-width:100%;max-height:80vh;border-radius:12px;cursor:pointer" onclick="closeModal()">`;}
+}
+
+function showUserInfo(uid){
+  if(typeof openModal==='function'){
+    openModal('profile');
+    const c=document.getElementById('modalContent');
+    if(c)c.innerHTML=`<div style="text-align:center"><div class="avatar-big">${uid.charAt(0)?.toUpperCase()||'?'}</div><h3>${uid}</h3><button class="mb" onclick="startDM('${uid}')">💬 DM Gönder</button>${typeof hasPermission==='function'&&hasPermission(Store.user?._id,'kick')?`<button class="mb sec" onclick="kickUser('${uid}')">👢 At</button>`:''}</div>`;
+  }
+}
 
 // File render
-function renderFileMessage(msg){const f=msg.file;if(!f)return'';switch(f.category){case'image':return`<img src="${f.data}" alt="${f.name}" class="msg-image" loading="lazy" onclick="viewImage('${f.data}')" style="max-width:300px;max-height:300px;border-radius:12px;margin:8px 0;cursor:pointer">`;case'video':return`<video src="${f.data}" controls style="max-width:300px;max-height:300px;border-radius:12px" preload="metadata"></video>`;case'audio':return`<audio src="${f.data}" controls style="width:250px"></audio>`;default:return`<div class="file-attachment" onclick="downloadFile('${msg._id}')" style="background:var(--bg2);padding:10px 14px;border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:8px"><span style="font-size:24px">📎</span><div><div style="font-weight:600;font-size:12px">${f.name}</div><div style="font-size:10px;color:var(--t3)">${formatFileSize(f.size)}</div></div></div>`;}}
+function renderFileMessage(msg){
+  const f=msg.file;if(!f)return'';
+  switch(f.category){
+    case'image':return`<img src="${f.data}" alt="${f.name}" class="msg-image" loading="lazy" onclick="viewImage('${f.data}')" style="max-width:300px;max-height:300px;border-radius:12px;margin:8px 0;cursor:pointer">`;
+    case'video':return`<video src="${f.data}" controls style="max-width:300px;max-height:300px;border-radius:12px" preload="metadata"></video>`;
+    case'audio':return`<audio src="${f.data}" controls style="width:250px"></audio>`;
+    default:return`<div class="file-attachment" onclick="downloadFile('${msg._id}')" style="background:var(--bg2);padding:10px 14px;border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:8px"><span style="font-size:24px">📎</span><div><div style="font-weight:600;font-size:12px">${f.name}</div><div style="font-size:10px;color:var(--t3)">${formatFileSize(f.size)}</div></div></div>`;
+  }
+}
+
 function formatFileSize(b){if(!b)return'0 B';if(b<1024)return b+' B';if(b<1048576)return(b/1024).toFixed(1)+' KB';return(b/1048576).toFixed(1)+' MB';}
 function downloadFile(msgId){const msg=Store.messages.find(m=>m._id===msgId);if(!msg?.file?.data)return;const a=document.createElement('a');a.href=msg.file.data;a.download=msg.file.name;a.click();}
 function unblockMessage(mid){const msg=Store.messages.find(m=>m._id===mid);if(msg&&Store.blockedUsers){Store.blockedUsers=Store.blockedUsers.filter(u=>u!==msg.senderId);if(typeof saveStore==='function')saveStore();renderMessages();}}
@@ -166,9 +257,5 @@ let mediaRecorder=null,audioChunks=[];
 async function startRecording(){try{const stream=await navigator.mediaDevices.getUserMedia({audio:true});mediaRecorder=new MediaRecorder(stream);audioChunks=[];mediaRecorder.ondataavailable=(e)=>{audioChunks.push(e.data);};mediaRecorder.onstop=()=>{const blob=new Blob(audioChunks,{type:'audio/webm'});const url=URL.createObjectURL(blob);sendVoiceMessage(url);stream.getTracks().forEach(t=>t.stop());};mediaRecorder.start();toast('🎤 Kayıt başladı...');setTimeout(()=>{if(mediaRecorder?.state==='recording')mediaRecorder.stop();},30000);}catch(e){toast('Mikrofon izni gerekli','e');}}
 function stopRecording(){if(mediaRecorder?.state==='recording'){mediaRecorder.stop();toast('✅ Ses kaydedildi');}}
 function sendVoiceMessage(url){const msg={_id:genId(),content:'🎤 Sesli Mesaj',senderName:Store.user.username,senderId:Store.user._id,channelId:Store.activeChannel,createdAt:new Date().toISOString(),voiceUrl:url};Store.messages.push(msg);renderMessages();if(typeof saveStore==='function')saveStore();}
-
-// Mention suggestions
-function showMentionSuggestions(query,pos){}
-function applyMention(username){const inp=document.getElementById('messageInput');if(!inp)return;const val=inp.value;const lastAt=val.lastIndexOf('@');inp.value=val.substring(0,lastAt)+'@'+username+' ';inp.focus();}
 
 console.log('✅ Chat.js yüklendi');
