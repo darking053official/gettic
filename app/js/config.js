@@ -2,7 +2,7 @@
 // ║                    GETTIC CONFIG.JS                              ║
 // ╚══════════════════════════════════════════════════════════════════╝
 
-const API = 'https://hunt-disciplines-neighbor-print.trycloudflare.com';
+const API = 'https://galaxy-academy-termination-enhancing.trycloudflare.com';
 const ALTCHA_URL = API + '/api/auth/altcha';
 const MAX_MSGS = 100;
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
