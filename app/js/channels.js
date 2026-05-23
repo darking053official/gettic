@@ -1,4 +1,4 @@
-// ============ GETTIC CHANNELS.JS - FULL GÜNCEL ============
+// =========== GETTIC CHANNELS.JS - FULL GÜNCEL ============
 
 // Kanal listesini render et
 function renderChannels() {
