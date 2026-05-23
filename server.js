@@ -795,8 +795,26 @@ io.on('connection', (socket) => {
     socket.on('leave_channel', (channelId) => { socket.leave(channelId); });
     
     socket.on('send_message', async (data) => {
-        io.to(data.channelId).emit('new_message', data);
-    });
+    try {
+        // Mesajı MongoDB'ye kaydet
+        const msg = new Message({
+            channelId: data.channelId,
+            content: data.content,
+            senderName: data.senderName,
+            senderId: data.senderId,
+            image: data.image || null,
+            file: data.file || null,
+            createdAt: new Date()
+        });
+        const saved = await msg.save();
+        
+        // Kaydedilen mesajı tüm kullanıcılara gönder
+        io.to(data.channelId).emit('new_message', saved);
+    } catch(e) {
+        console.error('Mesaj kaydetme hatası:', e.message);
+        socket.emit('error', { message: 'Mesaj gönderilemedi' });
+    }
+});
     
     socket.on('typing', ({ channelId, username }) => {
         socket.to(channelId).emit('user_typing', { username, channelId });
