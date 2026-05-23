@@ -681,7 +681,7 @@ async function createTransporter() {
         console.error('❌ createTransporter iç hata:', e.message);
         throw e;
     }
-          }
+}
 
 // Email gönderme endpoint'i
 app.post('/api/email/send', async (req, res) => {
