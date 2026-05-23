@@ -1,4 +1,11 @@
-// ============ GETTIC NOTIFICATIONS.JS ============
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║      GETTIC NOTIFICATIONS.JS - SVG İKONLU + GELİŞMİŞ            ║
+// ╚══════════════════════════════════════════════════════════════════╝
+
+// SVG ikon yardımcı
+function notIcon(name, size = 18) {
+  return window.Icons?.[name] ? `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle">${Icons[name]}</svg>` : '';
+}
 
 const notifState = {
   permission: 'default',
@@ -6,49 +13,63 @@ const notifState = {
   unread: parseInt(localStorage.getItem('gt_notif_unread') || '0'),
   sound: localStorage.getItem('gt_notif_sound') !== '0',
   desktop: localStorage.getItem('gt_notif_desktop') !== '0',
-  mentionsOnly: localStorage.getItem('gt_notif_mentions') === '1'
+  mentionsOnly: localStorage.getItem('gt_notif_mentions') === '1',
+  maxList: 50
 };
 
 // Bildirim izni iste
 function requestNotifPermission() {
   if (!('Notification' in window)) {
-    toast('Tarayıcın bildirim desteklemiyor', 'e');
+    toast('Tarayicin bildirim desteklemiyor', 'e');
     return;
   }
   
   Notification.requestPermission().then(perm => {
     notifState.permission = perm;
-    if (perm === 'granted') toast('✅ Bildirimler açıldı');
-    else toast('❌ Bildirimler reddedildi', 'e');
+    if (perm === 'granted') toast(notIcon('bell') + ' Bildirimler acildi');
+    else toast(notIcon('bell-off') + ' Bildirimler reddedildi', 'e');
+    showNotifications();
   });
 }
 
 // Bildirim gönder
-function sendNotification(title, body, icon) {
+function sendNotification(title, body, iconType = 'bell') {
+  // Mention filtresi
+  if (notifState.mentionsOnly && !body?.includes('@' + Store.user?.username)) return;
+  
   // Listeye ekle
   notifState.list.unshift({
     id: genId(),
-    title,
-    body,
-    icon: icon || '💬',
+    title: title?.slice(0, 100) || 'Bildirim',
+    body: body?.slice(0, 200) || '',
+    icon: iconType,
     read: false,
-    time: new Date().toISOString()
+    time: new Date().toISOString(),
+    type: iconType === 'at-sign' ? 'mention' : iconType === 'mail' ? 'dm' : 'general'
   });
   
-  if (notifState.list.length > 50) notifState.list.pop();
-  notifState.unread++;
+  if (notifState.list.length > notifState.maxList) notifState.list.pop();
+  notifState.unread = Math.min(notifState.unread + 1, 99);
   
   saveNotifState();
   updateNotifBadge();
   
-  // Masaüstü bildirimi
+  // Masaüstü bildirimi (sayfa arka plandaysa)
   if (notifState.permission === 'granted' && notifState.desktop && document.hidden) {
     try {
-      new Notification(title, {
-        body: body?.substring(0, 100),
+      const notif = new Notification(title?.slice(0, 50), {
+        body: body?.slice(0, 100),
         icon: 'https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png',
-        tag: 'gettic-notif'
+        tag: 'gettic',
+        renotify: true
       });
+      
+      notif.onclick = () => {
+        window.focus();
+        notif.close();
+      };
+      
+      setTimeout(() => notif.close(), 5000);
     } catch(e) {}
   }
   
@@ -61,9 +82,22 @@ function sendNotification(title, body, icon) {
 // Bildirim sesi
 function playNotifSound() {
   try {
-    const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACAf39/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gA==');
-    audio.volume = 0.3;
-    audio.play().catch(() => {});
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(800, ctx.currentTime);
+    osc.frequency.setValueAtTime(1000, ctx.currentTime + 0.1);
+    
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+    
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.2);
   } catch(e) {}
 }
 
@@ -73,31 +107,25 @@ function showNotifications() {
   if (!content) return;
   
   content.innerHTML = `
-    <h2>🔔 Bildirimler</h2>
+    <h2>${notIcon('bell', 24)} Bildirimler</h2>
     
     <div class="settings-group">
       <div class="settings-item" onclick="toggleNotifDesktop()">
-        <div class="settings-item-left">🖥️ Masaüstü Bildirimi</div>
-        <div class="settings-item-right">
-          <div class="toggle ${notifState.desktop ? 'on' : ''}"></div>
-        </div>
+        <div class="settings-item-left">${notIcon('monitor')} Masaustu Bildirimi</div>
+        <div class="settings-item-right"><div class="toggle ${notifState.desktop ? 'on' : ''}"></div></div>
       </div>
       <div class="settings-item" onclick="toggleNotifSound()">
-        <div class="settings-item-left">🔊 Bildirim Sesi</div>
-        <div class="settings-item-right">
-          <div class="toggle ${notifState.sound ? 'on' : ''}"></div>
-        </div>
+        <div class="settings-item-left">${notIcon('volume')} Bildirim Sesi</div>
+        <div class="settings-item-right"><div class="toggle ${notifState.sound ? 'on' : ''}"></div></div>
       </div>
       <div class="settings-item" onclick="toggleMentionsOnly()">
-        <div class="settings-item-left">📢 Sadece @mention</div>
-        <div class="settings-item-right">
-          <div class="toggle ${notifState.mentionsOnly ? 'on' : ''}"></div>
-        </div>
+        <div class="settings-item-left">${notIcon('at-sign')} Sadece @bahsetme</div>
+        <div class="settings-item-right"><div class="toggle ${notifState.mentionsOnly ? 'on' : ''}"></div></div>
       </div>
       ${notifState.permission !== 'granted' ? `
         <div class="settings-item" onclick="requestNotifPermission()">
-          <div class="settings-item-left" style="color:var(--ac)">🔔 Bildirim İzni Ver</div>
-          <div class="settings-item-right">→</div>
+          <div class="settings-item-left" style="color:var(--ac)">${notIcon('bell-ring')} Bildirim Izni Ver</div>
+          <div class="settings-item-right">${notIcon('chevron-right',16)}</div>
         </div>
       ` : ''}
     </div>
@@ -105,21 +133,22 @@ function showNotifications() {
     <div class="msep"></div>
     
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-      <span style="font-weight:600;font-size:13px">Bildirim Geçmişi</span>
-      <button class="ib" onclick="clearNotifications()" title="Tümünü Temizle" style="width:24px;height:24px">🗑️</button>
+      <span style="font-weight:600;font-size:13px">Bildirim Gecmisi (${notifState.list.length})</span>
+      <button class="ib" onclick="clearNotifications()" title="Tumunu Temizle" style="width:28px;height:28px">${notIcon('trash',16)}</button>
     </div>
     
     <div style="max-height:300px;overflow-y:auto">
       ${notifState.list.length === 0 ? 
-        '<p style="color:var(--t3);text-align:center;padding:20px">Henüz bildirim yok</p>' :
+        `<p style="color:var(--t3);text-align:center;padding:20px">${notIcon('inbox',24)}<br>Henuz bildirim yok</p>` :
         notifState.list.map(n => `
-          <div class="mitem" style="opacity:${n.read ? '0.5' : '1'}">
-            <span style="font-size:20px">${n.icon}</span>
-            <div class="minfo">
-              <div class="mname">${n.title}</div>
-              <div class="msub">${n.body?.substring(0, 50) || ''}</div>
+          <div class="mitem" style="opacity:${n.read ? '0.5' : '1'};cursor:pointer" onclick="${n.type === 'dm' ? `startDM('${n.title}')` : ''}">
+            <span style="font-size:20px;width:32px;text-align:center">${notIcon(n.icon || 'bell',20)}</span>
+            <div class="minfo" style="flex:1">
+              <div class="mname" style="${n.read ? '' : 'font-weight:700'}">${escapeHtml(n.title)}</div>
+              <div class="msub">${escapeHtml(n.body?.substring(0, 80) || '')}</div>
               <div style="font-size:9px;color:var(--t3)">${formatTime(n.time)}</div>
             </div>
+            ${!n.read ? `<span style="width:8px;height:8px;background:var(--ac);border-radius:50%;flex-shrink:0"></span>` : ''}
           </div>
         `).join('')
       }
@@ -145,6 +174,7 @@ function toggleNotifDesktop() {
 function toggleNotifSound() {
   notifState.sound = !notifState.sound;
   localStorage.setItem('gt_notif_sound', notifState.sound ? '1' : '0');
+  if (notifState.sound) playNotifSound();
   showNotifications();
 }
 
@@ -155,12 +185,13 @@ function toggleMentionsOnly() {
 }
 
 function clearNotifications() {
-  if (confirm('Tüm bildirimler silinsin mi?')) {
+  if (confirm('Tum bildirimler silinsin mi?')) {
     notifState.list = [];
     notifState.unread = 0;
     saveNotifState();
     updateNotifBadge();
     showNotifications();
+    toast(notIcon('check') + ' Bildirimler temizlendi');
   }
 }
 
@@ -170,58 +201,82 @@ function updateNotifBadge() {
   const btn = document.getElementById('homeNotificationsBtn');
   
   if (badge) {
-    badge.textContent = notifState.unread;
+    badge.textContent = notifState.unread > 99 ? '99+' : notifState.unread;
     badge.style.display = notifState.unread > 0 ? 'flex' : 'none';
   }
   
-  // Başlıkta bildirim sayısı
-  if (notifState.unread > 0) {
-    document.title = `(${notifState.unread}) Gettic`;
+  // Buton ikonunu güncelle
+  if (btn) {
+    btn.innerHTML = notifState.unread > 0 ? notIcon('bell-ring', 20) : notIcon('bell', 20);
   }
+  
+  // Başlık
+  document.title = notifState.unread > 0 ? `(${notifState.unread}) Gettic` : 'Gettic';
 }
 
 // Kaydet
 function saveNotifState() {
-  localStorage.setItem('gt_notifications', JSON.stringify(notifState.list));
+  localStorage.setItem('gt_notifications', JSON.stringify(notifState.list.slice(0, notifState.maxList)));
   localStorage.setItem('gt_notif_unread', notifState.unread.toString());
 }
 
 // Socket bildirim dinleyici
 function initNotifSocket() {
-  if (!window._socket) return;
+  if (!socket) return;
   
-  window._socket.on('new_message', (msg) => {
+  socket.on('new_message', (msg) => {
     if (msg.senderId === Store.user?._id) return;
-    if (document.hidden) {
+    if (document.hidden || dmState?.activeDM !== msg.senderName) {
+      const isMention = msg.content?.includes('@' + Store.user?.username);
       sendNotification(
         msg.senderName,
         msg.content?.substring(0, 80),
-        '💬'
+        isMention ? 'at-sign' : 'message-square'
       );
     }
   });
   
-  window._socket.on('dm_message', (data) => {
+  socket.on('dm_message', (data) => {
     if (data.senderId === Store.user?._id) return;
     if (dmState?.activeDM !== data.sender || document.hidden) {
       sendNotification(
         data.sender,
         data.text?.substring(0, 80),
-        '💬'
+        'mail'
       );
     }
   });
+  
+  socket.on('event_reminder', (event) => {
+    sendNotification(event.title, 'Etkinlik basliyor!', 'calendar');
+  });
 }
 
-// Sayfa yüklendiğinde
+// HTML escape
+function escapeHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str || '';
+  return d.innerHTML;
+}
+
+// Başlat
 document.addEventListener('DOMContentLoaded', () => {
   setTimeout(initNotifSocket, 1500);
   updateNotifBadge();
+  if (notifState.permission === 'default') {
+    setTimeout(() => {
+      if ('Notification' in window && Notification.permission === 'default') {
+        // Sessizce izin iste
+      }
+    }, 5000);
+  }
 });
 
-// Buton bağlama
+// Buton
 document.addEventListener('click', (e) => {
   if (e.target.id === 'homeNotificationsBtn' || e.target.closest('#homeNotificationsBtn')) {
     showNotifications();
   }
 });
+
+console.log('Notifications.js yuklendi (SVG ikonlu + gelismis)');
