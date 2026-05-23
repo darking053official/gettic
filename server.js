@@ -637,40 +637,53 @@ app.post('/api/image', async (req, res) => {
 
 // OAuth2 transporter oluşturma
 async function createTransporter() {
-    const oauth2Client = new google.auth.OAuth2(
-        process.env.GMAIL_CLIENT_ID,
-        process.env.GMAIL_CLIENT_SECRET,
-        'https://developers.google.com/oauthplayground'
-    );
-
-    oauth2Client.setCredentials({ 
-        refresh_token: process.env.GMAIL_REFRESH_TOKEN 
-    });
-
-    const accessToken = await new Promise((resolve, reject) => {
-        oauth2Client.getAccessToken((err, token) => {
-            if (err) return reject('Token alınamadı: ' + err.message);
-            resolve(token);
+    try {
+        console.log('🔧 createTransporter başladı');
+        console.log('GMAIL_USER:', process.env.GMAIL_USER);
+        console.log('GMAIL_CLIENT_ID var mı:', !!process.env.GMAIL_CLIENT_ID);
+        console.log('GMAIL_REFRESH_TOKEN var mı:', !!process.env.GMAIL_REFRESH_TOKEN);
+        
+        const oauth2Client = new google.auth.OAuth2(
+            process.env.GMAIL_CLIENT_ID,
+            process.env.GMAIL_CLIENT_SECRET,
+            'https://developers.google.com/oauthplayground'
+        );
+        
+        oauth2Client.setCredentials({ refresh_token: process.env.GMAIL_REFRESH_TOKEN });
+        
+        console.log('🔑 Access token alınıyor...');
+        const accessToken = await new Promise((resolve, reject) => {
+            oauth2Client.getAccessToken((err, token) => {
+                if (err) {
+                    console.error('getAccessToken hatası:', err.message);
+                    return reject(err);
+                }
+                console.log('✅ Access token alındı, uzunluk:', token.length);
+                resolve(token);
+            });
         });
-    });
-
-    return nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true,
-    auth: {
-        type: 'OAuth2',
-        user: process.env.GMAIL_USER,
-        clientId: process.env.GMAIL_CLIENT_ID,
-        clientSecret: process.env.GMAIL_CLIENT_SECRET,
-        refreshToken: process.env.GMAIL_REFRESH_TOKEN,
-        accessToken: accessToken,
-    },
-    tls: {
-        rejectUnauthorized: false
+        
+        console.log('📧 Transporter oluşturuluyor...');
+        return nodemailer.createTransport({
+            host: 'smtp.gmail.com',
+            port: 465,
+            secure: true,
+            auth: {
+                type: 'OAuth2',
+                user: process.env.GMAIL_USER,
+                clientId: process.env.GMAIL_CLIENT_ID,
+                clientSecret: process.env.GMAIL_CLIENT_SECRET,
+                refreshToken: process.env.GMAIL_REFRESH_TOKEN,
+                accessToken: accessToken,
+            },
+            tls: { rejectUnauthorized: false }
+        });
+    } catch(e) {
+        console.error('❌ createTransporter HATA:', e.message);
+        console.error('Stack:', e.stack);
+        throw e;
     }
-    });
-}
+          }
 
 // Email gönderme endpoint'i
 app.post('/api/email/send', async (req, res) => {
