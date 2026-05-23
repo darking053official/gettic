@@ -1,4 +1,11 @@
-// ============ GETTIC FILES.JS - DOSYA PAYLAŞIMI ============
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║           GETTIC FILES.JS - SVG İKONLU FINAL                     ║
+// ╚══════════════════════════════════════════════════════════════════╝
+
+// SVG ikon yardımcı
+function fileIcon(name, size = 20) {
+  return window.Icons?.[name] ? `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle">${Icons[name]}</svg>` : '';
+}
 
 const fileState = {
   maxSize: 10 * 1024 * 1024,
@@ -14,8 +21,8 @@ function initFileUpload() {
 }
 
 function handleFile(file) {
-  if (file.size > fileState.maxSize) return toast('❌ Dosya çok büyük (max 10MB)', 'e');
-  if (!fileState.allowedTypes.includes(file.type)) return toast('❌ Desteklenmeyen dosya türü', 'e');
+  if (file.size > fileState.maxSize) return toast('Dosya cok buyuk (max 10MB)', 'e');
+  if (!fileState.allowedTypes.includes(file.type)) return toast('Desteklenmeyen dosya turu', 'e');
   const reader = new FileReader();
   reader.onload = (e) => uploadFile(file.name, file.type, file.size, e.target.result);
   reader.readAsDataURL(file);
@@ -27,11 +34,13 @@ function uploadFile(name, type, size, data) {
   if (fileState.uploadedFiles.length > 100) fileState.uploadedFiles.pop();
   saveFileState();
   
-  let content = '📎 **' + file.name + '**';
-  if (type.startsWith('image/')) content = '🖼️ **' + file.name + '**';
-  else if (type.startsWith('video/')) content = '🎬 **' + file.name + '**';
-  else if (type.startsWith('audio/')) content = '🎵 **' + file.name + '**';
+  // Dosya türüne göre ikon
+  let icon = 'paperclip';
+  if (type.startsWith('image/')) icon = 'image';
+  else if (type.startsWith('video/')) icon = 'video';
+  else if (type.startsWith('audio/')) icon = 'music';
   
+  const content = `${fileIcon(icon)} **${file.name}**`;
   const category = type.startsWith('image/') ? 'image' : type.startsWith('video/') ? 'video' : type.startsWith('audio/') ? 'audio' : 'file';
   
   const msg = { _id: genId(), content, senderName: Store.user.username, senderId: Store.user._id, channelId: Store.activeChannel, createdAt: new Date().toISOString(), file: { name, type, size, data, category } };
@@ -40,17 +49,17 @@ function uploadFile(name, type, size, data) {
   if (typeof renderMessages === 'function') renderMessages();
   if (typeof saveStore === 'function') saveStore();
   if (socket) socket.emit('send_message', msg);
-  toast('📎 Dosya gönderildi');
+  toast(fileIcon('check') + ' Dosya gonderildi');
 }
 
 function renderFileMessage(msg) {
   const file = msg.file;
   if (!file) return '';
   switch (file.category) {
-    case 'image': return `<img src="${file.data}" alt="${file.name}" class="msg-image" loading="lazy" onclick="viewFile('${msg._id}')" style="max-width:300px;max-height:300px;border-radius:12px;cursor:pointer">`;
+    case 'image': return `<img src="${file.data}" alt="${escapeHtml(file.name)}" class="msg-image" loading="lazy" onclick="viewFile('${msg._id}')" style="max-width:300px;max-height:300px;border-radius:12px;cursor:pointer">`;
     case 'video': return `<video src="${file.data}" controls style="max-width:300px;max-height:300px;border-radius:12px" preload="metadata"></video>`;
     case 'audio': return `<audio src="${file.data}" controls style="width:250px"></audio>`;
-    default: return `<div class="file-attachment" onclick="downloadFile('${msg._id}')" style="background:var(--bg2);padding:10px 14px;border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:8px"><span style="font-size:24px">📎</span><div><div style="font-weight:600;font-size:12px">${file.name}</div><div style="font-size:10px;color:var(--t3)">${formatFileSize(file.size)}</div></div></div>`;
+    default: return `<div class="file-attachment" onclick="downloadFile('${msg._id}')" style="background:var(--bg2);padding:10px 14px;border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:8px"><span>${fileIcon('paperclip', 24)}</span><div><div style="font-weight:600;font-size:12px">${escapeHtml(file.name)}</div><div style="font-size:10px;color:var(--t3)">${formatFileSize(file.size)}</div></div></div>`;
   }
 }
 
@@ -60,7 +69,15 @@ function viewFile(msgId) {
   fileState.currentPreview = msg.file;
   const content = document.getElementById('modalContent');
   if (!content) return;
-  content.innerHTML = `<div style="text-align:center">${msg.file.category === 'image' ? `<img src="${msg.file.data}" style="max-width:100%;max-height:70vh;border-radius:12px">` : msg.file.category === 'video' ? `<video src="${msg.file.data}" controls style="max-width:100%;max-height:70vh;border-radius:12px" autoplay></video>` : ''}<div style="margin-top:8px;display:flex;justify-content:center;gap:8px"><button class="mb sec" onclick="downloadFile('${msgId}')">⬇️ İndir</button><button class="mb sec" onclick="copyFileLink('${msgId}')">📋 Link Kopyala</button></div></div>`;
+  content.innerHTML = `
+    <div style="text-align:center">
+      ${msg.file.category === 'image' ? `<img src="${msg.file.data}" style="max-width:100%;max-height:70vh;border-radius:12px">` : 
+        msg.file.category === 'video' ? `<video src="${msg.file.data}" controls style="max-width:100%;max-height:70vh;border-radius:12px" autoplay></video>` : ''}
+      <div style="margin-top:8px;display:flex;justify-content:center;gap:8px">
+        <button class="mb sec" onclick="downloadFile('${msgId}')">${fileIcon('download')} Indir</button>
+        <button class="mb sec" onclick="copyFileLink('${msgId}')">${fileIcon('copy')} Link Kopyala</button>
+      </div>
+    </div>`;
   if (typeof openModal === 'function') openModal('fileView');
 }
 
@@ -73,7 +90,7 @@ function downloadFile(msgId) {
 function copyFileLink(msgId) {
   const msg = Store.messages.find(m => m._id === msgId);
   if (!msg?.file) return;
-  navigator.clipboard.writeText(msg.file.data).then(() => toast('📋 Link kopyalandı'));
+  navigator.clipboard.writeText(msg.file.data).then(() => toast(fileIcon('copy') + ' Link kopyalandi'));
 }
 
 function formatFileSize(bytes) {
@@ -82,20 +99,47 @@ function formatFileSize(bytes) {
   return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
 }
 
-function saveFileState() { localStorage.setItem('gt_files', JSON.stringify(fileState.uploadedFiles.slice(0, 50))); }
+function saveFileState() { 
+  localStorage.setItem('gt_files', JSON.stringify(fileState.uploadedFiles.slice(0, 50))); 
+}
+
+// HTML escape
+function escapeHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str || '';
+  return d.innerHTML;
+}
 
 document.addEventListener('DOMContentLoaded', () => {
   if (!document.getElementById('fileUpload')) {
-    const input = document.createElement('input'); input.type = 'file'; input.id = 'fileUpload'; input.style.display = 'none'; input.accept = fileState.allowedTypes.join(','); document.body.appendChild(input); initFileUpload();
+    const input = document.createElement('input'); 
+    input.type = 'file'; 
+    input.id = 'fileUpload'; 
+    input.style.display = 'none'; 
+    input.accept = fileState.allowedTypes.join(','); 
+    document.body.appendChild(input); 
+    initFileUpload();
   }
-  const fileBtn = document.getElementById('fileBtn'); if (fileBtn) fileBtn.onclick = () => document.getElementById('fileUpload')?.click();
   
+  // Dosya butonunu SVG yap
+  const fileBtn = document.getElementById('fileBtn'); 
+  if (fileBtn) {
+    fileBtn.innerHTML = fileIcon('paperclip', 20);
+    fileBtn.onclick = () => document.getElementById('fileUpload')?.click();
+  }
+  
+  // Drag & drop
   const chatArea = document.getElementById('chatArea');
   if (chatArea) {
     chatArea.addEventListener('dragover', (e) => { e.preventDefault(); chatArea.style.opacity = '0.8'; });
     chatArea.addEventListener('dragleave', () => { chatArea.style.opacity = '1'; });
-    chatArea.addEventListener('drop', (e) => { e.preventDefault(); chatArea.style.opacity = '1'; const file = e.dataTransfer.files[0]; if (file) handleFile(file); });
+    chatArea.addEventListener('drop', (e) => { 
+      e.preventDefault(); 
+      chatArea.style.opacity = '1'; 
+      const file = e.dataTransfer.files[0]; 
+      if (file) handleFile(file); 
+    });
   }
 });
 
-console.log('✅ Files.js yüklendi');
+console.log('Files.js yuklendi (SVG ikonlu)');
