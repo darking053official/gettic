@@ -1,17 +1,21 @@
-// ============ GETTIC MOBILE.JS - MOBİL UYUMLULUK ============
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║         GETTIC MOBILE.JS - SVG İKONLU + GELİŞMİŞ                ║
+// ╚══════════════════════════════════════════════════════════════════╝
+
+// SVG ikon yardımcı
+function mobIcon(name, size = 18) {
+  return window.Icons?.[name] ? `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle">${Icons[name]}</svg>` : '';
+}
 
 // Mobil state
 const mobileState = {
   isMobile: window.innerWidth <= 768,
   isTablet: window.innerWidth <= 1024 && window.innerWidth > 768,
   orientation: window.innerWidth > window.innerHeight ? 'landscape' : 'portrait',
-  touchStartX: 0,
-  touchStartY: 0,
-  sidebarOpen: false,
-  keyboardOpen: false,
-  lastScrollTop: 0,
-  scrollDirection: 'up',
-  navbarVisible: true
+  touchStartX: 0, touchStartY: 0,
+  sidebarOpen: false, keyboardOpen: false,
+  lastScrollTop: 0, scrollDirection: 'up', navbarVisible: true,
+  swipeThreshold: 70
 };
 
 // Mobil algılama
@@ -30,59 +34,36 @@ function detectMobile() {
 // Mobil layout güncelleme
 function updateMobileLayout() {
   const sidebar = document.getElementById('sidebar');
-  const homePanel = document.getElementById('homePanel');
   const chatArea = document.getElementById('chatArea');
   const inputArea = document.querySelector('.input-area');
   
   if (mobileState.isMobile) {
-    // Sidebar'ı mobil menü yap
     if (sidebar) {
-      sidebar.style.position = 'fixed';
-      sidebar.style.left = mobileState.sidebarOpen ? '0' : '-280px';
-      sidebar.style.top = '0';
-      sidebar.style.bottom = '0';
-      sidebar.style.zIndex = '50';
-      sidebar.style.transition = 'left .25s ease';
-      sidebar.style.width = '280px';
-      sidebar.style.boxShadow = mobileState.sidebarOpen ? '4px 0 20px rgba(0,0,0,.3)' : 'none';
+      Object.assign(sidebar.style, {
+        position: 'fixed', left: mobileState.sidebarOpen ? '0' : '-280px',
+        top: '0', bottom: '0', zIndex: '50', transition: 'left .25s ease',
+        width: '280px', boxShadow: mobileState.sidebarOpen ? '4px 0 20px rgba(0,0,0,.3)' : 'none'
+      });
     }
-    
-    // Input alanını alta sabitle
     if (inputArea) {
       inputArea.style.position = 'sticky';
       inputArea.style.bottom = '0';
       inputArea.style.paddingBottom = 'env(safe-area-inset-bottom, 8px)';
     }
-    
-    // Mesaj alanı yüksekliği
-    if (chatArea) {
-      chatArea.style.height = 'calc(100dvh - 60px)';
-    }
-    
-    // Swipe hareketleri
+    if (chatArea) chatArea.style.height = 'calc(100dvh - 60px)';
     enableSwipeGestures();
   } else {
-    // Masaüstüne geri dön
-    if (sidebar) {
-      sidebar.style.position = '';
-      sidebar.style.left = '';
-      sidebar.style.width = '';
-      sidebar.style.boxShadow = '';
-      sidebar.style.zIndex = '';
-    }
-    if (inputArea) {
-      inputArea.style.position = '';
-    }
-    if (chatArea) {
-      chatArea.style.height = '';
-    }
+    if (sidebar) Object.assign(sidebar.style, { position: '', left: '', width: '', boxShadow: '', zIndex: '' });
+    if (inputArea) inputArea.style.position = '';
+    if (chatArea) chatArea.style.height = '';
   }
 }
 
-// Swipe jestleri
+// Swipe jestleri (gelişmiş)
 function enableSwipeGestures() {
   const chatArea = document.getElementById('chatArea');
-  if (!chatArea) return;
+  if (!chatArea || chatArea.dataset.swipeEnabled) return;
+  chatArea.dataset.swipeEnabled = 'true';
   
   chatArea.addEventListener('touchstart', (e) => {
     mobileState.touchStartX = e.touches[0].clientX;
@@ -92,24 +73,22 @@ function enableSwipeGestures() {
   chatArea.addEventListener('touchend', (e) => {
     const dx = e.changedTouches[0].clientX - mobileState.touchStartX;
     const dy = e.changedTouches[0].clientY - mobileState.touchStartY;
+    const threshold = mobileState.swipeThreshold;
     
     // Sağa swipe - sidebar aç
-    if (dx > 80 && Math.abs(dx) > Math.abs(dy) && !mobileState.sidebarOpen) {
+    if (dx > threshold && Math.abs(dx) > Math.abs(dy) && !mobileState.sidebarOpen) {
       openMobileSidebar();
     }
-    
     // Sola swipe - sidebar kapat
-    if (dx < -80 && Math.abs(dx) > Math.abs(dy) && mobileState.sidebarOpen) {
+    if (dx < -threshold && Math.abs(dx) > Math.abs(dy) && mobileState.sidebarOpen) {
       closeMobileSidebar();
     }
-    
     // Yukarı swipe - navbar göster
-    if (dy < -50 && Math.abs(dy) > Math.abs(dx)) {
+    if (dy < -threshold && Math.abs(dy) > Math.abs(dx) && mobileState.isMobile) {
       showMobileNavbar();
     }
-    
     // Aşağı swipe - navbar gizle
-    if (dy > 50 && Math.abs(dy) > Math.abs(dx)) {
+    if (dy > threshold && Math.abs(dy) > Math.abs(dx) && mobileState.isMobile) {
       hideMobileNavbar();
     }
   });
@@ -120,26 +99,19 @@ function openMobileSidebar() {
   mobileState.sidebarOpen = true;
   const sidebar = document.getElementById('sidebar');
   if (sidebar) sidebar.style.left = '0';
-  
-  // Overlay
   showOverlay();
+  if (navigator.vibrate) navigator.vibrate(10);
 }
 
 function closeMobileSidebar() {
   mobileState.sidebarOpen = false;
   const sidebar = document.getElementById('sidebar');
   if (sidebar) sidebar.style.left = '-280px';
-  
-  // Overlay kaldır
   hideOverlay();
 }
 
 function toggleMobileSidebar() {
-  if (mobileState.sidebarOpen) {
-    closeMobileSidebar();
-  } else {
-    openMobileSidebar();
-  }
+  mobileState.sidebarOpen ? closeMobileSidebar() : openMobileSidebar();
 }
 
 // Overlay
@@ -148,7 +120,7 @@ function showOverlay() {
   if (!overlay) {
     overlay = document.createElement('div');
     overlay.id = 'mobileOverlay';
-    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:40;display:block';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:40;display:block;animation:fadeIn .2s ease';
     overlay.addEventListener('click', closeMobileSidebar);
     document.body.appendChild(overlay);
   }
@@ -180,25 +152,15 @@ function hideMobileNavbar() {
 // Klavye algılama
 function detectKeyboard() {
   const initialHeight = window.innerHeight;
-  
   window.addEventListener('resize', () => {
     const currentHeight = window.innerHeight;
     const diff = initialHeight - currentHeight;
-    
     if (diff > 150) {
-      // Klavye açık
       mobileState.keyboardOpen = true;
       document.body.classList.add('keyboard-open');
-      
-      // Input'u görünür yap
       const input = document.getElementById('messageInput') || document.getElementById('dmInput');
-      if (input) {
-        setTimeout(() => {
-          input.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }, 300);
-      }
+      if (input) setTimeout(() => input.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
     } else {
-      // Klavye kapalı
       mobileState.keyboardOpen = false;
       document.body.classList.remove('keyboard-open');
     }
@@ -209,256 +171,123 @@ function detectKeyboard() {
 function handleMobileScroll() {
   const msgs = document.getElementById('messages');
   if (!msgs) return;
-  
   msgs.addEventListener('scroll', () => {
     const scrollTop = msgs.scrollTop;
     mobileState.scrollDirection = scrollTop > mobileState.lastScrollTop ? 'down' : 'up';
     mobileState.lastScrollTop = scrollTop;
-    
-    // Aşağı scroll - navbar gizle
-    if (mobileState.scrollDirection === 'down' && scrollTop > 100 && mobileState.isMobile) {
-      hideMobileNavbar();
-    }
-    
-    // Yukarı scroll - navbar göster
-    if (mobileState.scrollDirection === 'up' && mobileState.isMobile) {
-      showMobileNavbar();
-    }
+    if (mobileState.scrollDirection === 'down' && scrollTop > 100 && mobileState.isMobile) hideMobileNavbar();
+    if (mobileState.scrollDirection === 'up' && mobileState.isMobile) showMobileNavbar();
   });
 }
 
-// Mobil için dokunmatik geri bildirim
+// Dokunmatik geri bildirim
 function addTouchFeedback() {
   document.querySelectorAll('.ib, .ri, .ch-item, .friend-suggestion, .mb').forEach(el => {
-    el.addEventListener('touchstart', () => {
-      el.style.opacity = '0.7';
-      el.style.transform = 'scale(0.97)';
-    }, { passive: true });
-    
-    el.addEventListener('touchend', () => {
-      el.style.opacity = '1';
-      el.style.transform = 'scale(1)';
-    }, { passive: true });
+    el.addEventListener('touchstart', () => { el.style.opacity = '0.7'; el.style.transform = 'scale(0.97)'; }, { passive: true });
+    el.addEventListener('touchend', () => { el.style.opacity = '1'; el.style.transform = 'scale(1)'; }, { passive: true });
   });
 }
 
-// Mobil için uzun basma menüsü
+// Uzun basma menüsü
 function enableLongPress() {
   let longPressTimer;
-  
   document.addEventListener('touchstart', (e) => {
     const msgEl = e.target.closest('.msg');
     if (!msgEl) return;
-    
     longPressTimer = setTimeout(() => {
-      // Titreşim
       if (navigator.vibrate) navigator.vibrate(50);
-      
-      // Uzun basma menüsü
       const msgId = msgEl.id?.replace('msg-', '');
-      if (msgId) {
-        showMobileContextMenu(e.touches[0].clientX, e.touches[0].clientY, msgId);
-      }
+      if (msgId) showMobileContextMenu(e.touches[0].clientX, e.touches[0].clientY, msgId);
     }, 500);
   }, { passive: true });
-  
-  document.addEventListener('touchmove', () => {
-    clearTimeout(longPressTimer);
-  }, { passive: true });
-  
-  document.addEventListener('touchend', () => {
-    clearTimeout(longPressTimer);
-  });
+  document.addEventListener('touchmove', () => clearTimeout(longPressTimer), { passive: true });
+  document.addEventListener('touchend', () => clearTimeout(longPressTimer));
 }
 
-// Mobil context menu
+// Mobil context menu (SVG ikonlu)
 function showMobileContextMenu(x, y, msgId) {
   const existing = document.getElementById('mobileContextMenu');
   if (existing) existing.remove();
   
   const menu = document.createElement('div');
   menu.id = 'mobileContextMenu';
-  menu.style.cssText = `
-    position: fixed;
-    left: ${x}px;
-    top: ${y}px;
-    background: var(--bg1);
-    border: 1px solid var(--b2);
-    border-radius: 12px;
-    padding: 8px;
-    z-index: 999;
-    min-width: 180px;
-    box-shadow: 0 8px 32px rgba(0,0,0,.3);
-  `;
+  menu.style.cssText = `position:fixed;left:${Math.min(x, window.innerWidth-190)}px;top:${Math.min(y, window.innerHeight-180)}px;background:var(--bg1);border:1px solid var(--b2);border-radius:12px;padding:6px;z-index:999;min-width:170px;box-shadow:0 8px 32px rgba(0,0,0,.3);animation:scaleIn .15s ease`;
   
   menu.innerHTML = `
-    <button onclick="reactToMessage('${msgId}','👍');this.parentElement.remove()" style="display:block;width:100%;padding:10px;background:none;border:none;color:var(--t2);text-align:left;cursor:pointer;border-radius:8px;font-size:13px">👍 Beğen</button>
-    <button onclick="copyMessage('${msgId}');this.parentElement.remove()" style="display:block;width:100%;padding:10px;background:none;border:none;color:var(--t2);text-align:left;cursor:pointer;border-radius:8px;font-size:13px">📋 Kopyala</button>
-    <button onclick="deleteMessage('${msgId}');this.parentElement.remove()" style="display:block;width:100%;padding:10px;background:none;border:none;color:var(--re);text-align:left;cursor:pointer;border-radius:8px;font-size:13px">🗑️ Sil</button>
+    <button onclick="reactToMessage('${msgId}','like');this.parentElement.remove()" style="display:block;width:100%;padding:10px 12px;background:none;border:none;color:var(--t2);text-align:left;cursor:pointer;border-radius:8px;font-size:13px">${mobIcon('thumbs-up')} Begen</button>
+    <button onclick="reactToMessage('${msgId}','heart');this.parentElement.remove()" style="display:block;width:100%;padding:10px 12px;background:none;border:none;color:var(--t2);text-align:left;cursor:pointer;border-radius:8px;font-size:13px">${mobIcon('heart')} Kalp</button>
+    <div style="height:1px;background:var(--b);margin:4px 8px"></div>
+    <button onclick="copyMessage('${msgId}');this.parentElement.remove()" style="display:block;width:100%;padding:10px 12px;background:none;border:none;color:var(--t2);text-align:left;cursor:pointer;border-radius:8px;font-size:13px">${mobIcon('copy')} Kopyala</button>
+    <button onclick="replyToMessage('${msgId}');this.parentElement.remove()" style="display:block;width:100%;padding:10px 12px;background:none;border:none;color:var(--t2);text-align:left;cursor:pointer;border-radius:8px;font-size:13px">${mobIcon('corner-up-left')} Yanitla</button>
+    <div style="height:1px;background:var(--b);margin:4px 8px"></div>
+    <button onclick="deleteMessage('${msgId}');this.parentElement.remove()" style="display:block;width:100%;padding:10px 12px;background:none;border:none;color:var(--re);text-align:left;cursor:pointer;border-radius:8px;font-size:13px">${mobIcon('trash')} Sil</button>
   `;
   
   document.body.appendChild(menu);
-  
   setTimeout(() => {
     document.addEventListener('click', () => menu.remove(), { once: true });
     document.addEventListener('touchstart', () => menu.remove(), { once: true });
   }, 100);
 }
 
-// Mobil CSS
+// Mobil CSS (gelişmiş)
 const mobileStyle = document.createElement('style');
 mobileStyle.textContent = `
+  @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+  @keyframes scaleIn { from{transform:scale(.9);opacity:0} to{transform:scale(1);opacity:1} }
+  
   @media (max-width: 768px) {
-    .rail {
-      width: 52px;
-      padding: 6px 0;
-    }
-    
-    .ri {
-      width: 38px;
-      height: 38px;
-    }
-    
-    .sidebar {
-      position: fixed !important;
-      left: -280px !important;
-      top: 0 !important;
-      bottom: 0 !important;
-      width: 280px !important;
-      z-index: 50 !important;
-      transition: left .25s ease !important;
-    }
-    
-    .home-panel {
-      padding: 0;
-    }
-    
-    .home-header {
-      padding: 10px 14px;
-    }
-    
-    .home-body {
-      padding: 14px;
-    }
-    
-    .chat-header {
-      padding: 8px 12px;
-      height: 42px;
-    }
-    
-    .msgs {
-      padding: 8px 10px;
-    }
-    
-    .input-area {
-      padding: 6px 8px;
-      gap: 4px;
-      position: sticky !important;
-      bottom: 0 !important;
-      background: var(--bg1) !important;
-    }
-    
-    .msg-inp {
-      font-size: 16px !important;
-      padding: 8px 12px;
-    }
-    
-    .ib {
-      width: 28px !important;
-      height: 28px !important;
-    }
-    
-    .friend-suggestion {
-      padding: 8px;
-    }
-    
-    .friend-suggestion-av {
-      width: 36px;
-      height: 36px;
-    }
-    
-    .msg-av {
-      width: 28px;
-      height: 28px;
-      font-size: 11px;
-    }
-    
-    .msg-text {
-      font-size: 14px;
-    }
-    
-    .voice-panel {
-      width: 90vw !important;
-      bottom: 10px !important;
-    }
-    
-    .modal .mbox {
-      width: 95vw !important;
-      max-height: 90dvh !important;
-      border-radius: 16px !important;
-      padding: 16px !important;
-    }
-    
-    .settings-panel {
-      width: 100% !important;
-      position: fixed !important;
-    }
-    
-    .keyboard-open .input-area {
-      padding-bottom: 20px !important;
-    }
-    
-    .keyboard-open .msgs {
-      padding-bottom: 80px;
-    }
+    .rail { width: 52px; padding: 6px 0; }
+    .ri { width: 38px; height: 38px; }
+    .sidebar { position: fixed !important; left: -280px !important; top: 0 !important; bottom: 0 !important; width: 280px !important; z-index: 50 !important; transition: left .25s ease !important; }
+    .home-panel { padding: 0; }
+    .home-header { padding: 10px 14px; }
+    .home-body { padding: 14px; }
+    .chat-header { padding: 8px 12px; height: 42px; }
+    .msgs { padding: 8px 10px; }
+    .input-area { padding: 6px 8px; gap: 4px; position: sticky !important; bottom: 0 !important; background: var(--bg1) !important; }
+    .msg-inp { font-size: 16px !important; padding: 8px 12px; }
+    .ib { width: 28px !important; height: 28px !important; }
+    .friend-suggestion { padding: 8px; }
+    .friend-suggestion-av { width: 36px; height: 36px; }
+    .msg-av { width: 28px; height: 28px; font-size: 11px; }
+    .msg-text { font-size: 14px; }
+    .voice-panel { width: 90vw !important; bottom: 10px !important; }
+    .modal .mbox { width: 95vw !important; max-height: 90dvh !important; border-radius: 16px !important; padding: 16px !important; }
+    .settings-panel { width: 100% !important; position: fixed !important; }
+    .keyboard-open .input-area { padding-bottom: 20px !important; }
+    .keyboard-open .msgs { padding-bottom: 80px; }
+    .msg .ma { opacity: 1 !important; gap: 2px; }
+    .msg .ma button { width: 24px; height: 24px; padding: 2px; }
   }
   
   @media (max-width: 480px) {
-    .hacts .ib:nth-child(n+3) {
-      display: none;
-    }
-    
-    .friend-suggestion-btn {
-      padding: 4px 10px;
-      font-size: 10px;
-    }
+    .hacts .ib:nth-child(n+3) { display: none; }
+    .friend-suggestion-btn { padding: 4px 10px; font-size: 10px; }
+    .calendar-day { min-height: 38px; padding: 4px 2px; font-size: 10px; }
+    .emoji-grid { gap: 1px; }
+    .es { width: 30px; height: 30px; font-size: 18px; }
   }
   
   @media (orientation: landscape) and (max-height: 500px) {
-    .chat-header {
-      height: 36px;
-      padding: 4px 10px;
-    }
-    
-    .msgs {
-      padding: 4px 8px;
-    }
-    
-    .input-area {
-      padding: 4px 6px;
-    }
-    
-    .home-header {
-      padding: 6px 12px;
-    }
+    .chat-header { height: 36px; padding: 4px 10px; }
+    .msgs { padding: 4px 8px; }
+    .input-area { padding: 4px 6px; }
+    .home-header { padding: 6px 12px; }
+    .rail { width: 44px; }
+    .ri { width: 32px; height: 32px; }
   }
 `;
 document.head.appendChild(mobileStyle);
 
 // Başlat
 document.addEventListener('DOMContentLoaded', () => {
-  detectMobile();
-  detectKeyboard();
-  handleMobileScroll();
-  addTouchFeedback();
-  enableLongPress();
-  
+  detectMobile(); detectKeyboard(); handleMobileScroll();
+  addTouchFeedback(); enableLongPress();
   window.addEventListener('resize', detectMobile);
-  window.addEventListener('orientationchange', () => {
-    setTimeout(detectMobile, 300);
-  });
-  
-  // Mobil sidebar toggle
+  window.addEventListener('orientationchange', () => setTimeout(detectMobile, 300));
   const toggleBtn = document.getElementById('toggleSidebarBtn');
   if (toggleBtn) toggleBtn.onclick = toggleMobileSidebar;
 });
+
+console.log('Mobile.js yuklendi (SVG ikonlu + gelismis)');
