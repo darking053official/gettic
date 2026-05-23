@@ -1,3 +1,3 @@
-const API = 'https://immunology-per-headset-tan.trycloudflare.com';
+const API = 'https://effective-clubs-latitude-predicted.trycloudflare.com';
 const MAX_MSGS = 100;
 function genId() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 7); }
