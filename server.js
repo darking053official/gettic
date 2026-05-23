@@ -1,5 +1,5 @@
 // ╔══════════════════════════════════════════════════════════════════╗
-// ║                    GETTIC SERVER - FULL GÜVENLİK                 ║
+// ║                    GETTIC SERVER - MAX GÜVENLİK                  ║
 // ╚══════════════════════════════════════════════════════════════════╝
 
 require('dotenv').config();
@@ -7,6 +7,7 @@ require('dotenv').config();
 // ==================== PAKETLER ====================
 const https = require('https');
 const dns = require('dns');
+const crypto = require('crypto');
 const mongoose = require('mongoose');
 const express = require('express');
 const cors = require('cors');
@@ -21,8 +22,11 @@ const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 const hpp = require('hpp');
 const xss = require('xss');
+const altcha = require('altcha');
 const { google } = require('googleapis');
 const nodemailer = require('nodemailer');
+const useragent = require('express-useragent');
+const requestIp = require('request-ip');
 
 // ==================== RATE LIMITERS ====================
 const authLimiter = rateLimit({
@@ -30,6 +34,7 @@ const authLimiter = rateLimit({
     max: 10,
     standardHeaders: true,
     legacyHeaders: false,
+    keyGenerator: (req) => req.ip + req.headers['user-agent'],
     message: { error: 'Çok fazla deneme! 15 dakika bekle.' }
 });
 
@@ -37,13 +42,21 @@ const apiLimiter = rateLimit({
     windowMs: 1 * 60 * 1000,
     max: 100,
     standardHeaders: true,
+    keyGenerator: (req) => req.ip,
     message: { error: 'Çok fazla istek! 1 dakika bekle.' }
 });
 
 const messageLimiter = rateLimit({
-    windowMs: 3 * 1000, // 3 saniye
-    max: 1, // 3 saniyede 1 mesaj
-    message: { error: '3 saniye bekleyin.' }
+    windowMs: 3 * 1000,
+    max: 1,
+    keyGenerator: (req) => req.ip,
+    message: { error: 'Spam yapma! 3 saniye bekle.' }
+});
+
+const imageLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 5,
+    message: { error: 'Çok fazla görsel! 1 dakika bekle.' }
 });
 
 // ==================== EXPRESS APP ====================
@@ -58,12 +71,13 @@ app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
-            scriptSrc: ["'self'", "https://cdn.jsdelivr.net", "https://cdn.socket.io", "https://cdnjs.cloudflare.com", "'unsafe-inline'"],
+            scriptSrc: ["'self'", "https://cdn.jsdelivr.net", "https://cdn.socket.io", "https://cdnjs.cloudflare.com", "'unsafe-inline'", "'unsafe-eval'"],
             styleSrc: ["'self'", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net", "'unsafe-inline'"],
-            imgSrc: ["'self'", "data:", "https:", "https://raw.githubusercontent.com"],
+            imgSrc: ["'self'", "data:", "https:", "http:", "https://raw.githubusercontent.com"],
             fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdn.jsdelivr.net"],
             connectSrc: ["'self'", "wss://", "https://api.cerebras.ai", "https://image.pollinations.ai"],
-            frameSrc: ["'none'"]
+            frameSrc: ["'none'"],
+            mediaSrc: ["'self'"]
         }
     },
     crossOriginEmbedderPolicy: true,
@@ -85,34 +99,46 @@ app.use(cors({
     maxAge: 600
 }));
 
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-app.use(mongoSanitize());
-app.use(hpp());
+app.use(express.json({ limit: '5mb' }));
+app.use(express.urlencoded({ extended: true, limit: '5mb' }));
+app.use(mongoSanitize({ replaceWith: '_' }));
+app.use(hpp({ whitelist: ['content', 'username', 'message'] }));
+app.use(requestIp.mw());
+app.use(useragent.express());
 
-// XSS Sanitization - tüm string input'ları temizle
+// XSS Sanitization
 app.use((req, res, next) => {
-    if (req.body) {
-        for (let key in req.body) {
-            if (typeof req.body[key] === 'string') {
-                req.body[key] = xss(req.body[key]);
+    const sanitize = (obj) => {
+        if (!obj || typeof obj !== 'object') return;
+        for (let key in obj) {
+            if (typeof obj[key] === 'string') {
+                obj[key] = xss(obj[key], { whiteList: {}, stripIgnoreTag: true, stripIgnoreTagBody: ['script', 'style'] });
+            } else if (typeof obj[key] === 'object') {
+                sanitize(obj[key]);
             }
         }
-    }
-    if (req.query) {
-        for (let key in req.query) {
-            if (typeof req.query[key] === 'string') {
-                req.query[key] = xss(req.query[key]);
-            }
-        }
-    }
-    if (req.params) {
-        for (let key in req.params) {
-            if (typeof req.params[key] === 'string') {
-                req.params[key] = xss(req.params[key]);
-            }
-        }
-    }
+    };
+    sanitize(req.body);
+    sanitize(req.query);
+    sanitize(req.params);
+    next();
+});
+
+// IP ve User-Agent loglama
+app.use((req, res, next) => {
+    req.clientIp = requestIp.getClientIp(req);
+    req.userAgent = req.useragent?.source || 'Unknown';
+    next();
+});
+
+// Security headers
+app.use((req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    res.setHeader('X-Download-Options', 'noopen');
+    res.setHeader('X-Permitted-Cross-Domain-Policies', 'none');
+    res.setHeader('Expect-CT', 'max-age=86400, enforce');
     next();
 });
 
@@ -124,44 +150,54 @@ app.use((req, res, next) => {
     next();
 });
 
-// ==================== MONGOOSE SCHEMALAR (GÜVENLİ) ====================
+// ==================== MONGOOSE SCHEMALAR (MAX GÜVENLİK) ====================
 const UserSchema = new mongoose.Schema({
     username: { 
         type: String, 
-        required: true, 
+        required: [true, 'Kullanıcı adı zorunlu'], 
         unique: true, 
         trim: true, 
-        minlength: 3,
-        maxlength: 20,
-        match: [/^[a-zA-Z0-9_]+$/, 'Sadece harf, rakam ve alt çizgi kullanın']
+        minlength: [3, 'En az 3 karakter'],
+        maxlength: [20, 'En fazla 20 karakter'],
+        match: [/^[a-zA-Z0-9_]+$/, 'Sadece harf, rakam ve alt çizgi']
     },
-    password: { type: String, required: true, minlength: 6 },
-    avatar: { type: String, default: '' },
+    password: { 
+        type: String, 
+        required: [true, 'Şifre zorunlu'], 
+        minlength: [6, 'En az 6 karakter'],
+        maxlength: [100, 'Çok uzun şifre']
+    },
+    avatar: { type: String, default: '', maxlength: 500 },
     status: { type: String, default: 'online', enum: ['online', 'idle', 'dnd', 'offline'] },
     lastSeen: { type: Date, default: Date.now },
+    ip: { type: String, default: '' },
+    userAgent: { type: String, default: '' },
+    loginAttempts: { type: Number, default: 0 },
+    lockedUntil: { type: Date, default: null },
     createdAt: { type: Date, default: Date.now }
 });
 const User = mongoose.model('User', UserSchema);
 
 const MessageSchema = new mongoose.Schema({
-    channelId: { type: String, required: true, index: true },
-    content: { type: String, default: '', maxlength: 2000 },
-    senderName: { type: String, required: true, maxlength: 32 },
+    channelId: { type: String, required: true, index: true, maxlength: 50 },
+    content: { type: String, default: '', maxlength: [2000, 'Mesaj çok uzun'] },
+    senderName: { type: String, required: true, maxlength: [32, 'İsim çok uzun'] },
     senderId: { type: String, required: true },
     reactions: { type: Object, default: {} },
     edited: { type: Boolean, default: false },
-    image: { type: String, default: null },
+    image: { type: String, default: null, maxlength: 2000 },
     file: { type: Object, default: null },
+    ip: { type: String, default: '' },
     createdAt: { type: Date, default: Date.now, index: true }
 });
 const Message = mongoose.model('Message', MessageSchema);
 
 const ChannelSchema = new mongoose.Schema({
-    id: { type: String, required: true, unique: true, match: [/^[a-zA-Z0-9_-]+$/, 'Geçersiz kanal ID'] },
-    name: { type: String, required: true, maxlength: 50 },
+    id: { type: String, required: true, unique: true, match: [/^[a-zA-Z0-9_-]+$/, 'Geçersiz ID'] },
+    name: { type: String, required: true, maxlength: [50, 'Kanal adı çok uzun'] },
     type: { type: String, default: 'text', enum: ['text', 'voice'] },
     category: { type: String, default: 'METİN', maxlength: 50 },
-    topic: { type: String, default: '', maxlength: 200 },
+    topic: { type: String, default: '', maxlength: [200, 'Konu çok uzun'] },
     serverId: { type: String, default: 'gettic' },
     createdBy: { type: String, default: '' },
     createdAt: { type: Date, default: Date.now }
@@ -197,7 +233,7 @@ const WebhookSchema = new mongoose.Schema({
     channelId: { type: String, default: 'genel-sohbet' },
     ownerId: { type: String, required: true },
     active: { type: Boolean, default: true },
-    callCount: { type: Number, default: 0 },
+    callCount: { type: Number, default: 0, max: 1000 },
     lastCall: { type: Date, default: null },
     createdAt: { type: Date, default: Date.now }
 });
@@ -215,7 +251,7 @@ const ChatSchema = new mongoose.Schema({
     sessionId: { type: String, required: true },
     messages: [{
         role: { type: String, enum: ['user', 'assistant', 'system'], required: true },
-        content: { type: String, required: true },
+        content: { type: String, required: true, maxlength: 4000 },
         timestamp: { type: Date, default: Date.now }
     }],
     chatCount: { type: Number, default: 1 },
@@ -225,12 +261,17 @@ const ChatSchema = new mongoose.Schema({
 const Chat = mongoose.model('Chat', ChatSchema);
 
 // ==================== AUTH MIDDLEWARE ====================
-const authMiddleware = (req, res, next) => {
+const authMiddleware = async (req, res, next) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'Token gerekli' });
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         req.userId = decoded.userId;
+        
+        // Kullanıcı var mı kontrol et
+        const user = await User.findById(req.userId).select('_id');
+        if (!user) return res.status(401).json({ error: 'Kullanıcı bulunamadı' });
+        
         next();
     } catch {
         res.status(401).json({ error: 'Geçersiz token' });
@@ -238,7 +279,7 @@ const authMiddleware = (req, res, next) => {
 };
 
 // ==================== STATİK DOSYALAR ====================
-app.use('/app', express.static(path.join(__dirname, 'app'), { maxAge: '7d' }));
+app.use('/app', express.static(path.join(__dirname, 'app'), { maxAge: '7d', fallthrough: true }));
 app.use(express.static(path.join(__dirname)));
 
 // ==================== SAYFALAR ====================
@@ -250,52 +291,101 @@ app.get('/apis/list/add', (req, res) => res.sendFile(path.join(__dirname, 'apis'
 app.get('/app', (req, res) => res.sendFile(path.join(__dirname, 'app', 'index.html')));
 app.get('/app/*', (req, res) => res.sendFile(path.join(__dirname, 'app', 'index.html')));
 
+// ==================== ALTCHA ====================
+app.get('/api/auth/altcha', async (req, res) => {
+    try {
+        const challenge = await altcha.createChallenge({ hmacKey: process.env.ALTCHA_HMAC_KEY || crypto.randomBytes(32).toString('hex') });
+        res.json(challenge);
+    } catch (e) { res.status(500).json({ error: 'Captcha hatası' }); }
+});
+
 // ==================== AUTH ENDPOINTS ====================
 app.post('/api/auth/register', authLimiter, async (req, res) => {
     try {
-        const { username, password } = req.body;
+        const { username, password, altcha: payload } = req.body;
+        
+        // Altcha doğrulama
+        if (!payload) return res.status(400).json({ error: 'Doğrulama gerekli' });
+        const ok = await altcha.verifySolution(payload, process.env.ALTCHA_HMAC_KEY || 'secret');
+        if (!ok) return res.status(400).json({ error: 'Doğrulama başarısız' });
         
         // Validasyon
         if (!username || username.length < 3) return res.status(400).json({ error: 'Kullanıcı adı en az 3 karakter' });
         if (username.length > 20) return res.status(400).json({ error: 'Kullanıcı adı en fazla 20 karakter' });
-        if (!/^[a-zA-Z0-9_]+$/.test(username)) return res.status(400).json({ error: 'Kullanıcı adı sadece harf, rakam ve alt çizgi içerebilir' });
+        if (!/^[a-zA-Z0-9_]+$/.test(username)) return res.status(400).json({ error: 'Geçersiz karakterler' });
         if (!password || password.length < 6) return res.status(400).json({ error: 'Şifre en az 6 karakter' });
+        if (password.length > 100) return res.status(400).json({ error: 'Şifre çok uzun' });
         
         const existing = await User.findOne({ username });
-        if (existing) return res.status(400).json({ error: 'Kullanıcı adı zaten alınmış' });
+        if (existing) return res.status(400).json({ error: 'Kullanıcı adı alınmış' });
         
-        const hashed = await bcrypt.hash(password, 12); // 12 salt rounds
-        const user = new User({ username, password: hashed });
+        const hashed = await bcrypt.hash(password, 12);
+        const user = new User({ 
+            username, 
+            password: hashed,
+            ip: req.clientIp,
+            userAgent: req.userAgent
+        });
         await user.save();
         
         const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
         res.json({ token, user: { _id: user._id, username: user.username } });
-    } catch (err) { res.status(500).json({ error: 'Sunucu hatası' }); }
+    } catch (err) { 
+        console.error('Register hatası:', err.message);
+        res.status(500).json({ error: 'Sunucu hatası' }); 
+    }
 });
 
 app.post('/api/auth/login', authLimiter, async (req, res) => {
     try {
-        const { username, password } = req.body;
+        const { username, password, altcha: payload } = req.body;
+        
+        // Altcha doğrulama
+        if (!payload) return res.status(400).json({ error: 'Doğrulama gerekli' });
+        const ok = await altcha.verifySolution(payload, process.env.ALTCHA_HMAC_KEY || 'secret');
+        if (!ok) return res.status(400).json({ error: 'Doğrulama başarısız' });
+        
         if (!username || !password) return res.status(400).json({ error: 'Kullanıcı adı ve şifre gerekli' });
         
         const user = await User.findOne({ username });
         if (!user) return res.status(401).json({ error: 'Kullanıcı bulunamadı' });
         
-        const valid = await bcrypt.compare(password, user.password);
-        if (!valid) return res.status(401).json({ error: 'Şifre yanlış' });
+        // Hesap kilitli mi?
+        if (user.lockedUntil && user.lockedUntil > new Date()) {
+            const minutes = Math.ceil((user.lockedUntil - new Date()) / 60000);
+            return res.status(423).json({ error: `Hesap kilitli! ${minutes} dakika bekle.` });
+        }
         
+        const valid = await bcrypt.compare(password, user.password);
+        if (!valid) {
+            user.loginAttempts = (user.loginAttempts || 0) + 1;
+            if (user.loginAttempts >= 5) {
+                user.lockedUntil = new Date(Date.now() + 30 * 60000); // 30 dakika kilit
+            }
+            await user.save();
+            return res.status(401).json({ error: 'Şifre yanlış' });
+        }
+        
+        // Başarılı giriş
         user.status = 'online';
         user.lastSeen = new Date();
+        user.loginAttempts = 0;
+        user.lockedUntil = null;
+        user.ip = req.clientIp;
+        user.userAgent = req.userAgent;
         await user.save();
         
         const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
         res.json({ token, user: { _id: user._id, username: user.username } });
-    } catch (err) { res.status(500).json({ error: 'Sunucu hatası' }); }
+    } catch (err) { 
+        console.error('Login hatası:', err.message);
+        res.status(500).json({ error: 'Sunucu hatası' }); 
+    }
 });
 
 app.get('/api/me', authMiddleware, async (req, res) => {
     try {
-        const user = await User.findById(req.userId).select('-password');
+        const user = await User.findById(req.userId).select('-password -loginAttempts -lockedUntil');
         if (!user) return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
         res.json(user);
     } catch (err) { res.status(500).json({ error: 'Sunucu hatası' }); }
@@ -305,9 +395,11 @@ app.put('/api/me', authMiddleware, async (req, res) => {
     try {
         const updates = req.body;
         delete updates.password;
-        delete updates.username; // kullanıcı adı değiştirilemez
+        delete updates.username;
         delete updates._id;
-        const user = await User.findByIdAndUpdate(req.userId, updates, { new: true }).select('-password');
+        delete updates.loginAttempts;
+        delete updates.lockedUntil;
+        const user = await User.findByIdAndUpdate(req.userId, updates, { new: true }).select('-password -loginAttempts -lockedUntil');
         res.json(user);
     } catch (err) { res.status(500).json({ error: 'Sunucu hatası' }); }
 });
@@ -329,7 +421,11 @@ app.get('/api/channels', authMiddleware, async (req, res) => {
 
 app.post('/api/channels', authMiddleware, async (req, res) => {
     try {
-        const existing = await Channel.findOne({ id: req.body.id });
+        const { id, name } = req.body;
+        if (!id || !name) return res.status(400).json({ error: 'ID ve isim gerekli' });
+        if (!/^[a-zA-Z0-9_-]+$/.test(id)) return res.status(400).json({ error: 'Geçersiz kanal ID' });
+        
+        const existing = await Channel.findOne({ id });
         if (existing) {
             Object.assign(existing, req.body);
             await existing.save();
@@ -357,7 +453,7 @@ app.delete('/api/channels/:channelId', authMiddleware, async (req, res) => {
     } catch (err) { res.status(500).json({ error: 'Sunucu hatası' }); }
 });
 
-// ==================== MESAJ ENDPOINTS (Rate Limitli) ====================
+// ==================== MESAJ ENDPOINTS ====================
 app.get('/api/channels/:channelId/messages', authMiddleware, async (req, res) => {
     try {
         const limit = Math.min(parseInt(req.query.limit) || 100, 200);
@@ -368,10 +464,15 @@ app.get('/api/channels/:channelId/messages', authMiddleware, async (req, res) =>
 
 app.post('/api/channels/:channelId/messages', authMiddleware, messageLimiter, async (req, res) => {
     try {
-        if (!req.body.content || req.body.content.length > 2000) {
-            return res.status(400).json({ error: 'Mesaj 1-2000 karakter arası olmalı' });
-        }
-        const msg = new Message({ ...req.body, channelId: req.params.channelId });
+        const content = req.body.content?.trim();
+        if (!content || content.length > 2000) return res.status(400).json({ error: 'Mesaj 1-2000 karakter arası olmalı' });
+        
+        const msg = new Message({ 
+            ...req.body, 
+            content,
+            channelId: req.params.channelId,
+            ip: req.clientIp
+        });
         await msg.save();
         res.json(msg);
     } catch (err) { res.status(500).json({ error: 'Sunucu hatası' }); }
@@ -379,7 +480,10 @@ app.post('/api/channels/:channelId/messages', authMiddleware, messageLimiter, as
 
 app.put('/api/channels/:channelId/messages/:msgId', authMiddleware, async (req, res) => {
     try {
-        const msg = await Message.findByIdAndUpdate(req.params.msgId, { content: req.body.content, edited: true }, { new: true });
+        const content = req.body.content?.trim();
+        if (!content || content.length > 2000) return res.status(400).json({ error: 'Mesaj 1-2000 karakter arası olmalı' });
+        
+        const msg = await Message.findByIdAndUpdate(req.params.msgId, { content, edited: true }, { new: true });
         if (!msg) return res.status(404).json({ error: 'Mesaj bulunamadı' });
         res.json(msg);
     } catch (err) { res.status(500).json({ error: 'Sunucu hatası' }); }
@@ -404,6 +508,7 @@ app.post('/api/dm/send', authMiddleware, messageLimiter, async (req, res) => {
     try {
         const { to, text } = req.body;
         if (!text || text.length > 2000) return res.status(400).json({ error: 'Mesaj 1-2000 karakter arası olmalı' });
+        
         const participants = [req.userId, to].sort();
         let dm = await DM.findOne({ participants: { $all: participants, $size: 2 } });
         if (!dm) dm = new DM({ participants, messages: [] });
@@ -433,6 +538,7 @@ app.get('/api/users/recent', apiLimiter, async (req, res) => {
 app.get('/api/users/search', apiLimiter, async (req, res) => {
     try {
         const q = (req.query.q || '').replace(/[^a-zA-Z0-9_]/g, '');
+        if (q.length < 2) return res.json([]);
         const users = await User.find({ username: { $regex: q, $options: 'i' } }, 'username avatar').limit(20);
         res.json(users);
     } catch (e) { res.status(500).json({ error: 'Sunucu hatası' }); }
@@ -456,9 +562,10 @@ app.get('/api/bots', authMiddleware, async (req, res) => {
 app.post('/api/bots', authMiddleware, async (req, res) => {
     try {
         const { name, prefix, description } = req.body;
-        if (!name) return res.status(400).json({ error: 'Bot adı gerekli' });
+        if (!name || name.length > 32) return res.status(400).json({ error: 'Geçersiz bot adı' });
+        
         const user = await User.findById(req.userId);
-        const token = 'bot_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+        const token = 'bot_' + crypto.randomBytes(20).toString('hex');
         const bot = new Bot({ name, prefix: prefix || '/', token, ownerId: req.userId, ownerName: user.username, description });
         await bot.save();
         res.json(bot);
@@ -486,8 +593,9 @@ app.get('/api/webhooks', authMiddleware, async (req, res) => {
 app.post('/api/webhooks', authMiddleware, async (req, res) => {
     try {
         const { name, channelId } = req.body;
-        if (!name) return res.status(400).json({ error: 'Webhook adı gerekli' });
-        const token = 'wh_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+        if (!name || name.length > 32) return res.status(400).json({ error: 'Geçersiz isim' });
+        
+        const token = 'wh_' + crypto.randomBytes(20).toString('hex');
         const webhook = new Webhook({ name, token, channelId: channelId || 'genel-sohbet', ownerId: req.userId });
         await webhook.save();
         res.json(webhook);
@@ -509,16 +617,20 @@ app.post('/api/webhooks/:webhookId/:token', async (req, res) => {
         const { webhookId, token } = req.params;
         const { content, username } = req.body;
         if (!content) return res.status(400).json({ error: 'content gerekli' });
+        
         const webhook = await Webhook.findOne({ _id: webhookId, token });
         if (!webhook) return res.status(404).json({ error: 'Webhook bulunamadı' });
         if (!webhook.active) return res.status(403).json({ error: 'Webhook pasif' });
+        if (webhook.callCount >= 1000) return res.status(429).json({ error: 'Webhook limiti doldu' });
+        
         io.to(webhook.channelId).emit('new_message', {
             channelId: webhook.channelId,
-            content,
+            content: content.slice(0, 2000),
             senderName: username || webhook.name,
             senderId: 'webhook_' + webhookId,
             createdAt: new Date().toISOString()
         });
+        
         webhook.callCount = (webhook.callCount || 0) + 1;
         webhook.lastCall = new Date();
         await webhook.save();
@@ -532,55 +644,44 @@ app.post('/api/chat', apiLimiter, async (req, res) => {
         const { message, sessionId, chatId, mode } = req.body;
         if (!message?.trim()) return res.status(400).json({ error: 'Mesaj gerekli' });
         if (!sessionId) return res.status(400).json({ error: 'Kullanıcı adı gerekli' });
-        const username = sessionId;
+        
+        const username = sessionId.replace(/[^a-zA-Z0-9_]/g, '');
         const today = new Date(); today.setHours(0, 0, 0, 0);
         const todayChats = await Chat.countDocuments({ username, createdAt: { $gte: today } });
         if (todayChats >= 15) return res.status(429).json({ error: 'Günlük limit doldu (15/15)', remainingChats: 0 });
+        
         let chat = chatId ? await Chat.findById(chatId) : null;
         if (!chat) chat = new Chat({ username, sessionId, messages: [] });
-        const systemPrompt = mode === 'think' ? 'Sen derin düşünen, analitik bir asistansın. İsmin Gettic AI.' : 'Sen hızlı ve pratik bir asistansın. İsmin Gettic AI. Kısa, net cevaplar ver.';
-        const messages = [{ role: 'system', content: systemPrompt }, ...chat.messages.slice(-15).map(m => ({ role: m.role, content: m.content })), { role: 'user', content: message }];
+        
+        const systemPrompt = mode === 'think' ? 'Sen derin düşünen bir asistansın.' : 'Sen hızlı bir asistansın. Kısa cevaplar ver.';
+        const messages = [{ role: 'system', content: systemPrompt }, ...chat.messages.slice(-15), { role: 'user', content: message }];
         chat.messages.push({ role: 'user', content: message, timestamp: new Date() });
+        
         const response = await fetch('https://api.cerebras.ai/v1/chat/completions', {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${process.env.AI_API_KEY}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({ model: 'llama3.1-8b', messages, max_tokens: mode==='think'?800:250, temperature: mode==='think'?0.8:0.4 })
         });
+        
         const data = await response.json();
         if (!response.ok) return res.status(500).json({ error: 'AI API hatası' });
+        
         const reply = data.choices[0].message.content;
         chat.messages.push({ role: 'assistant', content: reply, timestamp: new Date() });
         chat.updatedAt = new Date();
         await chat.save();
+        
         res.json({ reply, chatId: chat._id, remainingChats: 15 - todayChats - 1 });
     } catch (error) { res.status(500).json({ error: 'Sunucu hatası' }); }
 });
 
-app.get('/api/chats/:username', async (req, res) => {
-    try {
-        const chats = await Chat.find({ username: req.params.username }).sort({ updatedAt: -1 }).limit(10);
-        res.json(chats.map(c => ({ id: c._id, messageCount: c.messages.length, lastMessage: c.messages[c.messages.length-1]?.content?.substring(0,50), createdAt: c.createdAt, updatedAt: c.updatedAt })));
-    } catch (error) { res.status(500).json({ error: 'Sunucu hatası' }); }
-});
-
-app.get('/api/chat/:id', async (req, res) => {
-    try {
-        const chat = await Chat.findById(req.params.id);
-        if (!chat) return res.status(404).json({ error: 'Sohbet bulunamadı' });
-        res.json(chat);
-    } catch (error) { res.status(500).json({ error: 'Sunucu hatası' }); }
-});
-
-app.delete('/api/chat/:id', async (req, res) => {
-    try { await Chat.findByIdAndDelete(req.params.id); res.json({ success: true }); }
-    catch (error) { res.status(500).json({ error: 'Sunucu hatası' }); }
-});
-
 // ==================== GÖRSEL OLUŞTURMA ====================
-app.post('/api/image', apiLimiter, async (req, res) => {
+app.post('/api/image', imageLimiter, async (req, res) => {
     try {
         const { prompt } = req.body;
         if (!prompt?.trim()) return res.status(400).json({ error: 'Prompt gerekli' });
+        if (prompt.length > 500) return res.status(400).json({ error: 'Prompt çok uzun' });
+        
         const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1024&height=1024&nologo=true&seed=${Math.floor(Math.random()*100000)}`;
         res.json({ success: true, image: imageUrl, prompt });
     } catch (error) { res.status(500).json({ error: 'Sunucu hatası' }); }
@@ -619,14 +720,6 @@ app.get('/api/list', async (req, res) => {
     } catch (e) { res.status(500).json({ error: 'Sunucu hatası' }); }
 });
 
-app.post('/api/list/bulk', async (req, res) => {
-    try {
-        const ops = Object.entries(req.body.data||{}).map(([k,v]) => ({ updateOne: { filter: { key: k }, update: { $set: { value: v||null, updatedAt: new Date() } }, upsert: true } }));
-        if (ops.length) await ApiList.bulkWrite(ops);
-        res.json({ status: 'ok', message: `${ops.length} endpoint güncellendi` });
-    } catch (e) { res.status(500).json({ error: 'Sunucu hatası' }); }
-});
-
 // ==================== HEALTH CHECK ====================
 app.get('/api/health', (req, res) => res.json({ status: 'ok', timestamp: new Date() }));
 
@@ -649,7 +742,9 @@ io.on('connection', (socket) => {
     socket.on('leave_channel', (channelId) => socket.leave(channelId));
     socket.on('send_message', async (data) => {
         try {
-            const msg = new Message({ channelId: data.channelId, content: data.content?.slice(0, 2000), senderName: data.senderName?.slice(0, 32), senderId: data.senderId, image: data.image || null, file: data.file || null, createdAt: new Date() });
+            const content = data.content?.trim()?.slice(0, 2000);
+            if (!content) return;
+            const msg = new Message({ channelId: data.channelId, content, senderName: data.senderName?.slice(0, 32), senderId: data.senderId, image: data.image || null, file: data.file || null, ip: socket.handshake.address, createdAt: new Date() });
             const saved = await msg.save();
             io.to(data.channelId).emit('new_message', saved);
         } catch(e) { socket.emit('error', { message: 'Mesaj gönderilemedi' }); }
@@ -663,5 +758,5 @@ io.on('connection', (socket) => {
 // ==================== SERVER START ====================
 const PORT = process.env.PORT || 3000;
 mongoose.connect(process.env.MONGODB_URI)
-    .then(() => { console.log('✅ MongoDB'); httpServer.listen(PORT, () => console.log(`🚀 Gettic API :${PORT}`)); })
+    .then(() => { console.log('✅ MongoDB'); httpServer.listen(PORT, () => console.log(`🚀 Gettic :${PORT}`)); })
     .catch(err => console.error('❌ MongoDB:', err));
