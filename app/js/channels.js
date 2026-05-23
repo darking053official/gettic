@@ -1,4 +1,11 @@
-// =========== GETTIC CHANNELS.JS - FULL GÜNCEL ============
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║              GETTIC CHANNELS.JS - SVG İKONLU FINAL               ║
+// ╚══════════════════════════════════════════════════════════════════╝
+
+// SVG ikon yardımcı
+function chIcon(name) {
+  return window.Icons?.[name] ? Icons[name] : '';
+}
 
 // Kanal listesini render et
 function renderChannels() {
@@ -6,7 +13,7 @@ function renderChannels() {
   if (!el) return;
   
   const channels = Store.channels || [];
-  const categories = Store.categories || ['METİN', 'SES'];
+  const categories = Store.categories || ['METIN', 'SES'];
   const isAdmin = hasPermission(Store.user?._id, 'manageChannels');
   
   el.innerHTML = categories.map(cat => {
@@ -14,23 +21,25 @@ function renderChannels() {
     if (catChannels.length === 0 && !isAdmin) return '';
     
     return `
-      <div class="ch-cat">${cat} ${isAdmin ? `<button onclick="openModal('addChannel')" title="Kanal Ekle">+</button>` : ''}</div>
+      <div class="ch-cat">${cat} ${isAdmin ? `<button onclick="openModal('addChannel')" title="Kanal Ekle" style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:14px;padding:0 4px">+</button>` : ''}</div>
       ${catChannels.map(ch => `
-        <div class="ch-item ${ch.id === Store.activeChannel ? 'act' : ''}" onclick="switchChannel('${ch.id}')" title="${ch.topic || ch.name}">
-          <span class="ch-icon">${ch.type === 'voice' ? '🔊' : ch.type === 'forum' ? '📋' : ch.type === 'stage' ? '🎙️' : '#'}</span>
-          <span class="ch-name">${ch.name}</span>
-          ${ch.type === 'voice' ? `<span class="ch-acts"><button onclick="event.stopPropagation();joinVoice('${ch.id}')" title="Katıl">🎤</button></span>` : ''}
-          ${isAdmin && ch.id !== 'genel-sohbet' ? `<span class="ch-acts"><button onclick="event.stopPropagation();deleteChannel('${ch.id}')" title="Kanalı Sil" style="color:var(--re)">×</button></span>` : ''}
+        <div class="ch-item ${ch.id === Store.activeChannel ? 'act' : ''}" onclick="switchChannel('${ch.id}')" title="${escapeHtml(ch.topic || ch.name)}">
+          <span class="ch-icon">${ch.type === 'voice' ? chIcon('mic') : ch.type === 'forum' ? chIcon('message-square') : chIcon('hash')}</span>
+          <span class="ch-name">${escapeHtml(ch.name)}</span>
+          ${ch.type === 'voice' ? `<span class="ch-acts"><button onclick="event.stopPropagation();joinVoice('${ch.id}')" title="Katil" style="background:none;border:none;cursor:pointer;padding:0 4px">${chIcon('phone')}</button></span>` : ''}
+          ${isAdmin && ch.id !== 'genel-sohbet' ? `<span class="ch-acts"><button onclick="event.stopPropagation();deleteChannel('${ch.id}')" title="Kanal Sil" style="background:none;border:none;cursor:pointer;color:var(--re);padding:0 4px;font-size:16px">${chIcon('x')}</button></span>` : ''}
         </div>`).join('')}
     `;
   }).join('');
   
+  // Kanal adını güncelle
   const chName = document.getElementById('channelName');
   if (chName) {
     const activeCh = channels.find(c => c.id === Store.activeChannel);
     chName.textContent = activeCh ? activeCh.name : Store.activeChannel;
   }
   
+  // Yetki butonları
   const addCatBtn = document.getElementById('addCategoryBtn');
   const addChBtn = document.getElementById('addChannelSidebarBtn');
   if (addCatBtn) addCatBtn.style.display = isAdmin ? '' : 'none';
@@ -51,7 +60,7 @@ function switchChannel(chId) {
     MongoSync.syncCurrentChannel();
   }
   
-  renderMessages();
+  if (typeof renderMessages === 'function') renderMessages();
   renderChannels();
   
   if (socket) {
@@ -64,9 +73,9 @@ function switchChannel(chId) {
 }
 
 // Kanal oluştur
-function createChannel(name, type = 'text', category = 'METİN') {
-  if (!name || !name.trim()) return toast('Kanal adı gerekli', 'e');
-  if (!hasPermission(Store.user?._id, 'manageChannels')) return toast('❌ Yetkiniz yok', 'e');
+function createChannel(name, type = 'text', category = 'METIN') {
+  if (!name?.trim()) return toast('Kanal adi gerekli', 'e');
+  if (!hasPermission(Store.user?._id, 'manageChannels')) return toast('Yetkiniz yok', 'e');
   
   const id = name.toLowerCase()
     .replace(/ğ/g,'g').replace(/ü/g,'u').replace(/ş/g,'s').replace(/ı/g,'i')
@@ -76,7 +85,7 @@ function createChannel(name, type = 'text', category = 'METİN') {
   if ((Store.channels || []).find(c => c.id === id)) return toast('Bu kanal zaten var', 'e');
   
   const newChannel = {
-    id, name: name.trim(), type: type || 'text', category: category || 'METİN',
+    id, name: name.trim(), type: type || 'text', category: category || 'METIN',
     topic: '', serverId: 'gettic', createdBy: Store.user?._id, createdAt: new Date().toISOString()
   };
   
@@ -88,16 +97,16 @@ function createChannel(name, type = 'text', category = 'METİN') {
   
   renderChannels();
   if (typeof saveStore === 'function') saveStore();
-  toast('✅ #' + name + ' kanalı oluşturuldu');
+  toast('# ' + name + ' kanali olusturuldu');
   closeModal();
   switchChannel(id);
 }
 
 // Kanal sil
 function deleteChannel(chId) {
-  if (!hasPermission(Store.user?._id, 'manageChannels')) return toast('❌ Yetkiniz yok', 'e');
-  if (chId === 'genel-sohbet') return toast('Genel sohbet kanalı silinemez', 'e');
-  if (!confirm(`Bu kanalı silmek istediğine emin misin?`)) return;
+  if (!hasPermission(Store.user?._id, 'manageChannels')) return toast('Yetkiniz yok', 'e');
+  if (chId === 'genel-sohbet') return toast('Genel sohbet kanali silinemez', 'e');
+  if (!confirm('Bu kanali silmek istediginize emin misiniz?')) return;
   
   Store.channels = Store.channels.filter(c => c.id !== chId);
   if (typeof MongoSync !== 'undefined' && MongoSync.deleteChannel) MongoSync.deleteChannel(chId);
@@ -106,23 +115,30 @@ function deleteChannel(chId) {
   
   renderChannels();
   if (typeof saveStore === 'function') saveStore();
-  toast('🗑️ Kanal silindi');
+  toast('Kanal silindi');
 }
 
 // Kategori oluştur
 function createCategory(name) {
-  if (!name?.trim()) return toast('Kategori adı gerekli', 'e');
-  if (!hasPermission(Store.user?._id, 'manageChannels')) return toast('❌ Yetkiniz yok', 'e');
+  if (!name?.trim()) return toast('Kategori adi gerekli', 'e');
+  if (!hasPermission(Store.user?._id, 'manageChannels')) return toast('Yetkiniz yok', 'e');
   
-  const cat = name.trim().toUpperCase();
+  const cat = name.trim().toUpperCase().replace(/[^A-Z0-9 ]/g, '');
   if ((Store.categories || []).includes(cat)) return toast('Bu kategori zaten var', 'e');
   
-  if (!Store.categories) Store.categories = ['METİN', 'SES'];
+  if (!Store.categories) Store.categories = ['METIN', 'SES'];
   Store.categories.push(cat);
   renderChannels();
   if (typeof saveStore === 'function') saveStore();
-  toast('📁 ' + cat + ' kategorisi eklendi');
+  toast(cat + ' kategorisi eklendi');
   closeModal();
 }
 
-console.log('✅ Channels.js yüklendi');
+// HTML escape
+function escapeHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str || '';
+  return d.innerHTML;
+}
+
+console.log('Channels.js yuklendi (SVG ikonlu)');
