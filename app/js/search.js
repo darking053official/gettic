@@ -1,4 +1,11 @@
-// ============ GETTIC SEARCH.JS - ARAMA SİSTEMİ ============
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║    GETTIC SEARCH.JS - SVG İKONLU + TÜRKÇE DÜZELTMELER           ║
+// ╚══════════════════════════════════════════════════════════════════╝
+
+// SVG ikon yardımcı
+function srcIcon(name, size = 18) {
+  return window.Icons?.[name] ? `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle">${Icons[name]}</svg>` : '';
+}
 
 // Arama state
 const searchState = {
@@ -14,29 +21,29 @@ const searchState = {
   isSearching: false
 };
 
-// Arama modal'ı
+// Arama penceresi
 function showSearchModal() {
   const modal = document.getElementById('modal');
   const content = document.getElementById('modalContent');
   if (!modal || !content) return;
   
   content.innerHTML = `
-    <h2>🔍 Arama</h2>
+    <h2>${srcIcon('search', 24)} Arama</h2>
     <div class="search-input-wrapper" style="position:relative;margin-bottom:12px">
       <input class="mi" id="searchInput" placeholder="Mesaj, kanal, kullanıcı ara..." 
-             value="${searchState.query}" 
+             value="${escapeHtml(searchState.query)}" 
              oninput="performSearch()" 
              onkeydown="if(event.key==='Escape')closeModal()"
              autofocus>
       ${searchState.query ? 
-        `<button onclick="clearSearch()" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--t3);cursor:pointer;font-size:16px">×</button>` : ''}
+        `<button onclick="clearSearch()" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--t3);cursor:pointer;font-size:16px">${srcIcon('x', 18)}</button>` : ''}
     </div>
     
     <div class="search-filters" style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">
-      <button class="search-filter ${searchState.filters.messages?'active':''}" onclick="toggleSearchFilter('messages')" style="padding:4px 10px;border-radius:14px;border:1px solid var(--b2);background:var(--bg2);color:var(--t2);font-size:11px;cursor:pointer;transition:all .15s">💬 Mesajlar</button>
-      <button class="search-filter ${searchState.filters.channels?'active':''}" onclick="toggleSearchFilter('channels')" style="padding:4px 10px;border-radius:14px;border:1px solid var(--b2);background:var(--bg2);color:var(--t2);font-size:11px;cursor:pointer;transition:all .15s"># Kanallar</button>
-      <button class="search-filter ${searchState.filters.users?'active':''}" onclick="toggleSearchFilter('users')" style="padding:4px 10px;border-radius:14px;border:1px solid var(--b2);background:var(--bg2);color:var(--t2);font-size:11px;cursor:pointer;transition:all .15s">👤 Kullanıcılar</button>
-      <button class="search-filter ${searchState.filters.files?'active':''}" onclick="toggleSearchFilter('files')" style="padding:4px 10px;border-radius:14px;border:1px solid var(--b2);background:var(--bg2);color:var(--t2);font-size:11px;cursor:pointer;transition:all .15s">📎 Dosyalar</button>
+      <button class="search-filter ${searchState.filters.messages?'active':''}" onclick="toggleSearchFilter('messages')">${srcIcon('message-square',14)} Mesajlar</button>
+      <button class="search-filter ${searchState.filters.channels?'active':''}" onclick="toggleSearchFilter('channels')">${srcIcon('hash',14)} Kanallar</button>
+      <button class="search-filter ${searchState.filters.users?'active':''}" onclick="toggleSearchFilter('users')">${srcIcon('user',14)} Kullanıcılar</button>
+      <button class="search-filter ${searchState.filters.files?'active':''}" onclick="toggleSearchFilter('files')">${srcIcon('paperclip',14)} Dosyalar</button>
     </div>
     
     <div id="searchResults" style="max-height:400px;overflow-y:auto">
@@ -47,11 +54,11 @@ function showSearchModal() {
       <div style="margin-top:12px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
           <span style="font-size:11px;color:var(--t3);font-weight:600">SON ARAMALAR</span>
-          <button onclick="clearSearchHistory()" style="background:none;border:none;color:var(--re);cursor:pointer;font-size:10px">Temizle</button>
+          <button onclick="clearSearchHistory()" style="background:none;border:none;color:var(--re);cursor:pointer;font-size:10px">${srcIcon('trash',12)} Temizle</button>
         </div>
         ${searchState.history.slice(0, 8).map(h => `
-          <div class="search-history-item" onclick="searchHistoryClick('${h}')" style="padding:6px 8px;border-radius:6px;cursor:pointer;font-size:12px;color:var(--t2);transition:background .15s" onmouseover="this.style.background='var(--bg2)'" onmouseout="this.style.background=''">
-            🕐 ${h}
+          <div class="search-history-item" onclick="searchHistoryClick('${escapeHtml(h)}')" style="padding:6px 8px;border-radius:6px;cursor:pointer;font-size:12px;color:var(--t2);transition:background .15s" onmouseover="this.style.background='var(--bg2)'" onmouseout="this.style.background=''">
+            ${srcIcon('clock',12)} ${escapeHtml(h)}
           </div>
         `).join('')}
       </div>
@@ -60,17 +67,25 @@ function showSearchModal() {
   
   modal.classList.remove('hidden');
   modal.classList.add('show');
-  
-  // CSS güncelle
   updateSearchStyles();
 }
 
 // Arama stilleri
 function updateSearchStyles() {
-  document.querySelectorAll('.search-filter.active').forEach(btn => {
-    btn.style.background = 'var(--ac)';
-    btn.style.color = '#fff';
-    btn.style.borderColor = 'var(--ac)';
+  document.querySelectorAll('.search-filter').forEach(btn => {
+    const isActive = btn.classList.contains('active');
+    btn.style.background = isActive ? 'var(--ac)' : 'var(--bg2)';
+    btn.style.color = isActive ? '#fff' : 'var(--t2)';
+    btn.style.borderColor = isActive ? 'var(--ac)' : 'var(--b2)';
+    btn.style.padding = '4px 10px';
+    btn.style.borderRadius = '14px';
+    btn.style.border = '1px solid';
+    btn.style.fontSize = '11px';
+    btn.style.cursor = 'pointer';
+    btn.style.transition = 'all .15s';
+    btn.style.display = 'inline-flex';
+    btn.style.alignItems = 'center';
+    btn.style.gap = '4px';
   });
 }
 
@@ -83,7 +98,8 @@ function performSearch() {
   searchState.query = query;
   
   if (query.length < 2) {
-    document.getElementById('searchResults').innerHTML = renderSearchResults();
+    const resultsEl = document.getElementById('searchResults');
+    if (resultsEl) resultsEl.innerHTML = renderSearchResults();
     return;
   }
   
@@ -129,17 +145,18 @@ function performSearch() {
   // Geçmişe ekle
   addToSearchHistory(query);
   
-  document.getElementById('searchResults').innerHTML = renderSearchResults();
+  const resultsEl = document.getElementById('searchResults');
+  if (resultsEl) resultsEl.innerHTML = renderSearchResults();
 }
 
-// Sonuçları render et
+// Sonuçları göster
 function renderSearchResults() {
   if (!searchState.query || searchState.query.length < 2) {
-    return '<p style="color:var(--t3);text-align:center;padding:20px">Aramak için en az 2 karakter yazın</p>';
+    return `<p style="color:var(--t3);text-align:center;padding:20px">${srcIcon('search',20)}<br>Aramak için en az 2 karakter yazın</p>`;
   }
   
   if (searchState.isSearching) {
-    return '<p style="color:var(--t3);text-align:center;padding:20px">Aranıyor...</p>';
+    return `<p style="color:var(--t3);text-align:center;padding:20px">${srcIcon('loader',20)}<br>Aranıyor...</p>`;
   }
   
   const r = searchState.results;
@@ -149,13 +166,13 @@ function renderSearchResults() {
   // Mesaj sonuçları
   if (r.messages?.length > 0) {
     totalResults += r.messages.length;
-    html += `<div class="search-section-title">💬 Mesajlar (${r.messages.length})</div>`;
+    html += `<div class="search-section-title">${srcIcon('message-square',14)} Mesajlar (${r.messages.length})</div>`;
     r.messages.forEach(m => {
       html += `
         <div class="mitem" onclick="jumpToMessage('${m._id}')">
           <div class="mav">${(m.senderName||'?').charAt(0).toUpperCase()}</div>
           <div class="minfo">
-            <div class="mname">${m.senderName} <span style="font-weight:400;color:var(--t3)">#${m.channelId}</span></div>
+            <div class="mname">${escapeHtml(m.senderName)} <span style="font-weight:400;color:var(--t3)">#${escapeHtml(m.channelId)}</span></div>
             <div class="msub">${highlightMatch(m.content?.substring(0, 80), searchState.query)}</div>
             <div style="font-size:9px;color:var(--t3)">${formatTime(m.createdAt)}</div>
           </div>
@@ -167,11 +184,11 @@ function renderSearchResults() {
   // Kanal sonuçları
   if (r.channels?.length > 0) {
     totalResults += r.channels.length;
-    html += `<div class="search-section-title"># Kanallar (${r.channels.length})</div>`;
+    html += `<div class="search-section-title">${srcIcon('hash',14)} Kanallar (${r.channels.length})</div>`;
     r.channels.forEach(c => {
       html += `
         <div class="mitem" onclick="switchChannel('${c.id}');closeModal()">
-          <div class="mav">#</div>
+          <div class="mav" style="background:var(--acd);color:var(--ac);font-weight:700">#</div>
           <div class="minfo">
             <div class="mname">${highlightMatch(c.name, searchState.query)}</div>
             <div class="msub">${c.type === 'voice' ? 'Ses Kanalı' : 'Metin Kanalı'}</div>
@@ -184,14 +201,14 @@ function renderSearchResults() {
   // Kullanıcı sonuçları
   if (r.users?.length > 0) {
     totalResults += r.users.length;
-    html += `<div class="search-section-title">👤 Kullanıcılar (${r.users.length})</div>`;
+    html += `<div class="search-section-title">${srcIcon('user',14)} Kullanıcılar (${r.users.length})</div>`;
     r.users.forEach(u => {
       html += `
-        <div class="mitem" onclick="startDM('${u.name}');closeModal()">
+        <div class="mitem" onclick="startDM('${escapeHtml(u.name)}');closeModal()">
           <div class="mav">${u.name.charAt(0).toUpperCase()}</div>
           <div class="minfo">
             <div class="mname">${highlightMatch(u.name, searchState.query)}</div>
-            <div class="msub">DM başlat</div>
+            <div class="msub">${srcIcon('mail',12)} DM başlat</div>
           </div>
         </div>
       `;
@@ -201,11 +218,11 @@ function renderSearchResults() {
   // Dosya sonuçları
   if (r.files?.length > 0) {
     totalResults += r.files.length;
-    html += `<div class="search-section-title">📎 Dosyalar (${r.files.length})</div>`;
+    html += `<div class="search-section-title">${srcIcon('paperclip',14)} Dosyalar (${r.files.length})</div>`;
     r.files.forEach(f => {
       html += `
         <div class="mitem" onclick="viewFile('${f.id}');closeModal()">
-          <div class="mav">📎</div>
+          <div class="mav" style="background:var(--acd)">${srcIcon('paperclip',16)}</div>
           <div class="minfo">
             <div class="mname">${highlightMatch(f.name, searchState.query)}</div>
             <div class="msub">${formatFileSize(f.size)} · ${formatTime(f.uploadedAt)}</div>
@@ -216,31 +233,33 @@ function renderSearchResults() {
   }
   
   if (totalResults === 0) {
-    html = '<p style="color:var(--t3);text-align:center;padding:20px">Sonuç bulunamadı</p>';
+    html = `<p style="color:var(--t3);text-align:center;padding:20px">${srcIcon('search',20)}<br>Sonuç bulunamadı</p>`;
   }
   
-  return html || '<p style="color:var(--t3);text-align:center;padding:20px">Sonuç bulunamadı</p>';
+  return html;
 }
 
 // Eşleşmeyi vurgula
 function highlightMatch(text, query) {
-  if (!text || !query) return text || '';
-  const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-  return text.replace(regex, '<span style="background:var(--acg);padding:0 2px;border-radius:2px">$1</span>');
+  if (!text || !query) return escapeHtml(text || '');
+  const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const regex = new RegExp(`(${escapedQuery})`, 'gi');
+  return escapeHtml(text).replace(regex, '<span style="background:var(--acd);padding:0 2px;border-radius:2px;font-weight:600">$1</span>');
 }
 
-// Arama filtresi toggle
+// Arama filtresi
 function toggleSearchFilter(filter) {
   searchState.filters[filter] = !searchState.filters[filter];
   performSearch();
-  showSearchModal(); // Refresh modal
+  showSearchModal();
 }
 
 // Aramayı temizle
 function clearSearch() {
   searchState.query = '';
   searchState.results = {};
-  document.getElementById('searchInput').value = '';
+  const input = document.getElementById('searchInput');
+  if (input) input.value = '';
   showSearchModal();
 }
 
@@ -254,7 +273,8 @@ function addToSearchHistory(query) {
 }
 
 function searchHistoryClick(query) {
-  document.getElementById('searchInput').value = query;
+  const input = document.getElementById('searchInput');
+  if (input) input.value = query;
   performSearch();
   showSearchModal();
 }
@@ -278,6 +298,21 @@ function jumpToMessage(mid) {
   }, 300);
 }
 
+// HTML kaçış
+function escapeHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str || '';
+  return d.innerHTML;
+}
+
+// Dosya boyutu formatı
+function formatFileSize(bytes) {
+  if (!bytes) return '0 B';
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / 1048576).toFixed(1) + ' MB';
+}
+
 // Arama CSS
 const searchStyle = document.createElement('style');
 searchStyle.textContent = `
@@ -290,6 +325,9 @@ searchStyle.textContent = `
     padding: 8px 0 4px;
     margin-top: 4px;
     border-top: 1px solid var(--b);
+    display: flex;
+    align-items: center;
+    gap: 4px;
   }
   .search-section-title:first-child {
     border-top: none;
@@ -314,3 +352,5 @@ document.addEventListener('DOMContentLoaded', () => {
   const searchBtn = document.getElementById('searchBtn');
   if (searchBtn) searchBtn.onclick = showSearchModal;
 });
+
+console.log('Search.js yüklendi (SVG ikonlu + Türkçe düzeltmeler)');
