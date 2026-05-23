@@ -185,6 +185,7 @@ function showMain() {
   if(typeof loadActiveServers==='function') loadActiveServers();
   updateUIPermissions();
   if (typeof MongoSync !== 'undefined') setTimeout(() => MongoSync.syncAll(), 2000);
+  initSocket();
 }
 
 function showLogin() { $('ls')?.classList.add('hide'); $('loginScreen')?.classList.remove('hidden'); $('mainScreen')?.classList.add('hidden'); }
@@ -235,3 +236,86 @@ window.addEventListener('beforeunload', ()=>{ if(typeof saveStore==='function') 
 document.addEventListener('keydown', function(e) { if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); if (typeof openModal === 'function') openModal('search'); } if (e.key === 'Escape') { if (typeof closeModal === 'function') closeModal(); $('emojiPanel')?.classList.add('hidden'); } });
 if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/service-worker.js').catch(()=>{}); }
 console.log('✅ App.js yüklendi');
+
+// ============ SOCKET.IO REALTIME ============
+function initSocket() {
+  if (!Store.token || !Store.user) return;
+  
+  if (socket) {
+    socket.disconnect();
+  }
+  
+  socket = io(API, {
+    auth: { token: Store.token }
+  });
+  
+  socket.on('connect', () => {
+    console.log('✅ Socket bağlandı');
+    $('connbar')?.classList.add('hidden');
+    if (Store.activeChannel) {
+      socket.emit('join_channel', Store.activeChannel);
+    }
+  });
+  
+  socket.on('disconnect', () => {
+    console.log('🔌 Socket koptu');
+    $('connbar')?.classList.remove('hidden');
+  });
+  
+  socket.on('new_message', (msg) => {
+    // Aynı mesajı iki kere ekleme
+    if (!Store.messages.find(m => m._id === msg._id)) {
+      Store.messages.push(msg);
+      if (typeof renderMessages === 'function') renderMessages();
+      if (typeof saveStore === 'function') saveStore();
+      scrollToBottom();
+    }
+  });
+  
+  socket.on('user_typing', ({ username, channelId }) => {
+    if (channelId === Store.activeChannel) {
+      $('typing').textContent = username + ' yazıyor...';
+      clearTimeout(window._typingTimeout);
+      window._typingTimeout = setTimeout(() => {
+        $('typing').textContent = '';
+      }, 2000);
+    }
+  });
+}
+
+function sendMessage() {
+  const input = $('messageInput');
+  const content = input?.value?.trim();
+  if (!content || !Store.user || !socket?.connected) return;
+  
+  const msgData = {
+    channelId: Store.activeChannel || 'genel-sohbet',
+    content: content,
+    senderName: Store.user.username,
+    senderId: Store.user._id,
+    createdAt: new Date().toISOString()
+  };
+  
+  socket.emit('send_message', msgData);
+  input.value = '';
+  input.focus();
+}
+
+function scrollToBottom() {
+  const msgs = $('messages');
+  if (msgs) {
+    setTimeout(() => {
+      msgs.scrollTop = msgs.scrollHeight;
+    }, 50);
+  }
+}
+
+// Typing indicator
+$('messageInput')?.addEventListener('input', () => {
+  if (socket?.connected && Store.user) {
+    socket.emit('typing', {
+      channelId: Store.activeChannel || 'genel-sohbet',
+      username: Store.user.username
+    });
+  }
+});
