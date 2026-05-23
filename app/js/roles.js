@@ -1,4 +1,11 @@
-// ============ GETTIC ROLES.JS - FULL ROL YÖNETİMİ ============
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║      GETTIC ROLES.JS - SVG İKONLU + TÜRKÇE DÜZELTMELER          ║
+// ╚══════════════════════════════════════════════════════════════════╝
+
+// SVG ikon yardımcı
+function rolIcon(name, size = 18) {
+  return window.Icons?.[name] ? `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle">${Icons[name]}</svg>` : '';
+}
 
 const DEFAULT_ROLES = [
   { 
@@ -6,7 +13,7 @@ const DEFAULT_ROLES = [
     permissions: { all: true }, 
     position: 0, hoist: true, mentionable: true, 
     editable: false, deletable: false,
-    icon: '👑', members: 1
+    icon: 'crown', members: 1
   },
   { 
     id: 'r2', name: 'Admin', color: '#ef4444', 
@@ -19,7 +26,7 @@ const DEFAULT_ROLES = [
     }, 
     position: 1, hoist: true, mentionable: true, 
     editable: true, deletable: false,
-    icon: '🛡️', members: 0
+    icon: 'shield', members: 0
   },
   { 
     id: 'r3', name: 'Moderatör', color: '#6366f1', 
@@ -29,7 +36,7 @@ const DEFAULT_ROLES = [
     }, 
     position: 2, hoist: true, mentionable: true, 
     editable: true, deletable: true,
-    icon: '🔨', members: 0
+    icon: 'hammer', members: 0
   },
   { 
     id: 'r4', name: 'Üye', color: '#ec4899', 
@@ -41,21 +48,26 @@ const DEFAULT_ROLES = [
     }, 
     position: 3, hoist: false, mentionable: false, 
     editable: false, deletable: false,
-    icon: '👤', members: 0
+    icon: 'user', members: 0
   }
 ];
 
-// Audit Log
+// Rol SVG ikon eşleştirme
+function getRoleSvgIcon(iconName) {
+  const iconMap = {
+    'crown': 'crown', 'shield': 'shield', 'hammer': 'hammer', 'user': 'user',
+    'star': 'star', 'zap': 'zap', 'heart': 'heart', 'sun': 'sun'
+  };
+  return rolIcon(iconMap[iconName] || 'user', 18);
+}
+
+// Denetim Kaydı
 const AuditLog = {
   logs: JSON.parse(localStorage.getItem('gt_auditLog') || '[]'),
   
   add(action, userId, targetId, details = {}) {
     this.logs.unshift({
-      id: genId(),
-      action,
-      userId,
-      targetId,
-      details,
+      id: genId(), action, userId, targetId, details,
       timestamp: new Date().toISOString()
     });
     if (this.logs.length > 500) this.logs.pop();
@@ -73,7 +85,7 @@ const AuditLog = {
   clear() {
     this.logs = [];
     localStorage.removeItem('gt_auditLog');
-    toast('📋 Denetim kaydı temizlendi');
+    toast(rolIcon('file-text') + ' Denetim kaydı temizlendi');
   }
 };
 
@@ -99,7 +111,7 @@ function hasPermission(uid, perm) {
 
 // Rol Oluştur
 function createRole(name, color = '#9ca3af', permissions = {}) {
-  if (!hasPermission(Store.user?._id, 'manageRoles')) return toast('❌ Yetkiniz yok', 'e');
+  if (!hasPermission(Store.user?._id, 'manageRoles')) return toast('Yetkiniz yok', 'e');
   if (!name?.trim()) return toast('Rol adı gerekli', 'e');
   if (name.trim().length > 50) return toast('Rol adı çok uzun', 'e');
   
@@ -109,21 +121,21 @@ function createRole(name, color = '#9ca3af', permissions = {}) {
     permissions: { sendMsg: true, addReactions: true, connect: true, ...permissions },
     position: (Store.roles || DEFAULT_ROLES).length,
     hoist: false, mentionable: true, editable: true, deletable: true,
-    icon: '🔧', members: 0, createdAt: new Date().toISOString()
+    icon: 'star', members: 0, createdAt: new Date().toISOString()
   };
   
   if (!Store.roles) Store.roles = [...DEFAULT_ROLES];
   Store.roles.push(newRole);
   AuditLog.add('role_create', Store.user._id, null, { roleName: name, roleId: id });
   saveStore();
-  toast('✅ ' + name + ' rolü oluşturuldu');
+  toast(rolIcon('check') + ' ' + name + ' rolü oluşturuldu');
   renderRolesPanel();
   return newRole;
 }
 
 // Rol Sil
 function deleteRole(roleId) {
-  if (!hasPermission(Store.user?._id, 'manageRoles')) return toast('❌ Yetkiniz yok', 'e');
+  if (!hasPermission(Store.user?._id, 'manageRoles')) return toast('Yetkiniz yok', 'e');
   const role = (Store.roles || DEFAULT_ROLES).find(r => r.id === roleId);
   if (!role) return;
   if (!role.deletable) return toast('Bu rol silinemez', 'e');
@@ -135,13 +147,13 @@ function deleteRole(roleId) {
   
   AuditLog.add('role_delete', Store.user._id, null, { roleName: role.name, roleId });
   saveStore();
-  toast('🗑️ ' + role.name + ' silindi');
+  toast(rolIcon('trash') + ' ' + role.name + ' silindi');
   renderRolesPanel();
 }
 
 // Rol Düzenle
 function editRole(roleId, updates) {
-  if (!hasPermission(Store.user?._id, 'manageRoles')) return toast('❌ Yetkiniz yok', 'e');
+  if (!hasPermission(Store.user?._id, 'manageRoles')) return toast('Yetkiniz yok', 'e');
   const role = (Store.roles || DEFAULT_ROLES).find(r => r.id === roleId);
   if (!role || !role.editable) return;
   
@@ -155,13 +167,13 @@ function editRole(roleId, updates) {
   
   AuditLog.add('role_edit', Store.user._id, null, { roleName: role.name, updates });
   saveStore();
-  toast('✅ Rol güncellendi');
+  toast(rolIcon('check') + ' Rol güncellendi');
   renderRolesPanel();
 }
 
 // Rol Ata / Kaldır
 function assignRole(uid, roleId) {
-  if (!hasPermission(Store.user?._id, 'manageRoles')) return toast('❌ Yetkiniz yok', 'e');
+  if (!hasPermission(Store.user?._id, 'manageRoles')) return toast('Yetkiniz yok', 'e');
   if (!Store.userRoles) Store.userRoles = {};
   if (!Store.userRoles[uid]) Store.userRoles[uid] = ['r4'];
   if (Store.userRoles[uid].includes(roleId)) return toast('Bu rol zaten atanmış', 'e');
@@ -169,53 +181,53 @@ function assignRole(uid, roleId) {
   Store.userRoles[uid].push(roleId);
   AuditLog.add('role_assign', Store.user._id, uid, { roleId });
   saveStore();
-  toast('✅ Rol atandı');
+  toast(rolIcon('user-plus') + ' Rol atandı');
 }
 
 function removeRole(uid, roleId) {
-  if (!hasPermission(Store.user?._id, 'manageRoles')) return toast('❌ Yetkiniz yok', 'e');
+  if (!hasPermission(Store.user?._id, 'manageRoles')) return toast('Yetkiniz yok', 'e');
   if (roleId === 'r4') return toast('Varsayılan rol kaldırılamaz', 'e');
   if (!Store.userRoles?.[uid]) return;
   
   Store.userRoles[uid] = Store.userRoles[uid].filter(id => id !== roleId);
   AuditLog.add('role_remove', Store.user._id, uid, { roleId });
   saveStore();
-  toast('✅ Rol kaldırıldı');
+  toast(rolIcon('user-minus') + ' Rol kaldırıldı');
 }
 
 // Kullanıcı Yönetimi
 function kickUser(uid) {
-  if (!hasPermission(Store.user?._id, 'kick')) return toast('❌ Yetkiniz yok', 'e');
+  if (!hasPermission(Store.user?._id, 'kick')) return toast('Yetkiniz yok', 'e');
   const targetRole = getHighestRole(uid);
   const userRole = getHighestRole(Store.user?._id);
   if (targetRole.position <= userRole.position) return toast('Bu kullanıcıyı atamazsın', 'e');
   
   AuditLog.add('kick', Store.user._id, uid);
-  toast('👢 Kullanıcı atıldı');
-  if (window._socket) window._socket.emit('kick_user', { userId: uid });
+  toast(rolIcon('user-x') + ' Kullanıcı atıldı');
+  if (socket) socket.emit('kick_user', { userId: uid });
 }
 
 function banUser(uid) {
-  if (!hasPermission(Store.user?._id, 'ban')) return toast('❌ Yetkiniz yok', 'e');
+  if (!hasPermission(Store.user?._id, 'ban')) return toast('Yetkiniz yok', 'e');
   if (!Store.blockedUsers) Store.blockedUsers = [];
   if (Store.blockedUsers.includes(uid)) {
     Store.blockedUsers = Store.blockedUsers.filter(u => u !== uid);
-    toast('✅ Yasak kaldırıldı');
+    toast(rolIcon('check') + ' Yasak kaldırıldı');
   } else {
     Store.blockedUsers.push(uid);
-    toast('🚫 Kullanıcı yasaklandı');
+    toast(rolIcon('ban') + ' Kullanıcı yasaklandı');
   }
   AuditLog.add('ban', Store.user._id, uid);
   saveStore();
 }
 
 function muteUser(uid, duration = 300000) {
-  if (!hasPermission(Store.user?._id, 'mute')) return toast('❌ Yetkiniz yok', 'e');
+  if (!hasPermission(Store.user?._id, 'mute')) return toast('Yetkiniz yok', 'e');
   if (!Store.mutedUsers) Store.mutedUsers = [];
   Store.mutedUsers.push(uid);
   AuditLog.add('mute', Store.user._id, uid, { duration });
   saveStore();
-  toast('🔇 Susturuldu (' + (duration/60000) + ' dk)');
+  toast(rolIcon('volume-x') + ' Susturuldu (' + (duration/60000) + ' dk)');
   setTimeout(() => {
     Store.mutedUsers = Store.mutedUsers.filter(u => u !== uid);
     saveStore();
@@ -271,15 +283,15 @@ function renderRolesPanel() {
     ${roles.map(role => `
       <div class="settings-item" style="justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--b)">
         <div style="display:flex;align-items:center;gap:10px">
-          <span style="font-size:18px">${role.icon || '👤'}</span>
+          <span style="font-size:18px">${getRoleSvgIcon(role.icon)}</span>
           <div>
-            <div style="font-weight:600;font-size:13px;color:${role.color}">${role.name}</div>
+            <div style="font-weight:600;font-size:13px;color:${role.color}">${escapeHtml(role.name)}</div>
             <div style="font-size:10px;color:var(--t3)">${role.members || 0} üye · ${Object.values(role.permissions).filter(Boolean).length} yetki</div>
           </div>
         </div>
         <div style="display:flex;gap:4px">
-          ${role.editable ? `<button class="ib" onclick="showEditRoleForm('${role.id}')" style="width:26px;height:26px">✏️</button>` : ''}
-          ${role.deletable ? `<button class="ib" onclick="deleteRole('${role.id}')" style="width:26px;height:26px;color:var(--re)">🗑️</button>` : ''}
+          ${role.editable ? `<button class="ib" onclick="showEditRoleForm('${role.id}')" style="width:26px;height:26px">${rolIcon('edit',14)}</button>` : ''}
+          ${role.deletable ? `<button class="ib" onclick="deleteRole('${role.id}')" style="width:26px;height:26px;color:var(--re)">${rolIcon('trash',14)}</button>` : ''}
         </div>
       </div>
     `).join('')}
@@ -291,7 +303,7 @@ function showCreateRoleForm() {
   if (!content) return;
   
   content.innerHTML = `
-    <h2>🛡️ Rol Oluştur</h2>
+    <h2>${rolIcon('shield',24)} Rol Oluştur</h2>
     <input class="mi" id="newRoleName" placeholder="Rol adı">
     <label class="ml">Renk</label>
     <input type="color" class="mi" id="newRoleColor" value="#ec4899" style="height:40px;padding:4px;cursor:pointer">
@@ -300,7 +312,7 @@ function showCreateRoleForm() {
       ${Object.entries(PERMISSION_LIST).filter(([k]) => k !== 'all').map(([key, name]) => `
         <label class="poll-setting">
           <input type="checkbox" class="perm-check" data-perm="${key}" ${key === 'sendMsg' || key === 'connect' ? 'checked' : ''}>
-          ${name}
+          ${escapeHtml(name)}
         </label>
       `).join('')}
     </div>
@@ -329,8 +341,8 @@ function showEditRoleForm(roleId) {
   if (!content) return;
   
   content.innerHTML = `
-    <h2>✏️ ${role.name} Düzenle</h2>
-    <input class="mi" id="editRoleName" value="${role.name}" placeholder="Rol adı">
+    <h2>${rolIcon('edit',24)} ${escapeHtml(role.name)} Düzenle</h2>
+    <input class="mi" id="editRoleName" value="${escapeHtml(role.name)}" placeholder="Rol adı">
     <label class="ml">Renk</label>
     <input type="color" class="mi" id="editRoleColor" value="${role.color}" style="height:40px;padding:4px;cursor:pointer">
     <button class="mb" onclick="submitEditRole('${roleId}')">Kaydet</button>
@@ -342,4 +354,13 @@ function submitEditRole(roleId) {
   const name = document.getElementById('editRoleName')?.value;
   const color = document.getElementById('editRoleColor')?.value;
   editRole(roleId, { name, color });
-  }
+}
+
+// HTML kaçış
+function escapeHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str || '';
+  return d.innerHTML;
+}
+
+console.log('Roles.js yüklendi (SVG ikonlu + Türkçe düzeltmeler)');
