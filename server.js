@@ -50,7 +50,7 @@ const messageLimiter = rateLimit({
     windowMs: 3 * 1000,
     max: 1,
     keyGenerator: (req) => req.ip,
-    message: { error: 'Spam yapma! 3 saniye bekle.' }
+    message: { error: '3 saniye bekleyin.' }
 });
 
 const imageLimiter = rateLimit({
@@ -294,9 +294,14 @@ app.get('/app/*', (req, res) => res.sendFile(path.join(__dirname, 'app', 'index.
 // ==================== ALTCHA ====================
 app.get('/api/auth/altcha', async (req, res) => {
     try {
-        const challenge = await altcha.createChallenge({ hmacKey: process.env.ALTCHA_HMAC_KEY || crypto.randomBytes(32).toString('hex') });
+        const challenge = await createChallenge({ 
+            hmacKey: process.env.ALTCHA_HMAC_KEY || crypto.randomBytes(32).toString('hex'),
+            maxNumber: 50000
+        });
         res.json(challenge);
-    } catch (e) { res.status(500).json({ error: 'Captcha hatası' }); }
+    } catch (e) { 
+        res.status(500).json({ error: 'Captcha hatası' }); 
+    }
 });
 
 // ==================== AUTH ENDPOINTS ====================
