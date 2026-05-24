@@ -292,17 +292,18 @@ app.get('/app', (req, res) => res.sendFile(path.join(__dirname, 'app', 'index.ht
 app.get('/app/*', (req, res) => res.sendFile(path.join(__dirname, 'app', 'index.html')));
 
 // ==================== ALTCHA ====================
-app.get('/api/auth/altcha', async (req, res) => {
+app.get('/api/auth/altcha', (req, res) => {
     const crypto = require('crypto');
-    const hmacKey = 'gettic-sabit-key-2024';
-    const salt = Date.now().toString(16) + crypto.randomBytes(8).toString('hex');
-    const number = Math.floor(Math.random() * 50000) + 1000;
+    const salt = Math.random().toString(36).substring(2, 15);
+    const number = Math.floor(Math.random() * 100000) + 1;
+    const challenge = crypto.createHash('sha256').update(salt + number).digest('hex');
+    const signature = crypto.createHmac('sha256', 'gettic2024').update(salt + number).digest('hex');
     
     res.json({
         algorithm: 'SHA-256',
-        challenge: crypto.createHash('sha256').update(salt + number).digest('hex'),
+        challenge: challenge,
         salt: salt,
-        signature: crypto.createHmac('sha256', hmacKey).update(salt + number).digest('hex')
+        signature: signature
     });
 });
 
