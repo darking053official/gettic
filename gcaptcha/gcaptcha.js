@@ -51,22 +51,22 @@ class GCaptchaWidget extends HTMLElement {
     const spinner = this.shadowRoot.getElementById('spinner');
     const label = this.shadowRoot.querySelector('.gcaptcha-label');
 
-    container.addEventListener('click', async () => {
-      if (this._verified) return;
-      this._verified = true;
-      checkbox.classList.add('checked');
-      spinner.style.display = 'block';
-      label.textContent = 'Doğrulanıyor...';
-      label.style.color = '#6b7280';
-      await new Promise(r => setTimeout(r, 2000));
-      spinner.style.display = 'none';
-      this._token = 'gcaptcha_' + Date.now() + '_' + Math.random().toString(36).substring(2, 10);
-      container.classList.add('verified');
-      label.textContent = 'Doğrulandı!';
-      label.style.color = '#10b981';
-    });
-  }
-
+ const self = this;
+container.addEventListener('click', async () => {
+  if (self._verified) return;
+  self._verified = true;
+  checkbox.classList.add('checked');
+  spinner.style.display = 'block';
+  label.textContent = 'Doğrulanıyor...';
+  label.style.color = '#6b7280';
+  await new Promise(r => setTimeout(r, 2000));
+  spinner.style.display = 'none';
+  self._token = 'gcaptcha_' + Date.now() + '_' + Math.random().toString(36).substring(2, 10);
+  container.classList.add('verified');
+  label.textContent = 'Doğrulandı!';
+  label.style.color = '#10b981';
+});
+    
   getValue() { return this._verified ? this._token : null; }
 
   reset() {
