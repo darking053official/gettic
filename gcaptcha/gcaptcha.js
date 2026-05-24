@@ -7,6 +7,8 @@ class GCaptchaWidget extends HTMLElement {
   }
 
   connectedCallback() {
+    const self = this;
+
     this.shadowRoot.innerHTML = `
       <style>
         :host { display: block; margin: 8px 0; user-select: none; max-width: 300px; }
@@ -46,28 +48,30 @@ class GCaptchaWidget extends HTMLElement {
       <div class="gcaptcha-footer"><span class="gcaptcha-terms">Gettic Güvenlik</span></div>
     `;
 
-    const container = this.shadowRoot.getElementById('container');
-    const checkbox = this.shadowRoot.getElementById('checkbox');
-    const spinner = this.shadowRoot.getElementById('spinner');
-    const label = this.shadowRoot.querySelector('.gcaptcha-label');
+    const container = self.shadowRoot.getElementById('container');
+    const checkbox = self.shadowRoot.getElementById('checkbox');
+    const spinner = self.shadowRoot.getElementById('spinner');
+    const label = self.shadowRoot.querySelector('.gcaptcha-label');
 
- const self = this;
-container.addEventListener('click', async () => {
-  if (self._verified) return;
-  self._verified = true;
-  checkbox.classList.add('checked');
-  spinner.style.display = 'block';
-  label.textContent = 'Doğrulanıyor...';
-  label.style.color = '#6b7280';
-  await new Promise(r => setTimeout(r, 2000));
-  spinner.style.display = 'none';
-  self._token = 'gcaptcha_' + Date.now() + '_' + Math.random().toString(36).substring(2, 10);
-  container.classList.add('verified');
-  label.textContent = 'Doğrulandı!';
-  label.style.color = '#10b981';
-});
-    
-  getValue() { return this._verified ? this._token : null; }
+    container.addEventListener('click', async () => {
+      if (self._verified) return;
+      self._verified = true;
+      self._token = 'gcaptcha_' + Date.now() + '_' + Math.random().toString(36).substring(2, 10);
+      checkbox.classList.add('checked');
+      spinner.style.display = 'block';
+      label.textContent = 'Doğrulanıyor...';
+      label.style.color = '#6b7280';
+      await new Promise(r => setTimeout(r, 2000));
+      spinner.style.display = 'none';
+      container.classList.add('verified');
+      label.textContent = 'Doğrulandı!';
+      label.style.color = '#10b981';
+    });
+  }
+
+  getValue() {
+    return this._verified ? this._token : null;
+  }
 
   reset() {
     this._verified = false;
