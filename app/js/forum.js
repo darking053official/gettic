@@ -7,6 +7,8 @@ function fmIcon(name, size = 16) {
   return window.Icons?.[name] ? `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle">${Icons[name]}</svg>` : '';
 }
 
+if (typeof Store === 'undefined') var Store = {};
+
 const forumState = {
   posts: JSON.parse(localStorage.getItem('gt_forum_posts') || '{}'),
   activePost: null,
