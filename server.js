@@ -314,9 +314,6 @@ app.get('/api/auth/altcha', async (req, res) => {
 app.post('/api/auth/register', authLimiter, async (req, res) => {
     try {
         const { username, password, altcha: payload } = req.body;
-        
-        // Altcha doğrulama
-        const { username, password, altcha: payload } = req.body;
         if (!payload) return res.status(400).json({ error: 'Doğrulama gerekli' });
         const ok = await verifySolution(payload, process.env.ALTCHA_HMAC_KEY || crypto.randomBytes(32).toString('hex'));
         if (!ok) return res.status(400).json({ error: 'Doğrulama başarısız' });
