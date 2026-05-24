@@ -70,7 +70,7 @@
         <div id="loginForm">
             <input class="mi" id="authEmail" placeholder="E-posta adresi" type="email" autocomplete="email">
             <input class="mi" type="password" id="authPassword" placeholder="Şifre">
-            <gcaptcha-widget></gcaptcha-widget>
+            <gcaptcha-widget id="loginCaptcha"></gcaptcha-widget>
             <button class="mb" id="authSubmit">Giriş</button>
             <div style="margin-top:8px;font-size:11px">
                 <a href="#" onclick="showForgotPassword()" style="color:var(--ac);text-decoration:none">Şifremi Unuttum</a>
@@ -85,7 +85,7 @@
                 <input class="mi" id="verificationCode" placeholder="6 haneli kod" maxlength="6" inputmode="numeric" pattern="[0-9]*">
                 <input class="mi" type="text" id="regUsername" placeholder="Kullanıcı adı">
                 <input class="mi" type="password" id="regPassword" placeholder="Şifre">
-                <gcaptcha-widget></gcaptcha-widget>
+                <gcaptcha-widget id="registerCaptcha"></gcaptcha-widget>
                 <button class="mb" onclick="registerWithCode()">Kayıt Ol</button>
             </div>
             <div id="codeMsg" style="font-size:11px;margin-top:8px"></div>
