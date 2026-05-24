@@ -36,10 +36,10 @@ $('tabRegister').onclick = () => {
   $('registerForm').style.display='';
 };
 
-// ============ ALTCHA ============
-function getAltchaPayload() {
-  try { return document.querySelector('altcha-widget')?.getValue() || null; }
-  catch(e) { return null; }
+// ============ GCAPTCHA ============
+function getCaptchaPayload() {
+  const w = document.querySelector('gcaptcha-widget');
+  return w?.getValue() || null;
 }
 
 // ============ SVG İKON YERLEŞTİR ============
