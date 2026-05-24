@@ -123,10 +123,13 @@ async function sendVerificationCode() {
       method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({to:email,subject:'Gettic Doğrulama Kodu',html:`<h2>Gettic</h2><p>Kod: <b>${verificationCode}</b></p>`})
     });
-    $('codeSection').style.display=''; // codeSection'ı göster (içinde widget var)
+    $('codeSection').style.display='';
     $('sendCodeBtn').style.display='none';
     $('codeMsg').textContent='✅ Kod gönderildi! Spamı kontrol edin.';
     $('codeMsg').style.color='var(--gr)';
+    
+    // Widget'ın render edilmesi için kısa bekle
+    await new Promise(r => setTimeout(r, 300));
   } catch(e) { $('codeMsg').textContent='❌ Kod gönderilemedi.';$('codeMsg').style.color='var(--re)'; }
 }
 
