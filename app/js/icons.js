@@ -155,3 +155,5 @@ function randomIcon() {
 }
 
 console.log('✅ Icons.js yüklendi - ' + Object.keys(I).length + ' ikon hazır');
+
+window.Icons = I;
