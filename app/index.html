@@ -10,9 +10,6 @@
     <link rel="icon" href="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png">
     <link rel="manifest" href="/manifest.json">
     <title>Gettic</title>
-    
-    <script src="https://cdn.jsdelivr.net/npm/altcha@1/dist/altcha.min.js" async defer></script>
-    
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/reset.css">
     <link rel="stylesheet" href="css/layout.css">
@@ -86,13 +83,13 @@
         <div id="registerForm" style="display:none">
             <input class="mi" id="regEmail" placeholder="E-posta adresi" type="email">
             <button class="mb" id="sendCodeBtn" onclick="sendVerificationCode()">Kodu Gönder</button>
+            
+            <altcha-widget challengeurl="/api/auth/altcha"></altcha-widget>
+            
             <div id="codeSection" style="display:none">
                 <input class="mi" id="verificationCode" placeholder="6 haneli kod" maxlength="6" inputmode="numeric" pattern="[0-9]*">
                 <input class="mi" type="text" id="regUsername" placeholder="Kullanıcı adı">
                 <input class="mi" type="password" id="regPassword" placeholder="Şifre">
-                
-                <altcha-widget challengeurl="/api/auth/altcha"></altcha-widget>
-                
                 <button class="mb" onclick="registerWithCode()">Kayıt Ol</button>
             </div>
             <div id="codeMsg" style="font-size:11px;margin-top:8px"></div>
