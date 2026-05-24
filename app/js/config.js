@@ -2,7 +2,7 @@
 // ║                    GETTIC CONFIG.JS                              ║
 // ╚══════════════════════════════════════════════════════════════════╝
 
-const API = 'https://camping-cohen-picked-skirts.trycloudflare.com';
+const API = 'https://continuing-spread-been-clara.trycloudflare.com';
 const ALTCHA_URL = API + '/api/auth/altcha';
 const MAX_MSGS = 100;
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
