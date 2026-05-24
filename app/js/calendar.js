@@ -2,6 +2,8 @@
 // ║              GETTIC CALENDAR.JS - SVG İKONLU FINAL               ║
 // ╚══════════════════════════════════════════════════════════════════╝
 
+if (typeof Store === 'undefined') { console.warn('Store henüz yok, calendar.js bekliyor...'); }
+
 const calendarState = {
   events: JSON.parse(localStorage.getItem('gt_events') || '[]'),
   currentMonth: new Date().getMonth(),
