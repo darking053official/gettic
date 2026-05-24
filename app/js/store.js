@@ -1,8 +1,8 @@
 // ╔══════════════════════════════════════════════════════════════════╗
-// ║           GETTIC STORE.JS - GÜNCELLENDİ                          ║
+// ║           GETTIC STORE.JS - TAM GÜNCEL                         ║
 // ╚══════════════════════════════════════════════════════════════════╝
 
-const Store = {
+window.Store = window.Store || {
   user: null,
   token: localStorage.getItem('gt_token') || null,
   isOnline: navigator.onLine,
@@ -30,78 +30,66 @@ const Store = {
   customEmojis: JSON.parse(localStorage.getItem('gt_custom_emojis') || '[]')
 };
 
-// Sayfa yüklendiğinde mesajları localStorage'dan geri yükle
+// Mesajları localStorage'dan geri yükle
 try {
   const saved = localStorage.getItem('gt_messages');
-  if (saved) Store.messages = JSON.parse(saved);
+  if (saved) window.Store.messages = JSON.parse(saved);
 } catch(e) {
-  Store.messages = [];
+  window.Store.messages = [];
 }
 
 // Kaydet
-function saveStore() {
+window.saveStore = function() {
   try {
+    const S = window.Store;
     const maxMessages = 200;
-    localStorage.setItem('gt_messages', JSON.stringify(Store.messages.slice(-maxMessages)));
-    localStorage.setItem('gt_activeChannel', Store.activeChannel);
-    localStorage.setItem('gt_ac', Store.theme);
-    localStorage.setItem('gt_channels', JSON.stringify(Store.channels));
-    localStorage.setItem('gt_categories', JSON.stringify(Store.categories));
-    localStorage.setItem('gt_userRoles', JSON.stringify(Store.userRoles));
-    localStorage.setItem('gt_roles', JSON.stringify(Store.roles));
-    localStorage.setItem('gt_blocked', JSON.stringify(Store.blockedUsers));
-    localStorage.setItem('gt_muted', JSON.stringify(Store.mutedUsers));
-    localStorage.setItem('gt_serverIcons', JSON.stringify(Store.serverIcons));
-    localStorage.setItem('gt_custom_emojis', JSON.stringify(Store.customEmojis));
-    if (Store.token) localStorage.setItem('gt_token', Store.token);
+    localStorage.setItem('gt_messages', JSON.stringify(S.messages.slice(-maxMessages)));
+    localStorage.setItem('gt_activeChannel', S.activeChannel);
+    localStorage.setItem('gt_ac', S.theme);
+    localStorage.setItem('gt_channels', JSON.stringify(S.channels));
+    localStorage.setItem('gt_categories', JSON.stringify(S.categories));
+    localStorage.setItem('gt_userRoles', JSON.stringify(S.userRoles));
+    localStorage.setItem('gt_roles', JSON.stringify(S.roles));
+    localStorage.setItem('gt_blocked', JSON.stringify(S.blockedUsers));
+    localStorage.setItem('gt_muted', JSON.stringify(S.mutedUsers));
+    localStorage.setItem('gt_serverIcons', JSON.stringify(S.serverIcons));
+    localStorage.setItem('gt_custom_emojis', JSON.stringify(S.customEmojis));
+    if (S.token) localStorage.setItem('gt_token', S.token);
   } catch(e) {
     console.warn('Storage dolu, eski veriler temizleniyor...');
-    // Storage doluysa eski mesajları temizle
     localStorage.removeItem('gt_messages');
-    localStorage.setItem('gt_messages', JSON.stringify(Store.messages.slice(-50)));
+    localStorage.setItem('gt_messages', JSON.stringify(window.Store.messages.slice(-50)));
   }
-}
+};
 
 // Çevrimiçi durum
 window.addEventListener('online', () => { 
-  Store.isOnline = true; 
+  window.Store.isOnline = true; 
   document.body.classList.remove('offline');
-  toast('Bağlantı geri geldi', 's');
 });
 
 window.addEventListener('offline', () => { 
-  Store.isOnline = false; 
+  window.Store.isOnline = false; 
   document.body.classList.add('offline');
-  toast('Bağlantı koptu - çevrimdışı mod', 'e');
 });
 
-// Storage temizleme (çok doluysa)
-function cleanStorage() {
-  const maxSize = 4.5 * 1024 * 1024; // 4.5MB
+// Storage temizleme
+window.cleanStorage = function() {
+  const maxSize = 4.5 * 1024 * 1024;
   let totalSize = 0;
-  
   for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    totalSize += (localStorage.getItem(key) || '').length;
+    totalSize += (localStorage.getItem(localStorage.key(i)) || '').length;
   }
-  
   if (totalSize > maxSize) {
-    // En eski mesajları temizle
-    Store.messages = Store.messages.slice(-50);
-    saveStore();
-    
-    // DM mesajlarını sınırla
+    window.Store.messages = window.Store.messages.slice(-50);
+    window.saveStore();
     const dmMessages = JSON.parse(localStorage.getItem('gt_dm_messages') || '{}');
-    Object.keys(dmMessages).forEach(key => {
-      dmMessages[key] = dmMessages[key].slice(-30);
-    });
+    Object.keys(dmMessages).forEach(key => { dmMessages[key] = dmMessages[key].slice(-30); });
     localStorage.setItem('gt_dm_messages', JSON.stringify(dmMessages));
-    
     console.log('🧹 Storage temizlendi');
   }
-}
+};
 
-// Periyodik temizlik
-setInterval(cleanStorage, 300000); // 5 dakikada bir
+setInterval(window.cleanStorage, 300000);
 
-console.log('Store.js yüklendi (gelişmiş depolama)');
+console.log('✅ Store.js yüklendi');
