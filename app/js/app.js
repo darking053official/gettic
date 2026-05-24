@@ -37,8 +37,9 @@ $('tabRegister').onclick = () => {
 };
 
 // ============ GCAPTCHA ============
-function getCaptchaPayload() {
-  const w = document.querySelector('gcaptcha-widget');
+function getCaptchaPayload(forRegister) {
+  const id = forRegister ? 'registerCaptcha' : 'loginCaptcha';
+  const w = document.querySelector('#' + id);
   return w?.getValue() || null;
 }
 
@@ -71,7 +72,7 @@ $('authSubmit').onclick = async () => {
   if (!email?.includes('@')) return showAuthError('Geçerli bir e-posta adresi girin');
   if (!password || password.length < 4) return showAuthError('Şifre en az 4 karakter');
   
-  const captchaPayload = getCaptchaPayload();
+  const captchaPayload = getCaptchaPayload(false);
   if (!captchaPayload) return showAuthError('Lütfen doğrulamayı yapın');
   
   $('authError').style.display='none';
@@ -143,7 +144,7 @@ async function registerWithCode() {
   if(!/^[a-zA-Z0-9_]+$/.test(username)){$('codeMsg').textContent='Sadece harf, rakam, alt çizgi';$('codeMsg').style.color='var(--re)';return;}
   if(!password||password.length<6){$('codeMsg').textContent='Şifre en az 6 karakter';$('codeMsg').style.color='var(--re)';return;}
   
-  const captchaPayload = getCaptchaPayload();
+  const captchaPayload = getCaptchaPayload(true); // true = register widget'ı
   if(!captchaPayload){$('codeMsg').textContent='Lütfen doğrulamayı yapın';$('codeMsg').style.color='var(--re)';return;}
   
   try {
