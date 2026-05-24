@@ -75,7 +75,7 @@ app.use(helmet({
             styleSrc: ["'self'", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net", "'unsafe-inline'"],
             imgSrc: ["'self'", "data:", "https:", "http:", "https://raw.githubusercontent.com"],
             fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdn.jsdelivr.net"],
-            connectSrc: ["'self'", "wss://", "https://api.cerebras.ai", "https://image.pollinations.ai"],
+            connectSrc: ["'self'", "wss://", "https://api.cerebras.ai", "https://image.pollinations.ai", "https://cdn.jsdelivr.net"],
             frameSrc: ["'none'"],
             mediaSrc: ["'self'"]
         }
