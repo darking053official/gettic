@@ -121,10 +121,12 @@ async function sendVerificationCode() {
   try {
     await fetch(API+'/api/email/send',{
       method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({to:email,subject:'Gettic Doğrulama Kodu',html:`<h2>Gettic</h2><p>Kod: <b style="font-size:24px;letter-spacing:4px">${verificationCode}</b></p>`})
+      body:JSON.stringify({to:email,subject:'Gettic Doğrulama Kodu',html:`<h2>Gettic</h2><p>Kod: <b>${verificationCode}</b></p>`})
     });
-    $('codeSection').style.display='';$('sendCodeBtn').style.display='none';
-    $('codeMsg').textContent='✅ Kod gönderildi! Spam klasörünü kontrol edin.';$('codeMsg').style.color='var(--gr)';
+    $('codeSection').style.display=''; // codeSection'ı göster (içinde widget var)
+    $('sendCodeBtn').style.display='none';
+    $('codeMsg').textContent='✅ Kod gönderildi! Spamı kontrol edin.';
+    $('codeMsg').style.color='var(--gr)';
   } catch(e) { $('codeMsg').textContent='❌ Kod gönderilemedi.';$('codeMsg').style.color='var(--re)'; }
 }
 
