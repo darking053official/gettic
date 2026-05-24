@@ -67,8 +67,8 @@ const io = new Server(httpServer, {
 });
 
 // ==================== GÜVENLİK MIDDLEWARE ====================
-app.use(helmet({
-    contentSecurityPolicy: {
+// app.use(helmet({
+    contentSecurityPolicy: false
         directives: {
             defaultSrc: ["'self'"],
             scriptSrc: ["'self'", "https://cdn.jsdelivr.net", "https://cdn.socket.io", "https://cdnjs.cloudflare.com", "'unsafe-inline'", "'unsafe-eval'", "blob:"],
