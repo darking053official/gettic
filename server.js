@@ -67,15 +67,15 @@ const io = new Server(httpServer, {
 });
 
 // ==================== GÜVENLİK MIDDLEWARE ====================
-// app.use(helmet({
-    contentSecurityPolicy: false
+app.use(helmet({
+    contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
             scriptSrc: ["'self'", "https://cdn.jsdelivr.net", "https://cdn.socket.io", "https://cdnjs.cloudflare.com", "'unsafe-inline'", "'unsafe-eval'", "blob:"],
             styleSrc: ["'self'", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net", "'unsafe-inline'", "blob:"],
             imgSrc: ["'self'", "data:", "https:", "http:", "https://raw.githubusercontent.com"],
             fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdn.jsdelivr.net"],
-            connectSrc: ["'self'", "wss://", "https://api.cerebras.ai", "https://image.pollinations.ai", "https://cdn.jsdelivr.net"],
+            connectSrc: ["'self'", "wss://", "https://api.cerebras.ai", "https://image.pollinations.ai"],
             frameSrc: ["'none'"],
             mediaSrc: ["'self'"]
         }
