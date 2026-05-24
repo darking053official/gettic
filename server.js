@@ -338,10 +338,8 @@ app.post('/api/gcaptcha/verify', async (req, res) => {
 // ==================== AUTH ENDPOINTS ====================
 app.post('/api/auth/register', authLimiter, async (req, res) => {
     try {
-        const { username, password, altcha: payload } = req.body;
-        if (!payload) return res.status(400).json({ error: 'Doğrulama gerekli' });
-        const ok = await verifySolution(payload, process.env.ALTCHA_HMAC_KEY || crypto.randomBytes(32).toString('hex'));
-        if (!ok) return res.status(400).json({ error: 'Doğrulama başarısız' });
+        const { username, password, gcaptcha } = req.body;
+        if (!gcaptcha) return res.status(400).json({ error: 'Doğrulama gerekli' });
         
         // Validasyon
         if (!username || username.length < 3) return res.status(400).json({ error: 'Kullanıcı adı en az 3 karakter' });
@@ -372,10 +370,8 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
 
 app.post('/api/auth/login', authLimiter, async (req, res) => {
     try {
-        const { username, password, altcha: payload } = req.body;
-        if (!payload) return res.status(400).json({ error: 'Doğrulama gerekli' });
-        const ok = await verifySolution(payload, process.env.ALTCHA_HMAC_KEY || crypto.randomBytes(32).toString('hex'));
-        if (!ok) return res.status(400).json({ error: 'Doğrulama başarısız' });
+        const { username, password, gcaptcha } = req.body;
+        if (!gcaptcha) return res.status(400).json({ error: 'Doğrulama gerekli' });
         
         if (!username || !password) return res.status(400).json({ error: 'Kullanıcı adı ve şifre gerekli' });
         
