@@ -127,14 +127,10 @@ class GCaptchaWidget extends HTMLElement {
         </div>
       </div>
       <div class="gcaptcha-footer">
-        <span class="gcaptcha-terms">GCaptcha</span>
+        <span class="gcaptcha-terms">Gettic Güvenlik</span>
       </div>
     `;
 
-    this._bindEvents();
-  }
-
-  _bindEvents() {
     const container = this.shadowRoot.getElementById('container');
     const checkbox = this.shadowRoot.getElementById('checkbox');
     const spinner = this.shadowRoot.getElementById('spinner');
@@ -156,7 +152,9 @@ class GCaptchaWidget extends HTMLElement {
     });
   }
 
-  getValue() { return this._verified ? this._token : null; }
+  getValue() {
+    return this._verified ? this._token : null;
+  }
 
   reset() {
     this._verified = false;
