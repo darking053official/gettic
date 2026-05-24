@@ -1,11 +1,10 @@
 // ╔══════════════════════════════════════════════════════════════════╗
-// ║                    GETTIC CONFIG.JS                              ║
+// ║                    GETTIC CONFIG.JS                             ║
 // ╚══════════════════════════════════════════════════════════════════╝
 
-const API = 'https://forecasts-miniature-courtesy-department.trycloudflare.com';
-const ALTCHA_URL = API + '/api/auth/altcha';
+const API = 'https://continuing-spread-been-clara.trycloudflare.com';
 const MAX_MSGS = 100;
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'audio/mp3', 'audio/webm', 'application/pdf', 'text/plain'];
 const TYPING_TIMEOUT = 2000;
 
