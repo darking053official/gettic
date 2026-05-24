@@ -1,5 +1,5 @@
 // ╔══════════════════════════════════════════════════════════════════╗
-// ║           GETTIC STORE.JS - TAM GÜNCEL                         ║
+// ║           GETTIC STORE.JS - TAM GÜNCEL (BACKTICK FIX)         ║
 // ╚══════════════════════════════════════════════════════════════════╝
 
 window.Store = window.Store || {
@@ -12,18 +12,18 @@ window.Store = window.Store || {
     { "id": "genel-sohbet", "name": "genel-sohbet", "type": "text", "category": "METİN" },
     { "id": "genel-ses", "name": "Genel Ses", "type": "voice", "category": "SES" }
   ]`),
-  categories: JSON.parse(localStorage.getItem('gt_categories') || '["METİN", "SES"]'),
+  categories: JSON.parse(localStorage.getItem('gt_categories') || `["METİN", "SES"]`),
   messages: [],
   dmFriends: [],
   blockedUsers: JSON.parse(localStorage.getItem('gt_blocked') || '[]'),
   mutedUsers: JSON.parse(localStorage.getItem('gt_muted') || '[]'),
   userRoles: JSON.parse(localStorage.getItem('gt_userRoles') || '{}'),
-  roles: JSON.parse(localStorage.getItem('gt_roles') || '[
+  roles: JSON.parse(localStorage.getItem('gt_roles') || `[
     { "id": "r1", "name": "Kurucu", "color": "#fbbf24", "permissions": { "all": true }, "position": 0, "icon": "crown" },
     { "id": "r2", "name": "Admin", "color": "#ef4444", "permissions": { "manageServer": true, "kick": true, "ban": true, "deleteMsg": true }, "position": 1, "icon": "shield" },
     { "id": "r3", "name": "Moderatör", "color": "#6366f1", "permissions": { "kick": true, "deleteMsg": true }, "position": 2, "icon": "hammer" },
     { "id": "r4", "name": "Üye", "color": "#ec4899", "permissions": { "sendMsg": true, "addReactions": true }, "position": 3, "icon": "user" }
-  ]'),
+  ]`),
   polls: {},
   theme: localStorage.getItem('gt_ac') || '#ec4899',
   serverIcons: JSON.parse(localStorage.getItem('gt_serverIcons') || '{}'),
