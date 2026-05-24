@@ -27,6 +27,7 @@ const { google } = require('googleapis');
 const nodemailer = require('nodemailer');
 const useragent = require('express-useragent');
 const requestIp = require('request-ip');
+const crypto = require('crypto');
 
 // ==================== RATE LIMITERS ====================
 const authLimiter = rateLimit({
@@ -294,13 +295,18 @@ app.get('/app/*', (req, res) => res.sendFile(path.join(__dirname, 'app', 'index.
 // ==================== ALTCHA ====================
 app.get('/api/auth/altcha', async (req, res) => {
     try {
-        const challenge = await createChallenge({ 
-            hmacKey: process.env.ALTCHA_HMAC_KEY || crypto.randomBytes(32).toString('hex'),
+        const hmacKey = process.env.ALTCHA_HMAC_KEY || crypto.randomBytes(32).toString('hex');
+        
+        const challenge = await createChallenge({
+            hmacKey: hmacKey,
             maxNumber: 50000
         });
+        
+        console.log('Altcha challenge oluşturuldu:', challenge);
         res.json(challenge);
-    } catch (e) { 
-        res.status(500).json({ error: 'Captcha hatası' }); 
+    } catch (e) {
+        console.error('Altcha hatası:', e.message);
+        res.status(500).json({ error: e.message });
     }
 });
 
@@ -310,8 +316,9 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
         const { username, password, altcha: payload } = req.body;
         
         // Altcha doğrulama
+        const { username, password, altcha: payload } = req.body;
         if (!payload) return res.status(400).json({ error: 'Doğrulama gerekli' });
-        const ok = await altcha.verifySolution(payload, process.env.ALTCHA_HMAC_KEY || 'secret');
+        const ok = await verifySolution(payload, process.env.ALTCHA_HMAC_KEY || crypto.randomBytes(32).toString('hex'));
         if (!ok) return res.status(400).json({ error: 'Doğrulama başarısız' });
         
         // Validasyon
@@ -346,8 +353,9 @@ app.post('/api/auth/login', authLimiter, async (req, res) => {
         const { username, password, altcha: payload } = req.body;
         
         // Altcha doğrulama
+        const { username, password, altcha: payload } = req.body;
         if (!payload) return res.status(400).json({ error: 'Doğrulama gerekli' });
-        const ok = await altcha.verifySolution(payload, process.env.ALTCHA_HMAC_KEY || 'secret');
+        const ok = await verifySolution(payload, process.env.ALTCHA_HMAC_KEY || crypto.randomBytes(32).toString('hex'));
         if (!ok) return res.status(400).json({ error: 'Doğrulama başarısız' });
         
         if (!username || !password) return res.status(400).json({ error: 'Kullanıcı adı ve şifre gerekli' });
