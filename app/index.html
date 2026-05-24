@@ -81,11 +81,11 @@
         <div id="registerForm" style="display:none">
             <input class="mi" id="regEmail" placeholder="E-posta adresi" type="email">
             <button class="mb" id="sendCodeBtn" onclick="sendVerificationCode()">Kodu Gönder</button>
-            <gcaptcha-widget></gcaptcha-widget>
             <div id="codeSection" style="display:none">
                 <input class="mi" id="verificationCode" placeholder="6 haneli kod" maxlength="6" inputmode="numeric" pattern="[0-9]*">
                 <input class="mi" type="text" id="regUsername" placeholder="Kullanıcı adı">
                 <input class="mi" type="password" id="regPassword" placeholder="Şifre">
+                <gcaptcha-widget></gcaptcha-widget>
                 <button class="mb" onclick="registerWithCode()">Kayıt Ol</button>
             </div>
             <div id="codeMsg" style="font-size:11px;margin-top:8px"></div>
