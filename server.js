@@ -22,7 +22,7 @@ const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 const hpp = require('hpp');
 const xss = require('xss');
-const altcha = require('altcha-lib');
+const { createChallenge, verifySolution } = require('altcha-lib');
 const { google } = require('googleapis');
 const nodemailer = require('nodemailer');
 const useragent = require('express-useragent');
@@ -292,7 +292,6 @@ app.get('/app', (req, res) => res.sendFile(path.join(__dirname, 'app', 'index.ht
 app.get('/app/*', (req, res) => res.sendFile(path.join(__dirname, 'app', 'index.html')));
 
 // ==================== ALTCHA ====================
-app.get('/api/auth/altcha', (req, res) => {
 app.get('/api/auth/altcha', (req, res) => {
     const crypto = require('crypto');
     const hmacKey = 'gettic-sabit-key-2024';
