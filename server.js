@@ -27,7 +27,6 @@ const { google } = require('googleapis');
 const nodemailer = require('nodemailer');
 const useragent = require('express-useragent');
 const requestIp = require('request-ip');
-const crypto = require('crypto');
 
 // ==================== RATE LIMITERS ====================
 const authLimiter = rateLimit({
@@ -295,17 +294,18 @@ app.get('/app/*', (req, res) => res.sendFile(path.join(__dirname, 'app', 'index.
 // ==================== ALTCHA ====================
 app.get('/api/auth/altcha', async (req, res) => {
     try {
-        const hmacKey = process.env.ALTCHA_HMAC_KEY || crypto.randomBytes(32).toString('hex');
+        const crypto = require('crypto');
+        const hmacKey = 'gettic222';
+        const salt = Date.now().toString(16) + crypto.randomBytes(8).toString('hex');
+        const number = Math.floor(Math.random() * 50000) + 1000;
         
-        const challenge = await createChallenge({
-            hmacKey: hmacKey,
-            maxNumber: 50000
+        res.json({
+            algorithm: 'SHA-256',
+            challenge: crypto.createHash('sha256').update(salt + number).digest('hex'),
+            salt: salt,
+            signature: crypto.createHmac('sha256', hmacKey).update(salt + number).digest('hex')
         });
-        
-        console.log('Altcha challenge oluşturuldu:', challenge);
-        res.json(challenge);
     } catch (e) {
-        console.error('Altcha hatası:', e.message);
         res.status(500).json({ error: e.message });
     }
 });
