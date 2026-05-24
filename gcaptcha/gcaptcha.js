@@ -127,7 +127,7 @@ class GCaptchaWidget extends HTMLElement {
         </div>
       </div>
       <div class="gcaptcha-footer">
-        <span class="gcaptcha-terms">Gettic Güvenlik</span>
+        <span class="gcaptcha-terms">GCaptcha</span>
       </div>
     `;
 
