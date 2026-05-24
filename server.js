@@ -291,25 +291,48 @@ app.get('/apis/list/add', (req, res) => res.sendFile(path.join(__dirname, 'apis'
 app.get('/app', (req, res) => res.sendFile(path.join(__dirname, 'app', 'index.html')));
 app.get('/app/*', (req, res) => res.sendFile(path.join(__dirname, 'app', 'index.html')));
 
-// ==================== ALTCHA ====================
-app.get('/api/auth/altcha', (req, res) => {
-    const crypto = require('crypto');
-    const hmacKey = 'gettic-sabit-key-2024';
-    const salt = Date.now().toString(16) + crypto.randomBytes(8).toString('hex');
-    const number = Math.floor(Math.random() * 50000) + 1000;
+// GCaptcha doğrulama endpoint'i
+app.post('/api/gcaptcha/verify', async (req, res) => {
+    const { token } = req.body;
     
-    const challenge = crypto.createHash('sha256').update(salt + number).digest('hex');
-    const signature = crypto.createHmac('sha256', hmacKey).update(salt + number).digest('hex');
+    if (!token) {
+        return res.status(400).json({ error: 'Token gerekli' });
+    }
     
-    const response = {
-        algorithm: 'SHA-256',
-        challenge: challenge,
-        salt: salt,
-        signature: signature
-    };
+    // Token formatı: gcaptcha_TIMESTAMP_RANDOM
+    if (!token.startsWith('gcaptcha_')) {
+        return res.status(400).json({ error: 'Geçersiz token' });
+    }
     
-    process.stdout.write('ALCHA ÇAĞRILDI\n');
-    res.json(response);
+    const parts = token.split('_');
+    if (parts.length < 3) {
+        return res.status(400).json({ error: 'Geçersiz token formatı' });
+    }
+    
+    const timestamp = parseInt(parts[1]);
+    const random = parts[2];
+    
+    // 5 dakikadan eski token'lar geçersiz
+    if (Date.now() - timestamp > 300000) {
+        return res.status(400).json({ error: 'Token süresi doldu, lütfen tekrar doğrulayın' });
+    }
+    
+    // Timestamp geçerli mi?
+    if (isNaN(timestamp) || timestamp > Date.now()) {
+        return res.status(400).json({ error: 'Geçersiz token zamanı' });
+    }
+    
+    // Random kısmı minimum 6 karakter
+    if (random.length < 6) {
+        return res.status(400).json({ error: 'Geçersiz token' });
+    }
+    
+    // Başarılı
+    res.json({ 
+        success: true, 
+        message: 'Doğrulama başarılı',
+        verified: true
+    });
 });
 
 // ==================== AUTH ENDPOINTS ====================
