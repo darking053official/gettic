@@ -1,5 +1,5 @@
 // ╔══════════════════════════════════════════════════════════════════╗
-// ║                   GETTIC APP.JS - SVG İKONLU FINAL              ║
+// ║                   GETTIC APP.JS - GCAPTCHA FINAL               ║
 // ╚══════════════════════════════════════════════════════════════════╝
 
 console.log('🚀 Gettic başlatılıyor...');
@@ -71,8 +71,8 @@ $('authSubmit').onclick = async () => {
   if (!email?.includes('@')) return showAuthError('Geçerli bir e-posta adresi girin');
   if (!password || password.length < 4) return showAuthError('Şifre en az 4 karakter');
   
-  const altchaPayload = getAltchaPayload();
-  if (!altchaPayload) return showAuthError('Lütfen doğrulamayı yapın');
+  const captchaPayload = getCaptchaPayload();
+  if (!captchaPayload) return showAuthError('Lütfen doğrulamayı yapın');
   
   $('authError').style.display='none';
   $('authSubmit').textContent='Doğrulanıyor...';
@@ -83,7 +83,7 @@ $('authSubmit').onclick = async () => {
     const res = await fetch(API + '/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password, altcha: altchaPayload })
+      body: JSON.stringify({ username, password, gcaptcha: captchaPayload })
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Giriş başarısız');
@@ -94,7 +94,7 @@ $('authSubmit').onclick = async () => {
     showMain();
   } catch(e) { 
     showAuthError(e.message);
-    document.querySelector('altcha-widget')?.reset?.();
+    document.querySelector('gcaptcha-widget')?.reset?.();
   }
   
   $('authSubmit').textContent='Giriş';
@@ -138,18 +138,18 @@ async function registerWithCode() {
   if(!/^[a-zA-Z0-9_]+$/.test(username)){$('codeMsg').textContent='Sadece harf, rakam, alt çizgi';$('codeMsg').style.color='var(--re)';return;}
   if(!password||password.length<6){$('codeMsg').textContent='Şifre en az 6 karakter';$('codeMsg').style.color='var(--re)';return;}
   
-  const altchaPayload=getAltchaPayload();
-  if(!altchaPayload){$('codeMsg').textContent='Lütfen doğrulamayı yapın';$('codeMsg').style.color='var(--re)';return;}
+  const captchaPayload = getCaptchaPayload();
+  if(!captchaPayload){$('codeMsg').textContent='Lütfen doğrulamayı yapın';$('codeMsg').style.color='var(--re)';return;}
   
   try {
     const res=await fetch(API+'/api/auth/register',{
       method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({username,password,altcha:altchaPayload})
+      body:JSON.stringify({username,password,gcaptcha:captchaPayload})
     });
     const data=await res.json();
     if(!res.ok)throw new Error(data.error||'Kayıt başarısız');
     Store.token=data.token;Store.user=data.user;saveStore();showMain();
-  }catch(e){$('codeMsg').textContent='❌ '+e.message;$('codeMsg').style.color='var(--re)';document.querySelector('altcha-widget')?.reset?.();}
+  }catch(e){$('codeMsg').textContent='❌ '+e.message;$('codeMsg').style.color='var(--re)';document.querySelector('gcaptcha-widget')?.reset?.();}
 }
 
 // ============ ŞİFREMİ UNUTTUM ============
@@ -185,7 +185,7 @@ function showMain(){
   if(typeof renderChannels==='function')renderChannels();if(typeof renderMessages==='function')renderMessages();saveStore();
   if(typeof loadActiveServers==='function')loadActiveServers();updateUIPermissions();
   if(typeof MongoSync!=='undefined')setTimeout(()=>MongoSync.syncAll(),2000);initSocket();
-  placeAllIcons(); // SVG ikonları yerleştir
+  placeAllIcons();
 }
 
 function showLogin(){$('ls')?.classList.add('hide');$('loginScreen')?.classList.remove('hidden');$('mainScreen')?.classList.add('hidden');}
