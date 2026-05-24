@@ -70,7 +70,7 @@
         <div id="loginForm">
             <input class="mi" id="authEmail" placeholder="E-posta adresi" type="email" autocomplete="email">
             <input class="mi" type="password" id="authPassword" placeholder="Şifre">
-            <altcha-widget challengeurl="/api/auth/altcha"></altcha-widget>
+            <gcaptcha-widget></gcaptcha-widget>
             <button class="mb" id="authSubmit">Giriş</button>
             <div style="margin-top:8px;font-size:11px">
                 <a href="#" onclick="showForgotPassword()" style="color:var(--ac);text-decoration:none">Şifremi Unuttum</a>
@@ -81,7 +81,7 @@
         <div id="registerForm" style="display:none">
             <input class="mi" id="regEmail" placeholder="E-posta adresi" type="email">
             <button class="mb" id="sendCodeBtn" onclick="sendVerificationCode()">Kodu Gönder</button>
-            <altcha-widget challengeurl="/api/auth/altcha"></altcha-widget>
+            <gcaptcha-widget></gcaptcha-widget>
             <div id="codeSection" style="display:none">
                 <input class="mi" id="verificationCode" placeholder="6 haneli kod" maxlength="6" inputmode="numeric" pattern="[0-9]*">
                 <input class="mi" type="text" id="regUsername" placeholder="Kullanıcı adı">
@@ -96,7 +96,7 @@
     
     <!-- Şifre Sıfırlama -->
     <div id="forgotPasswordScreen" class="auth-box hidden" style="margin-top:16px">
-        <h3 style="margin-bottom:12px">🔒 Şifre Sıfırla</h3>
+        <h3 style="margin-bottom:12px">Şifre Sıfırla</h3>
         <p style="font-size:12px;color:var(--t3);margin-bottom:12px">E-posta adresinize 6 haneli kod gönderilecek.</p>
         <input class="mi" id="resetEmail" placeholder="E-posta adresi" type="email">
         <button class="mb" onclick="sendResetCode()">Kodu Gönder</button>
@@ -243,7 +243,7 @@
     <!-- TOAST -->
     <div id="toast" class="toast hidden"></div>
     
-<script src="js/altcha.js"></script>
+<script src="gcaptcha/gcaptcha.js"></script>
 <script src="js/socketio.js"></script>
 <script src="js/config.js"></script>
 <script src="js/icons.js"></script>
