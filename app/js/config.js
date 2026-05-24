@@ -2,7 +2,7 @@
 // ║                    GETTIC CONFIG.JS                              ║
 // ╚══════════════════════════════════════════════════════════════════╝
 
-const API = 'https://pharmaceutical-major-such-thousands.trycloudflare.com';
+const API = 'https://feat-city-powers-staying.trycloudflare.com';
 const ALTCHA_URL = API + '/api/auth/altcha';
 const MAX_MSGS = 100;
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
