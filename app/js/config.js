@@ -2,7 +2,7 @@
 // ║                    GETTIC CONFIG.JS                              ║
 // ╚══════════════════════════════════════════════════════════════════╝
 
-const API = 'https://cruises-collar-appreciation-peaceful.trycloudflare.com';
+const API = 'https://forecasts-miniature-courtesy-department.trycloudflare.com';
 const ALTCHA_URL = API + '/api/auth/altcha';
 const MAX_MSGS = 100;
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
