@@ -8,10 +8,10 @@ window.Store = window.Store || {
   isOnline: navigator.onLine,
   serverSettings: { name: 'Gettic' },
   activeChannel: localStorage.getItem('gt_activeChannel') || 'genel-sohbet',
-  channels: JSON.parse(localStorage.getItem('gt_channels') || '[
+  channels: JSON.parse(localStorage.getItem('gt_channels') || `[
     { "id": "genel-sohbet", "name": "genel-sohbet", "type": "text", "category": "METİN" },
     { "id": "genel-ses", "name": "Genel Ses", "type": "voice", "category": "SES" }
-  ]'),
+  ]`),
   categories: JSON.parse(localStorage.getItem('gt_categories') || '["METİN", "SES"]'),
   messages: [],
   dmFriends: [],
