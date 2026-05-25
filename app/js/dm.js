@@ -18,9 +18,10 @@ const dmState = (() => {
     messages,
     unread,
     activeDM:   null,
-    typing:     {},       // username → timestamp
-    online:     {},       // username → bool
-    _requests:  [],       // gelen arkadaşlık istekleri
+    typing:     {},
+    online:     {},
+    _requests:  [],
+    e2eeEnabled: localStorage.getItem('gt_e2ee_enabled') === 'true'
   };
 })();
 
@@ -92,10 +93,18 @@ async function startDM(username) {
   if (username === Store.user?.username)      return toast('Kendine DM atamazsın', 'e');
   if (Store.blockedUsers?.includes(username)) return toast('Bu kullanıcı engelli', 'e');
 
+  // 🔐 E2EE + PQ Key Pair oluştur (yoksa)
+  if (typeof GetticE2EE !== 'undefined' && WasmLoader?.loaded) {
+    if (!GetticE2EE._keyPairs[Store.user._id]) {
+      GetticE2EE.generateKeyPair(Store.user._id);
+      GetticE2EE.generatePQKeyPair(Store.user._id);
+    }
+  }
+
   // Arkadaş listesine ekle (yoksa)
   if (!dmState.friends.find(f => f.username === username)) {
     if (dmState.friends.length >= MAX_DM_FRIENDS) {
-      dmState.friends.pop(); // en eski çıkar
+      dmState.friends.pop();
     }
     dmState.friends.unshift({
       id:          genId(),
@@ -115,18 +124,15 @@ async function startDM(username) {
   saveDMState();
   closeModal();
 
-  // Kanal başlığını güncelle
   const chNameEl = document.getElementById('channelName');
   if (chNameEl) chNameEl.textContent = '@' + username;
 
-  // Önce localStorage'dan yükle (hızlı render)
   const cached = _loadDMChannel(username);
   if (cached?.length) {
     dmState.messages[username] = cached;
     renderDMChat(username);
   }
 
-  // MongoDB'den güncelle
   const remote = await _loadDMFromMongo(username);
   if (remote?.length) {
     dmState.messages[username] = remote;
@@ -137,7 +143,6 @@ async function startDM(username) {
     renderDMChat(username);
   }
 
-  // Socket'e bildir
   if (socket?.connected) {
     socket.emit('dm_open', { with: username });
   }
@@ -153,17 +158,33 @@ function sendDMMessage(username, text) {
   if (text.length > 2000) return toast('Mesaj çok uzun (max 2000)', 'w');
   if (Store.blockedUsers?.includes(username)) return toast('Bu kullanıcı engelli', 'e');
 
+  let finalText = text;
+  let encrypted = false;
+
+  // 🔐 E2EE Şifreleme
+  if (dmState.e2eeEnabled && typeof GetticE2EE !== 'undefined' && WasmLoader?.loaded) {
+    const theirPubKey = GetticE2EE.getPublicKey(username);
+    if (theirPubKey) {
+      const secret = GetticE2EE.deriveSharedSecret(Store.user._id, theirPubKey);
+      if (secret) {
+        finalText = GetticE2EE.encryptMessage(text, secret);
+        encrypted = true;
+      }
+    }
+  }
+
   const msg = {
     id:         genId(),
     sender:     Store.user.username,
     senderId:   Store.user._id,
     to:         username,
-    text,
+    text:       finalText,
     time:       new Date().toISOString(),
     reactions:  {},
     read:       false,
     edited:     false,
-    replyTo:    window._dmReplyingTo || null
+    replyTo:    window._dmReplyingTo || null,
+    encrypted:  encrypted
   };
 
   // Yerel ekle
@@ -201,7 +222,7 @@ function sendDMMessage(username, text) {
   // Input temizle
   const input = document.getElementById('dmInput');
   if (input) { input.value = ''; input.style.height = 'auto'; input.focus(); }
-}
+      }
 
 // ============ MESAJ SİL ============
 function deleteDMMessage(username, msgId) {
