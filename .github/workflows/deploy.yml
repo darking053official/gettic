@@ -21,6 +21,34 @@ jobs:
       - name: Install dependencies
         run: npm install
       
+      - name: Convert .wat to .wasm
+        run: |
+          echo "=== .wat → .wasm Dönüşümü ==="
+          cd app/wasm
+          
+          # wabt'yi yükle (WAT ↔ WASM dönüştürücü)
+          npm install -g wabt
+          
+          # Tüm .wat dosyalarını tara
+          for wat_file in *.wat; do
+            wasm_file="${wat_file%.wat}.wasm"
+            
+            # Eski .wasm'ı sil (varsa)
+            rm -f "$wasm_file"
+            
+            # .wat → .wasm dönüştür
+            wat2wasm "$wat_file" -o "$wasm_file"
+            
+            if [ -f "$wasm_file" ]; then
+              echo "✅ $wat_file → $wasm_file ($(stat -c%s "$wasm_file") bytes)"
+            else
+              echo "❌ $wat_file dönüştürülemedi!"
+            fi
+          done
+          
+          echo "=== WASM dosyaları ==="
+          ls -la *.wasm
+      
       - name: Start server with env
         env:
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
@@ -56,8 +84,8 @@ jobs:
         run: |
           git config user.email "actions@github.com"
           git config user.name "GitHub Actions"
-          git add app/js/config.js
-          git diff --cached --quiet && echo "No changes" || git commit -m "🔗 API: ${{ env.TUNNEL_URL }}"
+          git add app/js/config.js app/wasm/*.wasm
+          git diff --cached --quiet && echo "No changes" || git commit -m "🔗 API + WASM: ${{ env.TUNNEL_URL }}"
           git push || echo "Push failed"
       
       - name: Keep alive
