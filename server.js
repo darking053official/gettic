@@ -79,7 +79,13 @@ app.use((req, res, next) => {
 
 app.use((req, res, next) => { req.clientIp = requestIp.getClientIp(req); req.userAgent = req.useragent?.source || 'Unknown'; next(); });
 app.use((req, res, next) => { res.setHeader('X-Content-Type-Options', 'nosniff'); res.setHeader('X-Frame-Options', 'DENY'); res.setHeader('X-XSS-Protection', '1; mode=block'); res.setHeader('X-Download-Options', 'noopen'); res.setHeader('X-Permitted-Cross-Domain-Policies', 'none'); next(); });
-app.use((req, res, next) => { if (req.url.match(/\.(js|css|png|jpg|svg|ico|woff|woff2|ttf)$/)) { res.setHeader('Cache-Control', 'public, max-age=604800, immutable'); } next(); });
+app.use((req, res, next) => {
+    if (req.url.endsWith('.wasm')) res.type('application/wasm');
+    if (req.url.match(/\.(js|css|png|jpg|svg|ico|woff|woff2|ttf)$/)) {
+        res.setHeader('Cache-Control', 'public, max-age=604800, immutable');
+    }
+    next();
+});
 
 // ==================== MONGOOSE SCHEMALAR ====================
 const UserSchema = new mongoose.Schema({
