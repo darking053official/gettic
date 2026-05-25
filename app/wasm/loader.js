@@ -1,49 +1,30 @@
 // wasm/loader.js - Tüm WASM Modülleri Tek Yükleyici
 window.WasmLoader = {
-  crypto: null,
-  emoji: null,
-  audio: null,
-  compress: null,
-  games: null,
-  e2ee: null,
-  loaded: false,
+  crypto: null, emoji: null, audio: null, compress: null, games: null, e2ee: null, loaded: false,
 
   async init() {
     try {
+      const base = '/app/wasm/';
       const [crypto, emoji, audio, compress, games, e2ee] = await Promise.all([
-        WebAssembly.instantiateStreaming(fetch('/wasm/crypto.wasm')),
-        WebAssembly.instantiateStreaming(fetch('/wasm/emoji.wasm')),
-        WebAssembly.instantiateStreaming(fetch('/wasm/audio.wasm')),
-        WebAssembly.instantiateStreaming(fetch('/wasm/compress.wasm')),
-        WebAssembly.instantiateStreaming(fetch('/wasm/games.wasm')),
-        WebAssembly.instantiateStreaming(fetch('/wasm/e2ee.wasm'))
+        WebAssembly.instantiateStreaming(fetch(base + 'crypto.wasm')),
+        WebAssembly.instantiateStreaming(fetch(base + 'emoji.wasm')),
+        WebAssembly.instantiateStreaming(fetch(base + 'audio.wasm')),
+        WebAssembly.instantiateStreaming(fetch(base + 'compress.wasm')),
+        WebAssembly.instantiateStreaming(fetch(base + 'games.wasm')),
+        WebAssembly.instantiateStreaming(fetch(base + 'e2ee.wasm'))
       ]);
-      
-      this.crypto = crypto.instance.exports;
-      this.emoji = emoji.instance.exports;
-      this.audio = audio.instance.exports;
-      this.compress = compress.instance.exports;
-      this.games = games.instance.exports;
-      this.e2ee = e2ee.instance.exports;
+      this.crypto = crypto.instance.exports; this.emoji = emoji.instance.exports;
+      this.audio = audio.instance.exports; this.compress = compress.instance.exports;
+      this.games = games.instance.exports; this.e2ee = e2ee.instance.exports;
       this.loaded = true;
-      
       console.log('✅ 6 WASM modül yüklendi');
-      if (typeof toast === 'function') toast('🚀 WASM hazır', 's');
-    } catch(e) {
-      console.warn('WASM yüklenemedi:', e.message);
-    }
+    } catch(e) { console.warn('WASM yüklenemedi:', e.message); }
   }
 };
 
-// E2EE Yönetici
 window.GetticE2EE = {
-  _keyPairs: {},
-  _sharedSecrets: {},
-
-  async init() {
-    await WasmLoader.init();
-  },
-
+  _keyPairs: {}, _sharedSecrets: {},
+  async init() { await WasmLoader.init(); },
   generateKeyPair(userId) {
     if (!WasmLoader.loaded) return null;
     const seed = userId + Date.now() + Math.random();
@@ -59,11 +40,7 @@ window.GetticE2EE = {
     localStorage.setItem('gt_e2ee_priv_' + userId, privKey);
     return pubKey;
   },
-
-  getPublicKey(userId) {
-    return this._keyPairs[userId]?.publicKey || localStorage.getItem('gt_e2ee_pub_' + userId);
-  },
-
+  getPublicKey(userId) { return this._keyPairs[userId]?.publicKey || localStorage.getItem('gt_e2ee_pub_' + userId); },
   deriveSharedSecret(myUserId, theirPublicKey) {
     if (!WasmLoader.loaded) return null;
     const myPrivKey = this._keyPairs[myUserId]?.privateKey || localStorage.getItem('gt_e2ee_priv_' + myUserId);
@@ -79,7 +56,6 @@ window.GetticE2EE = {
     this._sharedSecrets[myUserId + '_' + theirPublicKey.substring(0, 10)] = secret;
     return secret;
   },
-
   encryptMessage(plaintext, sharedSecret) {
     if (!sharedSecret || !WasmLoader.loaded) return plaintext;
     const msgBytes = new TextEncoder().encode(plaintext);
@@ -91,29 +67,18 @@ window.GetticE2EE = {
     aes_encrypt(msgPtr, msgBytes.length, keyPtr, keyBytes.length, outPtr);
     return '🔐' + btoa(String.fromCharCode(...new Uint8Array(memory.buffer, outPtr, msgBytes.length)));
   },
-
   decryptMessage(ciphertext, sharedSecret) {
     if (!sharedSecret || !ciphertext.startsWith('🔐') || !WasmLoader.loaded) return ciphertext;
     return this.encryptMessage(atob(ciphertext.replace('🔐', '')), sharedSecret);
   }
 };
 
-// Mini Oyunlar
 window.GetticGames = {
-  rollDice(sides = 6) {
-    if (WasmLoader.loaded) return WasmLoader.games.roll_dice(sides);
-    return Math.floor(Math.random() * sides) + 1;
-  },
+  rollDice(sides = 6) { return WasmLoader.loaded ? WasmLoader.games.roll_dice(sides) : Math.floor(Math.random() * sides) + 1; },
   flipCoin() { return Math.random() > 0.5 ? 'Yazı' : 'Tura'; },
-  checkPrime(n) {
-    if (WasmLoader.loaded && n < 1000000) return !!WasmLoader.games.check_prime(n);
-    if (n < 2) return false;
-    for (let i = 2; i <= Math.sqrt(n); i++) if (n % i === 0) return false;
-    return true;
-  }
+  checkPrime(n) { if (WasmLoader.loaded && n < 1000000) return !!WasmLoader.games.check_prime(n); if (n < 2) return false; for (let i = 2; i <= Math.sqrt(n); i++) if (n % i === 0) return false; return true; }
 };
 
-// Sıkıştırma
 window.GetticCompress = {
   compress(text) {
     if (!text || !WasmLoader.loaded) return text;
@@ -126,5 +91,4 @@ window.GetticCompress = {
   }
 };
 
-// Başlat
 WasmLoader.init();
