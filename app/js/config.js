@@ -2,7 +2,7 @@
 // ║                    GETTIC CONFIG.JS                             ║
 // ╚══════════════════════════════════════════════════════════════════╝
 
-const API = 'https://painting-encouraging-clearly-donate.trycloudflare.com';
+const API = 'https://feed-category-recipients-depending.trycloudflare.com';
 const MAX_MSGS = 100;
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'audio/mp3', 'audio/webm', 'application/pdf', 'text/plain'];
