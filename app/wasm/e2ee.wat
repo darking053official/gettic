@@ -1,0 +1,40 @@
+(module
+  (func $generate_keypair (param $seed_ptr i32) (param $seed_len i32) (param $pub_out i32) (param $priv_out i32)
+    (local $i i32)
+    (loop $gen
+      (i32.ge_u (local.get $i) (i32.const 32)) (if (then (return)))
+      (i32.store8 (i32.add (local.get $pub_out) (local.get $i))
+        (i32.xor (i32.load8_u (i32.add (local.get $seed_ptr) (i32.rem_u (local.get $i) (local.get $seed_len))))
+                 (i32.const 42)))
+      (i32.store8 (i32.add (local.get $priv_out) (local.get $i))
+        (i32.add (i32.load8_u (i32.add (local.get $seed_ptr) (i32.rem_u (i32.add (local.get $i) (i32.const 16)) (local.get $seed_len))))
+                 (i32.const 73)))
+      (local.set $i (i32.add (local.get $i) (i32.const 1)))
+      (br $gen)))
+  
+  (func $derive_shared_secret (param $priv_ptr i32) (param $pub_ptr i32) (param $out_ptr i32)
+    (local $i i32)
+    (loop $derive
+      (i32.ge_u (local.get $i) (i32.const 32)) (if (then (return)))
+      (i32.store8 (i32.add (local.get $out_ptr) (local.get $i))
+        (i32.xor (i32.load8_u (i32.add (local.get $priv_ptr) (local.get $i)))
+                 (i32.load8_u (i32.add (local.get $pub_ptr) (local.get $i)))))
+      (local.set $i (i32.add (local.get $i) (i32.const 1)))
+      (br $derive)))
+  
+  (func $aes_encrypt (param $msg_ptr i32) (param $msg_len i32) (param $key_ptr i32) (param $key_len i32) (param $out_ptr i32)
+    (local $i i32) (local $j i32) (local $byte i32)
+    (loop $enc
+      (i32.ge_u (local.get $i) (local.get $msg_len)) (if (then (return)))
+      (local.set $byte (i32.load8_u (i32.add (local.get $msg_ptr) (local.get $i))))
+      (local.set $byte (i32.xor (local.get $byte) (i32.load8_u (i32.add (local.get $key_ptr) (local.get $j)))))
+      (local.set $byte (i32.add (local.get $byte) (i32.load8_u (i32.add (local.get $key_ptr) (i32.rem_u (i32.add (local.get $j) (i32.const 7)) (local.get $key_len))))))
+      (i32.store8 (i32.add (local.get $out_ptr) (local.get $i)) (local.get $byte))
+      (local.set $i (i32.add (local.get $i) (i32.const 1)))
+      (local.set $j (i32.rem_u (i32.add (local.get $j) (i32.const 1)) (local.get $key_len)))
+      (br $enc)))
+  
+  (export "generate_keypair" (func $generate_keypair))
+  (export "derive_shared_secret" (func $derive_shared_secret))
+  (export "aes_encrypt" (func $aes_encrypt))
+  (memory (export "memory") 2))
