@@ -1,21 +1,16 @@
-// wasm/loader.js - Tüm WASM Modülleri Tek Yükleyici
+// wasm/loader.js - Tüm WASM Modülleri (Sıralı Yükleme)
 window.WasmLoader = {
   crypto: null, emoji: null, audio: null, compress: null, games: null, e2ee: null, loaded: false,
 
   async init() {
     try {
       const base = '/app/wasm/';
-      const [crypto, emoji, audio, compress, games, e2ee] = await Promise.all([
-        WebAssembly.instantiateStreaming(fetch(base + 'crypto.wasm')),
-        WebAssembly.instantiateStreaming(fetch(base + 'emoji.wasm')),
-        WebAssembly.instantiateStreaming(fetch(base + 'audio.wasm')),
-        WebAssembly.instantiateStreaming(fetch(base + 'compress.wasm')),
-        WebAssembly.instantiateStreaming(fetch(base + 'games.wasm')),
-        WebAssembly.instantiateStreaming(fetch(base + 'e2ee.wasm'))
-      ]);
-      this.crypto = crypto.instance.exports; this.emoji = emoji.instance.exports;
-      this.audio = audio.instance.exports; this.compress = compress.instance.exports;
-      this.games = games.instance.exports; this.e2ee = e2ee.instance.exports;
+      this.crypto = (await WebAssembly.instantiateStreaming(fetch(base + 'crypto.wasm'))).instance.exports;
+      this.emoji = (await WebAssembly.instantiateStreaming(fetch(base + 'emoji.wasm'))).instance.exports;
+      this.audio = (await WebAssembly.instantiateStreaming(fetch(base + 'audio.wasm'))).instance.exports;
+      this.compress = (await WebAssembly.instantiateStreaming(fetch(base + 'compress.wasm'))).instance.exports;
+      this.games = (await WebAssembly.instantiateStreaming(fetch(base + 'games.wasm'))).instance.exports;
+      this.e2ee = (await WebAssembly.instantiateStreaming(fetch(base + 'e2ee.wasm'))).instance.exports;
       this.loaded = true;
       console.log('✅ 6 WASM modül yüklendi');
     } catch(e) { console.warn('WASM yüklenemedi:', e.message); }
@@ -36,8 +31,7 @@ window.GetticE2EE = {
     const pubKey = btoa(String.fromCharCode(...new Uint8Array(memory.buffer, pubPtr, 32)));
     const privKey = btoa(String.fromCharCode(...new Uint8Array(memory.buffer, privPtr, 32)));
     this._keyPairs[userId] = { publicKey: pubKey, privateKey: privKey };
-    localStorage.setItem('gt_e2ee_pub_' + userId, pubKey);
-    localStorage.setItem('gt_e2ee_priv_' + userId, privKey);
+    localStorage.setItem('gt_e2ee_pub_' + userId, pubKey); localStorage.setItem('gt_e2ee_priv_' + userId, privKey);
     return pubKey;
   },
   getPublicKey(userId) { return this._keyPairs[userId]?.publicKey || localStorage.getItem('gt_e2ee_pub_' + userId); },
@@ -49,8 +43,7 @@ window.GetticE2EE = {
     const pubBytes = Uint8Array.from(atob(theirPublicKey), c => c.charCodeAt(0));
     const { memory, derive_shared_secret } = WasmLoader.e2ee;
     const privPtr = 0, pubPtr = 32, outPtr = 64;
-    new Uint8Array(memory.buffer, privPtr, 32).set(privBytes);
-    new Uint8Array(memory.buffer, pubPtr, 32).set(pubBytes);
+    new Uint8Array(memory.buffer, privPtr, 32).set(privBytes); new Uint8Array(memory.buffer, pubPtr, 32).set(pubBytes);
     derive_shared_secret(privPtr, pubPtr, outPtr);
     const secret = btoa(String.fromCharCode(...new Uint8Array(memory.buffer, outPtr, 32)));
     this._sharedSecrets[myUserId + '_' + theirPublicKey.substring(0, 10)] = secret;
