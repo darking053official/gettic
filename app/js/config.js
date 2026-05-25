@@ -2,7 +2,7 @@
 // ║                    GETTIC CONFIG.JS                             ║
 // ╚══════════════════════════════════════════════════════════════════╝
 
-const API = 'https://employers-continuity-surrey-interface.trycloudflare.com';
+const API = 'https://olympus-wesley-kurt-dakota.trycloudflare.com';
 const MAX_MSGS = 100;
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'audio/mp3', 'audio/webm', 'application/pdf', 'text/plain'];
