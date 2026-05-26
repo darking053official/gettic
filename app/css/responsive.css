@@ -1,22 +1,127 @@
-/* ============ GETTIC RESPONSIVE.CSS ============ */
-@media (max-width: 768px) {
-  :root { --side: 260px; --rail: 48px; }
-  .ri { width: 36px; height: 36px; font-size: 16px; }
-  .sidebar {
-    position: absolute; left: calc(-1 * var(--side));
-    top: 0; bottom: 0; height: 100%;
-    z-index: 50; transition: left 0.22s ease;
-  }
-  .sidebar.open { left: var(--rail); box-shadow: 4px 0 20px rgba(0,0,0,0.3); }
-  .mbox { width: 96%; max-height: 90dvh; border-radius: 14px; padding: 16px; }
-  .input-area { padding: 8px 10px; gap: 4px; }
-  .msg-inp { font-size: 16px; }
-  .hacts .ib:nth-child(n+4) { display: none; }
-  .chat-header { padding: 8px 12px; height: 40px; }
-  .msgs { padding: 12px; }
+/* ╔══════════════════════════════════════════════════════════════════╗
+   ║         GETTIC RESPONSIVE - BOOTSTRAP 5 UYUMLU               ║
+   ╚══════════════════════════════════════════════════════════════════╝ */
+
+/* Tablet (992px ve altı) */
+@media (max-width: 992px) {
+  .container { max-width: 100%; padding: 0 12px; }
+  .settings-panel { width: 260px !important; }
 }
 
-@media (max-width: 480px) {
-  .home-header h2 { font-size: 14px; }
-  .home-header .ib { width: 28px; height: 28px; }
+/* Mobil (768px ve altı) */
+@media (max-width: 768px) {
+  /* Sidebar mobil menü */
+  .sidebar { 
+    position: fixed !important; 
+    z-index: 1050; 
+    left: -100%; 
+    top: 0;
+    height: 100vh;
+    transition: left 0.3s ease; 
+    width: 280px !important; 
+  }
+  .sidebar.open { left: 0; }
+  
+  /* Chat tam genişlik */
+  .chat { margin-left: 0 !important; width: 100% !important; }
+  
+  /* Home panel */
+  .home-panel { width: 100% !important; }
+  .home-body { padding: 12px; }
+  
+  /* Settings panel */
+  .settings-panel { 
+    width: 100% !important; 
+    position: fixed !important; 
+    top: 0; right: 0; 
+    z-index: 1060;
+  }
+  
+  /* Auth box */
+  .auth-box { 
+    width: 95% !important; 
+    padding: 20px 16px !important; 
+    margin: 10px auto;
+  }
+  .auth-logo { width: 48px; height: 48px; }
+  .auth-title { font-size: 20px; }
+  .auth-tab { padding: 8px 16px; font-size: 13px; }
+  
+  /* Mesajlar */
+  .msg { padding: 8px 10px; }
+  .msg-av { width: 32px; height: 32px; font-size: 14px; flex-shrink: 0; }
+  .msg-body { min-width: 0; }
+  .msg-text { font-size: 13px; word-break: break-word; }
+  .ma { gap: 2px; }
+  .ma button { padding: 4px 6px; font-size: 14px; }
+  
+  /* Rail (sol sidebar ikonları) */
+  .rail { padding: 6px 2px; width: 42px; }
+  .ri { width: 34px; height: 34px; font-size: 15px; border-radius: 50%; }
+  
+  /* Input alanı */
+  .input-area { padding: 4px 6px; gap: 3px; }
+  .msg-inp { font-size: 14px; padding: 8px 10px; }
+  
+  /* Modal */
+  .mbox { width: 95% !important; max-height: 85vh; padding: 16px; }
+  .mclose { top: 6px; right: 6px; font-size: 18px; }
+  
+  /* Butonlar */
+  .mb { padding: 10px 16px; font-size: 13px; }
+  .mi { padding: 10px 12px; font-size: 14px; }
+  
+  /* Toast */
+  .toast { left: 10px; right: 10px; bottom: 10px; max-width: none; }
+  
+  /* Emoji panel */
+  .emoji-picker { width: 280px !important; }
+  .emoji-grid { max-height: 150px; }
+  
+  /* DM list */
+  .dm-list-item { padding: 8px 10px; }
+  .dm-av { width: 32px; height: 32px; font-size: 13px; }
+  
+  /* Forum */
+  .forum-post { padding: 10px; }
+  
+  /* Welcome */
+  .welcome-tips { gap: 8px; }
+  .welcome-tip { font-size: 12px; padding: 8px 12px; }
+  
+  /* Gcaptcha */
+  gcaptcha-widget { max-width: 100% !important; }
 }
+
+/* Küçük Telefon (480px ve altı) */
+@media (max-width: 480px) {
+  .container { padding: 0 6px; }
+  
+  .auth-box { width: 98% !important; padding: 14px 10px !important; }
+  .auth-logo { width: 40px; height: 40px; }
+  .auth-title { font-size: 18px; }
+  
+  .msg-av { width: 28px; height: 28px; font-size: 12px; }
+  .msg-text { font-size: 12px; }
+  .msg-head { font-size: 11px; }
+  .ma button { padding: 3px 5px; font-size: 12px; }
+  
+  .rail { width: 36px; padding: 4px 1px; }
+  .ri { width: 30px; height: 30px; font-size: 13px; }
+  
+  .input-area { padding: 2px 4px; gap: 2px; }
+  .msg-inp { font-size: 13px; padding: 6px 8px; }
+  .ib { width: 30px; height: 30px; font-size: 14px; }
+  
+  .mb { padding: 8px 14px; font-size: 12px; }
+  .mi { padding: 8px 10px; font-size: 13px; }
+  
+  .sidebar { width: 260px !important; }
+  .settings-panel { width: 100% !important; }
+  
+  .home-header h2 { font-size: 14px; }
+  .home-section-title { font-size: 10px; }
+  .friend-suggestion { padding: 8px; }
+  .friend-suggestion-av { width: 36px; height: 36px; font-size: 14px; }
+  .friend-suggestion-name { font-size: 12px; }
+       }
