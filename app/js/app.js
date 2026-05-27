@@ -1,265 +1,280 @@
 // ╔══════════════════════════════════════════════════════════════════╗
-// ║                   GETTIC APP.JS - GCAPTCHA FINAL               ║
+// ║   GETTIC APP.JS v2.0 - Ana Başlatıcı                             ║
 // ╚══════════════════════════════════════════════════════════════════╝
 
-console.log('🚀 Gettic başlatılıyor...');
-
-function $(id) { return document.getElementById(id); }
-
-let tab = 'login';
-let socket = null;
-let sendTimeout;
-let verificationCode = '';
-let resetVerificationCode = '';
-
-// ============ INIT ============
-setTimeout(() => {
-  $('ls')?.classList.add('hide');
-  $('loginScreen')?.classList.remove('hidden');
-}, 500);
-
-// ============ AUTH TABS ============
-$('tabLogin').onclick = () => { 
-  tab='login'; 
-  $('tabLogin').classList.add('act'); 
-  $('tabRegister').classList.remove('act'); 
-  $('authSubmit').textContent='Giriş';
-  $('loginForm').style.display='';
-  $('registerForm').style.display='none';
-};
-
-$('tabRegister').onclick = () => { 
-  tab='register'; 
-  $('tabRegister').classList.add('act'); 
-  $('tabLogin').classList.remove('act');
-  $('loginForm').style.display='none';
-  $('registerForm').style.display='';
-};
-
-// ============ GCAPTCHA ============
-function getCaptchaPayload(forRegister) {
-  const id = forRegister ? 'registerCaptcha' : 'loginCaptcha';
-  const w = document.querySelector('#' + id);
-  return w?.getValue() || null;
+function _appLog(msg, level = 'log') {
+  console[level](`%c[App] ${msg}`, 'color:#f472b6;font-weight:bold');
 }
 
-// ============ SVG İKON YERLEŞTİR ============
-function setSvgIcon(id, iconName) {
-  const el = $(id);
-  if (el && window.Icons && Icons[iconName]) {
-    el.innerHTML = Icons[iconName];
+// ============ KONFİGÜRASYON ============
+// config.js'den gelir, yoksa fallback
+if (typeof API === 'undefined') {
+  var API = window.location.hostname === 'localhost'
+    ? 'http://localhost:3000'
+    : 'https://gettic-backend.onrender.com';
+}
+
+// ============ SOCKET BAŞLAT ============
+var socket = null;
+
+function initSocket(token) {
+  if (socket?.connected) socket.disconnect();
+
+  socket = io(API, {
+    auth:       { token },
+    transports: ['websocket', 'polling'],
+    reconnection:        true,
+    reconnectionAttempts: 10,
+    reconnectionDelay:   1000,
+    reconnectionDelayMax: 10000,
+    timeout:             20000,
+  });
+
+  socket.on('connect', () => {
+    _appLog('Socket bağlandı: ' + socket.id);
+    _updateConnectionStatus(true);
+
+    // Aktif kanala katıl
+    if (Store.activeChannel) {
+      socket.emit('join_channel', Store.activeChannel);
+    }
+
+    // Socket ready event'i tetikle (diğer modüller bekliyor)
+    document.dispatchEvent(new CustomEvent('socket_ready'));
+
+    // Offline kuyruğu gönder
+    if (typeof OfflineMode !== 'undefined') OfflineMode.processPending?.();
+  });
+
+  socket.on('disconnect', reason => {
+    _appLog('Socket bağlantısı kesildi: ' + reason, 'warn');
+    _updateConnectionStatus(false);
+  });
+
+  socket.on('connect_error', err => {
+    _appLog('Socket bağlantı hatası: ' + err.message, 'error');
+    _updateConnectionStatus(false);
+  });
+
+  socket.on('error', err => {
+    _appLog('Socket hata: ' + err.message, 'error');
+    if (err.message === 'Geçersiz token' || err.message === 'Token süresi doldu') {
+      // Token yenile ve tekrar bağlan
+      _refreshAndReconnect();
+    }
+  });
+
+  return socket;
+}
+
+async function _refreshAndReconnect() {
+  try {
+    const res = await fetch(`${API}/api/auth/refresh`, {
+      method:      'POST',
+      credentials: 'include',
+    });
+    if (res.ok) {
+      const data  = await res.json();
+      Store.token = data.token;
+      localStorage.setItem('gt_token', data.token);
+      initSocket(data.token);
+    } else {
+      handleLogout();
+    }
+  } catch {
+    handleLogout();
   }
 }
 
-function placeAllIcons() {
-  const icons = {
-    homeBtn: 'home', discoverBtn: 'search', dmBtn: 'mail', createServerBtn: 'plus',
-    logoutBtn: 'logout', panelLogoutBtn: 'logout',
-    homeSettingsBtn: 'settings', homeNotificationsBtn: 'bell',
-    chatSettingsBtn: 'settings',
-    sendBtn: 'send', emojiBtn: 'smile', gifBtn: 'gif', imageBtn: 'image',
-    pollBtn: 'poll', fileBtn: 'file', voiceMsgBtn: 'mic',
-    searchBtn: 'search', toggleSidebarBtn: 'menu', togglePanelBtn: 'user'
-  };
-  Object.entries(icons).forEach(([id, name]) => setSvgIcon(id, name));
+// ============ BAĞLANTI DURUMU ============
+function _updateConnectionStatus(connected) {
+  const dot = document.getElementById('connectionDot');
+  const txt = document.getElementById('connectionText');
+  if (dot) dot.className = `conn-dot ${connected ? 'on' : 'off'}`;
+  if (txt) txt.textContent = connected ? 'Bağlı' : 'Bağlanıyor...';
 }
 
-// ============ GİRİŞ ============
-$('authSubmit').onclick = async () => {
-  const email = $('authEmail')?.value?.trim();
-  const password = $('authPassword')?.value?.trim();
-  
-  if (!email?.includes('@')) return showAuthError('Geçerli bir e-posta adresi girin');
-  if (!password || password.length < 4) return showAuthError('Şifre en az 4 karakter');
-  
-  const captchaPayload = getCaptchaPayload(false);
-  if (!captchaPayload) return showAuthError('Lütfen doğrulamayı yapın');
-  
-  $('authError').style.display='none';
-  $('authSubmit').textContent='Doğrulanıyor...';
-  $('authSubmit').disabled=true;
-  
-  try {
-    const username = email.split('@')[0];
-    const res = await fetch(API + '/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password, gcaptcha: captchaPayload })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Giriş başarısız');
-    
-    Store.token = data.token;
-    Store.user = data.user;
-    saveStore();
-    showMain();
-  } catch(e) { 
-    showAuthError(e.message);
-    document.querySelector('gcaptcha-widget')?.reset?.();
+// ============ KULLANICI PANELİ ============
+function renderUserPanel() {
+  const u = Store.user;
+  if (!u) return;
+
+  const nameEl   = document.getElementById('myUsername');
+  const roleEl   = document.getElementById('myRole');
+  const avEl     = document.getElementById('myAvatar');
+  const statusEl = document.getElementById('myStatus');
+
+  if (nameEl) nameEl.textContent  = u.username || '';
+  if (avEl)   avEl.textContent    = (u.username || '?').charAt(0).toUpperCase();
+  if (statusEl) {
+    const STATUS_COLORS = { online:'#10b981', idle:'#f59e0b', dnd:'#ef4444', offline:'#6b7280', invisible:'#6b7280' };
+    statusEl.style.background = STATUS_COLORS[u.status || 'online'];
   }
-  
-  $('authSubmit').textContent='Giriş';
-  $('authSubmit').disabled=false;
-};
 
-function showAuthError(msg) { 
-  const e=$('authError'); 
-  if(e){e.textContent=msg;e.style.display='block';}
-  setTimeout(()=>{if(e)e.style.display='none';},5000);
+  const role = typeof getHighestRole === 'function' ? getHighestRole(u._id) : null;
+  if (roleEl && role) {
+    roleEl.textContent  = role.name;
+    roleEl.style.color  = role.color;
+  }
 }
 
-$('authPassword').onkeydown = (e) => { if(e.key==='Enter') $('authSubmit').click(); };
-$('authEmail').onkeydown = (e) => { if(e.key==='Enter') $('authPassword').focus(); };
-
-// ============ KAYIT ============
-async function sendVerificationCode() {
-  const email = $('regEmail')?.value?.trim();
-  if (!email?.includes('@')) { $('codeMsg').textContent='Geçerli e-posta girin';$('codeMsg').style.color='var(--re)';return; }
-  
-  verificationCode = String(Math.floor(100000 + Math.random() * 900000));
-  $('codeMsg').textContent='Kod gönderiliyor...';$('codeMsg').style.color='var(--t3)';
-  
-  try {
-    await fetch(API+'/api/email/send',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({to:email,subject:'Gettic Doğrulama Kodu',html:`<h2>Gettic</h2><p>Kod: <b>${verificationCode}</b></p>`})
-    });
-    $('codeSection').style.display='';
-    $('sendCodeBtn').style.display='none';
-    $('codeMsg').textContent='✅ Kod gönderildi! Spamı kontrol edin.';
-    $('codeMsg').style.color='var(--gr)';
-    
-    // Widget'ın render edilmesi için kısa bekle
-    await new Promise(r => setTimeout(r, 300));
-  } catch(e) { $('codeMsg').textContent='❌ Kod gönderilemedi.';$('codeMsg').style.color='var(--re)'; }
+// ============ KLAVYE KISAYOLLARI ============
+function _initKeyboardShortcuts() {
+  document.addEventListener('keydown', e => {
+    // Ctrl+K → Arama
+    if (e.ctrlKey && e.key === 'k') {
+      e.preventDefault();
+      if (typeof openModal === 'function') openModal('search');
+    }
+    // Ctrl+Shift+D → Dev konsolu
+    if (e.ctrlKey && e.shiftKey && e.key === 'D') {
+      e.preventDefault();
+      if (typeof DevConsole !== 'undefined') DevConsole.open();
+    }
+    // Escape → Modal kapat
+    if (e.key === 'Escape') {
+      if (typeof closeModal === 'function') closeModal();
+    }
+    // Alt+Yukarı/Aşağı → Kanal değiştir
+    if (e.altKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+      e.preventDefault();
+      _navigateChannel(e.key === 'ArrowUp' ? -1 : 1);
+    }
+  });
 }
 
-async function registerWithCode() {
-  const code=$('verificationCode')?.value?.trim();
-  const username=$('regUsername')?.value?.trim();
-  const password=$('regPassword')?.value?.trim();
-  
-  if(code!==verificationCode){$('codeMsg').textContent='❌ Geçersiz kod!';$('codeMsg').style.color='var(--re)';return;}
-  if(!username||username.length<3){$('codeMsg').textContent='Kullanıcı adı en az 3 karakter';$('codeMsg').style.color='var(--re)';return;}
-  if(!/^[a-zA-Z0-9_]+$/.test(username)){$('codeMsg').textContent='Sadece harf, rakam, alt çizgi';$('codeMsg').style.color='var(--re)';return;}
-  if(!password||password.length<6){$('codeMsg').textContent='Şifre en az 6 karakter';$('codeMsg').style.color='var(--re)';return;}
-  
-  const captchaPayload = getCaptchaPayload(true); // true = register widget'ı
-  if(!captchaPayload){$('codeMsg').textContent='Lütfen doğrulamayı yapın';$('codeMsg').style.color='var(--re)';return;}
-  
-  try {
-    const res=await fetch(API+'/api/auth/register',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({username,password,gcaptcha:captchaPayload})
-    });
-    const data=await res.json();
-    if(!res.ok)throw new Error(data.error||'Kayıt başarısız');
-    Store.token=data.token;Store.user=data.user;saveStore();showMain();
-  }catch(e){$('codeMsg').textContent='❌ '+e.message;$('codeMsg').style.color='var(--re)';document.querySelector('gcaptcha-widget')?.reset?.();}
+function _navigateChannel(dir) {
+  const channels = Store.channels || [];
+  const idx      = channels.findIndex(c => c.id === Store.activeChannel);
+  const next     = channels[idx + dir];
+  if (next && typeof switchChannel === 'function') switchChannel(next.id);
 }
 
-// ============ ŞİFREMİ UNUTTUM ============
-function showForgotPassword(){ $('forgotPasswordScreen')?.classList.remove('hidden'); $('authMainBox').style.display='none'; }
-function hideForgotPassword(){ $('forgotPasswordScreen')?.classList.add('hidden'); $('authMainBox').style.display=''; }
-
-async function sendResetCode(){
-  const email=$('resetEmail')?.value?.trim();
-  if(!email?.includes('@')){$('resetMsg').textContent='Geçerli e-posta girin';$('resetMsg').style.color='var(--re)';return;}
-  resetVerificationCode=String(Math.floor(100000+Math.random()*900000));
-  $('resetMsg').textContent='Kod gönderiliyor...';$('resetMsg').style.color='var(--t3)';
-  try {
-    await fetch(API+'/api/email/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({to:email,subject:'Gettic Şifre Sıfırlama',html:`<h2>Şifre Sıfırlama</h2><p>Kod: <b>${resetVerificationCode}</b></p>`})});
-    $('resetCodeSection').style.display='';$('resetMsg').textContent='✅ Kod gönderildi!';$('resetMsg').style.color='var(--gr)';
-  }catch(e){$('resetMsg').textContent='❌ Kod gönderilemedi.';$('resetMsg').style.color='var(--re)';}
+// ============ MODAL OVERLAY KAPAT ============
+function _initModalDismiss() {
+  const modal = document.getElementById('modal');
+  if (!modal) return;
+  modal.addEventListener('click', e => {
+    if (e.target === modal && typeof closeModal === 'function') closeModal();
+  });
 }
 
-async function resetPasswordWithCode(){
-  const code=$('resetCode')?.value?.trim(),newPass=$('newPassword')?.value?.trim();
-  if(code!==resetVerificationCode){$('resetMsg').textContent='❌ Geçersiz kod!';$('resetMsg').style.color='var(--re)';return;}
-  if(!newPass||newPass.length<4){$('resetMsg').textContent='Şifre en az 4 karakter';$('resetMsg').style.color='var(--re)';return;}
-  $('resetMsg').textContent='✅ Şifre değiştirildi!';$('resetMsg').style.color='var(--gr)';setTimeout(hideForgotPassword,2000);
+// ============ TEMA UYGULA ============
+function _applyStoredTheme() {
+  if (typeof ThemeEngine !== 'undefined') {
+    ThemeEngine.apply(ThemeEngine.current);
+  } else {
+    const ac = Store.theme || '#6366f1';
+    document.documentElement.style.setProperty('--ac', ac);
+    document.documentElement.style.setProperty('--acd', ac + '33');
+  }
+
+  if (Store.lightMode)   document.body.classList.add('light-mode');
+  if (Store.compactMode) document.body.classList.add('compact-mode');
+  if (Store.animations === false) document.body.classList.add('no-animations');
 }
 
-// ============ SHOW MAIN ============
-function showMain(){
-  const saved=localStorage.getItem('gt_messages');
-  if(saved&&(!Store.messages||Store.messages.length===0)){try{Store.messages=JSON.parse(saved)}catch(e){}}
-  $('loginScreen').classList.add('hidden');$('mainScreen').classList.remove('hidden');$('mainScreen').classList.add('flex');
-  if(Store.user){$('displayName').textContent=Store.user.username;$('avatar').textContent=Store.user.username.charAt(0).toUpperCase();}
-  $('serverName').textContent=Store.serverSettings?.name||'Gettic';document.title='Gettic - '+(Store.user?.username||'Sohbet');
-  if(Store.messages.length===0&&Store.activeChannel==='genel-sohbet'){Store.messages.push({_id:'welcome-msg',content:'**🎉 Gettic\'e hoş geldiniz!**\n\nBurası genel sohbet kanalı.',senderName:'Gettic',senderId:'system',channelId:'genel-sohbet',createdAt:new Date().toISOString()});}
-  if(typeof renderChannels==='function')renderChannels();if(typeof renderMessages==='function')renderMessages();saveStore();
-  if(typeof loadActiveServers==='function')loadActiveServers();updateUIPermissions();
-  if(typeof MongoSync!=='undefined')setTimeout(()=>MongoSync.syncAll(),2000);initSocket();
-  placeAllIcons();
+// ============ UYGULAMA BAŞLAT ============
+async function initApp() {
+  _appLog('Başlatılıyor...');
+
+  // 1. Tema hemen uygula (flash önlemi)
+  _applyStoredTheme();
+
+  // 2. Oturumu kontrol et
+  const isLoggedIn = await checkSession();
+  if (!isLoggedIn) {
+    _appLog('Oturum yok → auth ekranı');
+    return;
+  }
+
+  // 3. App ekranını göster
+  const authEl = document.getElementById('authScreen');
+  const appEl  = document.getElementById('appScreen');
+  if (authEl) authEl.style.display = 'none';
+  if (appEl)  appEl.style.display  = '';
+
+  // 4. Socket başlat
+  initSocket(Store.token);
+
+  // 5. Modülleri başlat
+  if (typeof detectMobile    === 'function') detectMobile();
+  if (typeof I18n            !== 'undefined') I18n.updateUI();
+  _initKeyboardShortcuts();
+  _initModalDismiss();
+
+  // 6. Kanalları render et
+  if (typeof renderChannels  === 'function') renderChannels();
+  if (typeof renderUserPanel === 'function') renderUserPanel();
+
+  // 7. Tam senkronizasyon (MongoSync hazırsa)
+  if (typeof MongoSync !== 'undefined') {
+    await MongoSync.fullSync();
+  }
+
+  // 8. Periyodik görevler
+  _startPeriodicTasks();
+
+  _appLog('Hazır ✓');
+  document.dispatchEvent(new CustomEvent('app_ready'));
 }
 
-function showLogin(){$('ls')?.classList.add('hide');$('loginScreen')?.classList.remove('hidden');$('mainScreen')?.classList.add('hidden');}
+// ============ PERİYODİK GÖREVLER ============
+function _startPeriodicTasks() {
+  // Her 5dk: token yenile
+  setInterval(async () => {
+    if (typeof SecurityLayer !== 'undefined') {
+      await SecurityLayer.refreshTokenIfNeeded();
+    }
+  }, 5 * 60 * 1000);
 
-function updateUIPermissions(){
-  const isAdmin=typeof hasPermission==='function'?hasPermission(Store.user?._id,'manageChannels'):false;
-  const addCat=$('addCategoryBtn'),addCh=$('addChannelSidebarBtn');
-  if(addCat)addCat.style.display=isAdmin?'':'none';if(addCh)addCh.style.display=isAdmin?'':'none';
+  // Her 30sn: sync engine flush
+  setInterval(() => {
+    if (typeof SyncEngine !== 'undefined') SyncEngine.flush();
+  }, 30_000);
+
+  // Her 1dk: online üye sayısı güncelle
+  setInterval(() => {
+    if (typeof updateOnlineCount === 'function') updateOnlineCount();
+  }, 60_000);
 }
 
-// ============ BUTONLAR ============
-function bindButtons(){
-  $('homeBtn')?.addEventListener('click',()=>{$('homePanel').classList.remove('hidden');$('sidebar').classList.add('hidden');$('chatArea').classList.add('hidden');if(typeof loadActiveServers==='function')loadActiveServers();});
-  $('discoverBtn')?.addEventListener('click',()=>{$('homePanel').classList.add('hidden');$('sidebar').classList.add('hidden');$('chatArea').classList.remove('hidden');$('chatArea').classList.add('flex');});
-  $('dmBtn')?.addEventListener('click',()=>{if(typeof openModal==='function')openModal('dm');});
-  $('createServerBtn')?.addEventListener('click',()=>{if(typeof openModal==='function')openModal('addServer');});
-  $('homeSettingsBtn')?.addEventListener('click',()=>$('settingsPanel')?.classList.toggle('show'));
-  $('homeNotificationsBtn')?.addEventListener('click',()=>{if(typeof openModal==='function')openModal('notifications');});
-  $('addCategoryBtn')?.addEventListener('click',()=>{if(typeof openModal==='function')openModal('addCategory');});
-  $('addChannelSidebarBtn')?.addEventListener('click',()=>{if(typeof openModal==='function')openModal('addChannel');});
-  $('sidebarUserBtn')?.addEventListener('click',()=>{if(typeof openModal==='function')openModal('profile');});
-  $('toggleSidebarBtn')?.addEventListener('click',()=>$('sidebar')?.classList.toggle('open'));
-  $('togglePanelBtn')?.addEventListener('click',()=>{const p=$('userPanel');if(p)p.style.display=p.style.display==='none'||p.style.display===''?'block':'none';});
-  $('searchBtn')?.addEventListener('click',()=>{if(typeof openModal==='function')openModal('search');});
-  $('sendBtn')?.addEventListener('click',()=>{if(typeof sendMessage==='function')sendMessage();});
-  $('emojiBtn')?.addEventListener('click',()=>$('emojiPanel')?.classList.toggle('hidden'));
-  $('gifBtn')?.addEventListener('click',()=>{if(typeof openGifPicker==='function')openGifPicker();});
-  $('imageBtn')?.addEventListener('click',()=>{if(typeof openModal==='function')openModal('imageGen');});
-  $('pollBtn')?.addEventListener('click',()=>{if(typeof openModal==='function')openModal('poll');});
-  $('logoutBtn')?.addEventListener('click',()=>{if(typeof logout==='function')logout();});
-  $('panelLogoutBtn')?.addEventListener('click',()=>{if(typeof logout==='function')logout();});
-  $('modalClose')?.addEventListener('click',()=>{if(typeof closeModal==='function')closeModal();});
-  $('retryBtn')?.addEventListener('click',()=>{if(socket)socket.connect();});
-  const panelMap={panelProfileBtn:'profile',panelDmBtn:'dm',panelAddFriendBtn:'addFriend',panelThemeBtn:'theme',panelPollBtn:'poll',panelSearchBtn:'search',panelServerBtn:'serverSettings',panelRolesBtn:'roles'};
-  Object.entries(panelMap).forEach(([id,modal])=>{const btn=$(id);if(btn)btn.addEventListener('click',()=>{if(typeof openModal==='function')openModal(modal);});});
-  $('panelClearBtn')?.addEventListener('click',()=>{if(typeof clearMessages==='function')clearMessages();});
-  $('messageInput')?.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();clearTimeout(sendTimeout);sendTimeout=setTimeout(()=>{if(typeof sendMessage==='function')sendMessage();},50);}});
-  placeAllIcons();
-  console.log('✅ Tüm butonlar bağlandı');
+// ============ UYGULAMA EVENT DİNLEYİCİLERİ ============
+
+// Auth başarılı
+document.addEventListener('auth_success', async (e) => {
+  _appLog('Auth başarılı: ' + e.detail?.username);
+  initSocket(Store.token);
+  if (typeof detectMobile === 'function') detectMobile();
+  _initKeyboardShortcuts();
+  _initModalDismiss();
+  if (typeof renderChannels  === 'function') renderChannels();
+  if (typeof renderUserPanel === 'function') renderUserPanel();
+  _startPeriodicTasks();
+});
+
+// Çıkış
+document.addEventListener('logout', () => {
+  _appLog('Çıkış yapıldı');
+  if (socket) { socket.disconnect(); socket = null; }
+});
+
+// Senkronizasyon tamamlandı
+document.addEventListener('sync_complete', () => {
+  _appLog('Sync tamamlandı');
+  if (typeof renderChannels  === 'function') renderChannels();
+  if (typeof renderUserPanel === 'function') renderUserPanel();
+  if (typeof updateNotifBadge === 'function') updateNotifBadge();
+});
+
+// ============ DOMContentLoaded ============
+document.addEventListener('DOMContentLoaded', initApp);
+
+// ============ SERVICE WORKER (PWA) ============
+if ('serviceWorker' in navigator && window.location.protocol === 'https:') {
+  navigator.serviceWorker.register('/sw.js').then(reg => {
+    _appLog('Service Worker kayıtlı: ' + reg.scope);
+  }).catch(() => {});
 }
 
-// ============ LOAD USER ============
-if(Store?.token){const fn=typeof loadUser==='function'?loadUser:window.loadUser;if(fn){fn().then(u=>{if(u)showMain();else showLogin()}).catch(()=>showLogin())}else showLogin();}else showLogin();
-setTimeout(bindButtons,300);window.addEventListener('load',()=>setTimeout(bindButtons,100));
-window.addEventListener('online',()=>{if(Store)Store.isOnline=true});window.addEventListener('offline',()=>{if(Store)Store.isOnline=false});
-window.addEventListener('beforeunload',()=>{if(typeof saveStore==='function')saveStore();});
-document.addEventListener('keydown',function(e){if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();if(typeof openModal==='function')openModal('search');}if(e.key==='Escape'){if(typeof closeModal==='function')closeModal();$('emojiPanel')?.classList.add('hidden');}});
-if('serviceWorker'in navigator){navigator.serviceWorker.register('/service-worker.js').catch(()=>{});}
-console.log('✅ App.js yüklendi');
-
-// ============ SOCKET.IO REALTIME ============
-function initSocket(){
-  if(!Store.token||!Store.user)return;
-  if(socket){socket.disconnect();}
-  socket=io(API,{auth:{token:Store.token}});
-  socket.on('connect',()=>{console.log('✅ Socket bağlandı');$('connbar')?.classList.add('hidden');if(Store.activeChannel){socket.emit('join_channel',Store.activeChannel);}});
-  socket.on('disconnect',()=>{console.log('🔌 Socket koptu');$('connbar')?.classList.remove('hidden');});
-  socket.on('new_message',(msg)=>{if(!Store.messages.find(m=>m._id===msg._id)){Store.messages.push(msg);if(typeof renderMessages==='function')renderMessages();saveStore();scrollToBottom();}});
-  socket.on('user_typing',({username,channelId})=>{if(channelId===Store.activeChannel){$('typing').textContent=username+' yazıyor...';clearTimeout(window._typingTimeout);window._typingTimeout=setTimeout(()=>{$('typing').textContent='';},2000);}});
-}
-
-function sendMessage(){
-  const input=$('messageInput');const content=input?.value?.trim();
-  if(!content||!Store.user||!socket?.connected)return;
-  const msgData={channelId:Store.activeChannel||'genel-sohbet',content,senderName:Store.user.username,senderId:Store.user._id,createdAt:new Date().toISOString()};
-  socket.emit('send_message',msgData);input.value='';input.focus();
-}
-
-function scrollToBottom(){const msgs=$('messages');if(msgs){setTimeout(()=>{msgs.scrollTop=msgs.scrollHeight;},50);}}
-
-$('messageInput')?.addEventListener('input',()=>{if(socket?.connected&&Store.user){socket.emit('typing',{channelId:Store.activeChannel||'genel-sohbet',username:Store.user.username});}});
+_appLog('v2.0 yüklendi ✓');
