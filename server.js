@@ -741,6 +741,50 @@ app.delete('/api/channels/:channelId', authMiddleware, async (req, res) => {
   } catch { res.status(500).json({ error: 'Sunucu hatası' }); }
 });
 
+// Email
+app.post('/api/email/send', authLimiter, async (req, res) => {
+  try {
+    const { to, subject, html } = req.body;
+    if (!to || !subject || !html) return res.status(400).json({ error: 'Eksik bilgi' });
+
+    const { google } = require('googleapis');
+    const nodemailer = require('nodemailer');
+
+    const oauth2Client = new google.auth.OAuth2(
+      process.env.GMAIL_CLIENT_ID,
+      process.env.GMAIL_CLIENT_SECRET,
+      'https://developers.google.com/oauthplayground'
+    );
+    oauth2Client.setCredentials({ refresh_token: process.env.GMAIL_REFRESH_TOKEN });
+
+    const accessToken = await oauth2Client.getAccessToken();
+
+    const transporter = nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true,
+      auth: {
+        type: 'OAuth2',
+        user: process.env.GMAIL_USER,
+        clientId: process.env.GMAIL_CLIENT_ID,
+        clientSecret: process.env.GMAIL_CLIENT_SECRET,
+        refreshToken: process.env.GMAIL_REFRESH_TOKEN,
+        accessToken: accessToken.token,
+      },
+    });
+
+    const info = await transporter.sendMail({
+      from: `"Gettic Güvenlik" <${process.env.GMAIL_USER}>`,
+      to, subject, html,
+    });
+
+    res.json({ success: true, messageId: info.messageId });
+  } catch (error) {
+    console.error('❌ Email hatası:', error.message);
+    res.status(500).json({ error: 'Email gönderilemedi' });
+  }
+});
+
 // ═══════════════════════════════════════════════════════════════════
 // MESAJ ENDPOINTS
 // ═══════════════════════════════════════════════════════════════════
