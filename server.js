@@ -31,6 +31,7 @@ const xss         = require('xss');
 const useragent   = require('express-useragent');
 const requestIp   = require('request-ip');
 const validator   = require('validator');
+const cookieParser = require('cookie-parser');
 
 // ── Opsiyonel ─────────────────────────────────────────────────────
 let nodemailer, googleApis;
@@ -91,12 +92,12 @@ const uploadLimiter  = _limiter(1,  10,  'Çok fazla yükleme isteği.');
 
 // Yavaşlatıcı (brute-force önlemi)
 const authSlowDown = slowDown({
-  windowMs:          15 * 60 * 1000,
-  delayAfter:        5,
-  delayMs:           500,
-  maxDelayMs:        5000,
-  keyGenerator:      req => req.clientIp || req.ip,
-  skip:              req => process.env.NODE_ENV === 'test',
+  windowMs:   15 * 60 * 1000,
+  delayAfter: 5,
+  delayMs:    (used) => (used - 5) * 500,  // ← BU SATIR DEĞİŞTİ
+  maxDelayMs: 5000,
+  keyGenerator: req => req.clientIp || req.ip,
+  skip: req => process.env.NODE_ENV === 'test',
 });
 
 // ═══════════════════════════════════════════════════════════════════
@@ -157,11 +158,13 @@ app.use(express.json({
 }));
 app.use(express.urlencoded({ extended: true, limit: `${MAX_FILE_MB}mb` }));
 
+// cookie
+app.use(cookieParser());
+
 // ── IP & User-Agent ───────────────────────────────────────────────
 app.use(requestIp.mw());
 app.use(useragent.express());
 app.use((req, res, next) => {
-  req.clientIp  = requestIp.getClientIp(req) || req.ip || 'unknown';
   req.uaString  = req.useragent?.source?.slice(0, 200) || 'Unknown';
   req.requestId = crypto.randomUUID();
   res.setHeader('X-Request-ID', req.requestId);
