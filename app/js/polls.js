@@ -1,283 +1,366 @@
 // ╔══════════════════════════════════════════════════════════════════╗
-// ║      GETTIC POLLS.JS - SVG İKONLU + TÜRKÇE DÜZELTMELER          ║
+// ║   GETTIC POLLS.JS v2.0 - Anket Sistemi                           ║
 // ╚══════════════════════════════════════════════════════════════════╝
 
-// SVG ikon yardımcı
-function pollIcon(name, size = 18) {
-  return window.Icons?.[name] ? `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle">${Icons[name]}</svg>` : '';
+function _pollsLog(msg, level = 'log') {
+  console[level](`%c[Polls] ${msg}`, 'color:#a78bfa;font-weight:bold');
 }
 
-const pollState = {
-  polls: JSON.parse(localStorage.getItem('gt_polls_v2') || '{}'),
-  templates: [
-    { name: 'Haftasonu Etkinliği', options: ['Sinema', 'Yemek', 'Oyun', 'Spor', 'Diğer'] },
-    { name: 'Oylama', options: ['Evet', 'Hayır', 'Çekimser'] },
-    { name: 'Derecelendirme', options: ['1 Yıldız', '2 Yıldız', '3 Yıldız', '4 Yıldız', '5 Yıldız'] }
-  ]
-};
+// ============ LOCALSTORAGE ============
+function _savePolls() {
+  try {
+    localStorage.setItem('gt_polls', JSON.stringify(Store.polls || {}));
+  } catch (e) {
+    _pollsLog('Kayıt hatası: ' + e.message, 'warn');
+  }
+}
 
-// Anket oluştur
-function createPoll(question, options, settings = {}) {
-  if (!question?.trim()) return toast('Soru gerekli', 'e');
-  if (!options || options.length < 2) return toast('En az 2 seçenek gerekli', 'e');
-  if (options.length > 10) return toast('En fazla 10 seçenek', 'e');
-  if (options.some(o => !o?.trim())) return toast('Tüm seçenekleri doldurun', 'e');
-  
-  const pollId = genId();
+function _loadPolls() {
+  try {
+    const raw = localStorage.getItem('gt_polls');
+    if (raw) Store.polls = JSON.parse(raw);
+  } catch {}
+}
+
+// ============ ANKET OLUŞTUR ============
+function createPoll(question, options, duration = 0) {
+  question = question?.trim();
+  if (!question || question.length < 3)  return toast('Soru en az 3 karakter', 'e');
+  if (question.length > 200)             return toast('Soru çok uzun', 'e');
+  if (!Array.isArray(options) || options.length < 2) return toast('En az 2 seçenek gerekli', 'e');
+  if (options.length > 10)               return toast('Maksimum 10 seçenek', 'w');
+
+  const cleanOpts = options.map(o => String(o).trim()).filter(Boolean);
+  if (new Set(cleanOpts.map(o => o.toLowerCase())).size !== cleanOpts.length) {
+    return toast('Seçenekler tekrar etmemeli', 'w');
+  }
+
+  const pollId  = 'poll_' + genId();
+  const msgId   = genId();
+
   const poll = {
-    id: pollId, question: question.trim(),
-    options: options.map((o, i) => ({ id: 'opt_' + i, text: o.trim(), votes: 0, voters: [] })),
-    settings: {
-      multipleChoice: settings.multipleChoice || false,
-      maxChoices: settings.maxChoices || 1,
-      showResults: settings.showResults !== false,
-      anonymous: settings.anonymous || false,
-      duration: settings.duration || 0,
-      allowAddOptions: settings.allowAddOptions || false
-    },
-    createdBy: Store.user._id, creatorName: Store.user.username,
-    channelId: Store.activeChannel, createdAt: new Date().toISOString(),
-    endsAt: settings.duration ? new Date(Date.now() + settings.duration * 60000).toISOString() : null,
-    isActive: true, isPinned: false, totalVoters: 0
+    id:        pollId,
+    question,
+    options:   cleanOpts.map(text => ({ text })),
+    votes:     new Array(cleanOpts.length).fill(0),
+    voters:    {},
+    createdBy: Store.user?._id,
+    creatorName: Store.user?.username,
+    channelId: Store.activeChannel,
+    createdAt: new Date().toISOString(),
+    endsAt:    duration > 0 ? Date.now() + duration * 1000 : null,
+    closed:    false,
   };
-  
-  pollState.polls[pollId] = poll;
-  savePollState();
-  
+
+  // Store'a kaydet
+  if (!Store.polls) Store.polls = {};
+  Store.polls[msgId] = poll;
+  _savePolls();
+
+  // Mesaj olarak gönder
   const msg = {
-    _id: pollId, content: `${pollIcon('bar-chart')} **${poll.question}**`,
-    senderName: Store.user.username, senderId: Store.user._id,
-    channelId: Store.activeChannel, createdAt: new Date().toISOString(), pollId
+    _id:        msgId,
+    content:    `📊 **${question}**`,
+    senderName: Store.user?.username,
+    senderId:   Store.user?._id,
+    channelId:  Store.activeChannel,
+    createdAt:  new Date().toISOString(),
+    reactions:  {},
+    readBy:     [Store.user?._id],
+    isPoll:     true,
+    pollId,
   };
-  
+
+  if (!Store.messages) Store.messages = [];
   Store.messages.push(msg);
   if (typeof renderMessages === 'function') renderMessages();
-  if (typeof saveStore === 'function') saveStore();
-  
-  if (settings.duration > 0) {
-    setTimeout(() => {
-      const p = pollState.polls[pollId];
-      if (p) { p.isActive = false; savePollState(); if (typeof renderMessages === 'function') renderMessages(); toast(pollIcon('clock') + ' Anket süresi doldu: ' + poll.question); }
-    }, settings.duration * 60000);
+  if (typeof saveStore      === 'function') saveStore();
+
+  // Sunucuya gönder
+  if (socket?.connected) {
+    socket.emit('send_message', { ...msg, poll });
+    socket.emit('poll_created', { msgId, poll, channelId: Store.activeChannel });
   }
-  
-  toast(pollIcon('bar-chart') + ' Anket başlatıldı');
-  closeModal();
-  return pollId;
+  if (typeof SyncEngine !== 'undefined') {
+    SyncEngine.add(`/api/polls`, 'POST', { msgId, poll });
+  }
+
+  // Süre varsa otomatik kapat
+  if (poll.endsAt) {
+    const remaining = poll.endsAt - Date.now();
+    setTimeout(() => closePoll(msgId), remaining);
+  }
+
+  toast('Anket başlatıldı', 's');
+  _pollsLog(`Anket oluşturuldu: ${question}`);
+  return { msgId, poll };
 }
 
-// Oy ver
-function votePoll(pollId, optionIds) {
-  const poll = pollState.polls[pollId];
+// ============ OY VER ============
+function votePoll(msgId, optionIndex) {
+  const poll = Store.polls?.[msgId];
   if (!poll) return toast('Anket bulunamadı', 'e');
-  if (!poll.isActive) return toast('Anket sona erdi', 'e');
-  if (!Store.user) return toast('Giriş yapın', 'e');
-  
-  const userId = Store.user._id;
-  
-  if (poll.settings.multipleChoice) {
-    if (!Array.isArray(optionIds)) optionIds = [optionIds];
-    poll.options.forEach(opt => { const idx = opt.voters.indexOf(userId); if (idx !== -1 && !optionIds.includes(opt.id)) { opt.voters.splice(idx, 1); opt.votes--; } });
-    optionIds.forEach(optId => {
-      const opt = poll.options.find(o => o.id === optId);
-      if (opt && !opt.voters.includes(userId)) {
-        if (poll.settings.maxChoices > 0 && poll.options.reduce((sum, o) => sum + (o.voters.includes(userId) ? 1 : 0), 0) >= poll.settings.maxChoices) return;
-        opt.voters.push(userId); opt.votes++;
-      }
-    });
-  } else {
-    const opt = poll.options.find(o => o.id === optionIds);
-    if (!opt) return;
-    if (opt.voters.includes(userId)) { opt.voters = opt.voters.filter(id => id !== userId); opt.votes--; poll.totalVoters = Math.max(0, poll.totalVoters - 1); }
-    else { poll.options.forEach(o => { const idx = o.voters.indexOf(userId); if (idx !== -1) { o.voters.splice(idx, 1); o.votes--; } }); opt.voters.push(userId); opt.votes++; poll.totalVoters++; }
+  if (poll.closed) return toast('Bu anket kapatıldı', 'w');
+  if (poll.endsAt && Date.now() > poll.endsAt) return toast('Anket süresi doldu', 'w');
+
+  const uid = Store.user?._id;
+  if (!uid) return;
+
+  if (poll.voters?.[uid] !== undefined) {
+    // Oy değiştirme
+    const oldOpt = poll.voters[uid];
+    if (oldOpt === optionIndex) return toast('Zaten bu seçeneğe oy verdiniz', 'w');
+    poll.votes[oldOpt] = Math.max(0, (poll.votes[oldOpt] || 0) - 1);
   }
-  
-  savePollState();
-  if (typeof renderMessages === 'function') renderMessages();
+
+  if (!poll.voters) poll.voters = {};
+  if (!poll.votes)  poll.votes  = new Array(poll.options.length).fill(0);
+
+  poll.voters[uid]      = optionIndex;
+  poll.votes[optionIndex] = (poll.votes[optionIndex] || 0) + 1;
+
+  _savePolls();
+  if (typeof renderMessages === 'function') renderMessages({ scrollToEnd: false });
+
+  // Sunucuya bildir
+  if (socket?.connected) {
+    socket.emit('poll_vote', {
+      msgId,
+      option:    optionIndex,
+      userId:    uid,
+      channelId: poll.channelId || Store.activeChannel,
+    });
+  }
+  if (typeof SyncEngine !== 'undefined') {
+    SyncEngine.add(`/api/polls/${msgId}/vote`, 'POST', { option: optionIndex });
+  }
+
+  if (typeof saveStore === 'function') saveStore();
 }
 
-// Anket render
-function renderPoll(pollId) {
-  const poll = pollState.polls[pollId];
+// ============ ANKET KAPAT ============
+function closePoll(msgId) {
+  const poll = Store.polls?.[msgId];
+  if (!poll) return;
+  if (poll.closed) return;
+
+  poll.closed    = true;
+  poll.closedAt  = new Date().toISOString();
+
+  _savePolls();
+  if (typeof renderMessages === 'function') renderMessages({ scrollToEnd: false });
+
+  if (socket?.connected) {
+    socket.emit('poll_closed', { msgId, channelId: poll.channelId });
+  }
+
+  // Sonuçları göster
+  const winner = _getPollWinner(poll);
+  if (winner) toast(`📊 Anket bitti! Kazanan: "${winner}"`, 'i', 5000);
+  _pollsLog(`Anket kapatıldı: ${msgId}`);
+}
+
+function _getPollWinner(poll) {
+  if (!poll.votes || !poll.options) return null;
+  const maxVotes = Math.max(...poll.votes);
+  if (maxVotes === 0) return null;
+  const idx = poll.votes.indexOf(maxVotes);
+  return poll.options[idx]?.text || null;
+}
+
+// ============ RENDER ============
+function renderPoll(msgId, poll) {
   if (!poll) return '';
-  
-  const total = poll.options.reduce((sum, o) => sum + o.votes, 0) || 1;
-  const userVoted = poll.options.some(o => o.voters.includes(Store.user?._id));
-  const showResults = poll.settings.showResults || userVoted || poll.createdBy === Store.user?._id;
-  const winner = poll.options.reduce((max, o) => o.votes > (max?.votes || -1) ? o : max, null);
-  const timeLeft = poll.endsAt ? getTimeLeft(poll.endsAt) : '';
-  
+
+  const total    = (poll.votes || []).reduce((a, b) => a + b, 0);
+  const myVote   = poll.voters?.[Store.user?._id];
+  const hasVoted = myVote !== undefined;
+  const expired  = poll.endsAt && Date.now() > poll.endsAt;
+  const closed   = poll.closed || expired;
+
+  // Kalan süre
+  let timerHTML = '';
+  if (poll.endsAt && !closed) {
+    const remaining = Math.max(0, poll.endsAt - Date.now());
+    timerHTML = `<span class="poll-timer" data-ends="${poll.endsAt}">${_formatPollTime(remaining)}</span>`;
+    // Timer güncelleme
+    setTimeout(() => _updatePollTimer(msgId, poll.endsAt), 1000);
+  }
+
   return `
-    <div class="poll-box ${!poll.isActive ? 'poll-ended' : ''}" id="poll-${pollId}">
+    <div class="poll-box" id="poll-${msgId}">
       <div class="poll-header">
-        <div class="poll-q">${pollIcon('bar-chart')} ${escapeHtml(poll.question)}</div>
-        <div class="poll-meta">
-          <span class="poll-total">${total} oy · ${poll.totalVoters} kişi</span>
-          ${poll.settings.anonymous ? `<span>${pollIcon('lock')} Gizli</span>` : ''}
-          ${poll.settings.multipleChoice ? `<span>${pollIcon('list')} Çoklu seçim</span>` : ''}
-          ${!poll.isActive ? `<span class="poll-ended-badge" style="color:var(--re)">${pollIcon('x')} Sona erdi</span>` : ''}
-          ${timeLeft ? `<span style="color:var(--ye)">${pollIcon('clock')} ${timeLeft}</span>` : ''}
-        </div>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span class="poll-q">${escapeHtml(poll.question)}</span>
+        ${closed ? '<span class="poll-ended">Sona erdi</span>' : timerHTML}
       </div>
+
       <div class="poll-opts">
-        ${poll.options.map(o => {
-          const pct = showResults ? Math.round((o.votes / total) * 100) : 0;
-          const voted = o.voters.includes(Store.user?._id);
-          const isWinner = o.id === winner?.id && !poll.isActive && total > 0;
+        ${(poll.options || []).map((opt, i) => {
+          const votes   = poll.votes?.[i] || 0;
+          const pct     = total > 0 ? Math.round((votes / total) * 100) : 0;
+          const isWinner = closed && votes === Math.max(...(poll.votes || [0])) && votes > 0;
+          const isMyVote = myVote === i;
           return `
-            <div class="poll-opt ${voted ? 'voted' : ''} ${isWinner ? 'winner' : ''}" onclick="votePoll('${pollId}','${o.id}')">
-              ${showResults ? `<div class="poll-bar" style="width:${pct}%"></div>` : ''}
-              <span class="poll-opt-text">${escapeHtml(o.text)}</span>
-              ${showResults ? `<span class="poll-pct">${pct}%</span>${!poll.settings.anonymous ? `<span class="poll-voter-count">(${o.votes})</span>` : ''}` : ''}
-              ${voted ? `<span class="poll-check">${pollIcon('check',14)}</span>` : ''}
-              ${isWinner ? `<span class="poll-crown">${pollIcon('trophy',14)}</span>` : ''}
+            <div class="poll-opt ${isMyVote ? 'voted' : ''} ${isWinner ? 'winner' : ''} ${closed || hasVoted ? 'no-hover' : ''}"
+              onclick="${!closed && !hasVoted ? `votePoll('${msgId}',${i})` : ''}">
+              <div class="poll-bar" style="width:${pct}%"></div>
+              <div class="poll-opt-content">
+                <span class="poll-opt-text">${escapeHtml(opt.text || opt)}</span>
+                <div class="poll-opt-right">
+                  ${isWinner ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+                  ${isMyVote ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>' : ''}
+                  ${hasVoted || closed ? `<span class="poll-pct">${pct}%</span>` : ''}
+                  <span class="poll-votes">${votes}</span>
+                </div>
+              </div>
             </div>`;
         }).join('')}
       </div>
-      ${showResults ? `<div class="poll-footer"><div class="poll-progress"><div class="poll-progress-bar" style="width:${Math.min(100, (poll.totalVoters / 20) * 100)}%"></div></div></div>` : ''}
-      ${poll.settings.allowAddOptions && poll.isActive ? `<div style="display:flex;gap:6px;margin-top:8px"><input class="mi" id="newOption-${pollId}" placeholder="Seçenek ekle..." style="margin-bottom:0"><button class="ib" onclick="addPollOption('${pollId}')" title="Ekle">+</button></div>` : ''}
-      <div style="display:flex;gap:4px;margin-top:8px;justify-content:flex-end">
-        ${poll.createdBy === Store.user?._id ? `
-          <button class="ib" onclick="togglePollPin('${pollId}')" title="${poll.isPinned?'Sabitlemeyi Kaldır':'Sabitle'}" style="width:24px;height:24px">${pollIcon('pin',14)}</button>
-          <button class="ib" onclick="endPoll('${pollId}')" title="Anketi Bitir" style="width:24px;height:24px">${pollIcon('stop-circle',14)}</button>
-          <button class="ib" onclick="deletePoll('${pollId}')" title="Anketi Sil" style="width:24px;height:24px;color:var(--re)">${pollIcon('trash',14)}</button>
-        ` : ''}
-        ${showResults ? `<button class="ib" onclick="exportPollResults('${pollId}')" title="Sonuçları İndir" style="width:24px;height:24px">${pollIcon('download',14)}</button>` : ''}
+
+      <div class="poll-footer">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>${total} oy</span>
+        ${!closed && !hasVoted ? ' · Oy kullanmak için seçeneğe tıkla' : ''}
+        ${hasVoted && !closed ? ' · Oyu değiştirmek için başka seçeneğe tıkla' : ''}
+        ${poll.creatorName && poll.createdBy === Store.user?._id && !closed
+          ? `<button class="poll-close-btn" onclick="closePoll('${msgId}')">Kapat</button>` : ''}
       </div>
     </div>`;
 }
 
-// Seçenek ekle
-function addPollOption(pollId) {
-  const input = document.getElementById('newOption-' + pollId);
-  const poll = pollState.polls[pollId];
-  if (!input?.value.trim() || !poll) return;
-  poll.options.push({ id: 'opt_' + poll.options.length, text: input.value.trim(), votes: 0, voters: [] });
-  input.value = '';
-  savePollState();
-  if (typeof renderMessages === 'function') renderMessages();
+function _formatPollTime(ms) {
+  const s = Math.floor(ms / 1000);
+  const m = Math.floor(s / 60);
+  const h = Math.floor(m / 60);
+  const d = Math.floor(h / 24);
+  if (d > 0)  return `${d}g ${h % 24}s`;
+  if (h > 0)  return `${h}s ${m % 60}d`;
+  if (m > 0)  return `${m}d ${s % 60}s`;
+  return `${s}s`;
 }
 
-// Anket bitir
-function endPoll(pollId) {
-  const poll = pollState.polls[pollId];
-  if (!poll || poll.createdBy !== Store.user?._id) return;
-  poll.isActive = false;
-  savePollState();
-  if (typeof renderMessages === 'function') renderMessages();
-  toast(pollIcon('stop-circle') + ' Anket sonlandırıldı');
+function _updatePollTimer(msgId, endsAt) {
+  const el = document.querySelector(`#poll-${msgId} .poll-timer`);
+  if (!el) return;
+  const remaining = Math.max(0, endsAt - Date.now());
+  if (remaining === 0) {
+    closePoll(msgId);
+    return;
+  }
+  el.textContent = _formatPollTime(remaining);
+  setTimeout(() => _updatePollTimer(msgId, endsAt), 1000);
 }
 
-// Anket sil
-function deletePoll(pollId) {
-  const poll = pollState.polls[pollId];
-  if (!poll || poll.createdBy !== Store.user?._id) return;
-  delete pollState.polls[pollId];
-  Store.messages = Store.messages.filter(m => m.pollId !== pollId);
-  savePollState();
-  if (typeof renderMessages === 'function') renderMessages();
-  if (typeof saveStore === 'function') saveStore();
-  toast(pollIcon('trash') + ' Anket silindi');
+// ============ SOCKET EVENTS ============
+function initPollsSocket() {
+  if (!socket) return;
+
+  socket.on('poll_created', ({ msgId, poll }) => {
+    if (!Store.polls) Store.polls = {};
+    if (!Store.polls[msgId]) {
+      Store.polls[msgId] = poll;
+      _savePolls();
+      if (typeof renderMessages === 'function') renderMessages({ scrollToEnd: false });
+    }
+  });
+
+  socket.on('poll_vote', ({ msgId, option, userId }) => {
+    const poll = Store.polls?.[msgId];
+    if (!poll || poll.closed) return;
+    if (poll.voters?.[userId] !== undefined) {
+      const old = poll.voters[userId];
+      poll.votes[old] = Math.max(0, (poll.votes[old] || 0) - 1);
+    }
+    if (!poll.voters) poll.voters = {};
+    if (!poll.votes)  poll.votes  = new Array(poll.options.length).fill(0);
+    poll.voters[userId]    = option;
+    poll.votes[option]     = (poll.votes[option] || 0) + 1;
+    _savePolls();
+    if (typeof renderMessages === 'function') renderMessages({ scrollToEnd: false });
+  });
+
+  socket.on('poll_closed', ({ msgId }) => {
+    const poll = Store.polls?.[msgId];
+    if (poll && !poll.closed) {
+      poll.closed   = true;
+      poll.closedAt = new Date().toISOString();
+      _savePolls();
+      if (typeof renderMessages === 'function') renderMessages({ scrollToEnd: false });
+    }
+  });
+
+  _pollsLog('Socket events bağlandı');
 }
 
-// Anket sabitle
-function togglePollPin(pollId) {
-  const poll = pollState.polls[pollId];
-  if (!poll) return;
-  poll.isPinned = !poll.isPinned;
-  savePollState();
-  if (typeof renderMessages === 'function') renderMessages();
+// ============ CSS ============
+(function injectPollStyles() {
+  const id = 'gt-poll-styles';
+  if (document.getElementById(id)) return;
+  const style = document.createElement('style');
+  style.id = id;
+  style.textContent = `
+.poll-box{
+  margin:4px 0;padding:12px 14px;
+  background:var(--bg2,#241535);border-radius:12px;
+  border:1.5px solid rgba(255,255,255,.07);
+  max-width:420px;
 }
+.poll-header{display:flex;align-items:center;gap:7px;margin-bottom:10px;flex-wrap:wrap}
+.poll-q{font-size:13px;font-weight:700;color:var(--t1,#fff);flex:1}
+.poll-ended{font-size:10px;padding:2px 7px;border-radius:10px;background:#ef444422;color:#ef4444;font-weight:600}
+.poll-timer{font-size:10px;padding:2px 7px;border-radius:10px;background:var(--ac,#6366f1)22;color:var(--ac,#6366f1);font-weight:600}
 
-// Sonuç dışa aktar
-function exportPollResults(pollId) {
-  const poll = pollState.polls[pollId];
-  if (!poll) return;
-  const total = poll.options.reduce((s, o) => s + o.votes, 0) || 1;
-  let csv = 'Seçenek,Oy,Yüzde\n';
-  poll.options.forEach(o => { csv += `"${o.text}",${o.votes},${Math.round((o.votes/total)*100)}%\n`; });
-  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = `anket-${poll.question.substring(0,20)}.csv`; a.click();
-  URL.revokeObjectURL(url);
-  toast(pollIcon('download') + ' Sonuçlar indirildi');
+.poll-opts{display:flex;flex-direction:column;gap:5px}
+.poll-opt{
+  position:relative;border-radius:9px;overflow:hidden;
+  border:1.5px solid rgba(255,255,255,.07);
+  transition:border-color .15s,transform .1s;cursor:pointer;
 }
-
-// Anket oluşturma penceresi
-function showPollModal() {
-  const content = document.getElementById('modalContent');
-  if (!content) return;
-  content.innerHTML = `
-    <h2>${pollIcon('bar-chart',24)} Anket Oluştur</h2>
-    <div class="poll-form">
-      <input class="mi" id="pollQuestion" placeholder="Soru sor..." maxlength="200">
-      <div id="pollOptionsContainer">
-        <div class="poll-option-row"><input class="mi" placeholder="Seçenek 1"><button class="poll-remove-opt" style="display:none">${pollIcon('x',16)}</button></div>
-        <div class="poll-option-row"><input class="mi" placeholder="Seçenek 2"><button class="poll-remove-opt" style="display:none">${pollIcon('x',16)}</button></div>
-      </div>
-      <button class="mb sec" onclick="addPollOptionUI()">+ Seçenek Ekle (en fazla 10)</button>
-      <div class="poll-settings">
-        <label class="poll-setting"><input type="checkbox" id="pollMultiple"> Çoklu seçim</label>
-        <label class="poll-setting"><input type="checkbox" id="pollAnonymous" checked> Gizli oylama</label>
-        <label class="poll-setting"><input type="checkbox" id="pollAllowAdd"> Seçenek eklemeye izin ver</label>
-        <input class="mi" type="number" id="pollMaxChoices" placeholder="En fazla seçim (çoklu için)" value="1" min="1" max="10">
-        <input class="mi" type="number" id="pollDuration" placeholder="Süre (dk, 0=sınırsız)" value="0" min="0">
-      </div>
-      <div class="settings-group"><div class="settings-group-title">Şablonlar</div>
-        ${pollState.templates.map((t, i) => `<div class="settings-item" onclick="applyPollTemplate(${i})"><div class="settings-item-left">${pollIcon('file-text')} ${escapeHtml(t.name)}</div><div class="settings-item-right">${t.options.length} seçenek</div></div>`).join('')}
-      </div>
-      <button class="mb" onclick="submitPollForm()">${pollIcon('bar-chart')} Anketi Başlat</button>
-    </div>`;
-  openModal('poll');
+.poll-opt:not(.no-hover):hover{border-color:var(--ac,#6366f1);transform:translateX(2px)}
+.poll-opt.voted{border-color:var(--ac,#6366f1);background:var(--ac,#6366f1)08}
+.poll-opt.winner{border-color:#10b981;background:#10b98108}
+.poll-opt.no-hover{cursor:default}
+.poll-bar{
+  position:absolute;top:0;left:0;height:100%;
+  background:var(--ac,#6366f1)18;pointer-events:none;
+  transition:width .5s cubic-bezier(.4,0,.2,1);
 }
+.poll-opt.winner .poll-bar{background:#10b98118}
 
-function addPollOptionUI() {
-  const container = document.getElementById('pollOptionsContainer');
-  if (!container || container.children.length >= 10) return;
-  const div = document.createElement('div'); div.className = 'poll-option-row';
-  div.innerHTML = `<input class="mi" placeholder="Seçenek ${container.children.length + 1}"><button class="poll-remove-opt" onclick="this.parentElement.remove()">${pollIcon('x',16)}</button>`;
-  container.appendChild(div);
+.poll-opt-content{
+  position:relative;z-index:1;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 10px;gap:8px;
 }
+.poll-opt-text{font-size:13px;color:var(--t1,#fff);flex:1}
+.poll-opt-right{display:flex;align-items:center;gap:5px;flex-shrink:0}
+.poll-pct{font-size:12px;font-weight:700;color:var(--ac,#6366f1)}
+.poll-votes{font-size:10px;color:var(--t3,#888)}
 
-function submitPollForm() {
-  const question = document.getElementById('pollQuestion')?.value;
-  const options = [...document.querySelectorAll('#pollOptionsContainer input')].map(i => i.value).filter(v => v.trim());
-  const multiple = document.getElementById('pollMultiple')?.checked;
-  const anonymous = document.getElementById('pollAnonymous')?.checked;
-  const allowAdd = document.getElementById('pollAllowAdd')?.checked;
-  const maxChoices = parseInt(document.getElementById('pollMaxChoices')?.value || '1');
-  const duration = parseInt(document.getElementById('pollDuration')?.value || '0');
-  createPoll(question, options, { multipleChoice: multiple, anonymous, allowAddOptions: allowAdd, maxChoices: multiple ? maxChoices : 1, duration });
+.poll-footer{
+  display:flex;align-items:center;gap:6px;
+  font-size:10px;color:var(--t3,#888);margin-top:8px;flex-wrap:wrap;
 }
-
-function applyPollTemplate(index) {
-  const template = pollState.templates[index];
-  if (!template) return;
-  document.getElementById('pollQuestion').value = template.name;
-  document.getElementById('pollOptionsContainer').innerHTML = template.options.map((o, i) => `<div class="poll-option-row"><input class="mi" value="${escapeHtml(o)}" placeholder="Seçenek ${i+1}"><button class="poll-remove-opt" onclick="this.parentElement.remove()">${pollIcon('x',16)}</button></div>`).join('');
+.poll-close-btn{
+  margin-left:auto;font-size:10px;padding:2px 8px;border-radius:6px;
+  background:rgba(255,255,255,.07);border:none;cursor:pointer;
+  color:var(--t2,#ccc);font-family:inherit;
 }
+.poll-close-btn:hover{background:rgba(255,255,255,.12)}
+  `;
+  document.head.appendChild(style);
+})();
 
-function getTimeLeft(endTime) {
-  const diff = new Date(endTime) - Date.now();
-  if (diff <= 0) return 'Süre doldu';
-  const min = Math.floor(diff / 60000);
-  if (min < 60) return min + ' dk';
-  const hours = Math.floor(min / 60);
-  return hours + ' sa ' + (min % 60) + ' dk';
-}
+// ============ INIT ============
+(function initPolls() {
+  _loadPolls();
 
-function savePollState() { localStorage.setItem('gt_polls_v2', JSON.stringify(pollState.polls)); }
+  if (typeof socket !== 'undefined' && socket) {
+    initPollsSocket();
+  } else {
+    document.addEventListener('socket_ready', initPollsSocket, { once: true });
+  }
 
-// HTML kaçış
-function escapeHtml(str) {
-  const d = document.createElement('div');
-  d.textContent = str || '';
-  return d.innerHTML;
-}
-
-// CSS
-const pollStyle = document.createElement('style');
-pollStyle.textContent = `.poll-voter-count{font-size:9px;color:var(--t3);min-width:20px;text-align:right}.poll-footer{margin-top:6px}`;
-document.head.appendChild(pollStyle);
-
-console.log('Polls.js yüklendi (SVG ikonlu + Türkçe düzeltmeler)');
+  _pollsLog('v2.0 yüklendi ✓');
+})();
