@@ -1,0 +1,35 @@
+Gettic.js
+
+Kurulum:
+npm install gettic.js
+
+Kullanım:
+const { Client } = require("gettic.js");
+
+const bot = new Client({
+  url: "https://gettic.js.org",
+  token: "BOT_TOKEN",
+  username: "BenimBot",
+  prefix: "/"
+});
+
+bot.on("ready", () => {
+  console.log("Bot hazir!");
+});
+
+bot.connect();
+
+Ozellikler:
+- Gercek zamanli mesajlasma
+- Sesli kanallar
+- Rol sistemi
+- Webhook destegi
+- REST API
+
+Baglantilar:
+- Web: https://gettic.js.org
+- GitHub: https://github.com/darking053official/gettic.js
+- npm: https://www.npmjs.com/package/gettic.js
+
+Lisans:
+MIT © 2026 Gettic
