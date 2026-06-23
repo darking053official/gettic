@@ -278,3 +278,10 @@ if ('serviceWorker' in navigator && window.location.protocol === 'https:') {
 }
 
 _appLog('v2.0 yüklendi ✓');
+
+
+// Loading ekranını 3 saniye sonra zorla kapat
+setTimeout(() => {
+  const el = document.getElementById('ls');
+  if (el) el.classList.add('hidden');
+}, 3000);
