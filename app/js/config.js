@@ -2,7 +2,7 @@
 // ║                    GETTIC CONFIG.JS                             ║
 // ╚══════════════════════════════════════════════════════════════════╝
 
-const API = 'https://assigned-reviewed-motherboard-hybrid.trycloudflare.com';
+const API = 'https://reflected-isa-east-speaks.trycloudflare.com';
 const MAX_MSGS = 100;
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'audio/mp3', 'audio/webm', 'application/pdf', 'text/plain'];
