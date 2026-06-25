@@ -1,13 +1,13 @@
 // ═══════════════════════════════════════════════════════════════════
-// G-POINT ICONS v1.0
+// G-POINT ARENA - ICONS v1.0
 // Tüm ikonlar SVG olarak, emoji yok.
 // ═══════════════════════════════════════════════════════════════════
 
 const Icons = {
-  // ── Ana Menü ──────────────────────────────────────────────────────
+  // ── Logo ──────────────────────────────────────────────────────────
   logo: `<svg viewBox="0 0 100 100" width="48" height="48">
     <circle cx="50" cy="50" r="45" fill="#ec4899" />
-    <text x="50" y="65" font-size="40" text-anchor="middle" fill="white" font-weight="bold" font-family="sans-serif">G</text>
+    <text x="50" y="65" font-size="40" text-anchor="middle" fill="white" font-weight="bold">G</text>
   </svg>`,
 
   // ── Navigasyon ────────────────────────────────────────────────────
@@ -36,6 +36,14 @@ const Icons = {
     <rect x="4" y="10" width="16" height="6" rx="1" />
     <path d="M20 12l2-2v4l-2-2z" />
     <circle cx="8" cy="13" r="1.5" fill="currentColor" />
+  </svg>`,
+
+  smg: `<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2">
+    <rect x="2" y="10" width="18" height="6" rx="1" />
+    <path d="M20 12l2-2v4l-2-2z" />
+    <rect x="4" y="8" width="2" height="4" />
+    <circle cx="8" cy="13" r="2" fill="currentColor" />
+    <circle cx="12" cy="13" r="1.5" fill="currentColor" />
   </svg>`,
 
   shotgun: `<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2">
@@ -97,7 +105,7 @@ const Icons = {
   </svg>`,
 
   // ── Skor ──────────────────────────────────────────────────────────
-  score: `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+  score: `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fbbf24" stroke-width="2">
     <polygon points="12 2 15 9 22 9 16 14 18 21 12 17 6 21 8 14 2 9 9 9 12 2" />
   </svg>`,
 
@@ -105,7 +113,7 @@ const Icons = {
     <path d="M2 20l2-4 2 4 2-4 2 4 2-4 2 4 2-4 2 4 2-6 2 6 2-6V6l-4 2L18 2l-4 2L12 2 8 4 4 2 2 6v8l2 6z" />
   </svg>`,
 
-  // ── Kontroller ────────────────────────────────────────────────────
+  // ── Arayüz ────────────────────────────────────────────────────────
   settings: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
     <circle cx="12" cy="12" r="3" />
     <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" />
@@ -117,7 +125,12 @@ const Icons = {
   </svg>`,
 };
 
+// ── İkon yardımcısı ────────────────────────────────────────────────
+function getIcon(name) {
+  return Icons[name] || '';
+}
+
 // ============ EXPORT ============
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = Icons;
+  module.exports = { Icons, getIcon };
 }
