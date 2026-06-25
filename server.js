@@ -366,6 +366,18 @@ const AuditSchema = new mongoose.Schema({
 const Audit = mongoose.model('Audit', AuditSchema);
 
 // ═══════════════════════════════════════════════════════════════════
+// ROOM MODEL (G-POINT ARENA)
+// ═══════════════════════════════════════════════════════════════════
+const RoomSchema = new mongoose.Schema({
+  roomId:      { type: String, required: true, unique: true, maxlength: 50 },
+  players:     { type: [String], default: [] },
+  maxPlayers:  { type: Number, default: 4 },
+  status:      { type: String, default: 'waiting', enum: ['waiting', 'playing', 'finished'] },
+  createdAt:   { type: Date, default: Date.now, index: { expires: '1h' } }, // 1 saat sonra otomatik sil
+  updatedAt:   { type: Date, default: Date.now },
+});
+const Room = mongoose.model('Room', RoomSchema);
+// ═══════════════════════════════════════════════════════════════════
 // YARDIMCI FONKSİYONLAR
 // ═══════════════════════════════════════════════════════════════════
 function _genAccessToken(userId) {
@@ -459,6 +471,19 @@ app.get('/ai',    _sendApp('ai/index.html'));
 app.get('/mc',    _sendApp('mc/index.html'));
 app.get('/app',   _sendApp('app/index.html'));
 app.get('/app/*', _sendApp('app/index.html'));
+
+// ═══════════════════════════════════════════════════════════════════
+// G-POINT ARENA ROUTE (YENİ)
+// ═══════════════════════════════════════════════════════════════════
+app.get('/gpoint', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'gpoint', 'index.html'));
+});
+app.get('/gpoint/game', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'gpoint', 'game.html'));
+});
+app.use('/gpoint/assets', express.static(path.join(__dirname, 'public', 'gpoint', 'assets')));
+app.use('/gpoint/css', express.static(path.join(__dirname, 'public', 'gpoint', 'css')));
+app.use('/gpoint/js', express.static(path.join(__dirname, 'public', 'gpoint', 'js')));
 
 // ═══════════════════════════════════════════════════════════════════
 // AUTH ENDPOINTS
@@ -1268,6 +1293,129 @@ io.on('connection', socket => {
   socket.on('error', err => {
     console.error(`[Socket Error] ${uname}:`, err.message);
   });
+});
+
+// ── Oda listesi (MongoDB) ──────────────────────────────────────────
+
+// Tüm odaları listele
+socket.on('get_rooms', async () => {
+  try {
+    const rooms = await Room.find({ status: 'waiting' }).sort({ createdAt: -1 }).limit(50);
+    socket.emit('room_list', rooms.map(r => ({
+      roomId: r.roomId,
+      players: r.players,
+      maxPlayers: r.maxPlayers,
+    })));
+  } catch {}
+});
+
+// Oda oluştur
+socket.on('create_room', async ({ room, username }) => {
+  try {
+    let existing = await Room.findOne({ roomId: room });
+    if (existing) {
+      // Oda varsa katıl
+      if (!existing.players.includes(username)) {
+        existing.players.push(username);
+        existing.updatedAt = new Date();
+        await existing.save();
+      }
+      socket.join(room);
+      io.to(room).emit('room_players', existing.players);
+      return;
+    }
+
+    const newRoom = new Room({
+      roomId: room,
+      players: [username],
+      maxPlayers: 4,
+    });
+    await newRoom.save();
+    socket.join(room);
+    io.emit('room_list_update'); // tüm istemcilere güncelleme
+    io.to(room).emit('room_players', newRoom.players);
+  } catch (err) {
+    socket.emit('error', { message: 'Oda oluşturulamadı' });
+  }
+});
+
+// Odaya katıl
+socket.on('join_room', async ({ room, username }) => {
+  try {
+    const roomDoc = await Room.findOne({ roomId: room });
+    if (!roomDoc) return socket.emit('error', { message: 'Oda bulunamadı' });
+    if (roomDoc.players.length >= roomDoc.maxPlayers) {
+      return socket.emit('error', { message: 'Oda dolu' });
+    }
+    if (!roomDoc.players.includes(username)) {
+      roomDoc.players.push(username);
+      roomDoc.updatedAt = new Date();
+      await roomDoc.save();
+    }
+    socket.join(room);
+    io.to(room).emit('room_players', roomDoc.players);
+  } catch {}
+});
+
+// Oyun başlat
+socket.on('start_game', async ({ room }) => {
+  try {
+    const roomDoc = await Room.findOne({ roomId: room });
+    if (!roomDoc) return;
+    if (roomDoc.players.length < 2) {
+      return socket.emit('error', { message: 'En az 2 oyuncu gerekli' });
+    }
+    roomDoc.status = 'playing';
+    await roomDoc.save();
+    io.to(room).emit('game_started', { players: roomDoc.players });
+  } catch {}
+});
+
+// Oyuncu hareket
+socket.on('player_move_arena', (data) => {
+  socket.to(data.room).emit('player_moved_arena', {
+    ...data,
+    userId: socket.userId,
+    username: socket.username,
+  });
+});
+
+// Oyuncu ateş
+socket.on('player_shoot_arena', (data) => {
+  socket.to(data.room).emit('player_shot_arena', {
+    ...data,
+    userId: socket.userId,
+    username: socket.username,
+  });
+});
+
+// Oyuncu hasar aldı
+socket.on('player_damage', async ({ room, target, damage }) => {
+  // Oyun mantığı burada
+  socket.to(room).emit('player_hit', { target, damage, from: socket.userId });
+});
+
+// Bağlantı kopunca odadan çıkar
+socket.on('disconnect', async () => {
+  try {
+    const username = socket.username;
+    if (!username) return;
+
+    const rooms = await Room.find({ players: username });
+    for (const room of rooms) {
+      room.players = room.players.filter(p => p !== username);
+      if (room.players.length === 0) {
+        await Room.deleteOne({ roomId: room.roomId });
+        io.emit('room_deleted', { roomId: room.roomId });
+      } else {
+        await room.save();
+        io.to(room.roomId).emit('room_players', room.players);
+      }
+    }
+    io.emit('room_list_update');
+  } catch (err) {
+    console.error('[Disconnect]', err.message);
+  }
 });
 
 // ═══════════════════════════════════════════════════════════════════
