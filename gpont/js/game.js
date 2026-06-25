@@ -246,7 +246,10 @@ document.addEventListener('mousedown', (e) => {
 });
 
 // ── Socket.IO ──────────────────────────────────────────────────────
-const socket = io();
+const socket = io({
+  path: '/socket.io',
+  transports: ['websocket', 'polling'],
+});
 
 socket.on('connect', () => {
   console.log('✅ Socket bağlandı');
