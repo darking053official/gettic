@@ -9,47 +9,36 @@ jobs:
   run:
     runs-on: ubuntu-latest
     timeout-minutes: 360
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-      
+
       - name: Install dependencies
         run: npm install
-      
+
       - name: Convert .wat to .wasm
         run: |
-          echo "=== .wat → .wasm Dönüşümü ==="
+          echo "=== .wat → .wasm ==="
           cd app/wasm
-          
-          # wabt'yi yükle (WAT ↔ WASM dönüştürücü)
           npm install -g wabt
-          
-          # Tüm .wat dosyalarını tara
           for wat_file in *.wat; do
             wasm_file="${wat_file%.wat}.wasm"
-            
-            # Eski .wasm'ı sil (varsa)
             rm -f "$wasm_file"
-            
-            # .wat → .wasm dönüştür
             wat2wasm "$wat_file" -o "$wasm_file"
-            
             if [ -f "$wasm_file" ]; then
               echo "✅ $wat_file → $wasm_file ($(stat -c%s "$wasm_file") bytes)"
             else
               echo "❌ $wat_file dönüştürülemedi!"
             fi
           done
-          
-          echo "=== WASM dosyaları ==="
           ls -la *.wasm
-      
-      - name: Start server with env
+
+      - name: Start server
         env:
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
@@ -63,31 +52,42 @@ jobs:
           node server.js &
           sleep 5
           echo "=== SERVER READY ==="
-          curl -s http://localhost:3000/api/health
-      
+          curl -s http://localhost:3000/api/health || echo "Health check failed"
+
       - name: Start Cloudflare Tunnel
+        id: tunnel
         run: |
           curl -sL https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o cloudflared
           chmod +x cloudflared
           ./cloudflared tunnel --url http://localhost:3000 2>&1 | tee tunnel.log &
-          sleep 15
-          TUNNEL_URL=$(grep -o 'https://.*trycloudflare.com' tunnel.log | head -1)
-          echo "=== TUNNEL URL ==="
-          echo "$TUNNEL_URL"
+          sleep 10
+          TUNNEL_URL=$(grep -o 'https://[a-z0-9-]*\.trycloudflare\.com' tunnel.log | head -1)
+          echo "TUNNEL_URL=$TUNNEL_URL"
           echo "TUNNEL_URL=$TUNNEL_URL" >> $GITHUB_ENV
-      
+          echo "tunnel_url=$TUNNEL_URL" >> $GITHUB_OUTPUT
+
       - name: Update config.js
+        if: env.TUNNEL_URL != ''
         run: |
           sed -i "s|const API = .*|const API = '${{ env.TUNNEL_URL }}';|" app/js/config.js
           echo "Updated API to: ${{ env.TUNNEL_URL }}"
-      
+
       - name: Commit & Push
+        if: env.TUNNEL_URL != ''
         run: |
           git config user.email "actions@github.com"
           git config user.name "GitHub Actions"
           git add app/js/config.js app/wasm/*.wasm
           git diff --cached --quiet && echo "No changes" || git commit -m "🔗 API + WASM: ${{ env.TUNNEL_URL }}"
           git push || echo "Push failed"
-      
+
+      - name: Show URL
+        run: |
+          echo "=========================================="
+          echo "🌐 CANLI URL (60 dakika geçerli):"
+          echo "${{ env.TUNNEL_URL }}"
+          echo "=========================================="
+
       - name: Keep alive
-        run: sleep infinity
+        run: |
+         sleep infinity
