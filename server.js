@@ -476,14 +476,14 @@ app.get('/app/*', _sendApp('app/index.html'));
 // G-POINT ARENA ROUTE (YENİ)
 // ═══════════════════════════════════════════════════════════════════
 app.get('/gpoint', (req, res) => {
-  res.sendFile(path.join(__dirname, 'gpoint', 'index.html'));
+  res.sendFile(path.join(__dirname, 'gpont', 'index.html'));
 });
 app.get('/gpoint/game', (req, res) => {
-  res.sendFile(path.join(__dirname, 'gpoint', 'game.html'));
+  res.sendFile(path.join(__dirname, 'gpont', 'game.html'));
 });
-app.use('/gpoint/css', express.static(path.join(__dirname, 'gpoint', 'css')));
-app.use('/gpoint/js', express.static(path.join(__dirname, 'gpoint', 'js')));
-app.use('/gpoint/assets', express.static(path.join(__dirname, 'gpoint', 'assets')));
+app.use('/gpoint/css', express.static(path.join(__dirname, 'gpont', 'css')));
+app.use('/gpoint/js', express.static(path.join(__dirname, 'gpont', 'js')));
+app.use('/gpoint/assets', express.static(path.join(__dirname, 'gpont', 'assets')));
 
 // ═══════════════════════════════════════════════════════════════════
 // AUTH ENDPOINTS
