@@ -479,20 +479,10 @@ app.get('/ai',    _sendApp('ai/index.html'));
 app.get('/mc',    _sendApp('mc/index.html'));
 app.get('/app',   _sendApp('app/index.html'));
 app.get('/app/*', _sendApp('app/index.html'));
-
-// ═══════════════════════════════════════════════════════════════════
-// G-POINT ARENA ROUTE (YENİ)
-// ═══════════════════════════════════════════════════════════════════
-app.get('/gpoint', (req, res) => {
-  res.sendFile(path.join(__dirname, 'gpont', 'index.html'));
-});
-app.get('/gpoint/game', (req, res) => {
-  res.sendFile(path.join(__dirname, 'gpont', 'game.html'));
-});
+app.get('/gpoint',   _sendApp('gpont/index.html'));
+app.get('/gpoint/*', _sendApp('gpont/index.html'));
 app.use('/gpoint/css', express.static(path.join(__dirname, 'gpont', 'css')));
 app.use('/gpoint/js', express.static(path.join(__dirname, 'gpont', 'js')));
-app.use('/gpoint/assets', express.static(path.join(__dirname, 'gpont', 'assets')));
-
 // ═══════════════════════════════════════════════════════════════════
 // AUTH ENDPOINTS
 // ═══════════════════════════════════════════════════════════════════
