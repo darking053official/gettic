@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>G-Point Arena - Lobi</title>
+  <link rel="stylesheet" href="/gpoint/css/style.css">
+</head>
+<body>
+
+  <div id="lobbyContainer">
+    <div id="lobbyBox">
+      <div id="lobbyLogo">G</div>
+      <h1>G-POINT ARENA</h1>
+      <p class="sub-title">3D çok oyunculu savaş arenası</p>
+
+      <div class="input-group">
+        <input type="text" id="usernameInput" placeholder="Kullanıcı adı" value="Guest">
+        <input type="text" id="roomInput" placeholder="Oda adı (boş bırakabilirsin)">
+        <button id="createBtn">ODA OLUŞTUR</button>
+      </div>
+
+      <div id="roomListContainer">
+        <div id="roomListHeader">MEVCUT ODALAR</div>
+        <div id="roomList"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/gpoint/js/lobby.js"></script>
+
+</body>
+</html>
