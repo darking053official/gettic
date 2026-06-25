@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>G-Point Arena</title>
+
+  <!-- Three.js -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.163.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/cannon-es@0.23.0/dist/cannon-es.js"></script>
+
+  <link rel="stylesheet" href="/gpoint/css/style.css">
+
+  <script src="/gpoint/js/weapons.js"></script>
+  <script src="/gpoint/js/sounds.js"></script>
+  <script src="/gpoint/js/icons.js"></script>
+</head>
+<body>
+
+  <div id="loadingOverlay">
+    <div class="spinner"></div>
+    <div id="loadingText">ARENA YUKLENIYOR</div>
+    <div id="loadingStatus">SUNUCU ILE BAGLANTI KURULUYOR</div>
+  </div>
+
+  <!-- OYUN İÇİ BİLGİLER (sade gömülü) -->
+  <div id="hud">
+    <div id="hudLeft">
+      <div id="healthContainer">
+        <span id="healthLabel">HP</span>
+        <div id="healthTrack"><div id="healthFill"></div></div>
+        <span id="healthValue">100</span>
+      </div>
+      <div id="weaponContainer">
+        <span id="weaponName">TABANCA</span>
+        <span id="ammoDisplay">12/12</span>
+      </div>
+    </div>
+    <div id="hudRight">
+      <div id="scoreDisplay">0</div>
+      <div id="deathDisplay">0</div>
+    </div>
+  </div>
+
+  <!-- ZAMAN -->
+  <div id="timerDisplay">05:00</div>
+
+  <!-- SKOR TABLOSU (sol üst) -->
+  <div id="scoreboard">
+    <div id="scoreboardHeader">SKOR</div>
+    <div id="scoreboardList"></div>
+  </div>
+
+  <!-- ÖLÜM BİLDİRİMLERİ (sağ üst) -->
+  <div id="killFeed"></div>
+
+  <!-- OYUN BİTTİ -->
+  <div id="gameOver">
+    <div id="gameOverBox">
+      <h1>ARENA SONA ERDI</h1>
+      <div id="winnerName">KAZANAN</div>
+      <div id="finalScore">PUAN: 0</div>
+      <div id="finalDetails"></div>
+      <button onclick="location.href='/gpoint'">LOBIYE DON</button>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/gpoint/js/game.js"></script>
+
+</body>
+    </html>
