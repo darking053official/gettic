@@ -1,0 +1,31 @@
+{
+  "version": 2,
+  "name": "gettic",
+  "builds": [
+    {
+      "src": "app/server.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "app/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "build"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "app/server.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "app/build/$1"
+    }
+  ],
+  "env": {
+    "JWT_SECRET": "@jwt-secret",
+    "JWT_REFRESH_SECRET": "@jwt-refresh-secret"
+  }
+}
