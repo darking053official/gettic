@@ -1,0 +1,39 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'gettic_backend'
+    static_configs:
+      - targets: ['backend:8080']
+    metrics_path: '/metrics'
+    scheme: 'http'
+
+  - job_name: 'gettic_mysql'
+    static_configs:
+      - targets: ['mysql:3306']
+
+  - job_name: 'gettic_redis'
+    static_configs:
+      - targets: ['redis:6379']
+
+  - job_name: 'gettic_rabbitmq'
+    static_configs:
+      - targets: ['rabbitmq:15672']
+
+  - job_name: 'gettic_minio'
+    static_configs:
+      - targets: ['minio:9000']
+
+  - job_name: 'gettic_meilisearch'
+    static_configs:
+      - targets: ['meilisearch:7700']
+
+rule_files:
+  - 'alerts.yml'
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - 'alertmanager:9093'
