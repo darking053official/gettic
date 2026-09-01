@@ -1,0 +1,38 @@
+gettic.js.org {
+    encode gzip zstd
+    root * /var/www/gettic
+    file_server
+
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        X-XSS-Protection "1; mode=block"
+        Referrer-Policy strict-origin-when-cross-origin
+        Permissions-Policy "camera=(), microphone=(), geolocation=()"
+        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' wss: https:;"
+    }
+
+    @api {
+        path /api/*
+    }
+
+    handle @api {
+        reverse_proxy {$BACKEND_URL}
+    }
+
+    @ws {
+        path /ws
+    }
+
+    handle @ws {
+        reverse_proxy {$BACKEND_URL}
+    }
+
+    log {
+        output file /var/log/caddy/gettic.log {
+            roll_size 10mb
+            roll_keep 5
+        }
+        format json
+    }
+}
