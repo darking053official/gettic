@@ -1,13 +1,6 @@
 import { authStore } from '$lib/stores/auth';
 import { browser } from '$app/environment';
-
-const API_BASE_URL = 'https://api.gettic.app/api/v1';
-
-interface ApiResponse<T = any> {
-  data: T;
-  status: number;
-  message?: string;
-}
+import { getApiBaseUrl } from '../../../js/site/backendsite';
 
 interface RequestOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
@@ -17,12 +10,9 @@ interface RequestOptions {
 }
 
 class ApiClient {
-  private baseUrl: string;
   private accessToken: string | null = null;
 
-  constructor(baseUrl: string = API_BASE_URL) {
-    this.baseUrl = baseUrl;
-    
+  constructor() {
     if (browser) {
       this.accessToken = localStorage.getItem('gettic_access_token');
       
@@ -60,7 +50,8 @@ class ApiClient {
     }
 
     try {
-      const response = await fetch(`${this.baseUrl}${endpoint}`, config);
+      const apiBaseUrl = getApiBaseUrl();
+      const response = await fetch(`${apiBaseUrl}${endpoint}`, config);
       
       if (response.status === 401) {
         await this.handleTokenRefresh();
@@ -95,7 +86,8 @@ class ApiClient {
         return;
       }
 
-      const response = await fetch(`${this.baseUrl}/auth/refresh`, {
+      const apiBaseUrl = getApiBaseUrl();
+      const response = await fetch(`${apiBaseUrl}/auth/refresh`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
