@@ -1,0 +1,18 @@
+{application, gettic,
+ [
+  {description, "Gettic - Güvenli Mesajlaşma Uygulaması"},
+  {vsn, "0.1.0"},
+  {registered, []},
+  {mod, {gettic_app, []}},
+  {applications, [
+                  kernel,
+                  stdlib,
+                  crypto,
+                  cowboy,
+                  jsx
+                 ]},
+  {env, []},
+  {modules, []},
+  {licenses, ["MIT"]},
+  {links, []}
+ ]}.
