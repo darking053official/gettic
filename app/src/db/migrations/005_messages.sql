@@ -1,0 +1,20 @@
+CREATE TABLE IF NOT EXISTS messages (
+    id VARCHAR(36) PRIMARY KEY,
+    conversation_id VARCHAR(36) NOT NULL,
+    sender_id VARCHAR(36) NOT NULL,
+    sender_device_id VARCHAR(36),
+    message_type ENUM('text', 'image', 'file', 'video', 'audio') DEFAULT 'text',
+    content TEXT NOT NULL,
+    encrypted_content TEXT,
+    nonce TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    edited_at TIMESTAMP NULL,
+    deleted_at TIMESTAMP NULL,
+    is_edited BOOLEAN DEFAULT FALSE,
+    is_deleted BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE,
+    FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_conversation_created (conversation_id, created_at),
+    INDEX idx_sender (sender_id),
+    INDEX idx_deleted (is_deleted)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
