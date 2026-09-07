@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="tr" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil - Gettic</title>
+    <meta name="description" content="Gettic profil sayfası">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        'bg-primary': '#0a0a0f',
+                        'bg-secondary': '#12121a',
+                        'bg-tertiary': '#1a1a24',
+                        'bg-hover': '#22222e',
+                        'accent': '#7c3aed',
+                        'accent-hover': '#8b5cf6',
+                        'border-dark': '#1f1f2e',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-bg-primary text-white min-h-screen font-sans antialiased">
+
+    <!-- NAVBAR -->
+    <nav class="fixed top-0 w-full z-50 bg-bg-primary/80 backdrop-blur-xl border-b border-border-dark">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-3">
+                    <a href="chat.html" class="text-gray-400 hover:text-white transition mr-2">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                        </svg>
+                    </a>
+                    <img src="logo.png" alt="Gettic Logo" class="w-10 h-10 rounded-xl">
+                    <span class="text-2xl font-bold tracking-tight">Gettic</span>
+                </div>
+                <div class="flex gap-3">
+                    <a href="chat.html" class="px-4 py-2 bg-bg-tertiary hover:bg-bg-hover rounded-lg transition">Sohbet</a>
+                    <a href="settings.html" class="px-4 py-2 bg-bg-tertiary hover:bg-bg-hover rounded-lg transition">Ayarlar</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- PROFİL İÇERİĞİ -->
+    <div class="pt-24 pb-12">
+        <div class="max-w-3xl mx-auto px-4">
+            
+            <!-- Profil Kartı -->
+            <div class="bg-bg-secondary rounded-2xl border border-border-dark p-8 mb-6">
+                <div class="flex flex-col items-center mb-8">
+                    <div class="relative mb-4">
+                        <img id="profileAvatar" src="logo.png" alt="Avatar" class="w-32 h-32 rounded-2xl object-cover">
+                        <button onclick="showAvatarUpload()" class="absolute bottom-2 right-2 bg-accent hover:bg-accent-hover rounded-lg p-2 transition shadow-lg">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <h1 id="profileUsername" class="text-2xl font-bold">Kullanıcı</h1>
+                    <p id="profileFullName" class="text-gray-400">Ad Soyad</p>
+                    <span id="profileStatus" class="mt-2 px-3 py-1 bg-green-500/20 text-green-400 rounded-full text-sm">● Çevrimiçi</span>
+                </div>
+                
+                <div class="grid grid-cols-3 gap-4 text-center">
+                    <div class="bg-bg-tertiary rounded-xl p-4">
+                        <p id="statConversations" class="text-2xl font-bold text-accent">0</p>
+                        <p class="text-gray-400 text-sm">Sohbet</p>
+                    </div>
+                    <div class="bg-bg-tertiary rounded-xl p-4">
+                        <p id="statMessages" class="text-2xl font-bold text-accent">0</p>
+                        <p class="text-gray-400 text-sm">Mesaj</p>
+                    </div>
+                    <div class="bg-bg-tertiary rounded-xl p-4">
+                        <p id="statFriends" class="text-2xl font-bold text-accent">0</p>
+                        <p class="text-gray-400 text-sm">Arkadaş</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profil Düzenleme Formu -->
+            <div class="bg-bg-secondary rounded-2xl border border-border-dark p-8">
+                <h2 class="text-xl font-bold mb-6">Profili Düzenle</h2>
+                
+                <form id="profileForm" class="space-y-6">
+                    
+                    <!-- Kullanıcı Adı -->
+                    <div>
+                        <label for="username" class="block text-sm font-medium text-gray-300 mb-2">
+                            Kullanıcı Adı
+                        </label>
+                        <input type="text" id="username" name="username" 
+                               class="input"
+                               placeholder="kullanici_adi">
+                    </div>
+
+                    <!-- Ad Soyad -->
+                    <div>
+                        <label for="fullName" class="block text-sm font-medium text-gray-300 mb-2">
+                            Ad Soyad
+                        </label>
+                        <input type="text" id="fullName" name="fullName" 
+                               class="input"
+                               placeholder="Ad Soyad">
+                    </div>
+
+                    <!-- Durum -->
+                    <div>
+                        <label for="status" class="block text-sm font-medium text-gray-300 mb-2">
+                            Durum
+                        </label>
+                        <select id="status" name="status" class="input">
+                            <option value="online">Çevrimiçi</option>
+                            <option value="away">Uzakta</option>
+                            <option value="busy">Meşgul</option>
+                            <option value="offline">Görünmez</option>
+                        </select>
+                    </div>
+
+                    <!-- Hata Mesajı -->
+                    <div id="errorMessage" class="hidden bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-red-400 text-sm">
+                    </div>
+
+                    <!-- Başarı Mesajı -->
+                    <div id="successMessage" class="hidden bg-green-500/10 border border-green-500/30 rounded-lg p-3 text-green-400 text-sm">
+                    </div>
+
+                    <!-- Kaydet Butonu -->
+                    <button type="submit" class="w-full btn btn-primary">
+                        Değişiklikleri Kaydet
+                    </button>
+                </form>
+            </div>
+
+            <!-- Son Görülme -->
+            <div class="bg-bg-secondary rounded-2xl border border-border-dark p-6 mt-6">
+                <h3 class="font-semibold mb-3">Hesap Bilgileri</h3>
+                <div class="space-y-2 text-sm">
+                    <p class="text-gray-400">
+                        Kayıt Tarihi: <span id="createdAt" class="text-white">-</span>
+                    </p>
+                    <p class="text-gray-400">
+                        Son Görülme: <span id="lastSeen" class="text-white">-</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Tehlikeli Bölge -->
+            <div class="bg-red-500/5 border border-red-500/20 rounded-2xl p-6 mt-6">
+                <h3 class="font-semibold text-red-400 mb-3">Tehlikeli Bölge</h3>
+                <p class="text-gray-400 text-sm mb-4">
+                    Hesabınızı silmek geri alınamaz bir işlemdir.
+                </p>
+                <button onclick="deleteAccount()" class="btn btn-danger">
+                    Hesabımı Sil
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Avatar Yükleme Modal -->
+    <div id="avatarModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+        <div class="bg-bg-secondary rounded-2xl border border-border-dark p-6 w-full max-w-md">
+            <h3 class="text-xl font-bold mb-4">Avatar Yükle</h3>
+            
+            <input type="file" id="avatarInput" accept="image/*" class="w-full mb-4">
+            
+            <div class="flex justify-end gap-3">
+                <button onclick="hideAvatarUpload()" class="btn btn-secondary">İptal</button>
+                <button onclick="uploadAvatar()" class="btn btn-primary">Yükle</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/storage.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            await checkAuth();
+            await loadProfile();
+        });
+
+        async function checkAuth() {
+            const user = await authManager.getCurrentUser();
+            if (!user) {
+                window.location.href = 'login.html';
+            }
+        }
+
+        async function loadProfile() {
+            const profile = authManager.currentProfile;
+            if (!profile) return;
+
+            document.getElementById('profileUsername').textContent = profile.username;
+            document.getElementById('profileFullName').textContent = profile.full_name || '';
+            document.getElementById('profileAvatar').src = profile.avatar_url || 'logo.png';
+            document.getElementById('profileStatus').textContent = getStatusText(profile.status);
+            
+            document.getElementById('username').value = profile.username;
+            document.getElementById('fullName').value = profile.full_name || '';
+            document.getElementById('status').value = profile.status;
+            
+            document.getElementById('createdAt').textContent = formatDate(profile.created_at);
+            document.getElementById('lastSeen').textContent = formatLastSeen(profile.last_seen);
+            
+            loadStats();
+        }
+
+        function getStatusText(status) {
+            const statuses = {
+                online: '● Çevrimiçi',
+                away: '● Uzakta',
+                busy: '● Meşgul',
+                offline: '● Çevrimdışı'
+            };
+            return statuses[status] || '● Çevrimdışı';
+        }
+
+        async function loadStats() {
+            const user = authManager.currentUser;
+            if (!user) return;
+
+            const { data: conversations } = await supabase
+                .from('conversation_members')
+                .select('conversation_id')
+                .eq('user_id', user.id);
+
+            const { count: messageCount } = await supabase
+                .from('messages')
+                .select('id', { count: 'exact' })
+                .eq('sender_id', user.id);
+
+            document.getElementById('statConversations').textContent = conversations?.length || 0;
+            document.getElementById('statMessages').textContent = messageCount || 0;
+            document.getElementById('statFriends').textContent = conversations?.length || 0;
+        }
+
+        document.getElementById('profileForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value.trim();
+            const fullName = document.getElementById('fullName').value.trim();
+            const status = document.getElementById('status').value;
+            
+            const errorMessage = document.getElementById('errorMessage');
+            const successMessage = document.getElementById('successMessage');
+            
+            errorMessage.classList.add('hidden');
+            successMessage.classList.add('hidden');
+            
+            if (!isValidUsername(username)) {
+                errorMessage.textContent = 'Kullanıcı adı 3-20 karakter arası olmalı';
+                errorMessage.classList.remove('hidden');
+                return;
+            }
+            
+            const result = await authManager.updateProfile({
+                username: username,
+                full_name: fullName,
+                status: status
+            });
+            
+            if (result.success) {
+                successMessage.textContent = 'Profil başarıyla güncellendi';
+                successMessage.classList.remove('hidden');
+                loadProfile();
+            } else {
+                errorMessage.textContent = result.error;
+                errorMessage.classList.remove('hidden');
+            }
+        });
+
+        function showAvatarUpload() {
+            document.getElementById('avatarModal').classList.remove('hidden');
+        }
+
+        function hideAvatarUpload() {
+            document.getElementById('avatarModal').classList.add('hidden');
+        }
+
+        async function uploadAvatar() {
+            const fileInput = document.getElementById('avatarInput');
+            const file = fileInput.files[0];
+            
+            if (!file) return;
+            
+            const user = authManager.currentUser;
+            if (!user) return;
+            
+            const result = await storageManager.uploadAvatar(user.id, file);
+            
+            if (result.success) {
+                await authManager.updateProfile({ avatar_url: result.url });
+                hideAvatarUpload();
+                loadProfile();
+                uiManager.showToast('Avatar güncellendi', 'success');
+            } else {
+                uiManager.showToast(result.error, 'error');
+            }
+        }
+
+        async function deleteAccount() {
+            const confirmed = confirm('Hesabınızı silmek istediğinizden emin misiniz?');
+            if (!confirmed) return;
+            
+            const user = authManager.currentUser;
+            if (!user) return;
+            
+            const { error } = await supabase.auth.admin.deleteUser(user.id);
+            
+            if (error) {
+                uiManager.showToast('Hesap silinemedi', 'error');
+                return;
+            }
+            
+            await authManager.logout();
+        }
+    </script>
+</body>
+</html>
