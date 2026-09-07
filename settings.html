@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="tr" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ayarlar - Gettic</title>
+    <meta name="description" content="Gettic ayarlar sayfası">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        'bg-primary': '#0a0a0f',
+                        'bg-secondary': '#12121a',
+                        'bg-tertiary': '#1a1a24',
+                        'bg-hover': '#22222e',
+                        'accent': '#7c3aed',
+                        'accent-hover': '#8b5cf6',
+                        'border-dark': '#1f1f2e',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-bg-primary text-white min-h-screen font-sans antialiased">
+
+    <!-- NAVBAR -->
+    <nav class="fixed top-0 w-full z-50 bg-bg-primary/80 backdrop-blur-xl border-b border-border-dark">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-3">
+                    <a href="chat.html" class="text-gray-400 hover:text-white transition mr-2">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                        </svg>
+                    </a>
+                    <img src="logo.png" alt="Gettic Logo" class="w-10 h-10 rounded-xl">
+                    <span class="text-2xl font-bold tracking-tight">Gettic</span>
+                </div>
+                <div class="flex gap-3">
+                    <a href="chat.html" class="px-4 py-2 bg-bg-tertiary hover:bg-bg-hover rounded-lg transition">Sohbet</a>
+                    <a href="profile.html" class="px-4 py-2 bg-bg-tertiary hover:bg-bg-hover rounded-lg transition">Profil</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- AYARLAR İÇERİĞİ -->
+    <div class="pt-24 pb-12">
+        <div class="max-w-3xl mx-auto px-4">
+            
+            <h1 class="text-3xl font-bold mb-8">Ayarlar</h1>
+
+            <!-- Hesap Ayarları -->
+            <div class="bg-bg-secondary rounded-2xl border border-border-dark p-8 mb-6">
+                <h2 class="text-xl font-bold mb-6">Hesap Ayarları</h2>
+                
+                <!-- Email Değiştirme -->
+                <div class="mb-8">
+                    <h3 class="font-semibold mb-3">Email Değiştir</h3>
+                    <form id="emailForm" class="space-y-4">
+                        <div>
+                            <label for="newEmail" class="block text-sm font-medium text-gray-300 mb-2">
+                                Yeni Email
+                            </label>
+                            <input type="email" id="newEmail" name="newEmail" 
+                                   class="input"
+                                   placeholder="yeni@email.com">
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            Email Güncelle
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Şifre Değiştirme -->
+                <div class="border-t border-border-dark pt-6">
+                    <h3 class="font-semibold mb-3">Şifre Değiştir</h3>
+                    <form id="passwordForm" class="space-y-4">
+                        <div>
+                            <label for="currentPassword" class="block text-sm font-medium text-gray-300 mb-2">
+                                Mevcut Şifre
+                            </label>
+                            <input type="password" id="currentPassword" name="currentPassword" 
+                                   class="input"
+                                   placeholder="••••••••">
+                        </div>
+                        <div>
+                            <label for="newPassword" class="block text-sm font-medium text-gray-300 mb-2">
+                                Yeni Şifre
+                            </label>
+                            <input type="password" id="newPassword" name="newPassword" 
+                                   class="input"
+                                   placeholder="••••••••">
+                        </div>
+                        <div>
+                            <label for="confirmNewPassword" class="block text-sm font-medium text-gray-300 mb-2">
+                                Yeni Şifre Tekrar
+                            </label>
+                            <input type="password" id="confirmNewPassword" name="confirmNewPassword" 
+                                   class="input"
+                                   placeholder="••••••••">
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            Şifre Güncelle
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Bildirim Ayarları -->
+            <div class="bg-bg-secondary rounded-2xl border border-border-dark p-8 mb-6">
+                <h2 class="text-xl font-bold mb-6">Bildirim Ayarları</h2>
+                
+                <div class="space-y-4">
+                    <label class="flex items-center justify-between cursor-pointer">
+                        <span>Masaüstü Bildirimleri</span>
+                        <input type="checkbox" id="desktopNotifications" class="w-5 h-5 bg-bg-tertiary border-border-dark rounded focus:ring-accent">
+                    </label>
+                    
+                    <label class="flex items-center justify-between cursor-pointer">
+                        <span>Sesli Bildirimler</span>
+                        <input type="checkbox" id="soundNotifications" class="w-5 h-5 bg-bg-tertiary border-border-dark rounded focus:ring-accent">
+                    </label>
+                    
+                    <label class="flex items-center justify-between cursor-pointer">
+                        <span>Mesaj Önizleme</span>
+                        <input type="checkbox" id="messagePreview" class="w-5 h-5 bg-bg-tertiary border-border-dark rounded focus:ring-accent">
+                    </label>
+                    
+                    <label class="flex items-center justify-between cursor-pointer">
+                        <span>Çevrimiçi Durumu Göster</span>
+                        <input type="checkbox" id="showOnlineStatus" class="w-5 h-5 bg-bg-tertiary border-border-dark rounded focus:ring-accent">
+                    </label>
+                </div>
+            </div>
+
+            <!-- Gizlilik Ayarları -->
+            <div class="bg-bg-secondary rounded-2xl border border-border-dark p-8 mb-6">
+                <h2 class="text-xl font-bold mb-6">Gizlilik Ayarları</h2>
+                
+                <div class="space-y-4">
+                    <label class="flex items-center justify-between cursor-pointer">
+                        <span>Son Görülmeyi Göster</span>
+                        <input type="checkbox" id="showLastSeen" class="w-5 h-5 bg-bg-tertiary border-border-dark rounded focus:ring-accent">
+                    </label>
+                    
+                    <label class="flex items-center justify-between cursor-pointer">
+                        <span>Okundu Bilgisi Gönder</span>
+                        <input type="checkbox" id="sendReadReceipts" class="w-5 h-5 bg-bg-tertiary border-border-dark rounded focus:ring-accent">
+                    </label>
+                    
+                    <label class="flex items-center justify-between cursor-pointer">
+                        <span>Profilimi Herkese Aç</span>
+                        <input type="checkbox" id="publicProfile" class="w-5 h-5 bg-bg-tertiary border-border-dark rounded focus:ring-accent">
+                    </label>
+                </div>
+            </div>
+
+            <!-- Görünüm Ayarları -->
+            <div class="bg-bg-secondary rounded-2xl border border-border-dark p-8 mb-6">
+                <h2 class="text-xl font-bold mb-6">Görünüm</h2>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Tema</label>
+                        <select id="theme" class="input">
+                            <option value="dark">Koyu Tema</option>
+                            <option value="darker">Daha Koyu</option>
+                            <option value="amoled">AMOLED</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Yazı Boyutu</label>
+                        <select id="fontSize" class="input">
+                            <option value="small">Küçük</option>
+                            <option value="medium" selected>Orta</option>
+                            <option value="large">Büyük</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kaydet Butonu -->
+            <button onclick="saveSettings()" class="w-full btn btn-primary mb-6">
+                Ayarları Kaydet
+            </button>
+
+            <!-- Oturum -->
+            <div class="bg-bg-secondary rounded-2xl border border-border-dark p-8">
+                <h2 class="text-xl font-bold mb-4">Oturum</h2>
+                <p class="text-gray-400 mb-4">Mevcut oturumunuzdan çıkış yapın.</p>
+                <button onclick="logout()" class="btn btn-danger">
+                    Çıkış Yap
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            await checkAuth();
+            loadSettings();
+        });
+
+        async function checkAuth() {
+            const user = await authManager.getCurrentUser();
+            if (!user) {
+                window.location.href = 'login.html';
+            }
+        }
+
+        function loadSettings() {
+            const settings = storage.get('gettic_settings') || {};
+            
+            document.getElementById('desktopNotifications').checked = settings.desktopNotifications ?? true;
+            document.getElementById('soundNotifications').checked = settings.soundNotifications ?? true;
+            document.getElementById('messagePreview').checked = settings.messagePreview ?? true;
+            document.getElementById('showOnlineStatus').checked = settings.showOnlineStatus ?? true;
+            document.getElementById('showLastSeen').checked = settings.showLastSeen ?? true;
+            document.getElementById('sendReadReceipts').checked = settings.sendReadReceipts ?? true;
+            document.getElementById('publicProfile').checked = settings.publicProfile ?? false;
+            document.getElementById('theme').value = settings.theme || 'dark';
+            document.getElementById('fontSize').value = settings.fontSize || 'medium';
+        }
+
+        function saveSettings() {
+            const settings = {
+                desktopNotifications: document.getElementById('desktopNotifications').checked,
+                soundNotifications: document.getElementById('soundNotifications').checked,
+                messagePreview: document.getElementById('messagePreview').checked,
+                showOnlineStatus: document.getElementById('showOnlineStatus').checked,
+                showLastSeen: document.getElementById('showLastSeen').checked,
+                sendReadReceipts: document.getElementById('sendReadReceipts').checked,
+                publicProfile: document.getElementById('publicProfile').checked,
+                theme: document.getElementById('theme').value,
+                fontSize: document.getElementById('fontSize').value
+            };
+            
+            storage.set('gettic_settings', settings);
+            uiManager.showToast('Ayarlar kaydedildi', 'success');
+        }
+
+        // Email değiştirme
+        document.getElementById('emailForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const newEmail = document.getElementById('newEmail').value;
+            
+            if (!isValidEmail(newEmail)) {
+                uiManager.showToast('Geçersiz email', 'error');
+                return;
+            }
+            
+            const result = await authManager.changeEmail(newEmail);
+            
+            if (result.success) {
+                uiManager.showToast('Email güncellendi', 'success');
+                document.getElementById('newEmail').value = '';
+            } else {
+                uiManager.showToast(result.error, 'error');
+            }
+        });
+
+        // Şifre değiştirme
+        document.getElementById('passwordForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmNewPassword = document.getElementById('confirmNewPassword').value;
+            
+            if (newPassword !== confirmNewPassword) {
+                uiManager.showToast('Şifreler eşleşmiyor', 'error');
+                return;
+            }
+            
+            if (newPassword.length < 8) {
+                uiManager.showToast('Şifre en az 8 karakter olmalı', 'error');
+                return;
+            }
+            
+            const result = await authManager.changePassword(newPassword);
+            
+            if (result.success) {
+                uiManager.showToast('Şifre güncellendi', 'success');
+                document.getElementById('currentPassword').value = '';
+                document.getElementById('newPassword').value = '';
+                document.getElementById('confirmNewPassword').value = '';
+            } else {
+                uiManager.showToast(result.error, 'error');
+            }
+        });
+
+        async function logout() {
+            await authManager.logout();
+        }
+    </script>
+</body>
+</html>
