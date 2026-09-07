@@ -1,0 +1,621 @@
+/* ============================================
+   GETTIC - CHAT STYLES
+   Sohbet arayüzü için stiller
+   ============================================ */
+
+/* Ana Chat Container */
+.chat-container {
+    display: flex;
+    height: 100vh;
+    background: var(--bg-primary);
+    overflow: hidden;
+}
+
+/* ============================================
+   SIDEBAR
+   ============================================ */
+
+.chat-sidebar {
+    width: 320px;
+    min-width: 320px;
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s ease;
+}
+
+/* Sidebar Header */
+.sidebar-header {
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.sidebar-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.sidebar-user:hover {
+    opacity: 0.8;
+}
+
+.sidebar-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    object-fit: cover;
+    position: relative;
+}
+
+.sidebar-avatar::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid var(--bg-secondary);
+}
+
+.sidebar-avatar.online::after {
+    background: var(--online);
+}
+
+.sidebar-avatar.offline::after {
+    background: var(--offline);
+}
+
+.sidebar-user-info h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.sidebar-user-info p {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+/* Sidebar Arama */
+.sidebar-search {
+    padding: 12px 16px;
+}
+
+.search-input-wrapper {
+    position: relative;
+}
+
+.search-input {
+    width: 100%;
+    padding: 10px 16px 10px 40px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--text-primary);
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+
+.search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+}
+
+/* Sohbet Listesi */
+.chat-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+}
+
+.chat-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chat-list::-webkit-scrollbar-thumb {
+    background: var(--bg-tertiary);
+    border-radius: 3px;
+}
+
+/* Sohbet Öğesi */
+.chat-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.chat-item:hover {
+    background: var(--bg-hover);
+}
+
+.chat-item.active {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--accent);
+}
+
+.chat-item-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    object-fit: cover;
+    position: relative;
+}
+
+.chat-item-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.chat-item-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.chat-item-preview {
+    font-size: 13px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.chat-item-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+}
+
+.chat-item-time {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.unread-badge {
+    background: var(--accent);
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    min-width: 20px;
+    height: 20px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 6px;
+}
+
+/* ============================================
+   ANA SOHBET ALANI
+   ============================================ */
+
+.chat-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-primary);
+}
+
+/* Sohbet Header */
+.chat-header {
+    padding: 16px 20px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.chat-header-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.chat-header-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    object-fit: cover;
+}
+
+.chat-header-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.chat-header-status {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.chat-header-status.online {
+    color: var(--online);
+}
+
+.chat-header-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.chat-header-button {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.chat-header-button:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+/* ============================================
+   MESAJLAR
+   ============================================ */
+
+.messages-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.messages-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.messages-container::-webkit-scrollbar-thumb {
+    background: var(--bg-tertiary);
+    border-radius: 3px;
+}
+
+/* Tarih Ayracı */
+.date-divider {
+    text-align: center;
+    margin: 20px 0;
+}
+
+.date-divider span {
+    background: var(--bg-tertiary);
+    color: var(--text-muted);
+    font-size: 12px;
+    padding: 4px 12px;
+    border-radius: 10px;
+}
+
+/* Mesaj Grubu */
+.message-group {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.message-group.sent {
+    align-items: flex-end;
+}
+
+.message-group.received {
+    align-items: flex-start;
+}
+
+/* Mesaj Balonu */
+.message-bubble {
+    max-width: 70%;
+    padding: 12px 16px;
+    border-radius: 16px;
+    position: relative;
+    transition: all 0.2s ease;
+    word-wrap: break-word;
+}
+
+.message-bubble:hover {
+    transform: translateY(-1px);
+}
+
+.message-bubble.sent {
+    background: var(--bubble-sent);
+    color: white;
+    border-bottom-right-radius: 4px;
+}
+
+.message-bubble.received {
+    background: var(--bubble-received);
+    color: var(--text-primary);
+    border-bottom-left-radius: 4px;
+}
+
+/* Mesaj Metni */
+.message-text {
+    font-size: 14px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+}
+
+/* Mesaj Zamanı */
+.message-time {
+    font-size: 11px;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.message-bubble.sent .message-time {
+    color: rgba(255, 255, 255, 0.7);
+    justify-content: flex-end;
+}
+
+.message-bubble.received .message-time {
+    color: var(--text-muted);
+}
+
+/* Okundu İşaretleri */
+.read-receipts {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.read-receipts svg {
+    width: 14px;
+    height: 14px;
+}
+
+.read-receipts.read {
+    color: #60a5fa;
+}
+
+/* ============================================
+   MESAJ GİRİŞ ALANI
+   ============================================ */
+
+.message-input-area {
+    padding: 16px 20px;
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.message-input-wrapper {
+    flex: 1;
+    position: relative;
+}
+
+.message-input {
+    width: 100%;
+    padding: 12px 16px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--text-primary);
+    font-size: 14px;
+    transition: all 0.3s ease;
+    resize: none;
+}
+
+.message-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+
+.message-input::placeholder {
+    color: var(--text-muted);
+}
+
+/* Giriş Alanı Butonları */
+.input-action-button {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.input-action-button:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+.send-button {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent);
+    border: none;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.send-button:hover {
+    background: var(--accent-hover);
+    box-shadow: var(--shadow-glow);
+    transform: translateY(-2px);
+}
+
+.send-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* ============================================
+   YAZIYOR GÖSTERGESİ
+   ============================================ */
+
+.typing-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--bg-tertiary);
+    border-radius: 12px;
+    width: fit-content;
+}
+
+.typing-dots {
+    display: flex;
+    gap: 4px;
+}
+
+.typing-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--text-muted);
+    border-radius: 50%;
+    animation: typingBounce 1.4s infinite;
+}
+
+.typing-dot:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.typing-dot:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes typingBounce {
+    0%, 60%, 100% {
+        transform: translateY(0);
+    }
+    30% {
+        transform: translateY(-6px);
+    }
+}
+
+.typing-text {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+/* ============================================
+   MEDYA MESAJLARI
+   ============================================ */
+
+.message-image {
+    max-width: 200px;
+    max-height: 200px;
+    border-radius: 8px;
+    object-fit: cover;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.message-image:hover {
+    transform: scale(1.05);
+}
+
+.message-video {
+    max-width: 200px;
+    border-radius: 8px;
+}
+
+.message-audio {
+    width: 200px;
+}
+
+.message-file {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    text-decoration: none;
+    color: inherit;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+    .chat-sidebar {
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        z-index: 50;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+    }
+    
+    .chat-sidebar.open {
+        transform: translateX(0);
+    }
+    
+    .message-bubble {
+        max-width: 85%;
+    }
+    
+    .message-image,
+    .message-video {
+        max-width: 150px;
+    }
+}
+
+@media (max-width: 480px) {
+    .chat-header {
+        padding: 12px;
+    }
+    
+    .messages-container {
+        padding: 12px;
+    }
+    
+    .message-input-area {
+        padding: 12px;
+    }
+    
+    .message-bubble {
+        max-width: 90%;
+        padding: 10px 12px;
+    }
+  }
