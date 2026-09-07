@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="tr" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gettic - Sohbet</title>
+    <meta name="description" content="Gettic sohbet uygulaması">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        'bg-primary': '#0a0a0f',
+                        'bg-secondary': '#12121a',
+                        'bg-tertiary': '#1a1a24',
+                        'bg-hover': '#22222e',
+                        'accent': '#7c3aed',
+                        'accent-hover': '#8b5cf6',
+                        'border-dark': '#1f1f2e',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-bg-primary text-white h-screen overflow-hidden font-sans antialiased">
+
+    <div class="flex h-full">
+
+        <!-- SOL SIDEBAR -->
+        <div class="w-80 bg-bg-secondary border-r border-border-dark flex flex-col flex-shrink-0">
+            
+            <!-- Kullanıcı Profili -->
+            <div class="p-4 border-b border-border-dark flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <img id="userAvatar" src="logo.png" alt="Avatar" class="w-10 h-10 rounded-xl">
+                    <div>
+                        <h2 id="userName" class="font-semibold">Kullanıcı</h2>
+                        <span class="text-sm text-green-400">● Çevrimiçi</span>
+                    </div>
+                </div>
+                <button onclick="logout()" class="text-gray-400 hover:text-white transition" title="Çıkış Yap">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Arama -->
+            <div class="p-4">
+                <div class="relative">
+                    <input type="text" id="searchUser" placeholder="Kullanıcı ara..." 
+                           class="w-full bg-bg-tertiary rounded-lg px-4 py-2 pl-10 focus:outline-none focus:ring-2 focus:ring-accent transition">
+                    <svg class="w-5 h-5 text-gray-500 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Sohbet Listesi -->
+            <div id="chatList" class="flex-1 overflow-y-auto">
+                <!-- Sohbetler buraya gelecek -->
+                <div class="text-center text-gray-500 py-8">
+                    <p>Sohbet yok</p>
+                </div>
+            </div>
+
+            <!-- Yeni Sohbet Butonu -->
+            <div class="p-4 border-t border-border-dark">
+                <button onclick="showNewChatModal()" class="w-full bg-accent hover:bg-accent-hover text-white font-semibold py-2 rounded-lg transition">
+                    + Yeni Sohbet
+                </button>
+            </div>
+        </div>
+
+        <!-- ANA SOHBET ALANI -->
+        <div class="flex-1 flex flex-col">
+            
+            <!-- Sohbet Başlığı -->
+            <div id="chatHeader" class="p-4 border-b border-border-dark flex items-center justify-between bg-bg-secondary">
+                <div class="flex items-center gap-3">
+                    <img id="chatAvatar" src="logo.png" alt="Avatar" class="w-10 h-10 rounded-xl">
+                    <div>
+                        <h2 id="chatName" class="font-semibold">Sohbet Seçin</h2>
+                        <span id="chatStatus" class="text-sm text-gray-400"></span>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <button class="text-gray-400 hover:text-white transition" title="Ara">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </button>
+                    <button class="text-gray-400 hover:text-white transition" title="Ayarlar">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mesajlar -->
+            <div id="messagesContainer" class="flex-1 overflow-y-auto p-4 space-y-4">
+                <!-- Mesajlar buraya gelecek -->
+                <div class="text-center text-gray-500 py-20">
+                    <p class="text-lg">Sohbet seçin veya yeni başlatın</p>
+                </div>
+            </div>
+
+            <!-- Yazıyor Göstergesi -->
+            <div id="typingIndicator" class="px-6 py-1 text-sm text-gray-400 hidden">
+                Yazıyor...
+            </div>
+
+            <!-- Mesaj Yazma Alanı -->
+            <div class="p-4 border-t border-border-dark bg-bg-secondary">
+                <div class="flex items-center gap-3">
+                    <button class="text-gray-400 hover:text-white transition" title="Dosya Ekle">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
+                        </svg>
+                    </button>
+                    
+                    <input type="text" id="messageInput" placeholder="Mesaj yazın..." 
+                           class="flex-1 bg-bg-tertiary rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-accent transition">
+                    
+                    <button onclick="sendMessage()" class="bg-accent hover:bg-accent-hover rounded-lg p-2 transition" title="Gönder">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Yeni Sohbet Modal -->
+    <div id="newChatModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+        <div class="bg-bg-secondary rounded-2xl border border-border-dark p-6 w-full max-w-md">
+            <h3 class="text-xl font-bold mb-4">Yeni Sohbet Başlat</h3>
+            
+            <div class="mb-4">
+                <input type="text" id="newChatSearch" placeholder="Kullanıcı adı ara..." 
+                       class="w-full bg-bg-tertiary rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-accent transition">
+            </div>
+            
+            <div id="userSearchResults" class="max-h-60 overflow-y-auto space-y-2">
+                <!-- Arama sonuçları -->
+            </div>
+            
+            <div class="flex justify-end mt-4">
+                <button onclick="hideNewChatModal()" class="px-4 py-2 text-gray-400 hover:text-white transition">
+                    İptal
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/chat.js"></script>
+    <script src="js/realtime.js"></script>
+    <script>
+        // Sayfa yüklendiğinde
+        document.addEventListener('DOMContentLoaded', async () => {
+            await checkAuth();
+            await loadUserProfile();
+            await loadConversations();
+            setupRealtime();
+        });
+
+        // Oturum kontrolü
+        async function checkAuth() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                window.location.href = 'login.html';
+            }
+        }
+
+        // Kullanıcı profilini yükle
+        async function loadUserProfile() {
+            const user = await authManager.getCurrentUser();
+            if (user) {
+                const profile = await authManager.getUserProfile(user.id);
+                if (profile) {
+                    document.getElementById('userName').textContent = profile.username;
+                    document.getElementById('userAvatar').src = profile.avatar_url || 'logo.png';
+                }
+            }
+        }
+
+        // Sohbetleri yükle
+        async function loadConversations() {
+            const user = await authManager.getCurrentUser();
+            if (!user) return;
+
+            const { data: conversations, error } = await supabase
+                .from('conversation_members')
+                .select(`
+                    conversation_id,
+                    conversations (
+                        id,
+                        type,
+                        name,
+                        updated_at,
+                        conversation_members (
+                            user_id,
+                            profiles (
+                                id,
+                                username,
+                                avatar_url,
+                                status
+                            )
+                        )
+                    )
+                `)
+                .eq('user_id', user.id)
+                .order('updated_at', { ascending: false });
+
+            if (error) {
+                console.error('Sohbetler yüklenemedi:', error);
+                return;
+            }
+
+            displayConversations(conversations);
+        }
+
+        // Sohbetleri göster
+        function displayConversations(conversations) {
+            const chatList = document.getElementById('chatList');
+            chatList.innerHTML = '';
+
+            if (!conversations || conversations.length === 0) {
+                chatList.innerHTML = '<div class="text-center text-gray-500 py-8"><p>Sohbet yok</p></div>';
+                return;
+            }
+
+            conversations.forEach(({ conversations: conv }) => {
+                const otherMember = conv.conversation_members
+                    .find(member => member.user_id !== authManager.currentUser?.id);
+
+                if (!otherMember) return;
+
+                const div = document.createElement('div');
+                div.className = 'p-3 hover:bg-bg-hover cursor-pointer transition flex items-center gap-3';
+                div.onclick = () => openConversation(conv.id, otherMember);
+
+                div.innerHTML = `
+                    <div class="relative">
+                        <img src="${otherMember.profiles.avatar_url || 'logo.png'}" 
+                             alt="Avatar" class="w-12 h-12 rounded-xl">
+                        ${otherMember.profiles.status === 'online' 
+                            ? '<span class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-bg-secondary"></span>' 
+                            : ''}
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="font-semibold">${otherMember.profiles.username}</h3>
+                        <p class="text-sm text-gray-400">${otherMember.profiles.status === 'online' ? 'Çevrimiçi' : 'Çevrimdışı'}</p>
+                    </div>
+                `;
+
+                chatList.appendChild(div);
+            });
+        }
+
+        // Sohbet aç
+        async function openConversation(conversationId, member) {
+            currentConversation = conversationId;
+
+            document.getElementById('chatName').textContent = member.profiles.username;
+            document.getElementById('chatAvatar').src = member.profiles.avatar_url || 'logo.png';
+            document.getElementById('chatStatus').textContent = member.profiles.status === 'online' ? 'Çevrimiçi' : 'Çevrimdışı';
+
+            await loadMessages(conversationId);
+            subscribeToMessages(conversationId);
+        }
+
+        // Mesajları yükle
+        async function loadMessages(conversationId) {
+            const { data: messages, error } = await supabase
+                .from('messages')
+                .select('*')
+                .eq('conversation_id', conversationId)
+                .order('created_at', { ascending: true });
+
+            if (error) {
+                console.error('Mesajlar yüklenemedi:', error);
+                return;
+            }
+
+            displayMessages(messages);
+        }
+
+        // Mesajları göster
+        function displayMessages(messages) {
+            const container = document.getElementById('messagesContainer');
+            container.innerHTML = '';
+
+            messages.forEach(message => {
+                appendMessage(message);
+            });
+
+            scrollToBottom(container);
+        }
+
+        // Mesaj ekle
+        function appendMessage(message) {
+            const container = document.getElementById('messagesContainer');
+            const isSent = message.sender_id === authManager.currentUser?.id;
+
+            const div = document.createElement('div');
+            div.className = `flex ${isSent ? 'justify-end' : 'justify-start'}`;
+
+            div.innerHTML = `
+                <div class="${isSent ? 'bg-accent' : 'bg-bg-tertiary'} rounded-lg px-4 py-2 max-w-[70%]">
+                    <p>${message.content}</p>
+                    <p class="text-xs ${isSent ? 'text-gray-300' : 'text-gray-500'} text-right mt-1">
+                        ${formatTime(message.created_at)}
+                    </p>
+                </div>
+            `;
+
+            container.appendChild(div);
+            scrollToBottom(container);
+        }
+
+        // Mesaj gönder
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const content = input.value.trim();
+
+            if (!content || !currentConversation) return;
+
+            const { data, error } = await supabase
+                .from('messages')
+                .insert([
+                    {
+                        conversation_id: currentConversation,
+                        sender_id: authManager.currentUser.id,
+                        content: content,
+                        type: 'text'
+                    }
+                ]);
+
+            if (error) {
+                console.error('Mesaj gönderilemedi:', error);
+                return;
+            }
+
+            input.value = '';
+        }
+
+        // Realtime kurulum
+        function setupRealtime() {
+            const channel = supabase
+                .channel('messages')
+                .on(
+                    'postgres_changes',
+                    { event: 'INSERT', schema: 'public', table: 'messages' },
+                    (payload) => {
+                        if (payload.new.conversation_id === currentConversation) {
+                            appendMessage(payload.new);
+                        }
+                    }
+                )
+                .subscribe();
+        }
+
+        function subscribeToMessages(conversationId) {
+            // Realtime zaten kurulu
+        }
+
+        // Yeni sohbet modal
+        function showNewChatModal() {
+            document.getElementById('newChatModal').classList.remove('hidden');
+        }
+
+        function hideNewChatModal() {
+            document.getElementById('newChatModal').classList.add('hidden');
+        }
+
+        // Kullanıcı ara
+        document.getElementById('newChatSearch')?.addEventListener('input', debounce(async (e) => {
+            const searchTerm = e.target.value.trim();
+            if (searchTerm.length < 3) return;
+
+            const { data: users, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .ilike('username', `%${searchTerm}%`)
+                .neq('id', authManager.currentUser.id)
+                .limit(10);
+
+            if (error) {
+                console.error('Arama hatası:', error);
+                return;
+            }
+
+            displaySearchResults(users);
+        }, 300));
+
+        function displaySearchResults(users) {
+            const container = document.getElementById('userSearchResults');
+            container.innerHTML = '';
+
+            if (!users || users.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center">Kullanıcı bulunamadı</p>';
+                return;
+            }
+
+            users.forEach(user => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center gap-3 p-2 hover:bg-bg-hover rounded-lg cursor-pointer transition';
+                div.onclick = () => startNewConversation(user);
+
+                div.innerHTML = `
+                    <img src="${user.avatar_url || 'logo.png'}" alt="Avatar" class="w-10 h-10 rounded-xl">
+                    <div>
+                        <p class="font-semibold">${user.username}</p>
+                        <p class="text-sm text-gray-400">${user.status === 'online' ? 'Çevrimiçi' : 'Çevrimdışı'}</p>
+                    </div>
+                `;
+
+                container.appendChild(div);
+            });
+        }
+
+        // Yeni sohbet başlat
+        async function startNewConversation(user) {
+            const { data: newConv, error } = await supabase
+                .from('conversations')
+                .insert([{ type: 'direct' }])
+                .select()
+                .single();
+
+            if (error) {
+                console.error('Sohbet oluşturulamadı:', error);
+                return;
+            }
+
+            const { error: memberError } = await supabase
+                .from('conversation_members')
+                .insert([
+                    { conversation_id: newConv.id, user_id: authManager.currentUser.id },
+                    { conversation_id: newConv.id, user_id: user.id }
+                ]);
+
+            if (memberError) {
+                console.error('Üyeler eklenemedi:', memberError);
+                return;
+            }
+
+            hideNewChatModal();
+            await loadConversations();
+            openConversation(newConv.id, { profiles: user });
+        }
+
+        // Çıkış
+        async function logout() {
+            await authManager.logout();
+        }
+
+        // Enter ile mesaj gönder
+        document.getElementById('messageInput')?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Modal dışına tıklayınca kapat
+        document.getElementById('newChatModal')?.addEventListener('click', (e) => {
+            if (e.target === document.getElementById('newChatModal')) {
+                hideNewChatModal();
+            }
+        });
+    </script>
+</body>
+</html>
