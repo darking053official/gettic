@@ -1,0 +1,369 @@
+/* ============================================
+   GETTIC - AUTH STYLES
+   Login/Register sayfaları için stiller
+   ============================================ */
+
+/* Auth Sayfa Arkaplanı */
+.auth-body {
+    background: var(--bg-primary);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Arkaplan Deseni */
+.auth-body::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: 
+        radial-gradient(circle at 20% 50%, rgba(124, 58, 237, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 50%, rgba(124, 58, 237, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+/* Auth Container */
+.auth-container {
+    position: relative;
+    width: 100%;
+    max-width: 440px;
+    padding: 20px;
+    z-index: 1;
+}
+
+/* Auth Card */
+.auth-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 32px;
+    box-shadow: var(--shadow-lg);
+    backdrop-filter: blur(10px);
+}
+
+/* Auth Logo */
+.auth-logo {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.auth-logo img {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    margin-bottom: 12px;
+    box-shadow: var(--shadow-glow);
+}
+
+.auth-logo h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.auth-logo p {
+    color: var(--text-secondary);
+    margin-top: 4px;
+}
+
+/* Auth Form */
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Auth Input Grupları */
+.auth-input-group {
+    position: relative;
+}
+
+.auth-input-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+
+.auth-input {
+    width: 100%;
+    padding: 12px 16px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--text-primary);
+    font-size: 15px;
+    transition: all 0.3s ease;
+}
+
+.auth-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+
+.auth-input::placeholder {
+    color: var(--text-muted);
+}
+
+.auth-input.error {
+    border-color: var(--busy);
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.auth-input.success {
+    border-color: var(--online);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+/* Şifre Göster/Gizle Butonu */
+.password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 38px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.password-toggle:hover {
+    color: var(--text-primary);
+}
+
+/* Auth Button */
+.auth-button {
+    width: 100%;
+    padding: 14px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 8px;
+}
+
+.auth-button:hover {
+    background: var(--accent-hover);
+    box-shadow: var(--shadow-glow);
+    transform: translateY(-2px);
+}
+
+.auth-button:active {
+    transform: translateY(0);
+}
+
+.auth-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Auth Link */
+.auth-link {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.auth-link:hover {
+    color: var(--accent-hover);
+    text-decoration: underline;
+}
+
+/* Auth Divider */
+.auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 24px 0;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+}
+
+.auth-divider span {
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+/* Sosyal Medya Butonları */
+.social-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.social-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--text-primary);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.social-button:hover {
+    background: var(--bg-hover);
+    border-color: var(--border-light);
+    transform: translateY(-2px);
+}
+
+.social-button svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* Hata Mesajı */
+.auth-error {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 12px;
+    padding: 12px 16px;
+    color: #fca5a5;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.auth-error svg {
+    flex-shrink: 0;
+}
+
+/* Başarı Mesajı */
+.auth-success {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 12px;
+    padding: 12px 16px;
+    color: #6ee7b7;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Şifre Gücü Göstergesi */
+.password-strength {
+    display: flex;
+    gap: 4px;
+    margin-top: 8px;
+}
+
+.strength-bar {
+    flex: 1;
+    height: 4px;
+    background: var(--bg-tertiary);
+    border-radius: 2px;
+    transition: all 0.3s ease;
+}
+
+.strength-bar.active-1 {
+    background: var(--busy);
+}
+
+.strength-bar.active-2 {
+    background: var(--away);
+}
+
+.strength-bar.active-3 {
+    background: #3b82f6;
+}
+
+.strength-bar.active-4 {
+    background: var(--online);
+}
+
+.strength-text {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+/* Form Alt Bilgi */
+.auth-footer {
+    text-align: center;
+    margin-top: 20px;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+/* Beni Hatırla */
+.remember-me {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.remember-me label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.remember-me input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--accent);
+    cursor: pointer;
+}
+
+/* Animasyonlar */
+.auth-card {
+    animation: authSlideIn 0.5s ease-out;
+}
+
+@keyframes authSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .auth-card {
+        padding: 24px;
+    }
+    
+    .auth-logo img {
+        width: 48px;
+        height: 48px;
+    }
+    
+    .auth-logo h1 {
+        font-size: 24px;
+    }
+    
+    .social-buttons {
+        grid-template-columns: 1fr;
+    }
+}
