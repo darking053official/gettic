@@ -1,164 +1,179 @@
-// ============ GETTIC SERVICE-WORKER.JS - FULL GÜNCEL ============
+// ============================================
+// GETTIC - SERVICE WORKER
+// ============================================
 
-const CACHE_NAME = 'gettic-v3';
-const ASSETS = [
-  '/app',
-  '/app/css/variables.css',
-  '/app/css/reset.css',
-  '/app/css/layout.css',
-  '/app/css/sidebar.css',
-  '/app/css/chat.css',
-  '/app/css/modals.css',
-  '/app/css/responsive.css',
-  '/app/css/voice.css',
-  '/app/js/config.js',
-  '/app/js/icons.js',
-  '/app/js/store.js',
-  '/app/js/auth.js',
-  '/app/js/chat.js',
-  '/app/js/channels.js',
-  '/app/js/dm.js',
-  '/app/js/voice.js',
-  '/app/js/polls.js',
-  '/app/js/roles.js',
-  '/app/js/ui.js',
-  '/app/js/gif.js',
-  '/app/js/app.js',
-  '/app/js/socketio.js',
-  'https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png'
+const CACHE_NAME = 'gettic-v0.0.1';
+const CACHE_ASSETS = [
+    '/',
+    '/index.html',
+    '/login.html',
+    '/register.html',
+    '/chat.html',
+    '/profile.html',
+    '/settings.html',
+    '/css/style.css',
+    '/css/auth.css',
+    '/css/chat.css',
+    '/css/components.css',
+    '/css/animations.css',
+    '/js/config.js',
+    '/js/constants.js',
+    '/js/utils.js',
+    '/js/auth.js',
+    '/js/chat.js',
+    '/js/realtime.js',
+    '/js/ui.js',
+    '/js/message.js',
+    '/js/conversation.js',
+    '/js/notification.js',
+    '/js/storage.js',
+    '/logo.png'
 ];
 
-// ============ KURULUM ============
-self.addEventListener('install', (e) => {
-  e.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('🔄 Önbellek oluşturuluyor...');
-        return cache.addAll(ASSETS).catch(err => {
-          console.warn('Bazı dosyalar önbelleğe alınamadı:', err);
-        });
-      })
-  );
-  self.skipWaiting();
+// Service Worker kurulumu
+self.addEventListener('install', (event) => {
+    event.waitUntil(
+        caches.open(CACHE_NAME)
+            .then((cache) => {
+                console.log('Gettic: Cache açıldı');
+                return cache.addAll(CACHE_ASSETS);
+            })
+            .then(() => self.skipWaiting())
+    );
 });
 
-// ============ AKTİF ============
-self.addEventListener('activate', (e) => {
-  e.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
-        keys
-          .filter((key) => key !== CACHE_NAME)
-          .map((key) => {
-            console.log('🗑️ Eski önbellek silindi:', key);
-            return caches.delete(key);
-          })
-      );
-    })
-  );
-  self.clients.claim();
+// Service Worker aktivasyonu
+self.addEventListener('activate', (event) => {
+    event.waitUntil(
+        caches.keys()
+            .then((cacheNames) => {
+                return Promise.all(
+                    cacheNames.map((cacheName) => {
+                        if (cacheName !== CACHE_NAME) {
+                            console.log('Gettic: Eski cache silindi:', cacheName);
+                            return caches.delete(cacheName);
+                        }
+                    })
+                );
+            })
+            .then(() => self.clients.claim())
+    );
 });
 
-// ============ FETCH - NETWORK FIRST ============
-self.addEventListener('fetch', (e) => {
-  // API isteklerini önbelleğe alma
-  if (e.request.url.includes('/api/')) {
-    return;
-  }
-
-  e.respondWith(
-    fetch(e.request)
-      .then((response) => {
-        // Başarılı yanıtı önbelleğe al
-        if (response && response.status === 200) {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(e.request, clone);
-          });
-        }
-        return response;
-      })
-      .catch(() => {
-        // Çevrimdışıysa önbellekten al
-        return caches.match(e.request).then((cached) => {
-          if (cached) return cached;
-          // Ana sayfa için fallback
-          if (e.request.destination === 'document') {
-            return caches.match('/app');
-          }
-          return new Response('Çevrimdışı', { status: 503 });
-        });
-      })
-  );
-});
-
-// ============ PUSH BİLDİRİMİ ============
-self.addEventListener('push', (e) => {
-  const data = e.data?.json() || { 
-    title: 'Gettic', 
-    body: 'Yeni bir mesajın var!',
-    icon: 'https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png'
-  };
-
-  const options = {
-    body: data.body,
-    icon: data.icon || 'https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png',
-    badge: 'https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png',
-    vibrate: [200, 100, 200],
-    tag: data.tag || 'gettic-msg',
-    data: data.data || {},
-    requireInteraction: data.requireInteraction || false,
-    silent: data.silent || false,
-    actions: data.actions || []
-  };
-
-  e.waitUntil(
-    self.registration.showNotification(data.title, options)
-  );
-});
-
-// ============ BİLDİRİME TIKLAMA ============
-self.addEventListener('notificationclick', (e) => {
-  e.notification.close();
-
-  e.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true })
-      .then((clientsArr) => {
-        // Açık bir Gettic sekmesi varsa ona odaklan
-        const client = clientsArr.find((c) => 
-          c.url.includes('/app') || c.url.includes('gettic.js.org')
+// Fetch olayları
+self.addEventListener('fetch', (event) => {
+    // API isteklerini cache'leme
+    if (event.request.url.includes('/api/')) {
+        event.respondWith(
+            fetch(event.request)
+                .catch(() => {
+                    return caches.match(event.request);
+                })
         );
-        
-        if (client) {
-          client.focus();
-          // DM bildirimi ise DM'e yönlendir
-          if (e.notification.data?.type === 'dm') {
-            client.postMessage({ 
-              type: 'navigate', 
-              path: '/dm/' + e.notification.data.sender 
-            });
-          }
-        } else {
-          // Yeni sekme aç
-          const url = e.notification.data?.path || '/app';
-          clients.openWindow(url);
+        return;
+    }
+
+    // Supabase isteklerini cache'leme
+    if (event.request.url.includes('supabase.co')) {
+        event.respondWith(
+            fetch(event.request)
+                .catch(() => {
+                    return caches.match(event.request);
+                })
+        );
+        return;
+    }
+
+    // Statik dosyalar için cache-first stratejisi
+    event.respondWith(
+        caches.match(event.request)
+            .then((cachedResponse) => {
+                if (cachedResponse) {
+                    return cachedResponse;
+                }
+                
+                return fetch(event.request)
+                    .then((response) => {
+                        // Sadece başarılı cevapları cache'le
+                        if (response.status === 200) {
+                            const responseClone = response.clone();
+                            caches.open(CACHE_NAME)
+                                .then((cache) => {
+                                    cache.put(event.request, responseClone);
+                                });
+                        }
+                        return response;
+                    });
+            })
+    );
+});
+
+// Push bildirimleri
+self.addEventListener('push', (event) => {
+    const options = {
+        body: event.data ? event.data.text() : 'Yeni bildirim',
+        icon: '/logo.png',
+        badge: '/logo.png',
+        vibrate: [200, 100, 200],
+        data: {
+            url: '/chat.html'
         }
-      })
-  );
+    };
+
+    event.waitUntil(
+        self.registration.showNotification('Gettic', options)
+    );
 });
 
-// ============ MESAJ İLETİŞİMİ ============
-self.addEventListener('message', (e) => {
-  if (e.data === 'skipWaiting') {
-    self.skipWaiting();
-  }
-  
-  if (e.data?.type === 'cache') {
-    // Önbelleği güncelle
-    caches.open(CACHE_NAME).then(cache => {
-      cache.add(e.data.url);
-    });
-  }
+// Bildirime tıklama
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+
+    event.waitUntil(
+        clients.matchAll({ type: 'window' })
+            .then((clientList) => {
+                for (const client of clientList) {
+                    if (client.url && 'focus' in client) {
+                        return client.focus();
+                    }
+                }
+                if (clients.openWindow) {
+                    return clients.openWindow('/chat.html');
+                }
+            })
+    );
 });
 
-console.log('✅ Service Worker hazır');
+// Background sync
+self.addEventListener('sync', (event) => {
+    if (event.tag === 'sync-messages') {
+        event.waitUntil(syncMessages());
+    }
+});
+
+async function syncMessages() {
+    try {
+        const cache = await caches.open(CACHE_NAME);
+        const pendingMessages = await cache.match('pending-messages');
+        
+        if (pendingMessages) {
+            const messages = await pendingMessages.json();
+            
+            // Mesajları gönder
+            for (const message of messages) {
+                await fetch('/api/messages', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(message)
+                });
+            }
+            
+            // Pending mesajları temizle
+            await cache.delete('pending-messages');
+        }
+    } catch (error) {
+        console.error('Gettic: Sync hatası:', error);
+    }
+}
