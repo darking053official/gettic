@@ -1,9 +1,5 @@
-// ============================================
-// GETTIC - CONFIG/SUPABASE.JS
-// Supabase client yapılandırması
-// ============================================
-
 const { createClient } = require('@supabase/supabase-js');
+const ws = require('ws');
 const { environment } = require('./environment');
 
 // Supabase client oluştur
@@ -19,12 +15,13 @@ const supabase = createClient(
         realtime: {
             params: {
                 eventsPerSecond: 10
-            }
+            },
+            transport: ws  // WebSocket desteği
         }
     }
 );
 
-// Admin client (service role key ile)
+// Admin client
 const supabaseAdmin = environment.SUPABASE_SERVICE_ROLE_KEY
     ? createClient(
         environment.SUPABASE_URL,
@@ -33,6 +30,9 @@ const supabaseAdmin = environment.SUPABASE_SERVICE_ROLE_KEY
             auth: {
                 autoRefreshToken: false,
                 persistSession: false
+            },
+            realtime: {
+                transport: ws
             }
         }
     )
