@@ -5,7 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Giriş Yap - Gettic</title>
     <meta name="description" content="Gettic hesabınıza giriş yapın">
+    
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0a0a0f">
+    <link rel="icon" type="image/png" href="logo.png">
+    
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -25,6 +32,7 @@
         }
     </script>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/auth.css">
 </head>
 <body class="bg-bg-primary text-white min-h-screen font-sans antialiased flex items-center justify-center p-4">
 
@@ -90,22 +98,6 @@
                     </div>
                 </div>
 
-                <!-- Beni Hatırla & Şifremi Unuttum -->
-                <div class="flex items-center justify-between">
-                    <label class="flex items-center gap-2 cursor-pointer">
-                        <input 
-                            type="checkbox" 
-                            id="remember" 
-                            name="remember"
-                            class="w-4 h-4 bg-bg-tertiary border-border-dark rounded focus:ring-accent"
-                        >
-                        <span class="text-sm text-gray-400">Beni hatırla</span>
-                    </label>
-                    <a href="#" class="text-sm text-accent hover:text-accent-hover transition">
-                        Şifremi unuttum
-                    </a>
-                </div>
-
                 <!-- Hata Mesajı -->
                 <div id="errorMessage" class="hidden bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-red-400 text-sm">
                 </div>
@@ -132,6 +124,7 @@
                 </div>
 
                 <div class="grid grid-cols-2 gap-4 mt-6">
+                    <!-- Google -->
                     <button 
                         type="button"
                         onclick="loginWithGoogle()"
@@ -146,6 +139,7 @@
                         Google
                     </button>
 
+                    <!-- GitHub -->
                     <button 
                         type="button"
                         onclick="loginWithGithub()"
@@ -197,10 +191,8 @@
             const password = document.getElementById('password').value;
             const errorMessage = document.getElementById('errorMessage');
             
-            // Hata mesajını gizle
             errorMessage.classList.add('hidden');
             
-            // Giriş işlemi
             const result = await authManager.login(email, password);
             
             if (result.success) {
@@ -214,14 +206,20 @@
         // Google ile giriş
         async function loginWithGoogle() {
             const { data, error } = await supabase.auth.signInWithOAuth({
-                provider: 'google'
+                provider: 'google',
+                options: {
+                    redirectTo: window.location.origin + '/chat.html'
+                }
             });
         }
 
         // GitHub ile giriş
         async function loginWithGithub() {
             const { data, error } = await supabase.auth.signInWithOAuth({
-                provider: 'github'
+                provider: 'github',
+                options: {
+                    redirectTo: window.location.origin + '/chat.html'
+                }
             });
         }
     </script>
