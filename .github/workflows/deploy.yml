@@ -59,15 +59,15 @@ jobs:
       - name: Update config.js
         if: env.TUNNEL_URL != ''
         run: |
-          sed -i "s|const SUPABASE_URL = .*|const SUPABASE_URL = '${{ secrets.SUPABASE_URL }}';|" public/js/config.js
-          sed -i "s|const SUPABASE_ANON_KEY = .*|const SUPABASE_ANON_KEY = '${{ secrets.SUPABASE_ANON_KEY }}';|" public/js/config.js
+          sed -i "s|const SUPABASE_URL = .*|const SUPABASE_URL = '${{ secrets.SUPABASE_URL }}';|" js/config.js
+          sed -i "s|const SUPABASE_ANON_KEY = .*|const SUPABASE_ANON_KEY = '${{ secrets.SUPABASE_ANON_KEY }}';|" js/config.js
           echo "Updated config.js with Supabase credentials"
 
       - name: Commit & Push
         if: env.TUNNEL_URL != ''
         run: |
           git config user.email "actions@github.com"
-          git config user.name "GitHub Actions"
+          git config user.name "Gettic Updater"
           git add public/js/config.js
           git diff --cached --quiet && echo "No changes" || git commit -m "Update Supabase config: ${{ env.TUNNEL_URL }}"
           git push || echo "Push failed"
