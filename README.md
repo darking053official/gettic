@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png" alt="Gettic Logo" width="150">
+  <img src="https://raw.githubusercontent.com/darking053official/gettic/main/logo.png" alt="Gettic Logo" width="150">
 </p>
 
 <h1 align="center">Gettic</h1>
