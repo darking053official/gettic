@@ -5,7 +5,7 @@
 
 const { supabase } = require('../config/supabase');
 const { logger } = require('../utils/logger');
-const { MAX_MESSAGE_LENGTH } = require('../../public/js/constants');
+const { MAX_MESSAGE_LENGTH } = require('../../js/constants');
 
 // Mesajları listele
 async function getMessages(req, res, next) {
