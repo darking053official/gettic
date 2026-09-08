@@ -91,7 +91,6 @@ const helmetConfig = {
     },
     
     // IE No Open
-    ieNoOpen: true,
     
     // No Sniff
     noSniff: true,
@@ -109,8 +108,8 @@ const helmetConfig = {
         policy: 'strict-origin-when-cross-origin'
     },
     
-    // X-Download-Options
-    xDownloadOptions: 'noopen',
+    // X-Download-Option
+    xDownloadOptions: true,
     
     // X-Permitted-Cross-Domain-Policies
     xPermittedCrossDomainPolicies: 'none',
