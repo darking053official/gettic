@@ -6,7 +6,6 @@
     <title>Giriş Yap - Gettic</title>
     <meta name="description" content="Gettic hesabınıza giriş yapın">
     
-    <!-- PWA -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0a0a0f">
     <link rel="icon" type="image/png" href="logo.png">
@@ -112,7 +111,7 @@
 
             </form>
 
-            <!-- Sosyal Medya ile Giriş -->
+            <!-- Sosyal Medya -->
             <div class="mt-6">
                 <div class="relative">
                     <div class="absolute inset-0 flex items-center">
@@ -124,7 +123,6 @@
                 </div>
 
                 <div class="grid grid-cols-2 gap-4 mt-6">
-                    <!-- Google -->
                     <button 
                         type="button"
                         onclick="loginWithGoogle()"
@@ -139,7 +137,6 @@
                         Google
                     </button>
 
-                    <!-- GitHub -->
                     <button 
                         type="button"
                         onclick="loginWithGithub()"
@@ -187,11 +184,23 @@
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            const email = document.getElementById('email').value;
+            const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             const errorMessage = document.getElementById('errorMessage');
             
             errorMessage.classList.add('hidden');
+            
+            if (!email) {
+                errorMessage.textContent = 'Email gerekli';
+                errorMessage.classList.remove('hidden');
+                return;
+            }
+            
+            if (!password) {
+                errorMessage.textContent = 'Şifre gerekli';
+                errorMessage.classList.remove('hidden');
+                return;
+            }
             
             const result = await authManager.login(email, password);
             
@@ -205,22 +214,36 @@
 
         // Google ile giriş
         async function loginWithGoogle() {
-            const { data, error } = await supabase.auth.signInWithOAuth({
-                provider: 'google',
-                options: {
-                    redirectTo: window.location.origin + '/chat.html'
-                }
-            });
+            try {
+                const { data, error } = await supabase.auth.signInWithOAuth({
+                    provider: 'google',
+                    options: {
+                        redirectTo: window.location.origin + '/chat.html'
+                    }
+                });
+                
+                if (error) throw error;
+            } catch (error) {
+                console.error('Google giriş hatası:', error);
+                alert('Google girişi başarısız: ' + error.message);
+            }
         }
 
         // GitHub ile giriş
         async function loginWithGithub() {
-            const { data, error } = await supabase.auth.signInWithOAuth({
-                provider: 'github',
-                options: {
-                    redirectTo: window.location.origin + '/chat.html'
-                }
-            });
+            try {
+                const { data, error } = await supabase.auth.signInWithOAuth({
+                    provider: 'github',
+                    options: {
+                        redirectTo: window.location.origin + '/chat.html'
+                    }
+                });
+                
+                if (error) throw error;
+            } catch (error) {
+                console.error('GitHub giriş hatası:', error);
+                alert('GitHub girişi başarısız: ' + error.message);
+            }
         }
     </script>
 </body>
