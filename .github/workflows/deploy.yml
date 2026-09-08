@@ -20,43 +20,29 @@ jobs:
 
       - name: Install dependencies
         run: |
-          cd app
           npm install
-
-      - name: Convert .wat to .wasm
-        run: |
-          echo "=== .wat → .wasm ==="
-          cd app/wasm
-          npm install -g wabt
-          for wat_file in *.wat; do
-            wasm_file="${wat_file%.wat}.wasm"
-            rm -f "$wasm_file"
-            wat2wasm "$wat_file" -o "$wasm_file"
-            if [ -f "$wasm_file" ]; then
-              echo "$wat_file → $wasm_file ($(stat -c%s "$wasm_file") bytes)"
-            else
-              echo "$wat_file dönüştürülemedi!"
-            fi
-          done
-          ls -la *.wasm
 
       - name: Start server
         env:
-          MYSQL_HOST: ${{ secrets.MYSQL_HOST }}
-          MYSQL_USER: ${{ secrets.MYSQL_USER }}
-          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
-          MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
-          REDIS_HOST: ${{ secrets.REDIS_HOST }}
-          REDIS_PORT: ${{ secrets.REDIS_PORT }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET }}
+          BCRYPT_ROUNDS: ${{ secrets.BCRYPT_ROUNDS }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          SMTP_FROM: ${{ secrets.SMTP_FROM }}
+          ALLOWED_ORIGINS: ${{ secrets.ALLOWED_ORIGINS }}
+          NODE_ENV: production
           PORT: "8080"
         run: |
-          cd app
-          node server.js &
+          node src/server.js &
           sleep 5
           echo "=== SERVER READY ==="
-          curl -s http://localhost:8080/api/health || echo "Health check failed"
+          curl -s http://localhost:8080/health || echo "Health check failed"
 
       - name: Start Cloudflare Tunnel
         id: tunnel
@@ -70,19 +56,20 @@ jobs:
           echo "TUNNEL_URL=$TUNNEL_URL" >> $GITHUB_ENV
           echo "tunnel_url=$TUNNEL_URL" >> $GITHUB_OUTPUT
 
-      - name: Update backendsite.ts
+      - name: Update config.js
         if: env.TUNNEL_URL != ''
         run: |
-          sed -i "s|backendUrl: ''|backendUrl: '${{ env.TUNNEL_URL }}'|" app/js/site/backendsite.ts
-          echo "Updated backend URL to: ${{ env.TUNNEL_URL }}"
+          sed -i "s|const SUPABASE_URL = .*|const SUPABASE_URL = '${{ secrets.SUPABASE_URL }}';|" public/js/config.js
+          sed -i "s|const SUPABASE_ANON_KEY = .*|const SUPABASE_ANON_KEY = '${{ secrets.SUPABASE_ANON_KEY }}';|" public/js/config.js
+          echo "Updated config.js with Supabase credentials"
 
       - name: Commit & Push
         if: env.TUNNEL_URL != ''
         run: |
           git config user.email "actions@github.com"
           git config user.name "GitHub Actions"
-          git add app/js/site/backendsite.ts app/wasm/*.wasm
-          git diff --cached --quiet && echo "No changes" || git commit -m "Update API + WASM: ${{ env.TUNNEL_URL }}"
+          git add public/js/config.js
+          git diff --cached --quiet && echo "No changes" || git commit -m "Update Supabase config: ${{ env.TUNNEL_URL }}"
           git push || echo "Push failed"
 
       - name: Show URL
@@ -91,6 +78,8 @@ jobs:
           echo "CANLI URL (60 dakika geçerli):"
           echo "${{ env.TUNNEL_URL }}"
           echo "=========================================="
+          echo "Health check: ${{ env.TUNNEL_URL }}/health"
+          echo "Chat: ${{ env.TUNNEL_URL }}/chat.html"
 
       - name: Keep alive
         run: |
