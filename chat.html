@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gettic - Sohbet</title>
     <meta name="description" content="Gettic sohbet uygulaması">
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0a0a0f">
+    <link rel="icon" type="image/png" href="logo.png">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
@@ -26,6 +31,7 @@
         }
     </script>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/chat.css">
 </head>
 <body class="bg-bg-primary text-white h-screen overflow-hidden font-sans antialiased">
 
@@ -43,11 +49,18 @@
                         <span class="text-sm text-green-400">● Çevrimiçi</span>
                     </div>
                 </div>
-                <button onclick="logout()" class="text-gray-400 hover:text-white transition" title="Çıkış Yap">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-                    </svg>
-                </button>
+                <div class="flex gap-2">
+                    <a href="profile.html" class="text-gray-400 hover:text-white transition" title="Profil">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                        </svg>
+                    </a>
+                    <button onclick="logout()" class="text-gray-400 hover:text-white transition" title="Çıkış Yap">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
 
             <!-- Arama -->
@@ -63,7 +76,6 @@
 
             <!-- Sohbet Listesi -->
             <div id="chatList" class="flex-1 overflow-y-auto">
-                <!-- Sohbetler buraya gelecek -->
                 <div class="text-center text-gray-500 py-8">
                     <p>Sohbet yok</p>
                 </div>
@@ -81,7 +93,7 @@
         <div class="flex-1 flex flex-col">
             
             <!-- Sohbet Başlığı -->
-            <div id="chatHeader" class="p-4 border-b border-border-dark flex items-center justify-between bg-bg-secondary">
+            <div class="p-4 border-b border-border-dark flex items-center justify-between bg-bg-secondary">
                 <div class="flex items-center gap-3">
                     <img id="chatAvatar" src="logo.png" alt="Avatar" class="w-10 h-10 rounded-xl">
                     <div>
@@ -89,42 +101,18 @@
                         <span id="chatStatus" class="text-sm text-gray-400"></span>
                     </div>
                 </div>
-                <div class="flex gap-2">
-                    <button class="text-gray-400 hover:text-white transition" title="Ara">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                        </svg>
-                    </button>
-                    <button class="text-gray-400 hover:text-white transition" title="Ayarlar">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/>
-                        </svg>
-                    </button>
-                </div>
             </div>
 
             <!-- Mesajlar -->
             <div id="messagesContainer" class="flex-1 overflow-y-auto p-4 space-y-4">
-                <!-- Mesajlar buraya gelecek -->
                 <div class="text-center text-gray-500 py-20">
                     <p class="text-lg">Sohbet seçin veya yeni başlatın</p>
                 </div>
             </div>
 
-            <!-- Yazıyor Göstergesi -->
-            <div id="typingIndicator" class="px-6 py-1 text-sm text-gray-400 hidden">
-                Yazıyor...
-            </div>
-
             <!-- Mesaj Yazma Alanı -->
             <div class="p-4 border-t border-border-dark bg-bg-secondary">
                 <div class="flex items-center gap-3">
-                    <button class="text-gray-400 hover:text-white transition" title="Dosya Ekle">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
-                        </svg>
-                    </button>
-                    
                     <input type="text" id="messageInput" placeholder="Mesaj yazın..." 
                            class="flex-1 bg-bg-tertiary rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-accent transition">
                     
@@ -148,78 +136,68 @@
                        class="w-full bg-bg-tertiary rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-accent transition">
             </div>
             
-            <div id="userSearchResults" class="max-h-60 overflow-y-auto space-y-2">
-                <!-- Arama sonuçları -->
-            </div>
+            <div id="userSearchResults" class="max-h-60 overflow-y-auto space-y-2"></div>
             
             <div class="flex justify-end mt-4">
-                <button onclick="hideNewChatModal()" class="px-4 py-2 text-gray-400 hover:text-white transition">
-                    İptal
-                </button>
+                <button onclick="hideNewChatModal()" class="px-4 py-2 text-gray-400 hover:text-white transition">İptal</button>
             </div>
         </div>
     </div>
 
-    <script src="js/config.js"></script>
-    <script src="js/utils.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/chat.js"></script>
-    <script src="js/realtime.js"></script>
     <script>
+        // Supabase client
+        const SUPABASE_URL = 'https://ayucfychcemsvzlgsdqq.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF5dWNmeWNoY2Vtc3Z6bGdzZHFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg4MDAwODksImV4cCI6MjEwNDM3NjA4OX0.XhXZjzy58cWuAhejswK_44_Y8JJKdSzPI4QCUrS8ipg';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let currentUser = null;
+        let currentConversation = null;
+
         // Sayfa yüklendiğinde
         document.addEventListener('DOMContentLoaded', async () => {
             await checkAuth();
             await loadUserProfile();
             await loadConversations();
-            setupRealtime();
         });
 
         // Oturum kontrolü
         async function checkAuth() {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session) {
-                window.location.href = 'login.html';
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                window.location.href = 'auth.html';
             }
+            currentUser = user;
         }
 
         // Kullanıcı profilini yükle
         async function loadUserProfile() {
-            const user = await authManager.getCurrentUser();
-            if (user) {
-                const profile = await authManager.getUserProfile(user.id);
-                if (profile) {
-                    document.getElementById('userName').textContent = profile.username;
-                    document.getElementById('userAvatar').src = profile.avatar_url || 'logo.png';
-                }
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', currentUser.id)
+                .single();
+
+            if (profile) {
+                document.getElementById('userName').textContent = profile.username;
+                document.getElementById('userAvatar').src = profile.avatar_url || 'logo.png';
             }
         }
 
         // Sohbetleri yükle
         async function loadConversations() {
-            const user = await authManager.getCurrentUser();
-            if (!user) return;
-
             const { data: conversations, error } = await supabase
                 .from('conversation_members')
                 .select(`
                     conversation_id,
                     conversations (
-                        id,
-                        type,
-                        name,
-                        updated_at,
+                        id, type, name, updated_at,
                         conversation_members (
                             user_id,
-                            profiles (
-                                id,
-                                username,
-                                avatar_url,
-                                status
-                            )
+                            profiles (id, username, avatar_url, status)
                         )
                     )
                 `)
-                .eq('user_id', user.id)
+                .eq('user_id', currentUser.id)
                 .order('updated_at', { ascending: false });
 
             if (error) {
@@ -241,9 +219,7 @@
             }
 
             conversations.forEach(({ conversations: conv }) => {
-                const otherMember = conv.conversation_members
-                    .find(member => member.user_id !== authManager.currentUser?.id);
-
+                const otherMember = conv.conversation_members.find(m => m.user_id !== currentUser.id);
                 if (!otherMember) return;
 
                 const div = document.createElement('div');
@@ -252,11 +228,8 @@
 
                 div.innerHTML = `
                     <div class="relative">
-                        <img src="${otherMember.profiles.avatar_url || 'logo.png'}" 
-                             alt="Avatar" class="w-12 h-12 rounded-xl">
-                        ${otherMember.profiles.status === 'online' 
-                            ? '<span class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-bg-secondary"></span>' 
-                            : ''}
+                        <img src="${otherMember.profiles.avatar_url || 'logo.png'}" alt="Avatar" class="w-12 h-12 rounded-xl">
+                        ${otherMember.profiles.status === 'online' ? '<span class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-bg-secondary"></span>' : ''}
                     </div>
                     <div class="flex-1">
                         <h3 class="font-semibold">${otherMember.profiles.username}</h3>
@@ -277,23 +250,17 @@
             document.getElementById('chatStatus').textContent = member.profiles.status === 'online' ? 'Çevrimiçi' : 'Çevrimdışı';
 
             await loadMessages(conversationId);
-            subscribeToMessages(conversationId);
         }
 
         // Mesajları yükle
         async function loadMessages(conversationId) {
-            const { data: messages, error } = await supabase
+            const { data: messages } = await supabase
                 .from('messages')
                 .select('*')
                 .eq('conversation_id', conversationId)
                 .order('created_at', { ascending: true });
 
-            if (error) {
-                console.error('Mesajlar yüklenemedi:', error);
-                return;
-            }
-
-            displayMessages(messages);
+            displayMessages(messages || []);
         }
 
         // Mesajları göster
@@ -305,28 +272,28 @@
                 appendMessage(message);
             });
 
-            scrollToBottom(container);
+            container.scrollTop = container.scrollHeight;
         }
 
         // Mesaj ekle
         function appendMessage(message) {
             const container = document.getElementById('messagesContainer');
-            const isSent = message.sender_id === authManager.currentUser?.id;
+            const isSent = message.sender_id === currentUser.id;
 
             const div = document.createElement('div');
             div.className = `flex ${isSent ? 'justify-end' : 'justify-start'}`;
 
+            const time = new Date(message.created_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+
             div.innerHTML = `
                 <div class="${isSent ? 'bg-accent' : 'bg-bg-tertiary'} rounded-lg px-4 py-2 max-w-[70%]">
-                    <p>${message.content}</p>
-                    <p class="text-xs ${isSent ? 'text-gray-300' : 'text-gray-500'} text-right mt-1">
-                        ${formatTime(message.created_at)}
-                    </p>
+                    <p>${message.content || ''}</p>
+                    <p class="text-xs ${isSent ? 'text-gray-300' : 'text-gray-500'} text-right mt-1">${time}</p>
                 </div>
             `;
 
             container.appendChild(div);
-            scrollToBottom(container);
+            container.scrollTop = container.scrollHeight;
         }
 
         // Mesaj gönder
@@ -336,16 +303,14 @@
 
             if (!content || !currentConversation) return;
 
-            const { data, error } = await supabase
+            const { error } = await supabase
                 .from('messages')
-                .insert([
-                    {
-                        conversation_id: currentConversation,
-                        sender_id: authManager.currentUser.id,
-                        content: content,
-                        type: 'text'
-                    }
-                ]);
+                .insert([{
+                    conversation_id: currentConversation,
+                    sender_id: currentUser.id,
+                    content: content,
+                    type: 'text'
+                }]);
 
             if (error) {
                 console.error('Mesaj gönderilemedi:', error);
@@ -355,25 +320,15 @@
             input.value = '';
         }
 
-        // Realtime kurulum
-        function setupRealtime() {
-            const channel = supabase
-                .channel('messages')
-                .on(
-                    'postgres_changes',
-                    { event: 'INSERT', schema: 'public', table: 'messages' },
-                    (payload) => {
-                        if (payload.new.conversation_id === currentConversation) {
-                            appendMessage(payload.new);
-                        }
-                    }
-                )
-                .subscribe();
-        }
-
-        function subscribeToMessages(conversationId) {
-            // Realtime zaten kurulu
-        }
+        // Realtime dinleme
+        supabase
+            .channel('messages')
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
+                if (payload.new.conversation_id === currentConversation) {
+                    appendMessage(payload.new);
+                }
+            })
+            .subscribe();
 
         // Yeni sohbet modal
         function showNewChatModal() {
@@ -385,24 +340,19 @@
         }
 
         // Kullanıcı ara
-        document.getElementById('newChatSearch')?.addEventListener('input', debounce(async (e) => {
+        document.getElementById('newChatSearch').addEventListener('input', async (e) => {
             const searchTerm = e.target.value.trim();
-            if (searchTerm.length < 3) return;
+            if (searchTerm.length < 2) return;
 
-            const { data: users, error } = await supabase
+            const { data: users } = await supabase
                 .from('profiles')
                 .select('*')
                 .ilike('username', `%${searchTerm}%`)
-                .neq('id', authManager.currentUser.id)
+                .neq('id', currentUser.id)
                 .limit(10);
 
-            if (error) {
-                console.error('Arama hatası:', error);
-                return;
-            }
-
-            displaySearchResults(users);
-        }, 300));
+            displaySearchResults(users || []);
+        });
 
         function displaySearchResults(users) {
             const container = document.getElementById('userSearchResults');
@@ -443,41 +393,34 @@
                 return;
             }
 
-            const { error: memberError } = await supabase
+            await supabase
                 .from('conversation_members')
                 .insert([
-                    { conversation_id: newConv.id, user_id: authManager.currentUser.id },
+                    { conversation_id: newConv.id, user_id: currentUser.id },
                     { conversation_id: newConv.id, user_id: user.id }
                 ]);
-
-            if (memberError) {
-                console.error('Üyeler eklenemedi:', memberError);
-                return;
-            }
 
             hideNewChatModal();
             await loadConversations();
             openConversation(newConv.id, { profiles: user });
         }
 
-        // Çıkış
-        async function logout() {
-            await authManager.logout();
-        }
-
         // Enter ile mesaj gönder
-        document.getElementById('messageInput')?.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
+        document.getElementById('messageInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
         });
 
         // Modal dışına tıklayınca kapat
-        document.getElementById('newChatModal')?.addEventListener('click', (e) => {
-            if (e.target === document.getElementById('newChatModal')) {
-                hideNewChatModal();
-            }
+        document.getElementById('newChatModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('newChatModal')) hideNewChatModal();
         });
+
+        // Çıkış
+        async function logout() {
+            await supabase.from('profiles').update({ status: 'offline', last_seen: new Date() }).eq('id', currentUser.id);
+            await supabase.auth.signOut();
+            window.location.href = 'auth.html';
+        }
     </script>
 </body>
 </html>
