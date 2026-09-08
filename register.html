@@ -5,7 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kayıt Ol - Gettic</title>
     <meta name="description" content="Gettic'e ücretsiz kayıt olun">
+    
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0a0a0f">
+    <link rel="icon" type="image/png" href="logo.png">
+    
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -25,6 +32,7 @@
         }
     </script>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/auth.css">
 </head>
 <body class="bg-bg-primary text-white min-h-screen font-sans antialiased flex items-center justify-center p-4">
 
@@ -62,7 +70,6 @@
                         placeholder="kullanici_adi"
                         class="w-full bg-bg-tertiary border border-border-dark rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition"
                     >
-                    <p class="text-xs text-gray-500 mt-1">3-20 karakter arası olmalı</p>
                 </div>
 
                 <!-- Email -->
@@ -108,15 +115,6 @@
                             </svg>
                         </button>
                     </div>
-                    <div class="mt-2">
-                        <div class="flex gap-1">
-                            <div class="h-1 flex-1 bg-bg-tertiary rounded-full" id="strengthBar1"></div>
-                            <div class="h-1 flex-1 bg-bg-tertiary rounded-full" id="strengthBar2"></div>
-                            <div class="h-1 flex-1 bg-bg-tertiary rounded-full" id="strengthBar3"></div>
-                            <div class="h-1 flex-1 bg-bg-tertiary rounded-full" id="strengthBar4"></div>
-                        </div>
-                        <p class="text-xs text-gray-500 mt-1" id="strengthText">En az 8 karakter</p>
-                    </div>
                 </div>
 
                 <!-- Şifre Tekrar -->
@@ -147,21 +145,6 @@
                     </div>
                 </div>
 
-                <!-- Kullanım Şartları -->
-                <div class="flex items-start gap-2">
-                    <input 
-                        type="checkbox" 
-                        id="terms" 
-                        name="terms" 
-                        required
-                        class="w-4 h-4 mt-1 bg-bg-tertiary border-border-dark rounded focus:ring-accent"
-                    >
-                    <label for="terms" class="text-sm text-gray-400">
-                        <a href="#" class="text-accent hover:text-accent-hover">Kullanım Şartları</a> ve 
-                        <a href="#" class="text-accent hover:text-accent-hover">Gizlilik Politikası</a>'nı kabul ediyorum
-                    </label>
-                </div>
-
                 <!-- Hata Mesajı -->
                 <div id="errorMessage" class="hidden bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-red-400 text-sm">
                 </div>
@@ -188,6 +171,7 @@
                 </div>
 
                 <div class="grid grid-cols-2 gap-4 mt-6">
+                    <!-- Google -->
                     <button 
                         type="button"
                         onclick="registerWithGoogle()"
@@ -202,6 +186,7 @@
                         Google
                     </button>
 
+                    <!-- GitHub -->
                     <button 
                         type="button"
                         onclick="registerWithGithub()"
@@ -245,54 +230,6 @@
             }
         }
 
-        // Şifre gücü kontrolü
-        document.getElementById('password').addEventListener('input', function(e) {
-            const password = e.target.value;
-            const strength = checkPasswordStrength(password);
-            updateStrengthBar(strength);
-        });
-
-        function checkPasswordStrength(password) {
-            let score = 0;
-            
-            if (password.length >= 8) score++;
-            if (password.length >= 12) score++;
-            if (/[A-Z]/.test(password)) score++;
-            if (/[0-9]/.test(password)) score++;
-            if (/[^A-Za-z0-9]/.test(password)) score++;
-            
-            return Math.min(score, 4);
-        }
-
-        function updateStrengthBar(strength) {
-            const colors = {
-                0: 'bg-bg-tertiary',
-                1: 'bg-red-500',
-                2: 'bg-yellow-500',
-                3: 'bg-blue-500',
-                4: 'bg-green-500'
-            };
-            
-            const texts = {
-                0: 'En az 8 karakter',
-                1: 'Zayıf',
-                2: 'Orta',
-                3: 'İyi',
-                4: 'Güçlü'
-            };
-            
-            for (let i = 1; i <= 4; i++) {
-                const bar = document.getElementById(`strengthBar${i}`);
-                if (i <= strength) {
-                    bar.className = `h-1 flex-1 ${colors[strength]} rounded-full transition`;
-                } else {
-                    bar.className = 'h-1 flex-1 bg-bg-tertiary rounded-full transition';
-                }
-            }
-            
-            document.getElementById('strengthText').textContent = texts[strength];
-        }
-
         // Form submit
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -303,7 +240,6 @@
             const confirmPassword = document.getElementById('confirmPassword').value;
             const errorMessage = document.getElementById('errorMessage');
             
-            // Hata mesajını gizle
             errorMessage.classList.add('hidden');
             
             // Şifre kontrolü
@@ -327,14 +263,20 @@
         // Google ile kayıt
         async function registerWithGoogle() {
             const { data, error } = await supabase.auth.signInWithOAuth({
-                provider: 'google'
+                provider: 'google',
+                options: {
+                    redirectTo: window.location.origin + '/chat.html'
+                }
             });
         }
 
         // GitHub ile kayıt
         async function registerWithGithub() {
             const { data, error } = await supabase.auth.signInWithOAuth({
-                provider: 'github'
+                provider: 'github',
+                options: {
+                    redirectTo: window.location.origin + '/chat.html'
+                }
             });
         }
     </script>
