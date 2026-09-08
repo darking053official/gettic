@@ -75,7 +75,8 @@ const uploadLimiter = rateLimit({
 const speedLimiter = slowDown({
     windowMs: 15 * 60 * 1000, // 15 dakika
     delayAfter: 100, // 100 istekten sonra
-    delayMs: 500 // 500ms gecikme
+    delayMs: () => 500, // 500ms gecikme
+    validate: { delayMs: false }
 });
 
 module.exports = {
