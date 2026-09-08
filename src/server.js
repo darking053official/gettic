@@ -8,6 +8,10 @@ const http = require('http');
 const { Server } = require('socket.io');
 const { logger } = require('./utils/logger');
 const { environment } = require('./config/environment');
+const { supabase } = require('./config/supabase');
+const { verifyToken } = require('./utils/jwt');
+const userService = require('./services/userService');
+const messageService = require('./services/messageService');
 
 // HTTP Sunucusu oluştur
 const server = http.createServer(app);
@@ -20,7 +24,8 @@ const io = new Server(server, {
         credentials: true
     },
     pingTimeout: 60000,
-    pingInterval: 25000
+    pingInterval: 25000,
+    transports: ['websocket', 'polling']
 });
 
 // Socket.IO bağlantı yönetimi
@@ -30,7 +35,6 @@ io.on('connection', (socket) => {
     // Kullanıcı kimlik doğrulama
     socket.on('authenticate', async (token) => {
         try {
-            const { verifyToken } = require('./utils/jwt');
             const decoded = verifyToken(token);
             
             if (decoded) {
@@ -39,23 +43,61 @@ io.on('connection', (socket) => {
                 logger.info(`Kullanıcı doğrulandı: ${decoded.sub}`);
                 
                 // Kullanıcıyı online işaretle
-                await require('./services/userService').updateUserStatus(decoded.sub, 'online');
+                await userService.updateUserStatus(decoded.sub, 'online');
                 
-                socket.emit('authenticated', { success: true });
+                // Diğer kullanıcılara bildir
+                socket.broadcast.emit('user-online', { userId: decoded.sub });
+                
+                socket.emit('authenticated', { 
+                    success: true,
+                    userId: decoded.sub
+                });
             } else {
-                socket.emit('authenticated', { success: false, error: 'Geçersiz token' });
+                socket.emit('authenticated', { 
+                    success: false, 
+                    error: 'Geçersiz token' 
+                });
             }
         } catch (error) {
             logger.error('Socket auth hatası:', error);
-            socket.emit('authenticated', { success: false, error: 'Auth hatası' });
+            socket.emit('authenticated', { 
+                success: false, 
+                error: 'Auth hatası' 
+            });
         }
     });
 
     // Sohbete katıl
-    socket.on('join-conversation', (conversationId) => {
-        if (socket.userId) {
+    socket.on('join-conversation', async (conversationId) => {
+        if (!socket.userId) {
+            socket.emit('error', { message: 'Önce giriş yapın' });
+            return;
+        }
+
+        try {
+            // Üyelik kontrolü
+            const { data: memberCheck } = await supabase
+                .from('conversation_members')
+                .select('user_id')
+                .eq('conversation_id', conversationId)
+                .eq('user_id', socket.userId)
+                .single();
+
+            if (!memberCheck) {
+                socket.emit('error', { message: 'Bu sohbete erişiminiz yok' });
+                return;
+            }
+
             socket.join(`conversation:${conversationId}`);
             logger.info(`Kullanıcı ${socket.userId} sohbete katıldı: ${conversationId}`);
+            
+            // Mesajları okundu işaretle
+            await messageService.markConversationRead(conversationId, socket.userId);
+            
+            socket.emit('joined-conversation', { conversationId });
+        } catch (error) {
+            logger.error('Sohbete katılma hatası:', error);
+            socket.emit('error', { message: 'Sohbete katılınamadı' });
         }
     });
 
@@ -68,26 +110,38 @@ io.on('connection', (socket) => {
     // Mesaj gönder
     socket.on('send-message', async (data) => {
         try {
-            const { conversationId, content, type } = data;
+            const { conversationId, content, type = 'text', mediaUrl = null } = data;
             
             if (!socket.userId) {
                 socket.emit('error', { message: 'Oturum gerekli' });
                 return;
             }
 
-            const messageService = require('./services/messageService');
+            if (!content && !mediaUrl) {
+                socket.emit('error', { message: 'Mesaj içeriği boş' });
+                return;
+            }
+
             const result = await messageService.createMessage(
                 conversationId,
                 socket.userId,
                 content,
-                type
+                type,
+                mediaUrl
             );
 
             if (result.success) {
+                // Sohbetteki herkese mesajı ilet
                 io.to(`conversation:${conversationId}`).emit('new-message', result.message);
+                
+                // Gönderene onay
+                socket.emit('message-sent', result.message);
+            } else {
+                socket.emit('error', { message: result.error });
             }
         } catch (error) {
             logger.error('Mesaj gönderme hatası:', error);
+            socket.emit('error', { message: 'Mesaj gönderilemedi' });
         }
     });
 
@@ -96,6 +150,17 @@ io.on('connection', (socket) => {
         if (socket.userId) {
             socket.to(`conversation:${conversationId}`).emit('user-typing', {
                 userId: socket.userId,
+                conversationId,
+                timestamp: new Date()
+            });
+        }
+    });
+
+    // Yazıyor göstergesi bitti
+    socket.on('stop-typing', (conversationId) => {
+        if (socket.userId) {
+            socket.to(`conversation:${conversationId}`).emit('user-stop-typing', {
+                userId: socket.userId,
                 conversationId
             });
         }
@@ -103,16 +168,18 @@ io.on('connection', (socket) => {
 
     // Okundu işaretle
     socket.on('mark-read', async (conversationId) => {
-        if (socket.userId) {
-            await require('./services/messageService').markConversationRead(
-                conversationId,
-                socket.userId
-            );
+        if (!socket.userId) return;
+
+        try {
+            await messageService.markConversationRead(conversationId, socket.userId);
             
             socket.to(`conversation:${conversationId}`).emit('messages-read', {
                 userId: socket.userId,
-                conversationId
+                conversationId,
+                timestamp: new Date()
             });
+        } catch (error) {
+            logger.error('Okundu işaretleme hatası:', error);
         }
     });
 
@@ -122,10 +189,13 @@ io.on('connection', (socket) => {
             logger.info(`Bağlantı koptu: ${socket.id}, Kullanıcı: ${socket.userId}`);
             
             // Kullanıcıyı offline işaretle
-            await require('./services/userService').updateUserStatus(socket.userId, 'offline');
+            await userService.updateUserStatus(socket.userId, 'offline');
             
             // Diğer kullanıcılara bildir
-            io.emit('user-offline', { userId: socket.userId });
+            socket.broadcast.emit('user-offline', { 
+                userId: socket.userId,
+                timestamp: new Date()
+            });
         }
     });
 });
