@@ -15,14 +15,16 @@ const LOG_LEVELS = {
     debug: 3
 };
 
-// Log dosyası yolu
+// Log dosyası yolu - DÜZELTİLDİ
 const logDir = path.join(__dirname, '../../logs');
-const logFile = path.join(logDir, environment.LOG_FILE || 'gettic.log');
 
 // Log dizinini oluştur
 if (!fs.existsSync(logDir)) {
     fs.mkdirSync(logDir, { recursive: true });
 }
+
+// Log dosyası
+const logFile = path.join(logDir, 'gettic.log');
 
 // Log yazma fonksiyonu
 function writeLog(level, message, data = null) {
@@ -44,11 +46,12 @@ function writeLog(level, message, data = null) {
     consoleMethod(`[${timestamp}] [${level.toUpperCase()}] ${message}`);
     
     // Dosyaya yaz
-    fs.appendFile(logFile, logString + '\n', (err) => {
-        if (err) {
-            console.error('Log dosyasına yazılamadı:', err);
-        }
-    });
+    try {
+        fs.appendFileSync(logFile, logString + '\n');
+    } catch (err) {
+        // Sadece konsola yaz, hata verme
+        console.error('Log dosyasına yazılamadı:', err.message);
+    }
 }
 
 // Logger objesi
