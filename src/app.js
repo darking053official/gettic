@@ -12,6 +12,7 @@ const requestIp = require('request-ip');
 const mongoSanitize = require('express-mongo-sanitize');
 const hpp = require('hpp');
 const xss = require('xss');
+const path = require('path');
 
 const { environment } = require('./config/environment');
 const { corsConfig } = require('./security/corsConfig');
@@ -66,8 +67,8 @@ app.use((req, res, next) => {
     next();
 });
 
-// Statik dosyalar
-app.use(express.static('public'));
+// Statik dosyalar (public klasörü)
+app.use(express.static(path.join(__dirname, '../public')));
 
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
@@ -75,13 +76,19 @@ app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/chat', require('./routes/chatRoutes'));
 app.use('/api/messages', require('./routes/messageRoutes'));
 
+// Ana sayfa
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/index.html'));
+});
+
 // Health check
 app.get('/health', (req, res) => {
     res.json({
         status: 'ok',
         timestamp: new Date(),
         uptime: process.uptime(),
-        version: '1.0.0'
+        version: '1.0.0',
+        environment: environment.NODE_ENV
     });
 });
 
