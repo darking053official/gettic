@@ -1,12 +1,6 @@
-// ============================================
-// GETTIC - SECURITY/HELMETCONFIG.JS
-// Helmet güvenlik ayarları
-// ============================================
-
 const { environment } = require('../config/environment');
 
 const helmetConfig = {
-    // Content Security Policy
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
@@ -54,71 +48,42 @@ const helmetConfig = {
         }
     },
     
-    // Cross-Origin-Opener-Policy
     crossOriginOpenerPolicy: {
         policy: 'same-origin-allow-popups'
     },
     
-    // Cross-Origin-Resource-Policy
     crossOriginResourcePolicy: {
         policy: 'cross-origin'
     },
     
-    // DNS Prefetch Control
     dnsPrefetchControl: {
         allow: false
     },
     
-    // Expect-CT
     expectCt: {
         maxAge: 86400,
         enforce: true
     },
     
-    // Frameguard
     frameguard: {
         action: 'deny'
     },
     
-    // Hide Powered-By
     hidePoweredBy: true,
     
-    // HSTS
     hsts: {
         maxAge: 31536000,
         includeSubDomains: true,
         preload: true
     },
     
-    // IE No Open
-    
-    // No Sniff
     noSniff: true,
     
-    // Origin-Agent-Cluster
     originAgentCluster: true,
     
-    // Permitted Cross-Domain Policies
-    permittedCrossDomainPolicies: {
-        permittedPolicies: 'none'
-    },
-    
-    // Referrer Policy
     referrerPolicy: {
         policy: 'strict-origin-when-cross-origin'
-    },
-    
-    // X-Download-Option
-    xDownloadOptions: true,
-    
-    // X-Permitted-Cross-Domain-Policies
-    xPermittedCrossDomainPolicies: 'none',
-    
-    // X-Powered-By
-    xPoweredBy: false,
-    
-    // X-XSS-Protection
-    xssFilter: true
+    }
 };
 
 module.exports = { helmetConfig };
