@@ -6,7 +6,6 @@
     <title>Kayıt Ol - Gettic</title>
     <meta name="description" content="Gettic'e ücretsiz kayıt olun">
     
-    <!-- PWA -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0a0a0f">
     <link rel="icon" type="image/png" href="logo.png">
@@ -159,7 +158,7 @@
 
             </form>
 
-            <!-- Sosyal Medya ile Kayıt -->
+            <!-- Sosyal Medya -->
             <div class="mt-6">
                 <div class="relative">
                     <div class="absolute inset-0 flex items-center">
@@ -171,7 +170,6 @@
                 </div>
 
                 <div class="grid grid-cols-2 gap-4 mt-6">
-                    <!-- Google -->
                     <button 
                         type="button"
                         onclick="registerWithGoogle()"
@@ -186,7 +184,6 @@
                         Google
                     </button>
 
-                    <!-- GitHub -->
                     <button 
                         type="button"
                         onclick="registerWithGithub()"
@@ -234,22 +231,44 @@
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            const username = document.getElementById('username').value;
-            const email = document.getElementById('email').value;
+            const username = document.getElementById('username').value.trim();
+            const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
             const errorMessage = document.getElementById('errorMessage');
             
             errorMessage.classList.add('hidden');
             
-            // Şifre kontrolü
+            if (!username) {
+                errorMessage.textContent = 'Kullanıcı adı gerekli';
+                errorMessage.classList.remove('hidden');
+                return;
+            }
+            
+            if (!email) {
+                errorMessage.textContent = 'Email gerekli';
+                errorMessage.classList.remove('hidden');
+                return;
+            }
+            
+            if (!password) {
+                errorMessage.textContent = 'Şifre gerekli';
+                errorMessage.classList.remove('hidden');
+                return;
+            }
+            
+            if (password.length < 8) {
+                errorMessage.textContent = 'Şifre en az 8 karakter olmalı';
+                errorMessage.classList.remove('hidden');
+                return;
+            }
+            
             if (password !== confirmPassword) {
                 errorMessage.textContent = 'Şifreler eşleşmiyor';
                 errorMessage.classList.remove('hidden');
                 return;
             }
             
-            // Kayıt işlemi
             const result = await authManager.register(email, password, username);
             
             if (result.success) {
@@ -262,22 +281,36 @@
 
         // Google ile kayıt
         async function registerWithGoogle() {
-            const { data, error } = await supabase.auth.signInWithOAuth({
-                provider: 'google',
-                options: {
-                    redirectTo: window.location.origin + '/chat.html'
-                }
-            });
+            try {
+                const { data, error } = await supabase.auth.signInWithOAuth({
+                    provider: 'google',
+                    options: {
+                        redirectTo: window.location.origin + '/chat.html'
+                    }
+                });
+                
+                if (error) throw error;
+            } catch (error) {
+                console.error('Google kayıt hatası:', error);
+                alert('Google kaydı başarısız: ' + error.message);
+            }
         }
 
         // GitHub ile kayıt
         async function registerWithGithub() {
-            const { data, error } = await supabase.auth.signInWithOAuth({
-                provider: 'github',
-                options: {
-                    redirectTo: window.location.origin + '/chat.html'
-                }
-            });
+            try {
+                const { data, error } = await supabase.auth.signInWithOAuth({
+                    provider: 'github',
+                    options: {
+                        redirectTo: window.location.origin + '/chat.html'
+                    }
+                });
+                
+                if (error) throw error;
+            } catch (error) {
+                console.error('GitHub kayıt hatası:', error);
+                alert('GitHub kaydı başarısız: ' + error.message);
+            }
         }
     </script>
 </body>
