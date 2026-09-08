@@ -2,6 +2,17 @@
 // GETTIC - AUTH MANAGER
 // ============================================
 
+// Input doğrulama fonksiyonları
+function isValidEmail(email) {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
+}
+
+function isValidUsername(username) {
+    const regex = /^[a-zA-Z0-9_]{3,20}$/;
+    return regex.test(username);
+}
+
 class AuthManager {
     constructor() {
         this.currentUser = null;
@@ -77,7 +88,12 @@ class AuthManager {
                 }
             });
             
-            if (error) throw error;
+            if (error) {
+                if (error.message.includes('already registered')) {
+                    return { success: false, error: 'Bu email zaten kayıtlı' };
+                }
+                return { success: false, error: error.message };
+            }
             
             if (data.user) {
                 // Profil oluştur
@@ -89,8 +105,7 @@ class AuthManager {
                             username: username,
                             full_name: username,
                             avatar_url: null,
-                            status: 'online',
-                            last_seen: new Date()
+                            status: 'online'
                         }
                     ]);
                 
@@ -105,11 +120,6 @@ class AuthManager {
             return { success: true, user: data.user };
         } catch (error) {
             console.error('Kayıt hatası:', error);
-            
-            if (error.message.includes('already registered')) {
-                return { success: false, error: 'Bu email zaten kayıtlı' };
-            }
-            
             return { success: false, error: error.message };
         }
     }
@@ -131,7 +141,12 @@ class AuthManager {
                 password
             });
             
-            if (error) throw error;
+            if (error) {
+                if (error.message.includes('Invalid login credentials')) {
+                    return { success: false, error: 'Email veya şifre hatalı' };
+                }
+                return { success: false, error: error.message };
+            }
             
             this.currentUser = data.user;
             await this.loadProfile();
@@ -140,11 +155,6 @@ class AuthManager {
             return { success: true, user: data.user };
         } catch (error) {
             console.error('Giriş hatası:', error);
-            
-            if (error.message.includes('Invalid login credentials')) {
-                return { success: false, error: 'Email veya şifre hatalı' };
-            }
-            
             return { success: false, error: error.message };
         }
     }
@@ -161,6 +171,8 @@ class AuthManager {
             
             this.currentUser = null;
             this.currentProfile = null;
+            
+            window.location.href = 'index.html';
             
             return { success: true };
         } catch (error) {
@@ -247,9 +259,9 @@ class AuthManager {
             return { success: false, error: 'Oturum yok' };
         }
         
-        const fileExt = getFileExtension(file.name);
+        const fileExt = file.name.split('.').pop();
         const fileName = `${this.currentUser.id}-${Date.now()}.${fileExt}`;
-        const filePath = `avatars/${fileName}`;
+        const filePath = `${this.currentUser.id}/${fileName}`;
         
         const { error: uploadError } = await supabase.storage
             .from('avatars')
@@ -292,6 +304,10 @@ class AuthManager {
             return { success: false, error: 'Oturum yok' };
         }
         
+        if (!isValidEmail(newEmail)) {
+            return { success: false, error: 'Geçersiz email adresi' };
+        }
+        
         const { error } = await supabase.auth.updateUser({
             email: newEmail
         });
@@ -306,6 +322,10 @@ class AuthManager {
 
     // Şifre sıfırlama emaili gönder
     async resetPassword(email) {
+        if (!isValidEmail(email)) {
+            return { success: false, error: 'Geçersiz email adresi' };
+        }
+        
         const { error } = await supabase.auth.resetPasswordForEmail(email);
         
         if (error) {
@@ -358,8 +378,3 @@ class AuthManager {
 
 // Global auth manager
 const authManager = new AuthManager();
-
-// Export et (Node.js için)
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = AuthManager;
-}
