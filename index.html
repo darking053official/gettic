@@ -5,6 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gettic - Modern Mesajlaşma</title>
     <meta name="description" content="Gettic - Gerçek zamanlı, güvenli ve modern mesajlaşma uygulaması">
+    
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0a0a0f">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Gettic">
+    <link rel="apple-touch-icon" href="logo.png">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="logo.png">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -83,11 +96,11 @@
                         <div class="flex items-center justify-between mb-6 pb-4 border-b border-border-dark">
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 bg-accent/20 rounded-full flex items-center justify-center">
-                                    <span class="text-accent font-bold">A</span>
+                                    <span class="text-accent font-bold">G</span>
                                 </div>
                                 <div>
-                                    <p class="font-semibold">Yeni Sohbet</p>
-                                    <p class="text-sm text-gray-400">Mesajlaşmaya başlayın</p>
+                                    <p class="font-semibold">Gettic</p>
+                                    <p class="text-sm text-gray-400">Güvenli Mesajlaşma</p>
                                 </div>
                             </div>
                         </div>
@@ -241,6 +254,17 @@
             </div>
         </div>
     </footer>
+
+    <!-- Service Worker -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(reg => console.log('Service Worker kaydedildi'))
+                    .catch(err => console.log('Service Worker hatası:', err));
+            });
+        }
+    </script>
 
 </body>
 </html>
