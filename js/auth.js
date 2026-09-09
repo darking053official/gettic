@@ -7,11 +7,27 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 window.showError = function(msg) {
-    const el = document.getElementById('errorMessage');
-    if (el) {
-        el.textContent = msg;
-        el.classList.remove('hidden');
+    const errorDiv = document.getElementById('errorMessage');
+    if (errorDiv) {
+        errorDiv.innerHTML = `
+            <div class="flex items-start justify-between gap-2">
+                <span>${msg}</span>
+                <button onclick="copyError('${msg.replace(/'/g, "\\'")}')" class="text-xs bg-red-500/30 hover:bg-red-500/50 px-2 py-1 rounded transition whitespace-nowrap">
+                    Kopyala
+                </button>
+            </div>
+        `;
+        errorDiv.classList.remove('hidden');
     }
+    alert('HATA: ' + msg);
+};
+
+window.copyError = function(msg) {
+    navigator.clipboard.writeText(msg).then(() => {
+        alert('Hata kopyalandı!');
+    }).catch(() => {
+        alert('Kopyalanamadı: ' + msg);
+    });
 };
 
 window.hideError = function() {
@@ -48,7 +64,6 @@ window.toggleRegPass = function() {
 };
 
 window.doLogin = async function() {
-    window.hideError();
     const email = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value;
     
@@ -57,18 +72,21 @@ window.doLogin = async function() {
         return;
     }
     
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    
-    if (error) {
-        window.showError(error.message.includes('Invalid') ? 'Email veya şifre hatalı' : error.message);
-        return;
+    try {
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        
+        if (error) {
+            window.showError(error.message.includes('Invalid') ? 'Email veya şifre hatalı' : error.message);
+            return;
+        }
+        
+        window.location.href = 'chat.html';
+    } catch (err) {
+        window.showError(err.message);
     }
-    
-    window.location.href = 'chat.html';
 };
 
 window.doRegister = async function() {
-    window.hideError();
     const username = document.getElementById('regUsername').value.trim();
     const email = document.getElementById('regEmail').value.trim();
     const password = document.getElementById('regPassword').value;
@@ -89,43 +107,53 @@ window.doRegister = async function() {
         return;
     }
     
-    const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { data: { username, full_name: username } }
-    });
-    
-    if (error) {
-        window.showError(error.message);
-        return;
+    try {
+        const { data, error } = await supabase.auth.signUp({
+            email,
+            password,
+            options: { data: { username, full_name: username } }
+        });
+        
+        if (error) {
+            window.showError(error.message);
+            return;
+        }
+        
+        if (data.user) {
+            await supabase.from('profiles').insert([{
+                id: data.user.id,
+                username,
+                full_name: username,
+                status: 'online'
+            }]);
+        }
+        
+        window.location.href = 'chat.html';
+    } catch (err) {
+        window.showError(err.message);
     }
-    
-    if (data.user) {
-        await supabase.from('profiles').insert([{
-            id: data.user.id,
-            username,
-            full_name: username,
-            status: 'online'
-        }]);
-    }
-    
-    window.location.href = 'chat.html';
 };
 
 window.doGoogleLogin = async function() {
-    window.hideError();
-    const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: { redirectTo: window.location.origin + '/chat.html' }
-    });
-    if (error) window.showError(error.message);
+    try {
+        const { error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: { redirectTo: window.location.origin + '/chat.html' }
+        });
+        if (error) window.showError(error.message);
+    } catch (err) {
+        window.showError(err.message);
+    }
 };
 
 window.doGithubLogin = async function() {
-    window.hideError();
-    const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'github',
-        options: { redirectTo: window.location.origin + '/chat.html' }
-    });
-    if (error) window.showError(error.message);
+    try {
+        const { error } = await supabase.auth.signInWithOAuth({
+            provider: 'github',
+            options: { redirectTo: window.location.origin + '/chat.html' }
+        });
+        if (error) window.showError(error.message);
+    } catch (err) {
+        window.showError(err.message);
+    }
 };
