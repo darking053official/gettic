@@ -129,3 +129,14 @@ async function doGithubLogin() {
     });
     if (error) showError(error.message);
 }
+
+window.showError = showError;
+window.hideError = hideError;
+window.showLoginTab = showLoginTab;
+window.showRegisterTab = showRegisterTab;
+window.toggleLoginPass = toggleLoginPass;
+window.toggleRegPass = toggleRegPass;
+window.doLogin = doLogin;
+window.doRegister = doRegister;
+window.doGoogleLogin = doGoogleLogin;
+window.doGithubLogin = doGithubLogin;
