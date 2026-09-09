@@ -157,3 +157,14 @@ window.doGithubLogin = async function() {
         window.showError(err.message);
     }
 };
+
+// Sayfa tamamen yüklendiğinde
+window.addEventListener('DOMContentLoaded', function() {
+    console.log('Auth hazır!');
+    console.log('doLogin:', typeof window.doLogin);
+    console.log('doRegister:', typeof window.doRegister);
+    console.log('doGoogleLogin:', typeof window.doGoogleLogin);
+    console.log('doGithubLogin:', typeof window.doGithubLogin);
+    console.log('showLoginTab:', typeof window.showLoginTab);
+    console.log('showRegisterTab:', typeof window.showRegisterTab);
+});
