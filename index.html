@@ -1,270 +1,220 @@
 <!DOCTYPE html>
 <html lang="tr" class="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gettic - Modern Mesajlaşma</title>
-    <meta name="description" content="Gettic - Gerçek zamanlı, güvenli ve modern mesajlaşma uygulaması">
-    
-    <!-- PWA -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0a0a0f">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Gettic">
-    <link rel="apple-touch-icon" href="logo.png">
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" href="logo.png">
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        'bg-primary': '#0a0a0f',
-                        'bg-secondary': '#12121a',
-                        'bg-tertiary': '#1a1a24',
-                        'bg-hover': '#22222e',
-                        'accent': '#7c3aed',
-                        'accent-hover': '#8b5cf6',
-                        'border-dark': '#1f1f2e',
-                    }
-                }
-            }
-        }
-    </script>
-    <link rel="stylesheet" href="css/style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>Gettic - Gizlilik Odaklı Mesajlaşma</title>
+<meta name="description" content="Gettic - Gerçek zamanlı, güvenli ve gizlilik odaklı mesajlaşma uygulaması">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="application-name" content="Gettic">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Gettic">
+<meta name="msapplication-TileColor" content="#0a0a0f">
+<meta name="msapplication-TileImage" content="logo.png">
+<meta property="og:title" content="Gettic - Gizlilik Odaklı Mesajlaşma">
+<meta property="og:description" content="Gerçek zamanlı, güvenli ve gizlilik odaklı mesajlaşma">
+<meta property="og:image" content="logo.png">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://gettic.dpdns.org">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Gettic - Gizlilik Odaklı Mesajlaşma">
+<meta name="twitter:description" content="Gerçek zamanlı, güvenli ve gizlilik odaklı mesajlaşma">
+<meta name="twitter:image" content="logo.png">
+<link rel="icon" type="image/png" href="logo.png">
+<link rel="apple-touch-icon" href="logo.png">
+<link rel="apple-touch-icon" sizes="152x152" href="logo.png">
+<link rel="apple-touch-icon" sizes="180x180" href="logo.png">
+<link rel="apple-touch-icon" sizes="167x167" href="logo.png">
+<script>
+const M={"name":"Gettic","short_name":"Gettic","description":"Gizlilik odaklı, gerçek zamanlı mesajlaşma uygulaması","id":"/","start_url":"/index.html","scope":"/","display":"standalone","display_override":["window-controls-overlay","standalone"],"orientation":"portrait","background_color":"#0a0a0f","theme_color":"#0a0a0f","lang":"tr","dir":"ltr","categories":["social","communication","productivity"],"prefer_related_applications":false,"icons":[{"src":"logo.png","sizes":"192x192","type":"image/png","purpose":"any"},{"src":"logo.png","sizes":"512x512","type":"image/png","purpose":"any"},{"src":"logo.png","sizes":"512x512","type":"image/png","purpose":"maskable"}],"shortcuts":[{"name":"Sohbet","short_name":"Sohbet","description":"Sohbete git","url":"/chat.html","icons":[{"src":"logo.png","sizes":"192x192"}]},{"name":"Profil","short_name":"Profil","description":"Profilini görüntüle","url":"/profile.html","icons":[{"src":"logo.png","sizes":"192x192"}]}]};
+const b=new Blob([JSON.stringify(M)],{type:'application/json'});
+const l=document.createElement('link');l.rel='manifest';l.href=URL.createObjectURL(b);document.head.appendChild(l);
+</script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config={darkMode:'class',theme:{extend:{colors:{'bg-primary':'#0a0a0f','bg-secondary':'#12121a','bg-tertiary':'#1a1a24','bg-hover':'#22222e','accent':'#7c3aed','accent-hover':'#8b5cf6','border-dark':'#1f1f2e'},animation:{'float-slow':'float 8s ease-in-out infinite','float-medium':'float 6s ease-in-out infinite'},keyframes:{float:{'0%,100%':{transform:'translateY(0)'},'50%':{transform:'translateY(-20px)'}}}}}}
+</script>
+<link rel="stylesheet" href="css/style.css">
 </head>
-<body class="bg-bg-primary text-white min-h-screen font-sans antialiased">
+<body class="bg-bg-primary text-white min-h-screen font-sans antialiased overflow-x-hidden">
 
-    <!-- NAVBAR -->
-    <nav class="fixed top-0 w-full z-50 bg-bg-primary/80 backdrop-blur-xl border-b border-border-dark">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
-                <div class="flex items-center gap-3">
-                    <img src="logo.png" alt="Gettic Logo" class="w-10 h-10 rounded-xl">
-                    <span class="text-2xl font-bold tracking-tight">Gettic</span>
-                </div>
-                
-                <div class="hidden md:flex items-center gap-8">
-                    <a href="#features" class="text-gray-300 hover:text-white transition">Özellikler</a>
-                    <a href="#security" class="text-gray-300 hover:text-white transition">Güvenlik</a>
-                </div>
-                
-                <div class="flex items-center gap-3">
-                    <a href="auth.html" class="px-4 py-2 text-gray-300 hover:text-white hover:bg-bg-hover rounded-lg transition">
-                        Giriş Yap
-                    </a>
-                    <a href="auth.html" class="px-4 py-2 bg-accent hover:bg-accent-hover text-white rounded-lg transition shadow-lg shadow-accent/30">
-                        Kayıt Ol
-                    </a>
-                </div>
-            </div>
-        </div>
-    </nav>
+<nav id="navbar" class="fixed top-0 w-full z-50 transition-all duration-300 border-b border-transparent">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="flex items-center justify-between h-16">
+<div class="flex items-center gap-3">
+<img src="logo.png" alt="Gettic Logo" class="w-10 h-10 rounded-xl">
+<span class="text-2xl font-bold tracking-tight gradient-text">Gettic</span>
+</div>
+<div class="hidden md:flex items-center gap-8">
+<a href="#features" class="text-gray-300 hover:text-white transition relative group">Özellikler<span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-accent group-hover:w-full transition-all duration-300"></span></a>
+<a href="#security" class="text-gray-300 hover:text-white transition relative group">Güvenlik<span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-accent group-hover:w-full transition-all duration-300"></span></a>
+<a href="#faq" class="text-gray-300 hover:text-white transition relative group">SSS<span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-accent group-hover:w-full transition-all duration-300"></span></a>
+</div>
+<div class="flex items-center gap-3">
+<a href="auth.html" class="px-4 py-2 text-gray-300 hover:text-white hover:bg-bg-hover rounded-lg transition">Giriş Yap</a>
+<a href="auth.html" class="shimmer-button text-sm">Kayıt Ol</a>
+</div>
+</div>
+</div>
+</nav>
 
-    <!-- HERO SECTION -->
-    <section class="relative min-h-screen flex items-center pt-16">
-        <div class="absolute inset-0 bg-gradient-to-br from-accent/10 via-transparent to-transparent"></div>
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-                <div>
-                    <h1 class="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
-                        Modern
-                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-accent to-accent-hover">Mesajlaşma</span>
-                        Deneyimi
-                    </h1>
-                    <p class="text-xl text-gray-400 mb-8 leading-relaxed">
-                        Gettic ile gerçek zamanlı, güvenli ve hızlı mesajlaşmanın keyfini çıkarın. Uçtan uca şifreleme ile verileriniz güvende.
-                    </p>
-                    <div class="flex flex-col sm:flex-row gap-4">
-                        <a href="auth.html" class="px-8 py-4 bg-accent hover:bg-accent-hover text-white rounded-xl font-semibold transition text-center shadow-lg shadow-accent/30">
-                            Hemen Başla
-                        </a>
-                        <a href="#features" class="px-8 py-4 border border-border-dark hover:bg-bg-hover rounded-xl font-semibold transition text-center">
-                            Özellikleri Keşfet
-                        </a>
-                    </div>
-                </div>
-                
-                <div class="hidden lg:block">
-                    <div class="bg-bg-secondary rounded-2xl border border-border-dark p-6 shadow-2xl">
-                        <div class="flex items-center justify-between mb-6 pb-4 border-b border-border-dark">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 bg-accent/20 rounded-full flex items-center justify-center">
-                                    <span class="text-accent font-bold">G</span>
-                                </div>
-                                <div>
-                                    <p class="font-semibold">Gettic</p>
-                                    <p class="text-sm text-gray-400">Güvenli Mesajlaşma</p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="text-center py-8">
-                            <div class="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <svg class="w-8 h-8 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                                </svg>
-                            </div>
-                            <p class="text-gray-400">Sohbetleriniz burada görünecek</p>
-                            <p class="text-sm text-gray-500 mt-2">Arkadaşlarınızla hemen bağlantı kurun</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+<div id="pwaInstallBanner" class="hidden fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:max-w-sm z-[9998] glass-strong rounded-2xl border border-accent/30 p-4 shadow-2xl">
+<div class="flex items-start gap-3">
+<img src="logo.png" class="w-12 h-12 rounded-xl">
+<div class="flex-1">
+<p class="font-bold text-sm">Gettic'i Yükle</p>
+<p class="text-gray-400 text-xs mt-1">Ana ekrana ekleyerek daha hızlı erişin</p>
+<div class="flex gap-2 mt-3">
+<button id="installBtn" class="bg-accent hover:bg-accent-hover text-white text-xs font-semibold px-4 py-2 rounded-lg transition">Yükle</button>
+<button id="dismissBtn" class="text-gray-400 hover:text-white text-xs px-3 py-2 transition">Sonra</button>
+</div>
+</div>
+</div>
+</div>
 
-    <!-- FEATURES SECTION -->
-    <section id="features" class="py-20 bg-bg-secondary">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16">
-                <h2 class="text-4xl md:text-5xl font-bold mb-4">Özellikler</h2>
-                <p class="text-gray-400 text-xl">Gettic'i özel yapan her şey</p>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div class="bg-bg-tertiary rounded-2xl p-8 border border-border-dark hover:border-accent/50 transition group">
-                    <div class="w-14 h-14 bg-accent/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-accent/20 transition">
-                        <svg class="w-7 h-7 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-bold mb-3">Gerçek Zamanlı Mesajlaşma</h3>
-                    <p class="text-gray-400">Mesajlarınız anında iletilir. Hiçbir gecikme olmadan arkadaşlarınızla sohbet edin.</p>
-                </div>
-                
-                <div class="bg-bg-tertiary rounded-2xl p-8 border border-border-dark hover:border-accent/50 transition group">
-                    <div class="w-14 h-14 bg-accent/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-accent/20 transition">
-                        <svg class="w-7 h-7 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-bold mb-3">Uçtan Uca Şifreleme</h3>
-                    <p class="text-gray-400">Mesajlarınız sadece sizin ve alıcının okuyabileceği şekilde şifrelenir. Gizliliğiniz ön planda.</p>
-                </div>
-                
-                <div class="bg-bg-tertiary rounded-2xl p-8 border border-border-dark hover:border-accent/50 transition group">
-                    <div class="w-14 h-14 bg-accent/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-accent/20 transition">
-                        <svg class="w-7 h-7 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-3.314 0-6 2.686-6 6s2.686 6 6 6 6-2.686 6-6-2.686-6-6-6zm0 8a2 2 0 110-4 2 2 0 010 4zM12 2v3m0 14v3M2 12h3m14 0h3"/>
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-bold mb-3">Modern Arayüz</h3>
-                    <p class="text-gray-400">Karanlık tema ve modern tasarım ile göz yormayan, şık bir deneyim yaşayın.</p>
-                </div>
-            </div>
-        </div>
-    </section>
+<section class="relative min-h-screen flex items-center pt-16 overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-br from-accent/10 via-transparent to-transparent"></div>
+<div class="absolute top-32 right-10 w-72 h-72 bg-accent/20 rounded-full blur-3xl animate-float-slow"></div>
+<div class="absolute bottom-32 left-10 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-float-medium"></div>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+<div>
+<div class="inline-flex items-center gap-2 px-4 py-2 bg-accent/10 border border-accent/30 rounded-full text-sm text-accent-light mb-6">
+<span class="w-2 h-2 bg-accent rounded-full animate-pulse"></span>Gizlilik önceliğimiz
+</div>
+<h1 class="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">Modern <span class="gradient-text">Mesajlaşma</span> Deneyimi</h1>
+<p class="text-xl text-gray-400 mb-8 leading-relaxed">Gettic ile gerçek zamanlı, güvenli ve gizlilik odaklı mesajlaşmanın keyfini çıkarın. Mesajlarınız sadece size ait.</p>
+<div class="flex flex-col sm:flex-row gap-4">
+<a href="auth.html" class="shimmer-button text-center">Hemen Başla</a>
+<a href="#features" class="px-8 py-4 border border-border-dark hover:bg-bg-hover rounded-xl font-semibold transition text-center hover:border-accent/50">Özellikleri Keşfet</a>
+</div>
+<div class="flex items-center gap-8 mt-12">
+<div><p class="text-3xl font-bold gradient-text">%100</p><p class="text-gray-500 text-sm">Ücretsiz</p></div>
+<div class="w-px h-12 bg-border-dark"></div>
+<div><p class="text-3xl font-bold gradient-text">E2E</p><p class="text-gray-500 text-sm">Şifreleme</p></div>
+<div class="w-px h-12 bg-border-dark"></div>
+<div><p class="text-3xl font-bold gradient-text">∞</p><p class="text-gray-500 text-sm">Sohbet</p></div>
+</div>
+</div>
+<div class="hidden lg:block">
+<div class="card-premium p-6">
+<div class="flex items-center justify-between mb-6 pb-4 border-b border-border-dark">
+<div class="flex items-center gap-3">
+<div class="avatar-premium w-10 h-10 avatar-online">G</div>
+<div><p class="font-semibold">Gettic</p><p class="text-sm text-green-400">● Çevrimiçi</p></div>
+</div>
+<button class="text-gray-500 hover:text-white transition">⋮</button>
+</div>
+<div class="space-y-4">
+<div class="flex justify-start"><div class="message-bubble-premium received"><p>Merhaba! 👋</p></div></div>
+<div class="flex justify-end"><div class="message-bubble-premium sent"><p>Selam! Gettic harika görünüyor 🚀</p></div></div>
+<div class="flex justify-start"><div class="message-bubble-premium received"><p>Gizlilik odaklı, tam istediğim gibi</p></div></div>
+<div class="flex justify-end"><div class="message-bubble-premium sent"><p>Kesinlikle! 🔒</p></div></div>
+</div>
+<div class="mt-6 flex gap-2">
+<input type="text" placeholder="Mesaj yazın..." class="flex-1 bg-bg-tertiary rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-accent text-sm transition">
+<button class="bg-accent hover:bg-accent-hover rounded-lg px-4 py-2 transition"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg></button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
 
-    <!-- SECURITY SECTION -->
-    <section id="security" class="py-20">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-                <div>
-                    <h2 class="text-4xl md:text-5xl font-bold mb-6">Güvenlik Önceliğimiz</h2>
-                    <p class="text-gray-400 text-lg mb-8">Verilerinizi korumak için en son teknolojileri kullanıyoruz.</p>
-                    
-                    <div class="space-y-6">
-                        <div class="flex gap-4">
-                            <div class="flex-shrink-0 w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center">
-                                <svg class="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                                </svg>
-                            </div>
-                            <div>
-                                <h3 class="font-semibold mb-1">AES-256 Şifreleme</h3>
-                                <p class="text-gray-500">Mesajlarınız askeri düzeyde şifreleme ile korunur.</p>
-                            </div>
-                        </div>
-                        
-                        <div class="flex gap-4">
-                            <div class="flex-shrink-0 w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center">
-                                <svg class="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                                </svg>
-                            </div>
-                            <div>
-                                <h3 class="font-semibold mb-1">JWT Kimlik Doğrulama</h3>
-                                <p class="text-gray-500">Güvenli oturum yönetimi ile hesabınız korunur.</p>
-                            </div>
-                        </div>
-                        
-                        <div class="flex gap-4">
-                            <div class="flex-shrink-0 w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center">
-                                <svg class="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                                </svg>
-                            </div>
-                            <div>
-                                <h3 class="font-semibold mb-1">Rate Limiting</h3>
-                                <p class="text-gray-500">Saldırılara karşı otomatik koruma sistemi.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="bg-bg-secondary rounded-2xl border border-border-dark p-8">
-                    <div class="text-center">
-                        <div class="w-20 h-20 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <svg class="w-10 h-10 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                            </svg>
-                        </div>
-                        <h3 class="text-2xl font-bold mb-2">%100 Güvenli</h3>
-                        <p class="text-gray-400">Verileriniz bizimle güvende</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+<section id="features" class="py-24 bg-bg-secondary/50">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="text-center mb-16">
+<h2 class="text-4xl md:text-5xl font-bold mb-4">Neden <span class="gradient-text">Gettic</span>?</h2>
+<p class="text-gray-400 text-xl">Sizi özel yapan her şey</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+<div class="card-premium group"><div class="w-14 h-14 bg-accent/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-accent/20 transition-all duration-300 group-hover:scale-110"><svg class="w-7 h-7 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg></div><h3 class="text-xl font-bold mb-3">Gerçek Zamanlı</h3><p class="text-gray-400">Mesajlarınız anında iletilir. Sıfır gecikme ile anlık iletişim.</p></div>
+<div class="card-premium group"><div class="w-14 h-14 bg-accent/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-accent/20 transition-all duration-300 group-hover:scale-110"><svg class="w-7 h-7 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg></div><h3 class="text-xl font-bold mb-3">Güvenli</h3><p class="text-gray-400">Uçtan uca şifreleme ve JWT tabanlı oturum yönetimi.</p></div>
+<div class="card-premium group"><div class="w-14 h-14 bg-accent/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-accent/20 transition-all duration-300 group-hover:scale-110"><svg class="w-7 h-7 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg></div><h3 class="text-xl font-bold mb-3">Gizlilik Odaklı</h3><p class="text-gray-400">Verileriniz sadece size ait. Reklam yok, takip yok.</p></div>
+<div class="card-premium group"><div class="w-14 h-14 bg-accent/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-accent/20 transition-all duration-300 group-hover:scale-110"><svg class="w-7 h-7 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg></div><h3 class="text-xl font-bold mb-3">Modern Arayüz</h3><p class="text-gray-400">Karanlık tema ve şık tasarım ile keyifli deneyim.</p></div>
+<div class="card-premium group"><div class="w-14 h-14 bg-accent/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-accent/20 transition-all duration-300 group-hover:scale-110"><svg class="w-7 h-7 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg></div><h3 class="text-xl font-bold mb-3">Her Cihazda</h3><p class="text-gray-400">PWA desteği ile ana ekrana ekleyin, uygulama gibi kullanın.</p></div>
+<div class="card-premium group"><div class="w-14 h-14 bg-accent/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-accent/20 transition-all duration-300 group-hover:scale-110"><svg class="w-7 h-7 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg></div><h3 class="text-xl font-bold mb-3">Hızlı</h3><p class="text-gray-400">Supabase ve Vercel altyapısı ile dünya çapında hızlı erişim.</p></div>
+</div>
+</div>
+</section>
 
-    <!-- CTA SECTION -->
-    <section class="py-20 bg-bg-secondary">
-        <div class="max-w-4xl mx-auto px-4 text-center">
-            <h2 class="text-4xl md:text-5xl font-bold mb-6">Gettic'e Katılın</h2>
-            <p class="text-gray-400 text-xl mb-8">Ücretsiz hesap oluşturun ve hemen mesajlaşmaya başlayın.</p>
-            <a href="auth.html" class="inline-block px-12 py-4 bg-accent hover:bg-accent-hover text-white rounded-xl font-semibold text-lg transition shadow-lg shadow-accent/30">
-                Ücretsiz Kayıt Ol
-            </a>
-        </div>
-    </section>
+<section id="security" class="py-24">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+<div>
+<h2 class="text-4xl md:text-5xl font-bold mb-6">Gizliliğiniz <span class="gradient-text">Önceliğimiz</span></h2>
+<p class="text-gray-400 text-lg mb-8">Mesajlarınız güvende. Verilerinizi korumak için en son teknolojileri kullanıyoruz.</p>
+<div class="space-y-6">
+<div class="flex gap-4 hover-lift"><div class="flex-shrink-0 w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center border border-green-500/30"><svg class="w-6 h-6 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg></div><div><h3 class="font-semibold mb-1">AES-256 Şifreleme</h3><p class="text-gray-500 text-sm">Mesajlarınız askeri düzeyde şifreleme ile korunur.</p></div></div>
+<div class="flex gap-4 hover-lift"><div class="flex-shrink-0 w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center border border-green-500/30"><svg class="w-6 h-6 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg></div><div><h3 class="font-semibold mb-1">Row Level Security</h3><p class="text-gray-500 text-sm">Sadece siz kendi verilerinize erişebilirsiniz.</p></div></div>
+<div class="flex gap-4 hover-lift"><div class="flex-shrink-0 w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center border border-green-500/30"><svg class="w-6 h-6 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg></div><div><h3 class="font-semibold mb-1">Açık Kaynak</h3><p class="text-gray-500 text-sm">Kodumuz herkese açık, denetlenebilir.</p></div></div>
+<div class="flex gap-4 hover-lift"><div class="flex-shrink-0 w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center border border-green-500/30"><svg class="w-6 h-6 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg></div><div><h3 class="font-semibold mb-1">Reklamsız</h3><p class="text-gray-500 text-sm">Verileriniz satılmaz, reklam gösterilmez.</p></div></div>
+</div>
+</div>
+<div class="card-premium text-center glow-effect">
+<div class="w-24 h-24 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-6"><svg class="w-12 h-12 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg></div>
+<h3 class="text-3xl font-bold mb-2 gradient-text">%100 Güvenli</h3>
+<p class="text-gray-400">Verileriniz bizimle güvende</p>
+</div>
+</div>
+</div>
+</section>
 
-    <!-- FOOTER -->
-    <footer class="border-t border-border-dark py-12">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex flex-col md:flex-row justify-between items-center">
-                <div class="flex items-center gap-3 mb-4 md:mb-0">
-                    <img src="logo.png" alt="Gettic Logo" class="w-8 h-8 rounded-lg">
-                    <span class="text-xl font-bold">Gettic</span>
-                </div>
-                
-                <div class="flex gap-8 text-gray-400">
-                    <a href="#" class="hover:text-white transition">Gizlilik</a>
-                    <a href="#" class="hover:text-white transition">Kullanım Şartları</a>
-                    <a href="#" class="hover:text-white transition">İletişim</a>
-                </div>
-                
-                <p class="text-gray-500">© 2024 Gettic. Tüm hakları saklıdır.</p>
-            </div>
-        </div>
-    </footer>
+<section id="faq" class="py-24 bg-bg-secondary/50">
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="text-center mb-16">
+<h2 class="text-4xl md:text-5xl font-bold mb-4">Sıkça Sorulan <span class="gradient-text">Sorular</span></h2>
+<p class="text-gray-400 text-xl">Merak edilenler</p>
+</div>
+<div class="space-y-4">
+<details class="card-premium cursor-pointer group"><summary class="flex items-center justify-between font-semibold text-lg list-none">Gettic ücretsiz mi?<svg class="w-5 h-5 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></summary><p class="mt-4 text-gray-400">Evet, Gettic tamamen ücretsizdir. Sınırsız sohbet, sınırsız mesaj ve tüm özellikler ücretsizdir.</p></details>
+<details class="card-premium cursor-pointer group"><summary class="flex items-center justify-between font-semibold text-lg list-none">Mesajlarım güvende mi?<svg class="w-5 h-5 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></summary><p class="mt-4 text-gray-400">Evet. Mesajlarınız AES-256 şifreleme ile korunur. Supabase RLS sayesinde sadece siz verilerinize erişebilirsiniz.</p></details>
+<details class="card-premium cursor-pointer group"><summary class="flex items-center justify-between font-semibold text-lg list-none">Hangi cihazlarda çalışır?<svg class="w-5 h-5 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></summary><p class="mt-4 text-gray-400">Gettic web tabanlıdır. PWA desteği ile ana ekrana ekleyerek mobil uygulama gibi kullanabilirsiniz.</p></details>
+<details class="card-premium cursor-pointer group"><summary class="flex items-center justify-between font-semibold text-lg list-none">Hesabımı nasıl silerim?<svg class="w-5 h-5 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></summary><p class="mt-4 text-gray-400">Profil sayfanızdaki "Tehlikeli Bölge" kısmından hesabınızı silebilirsiniz.</p></details>
+</div>
+</div>
+</section>
 
-    <!-- Service Worker -->
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/service-worker.js')
-                    .then(reg => console.log('Service Worker kaydedildi'))
-                    .catch(err => console.log('Service Worker hatası:', err));
-            });
-        }
-    </script>
+<section class="py-24 relative overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-br from-accent/10 via-transparent to-accent/5"></div>
+<div class="absolute top-10 right-10 w-72 h-72 bg-accent/20 rounded-full blur-3xl animate-float-slow"></div>
+<div class="absolute bottom-10 left-10 w-72 h-72 bg-accent/10 rounded-full blur-3xl animate-float-medium"></div>
+<div class="max-w-4xl mx-auto px-4 text-center relative z-10">
+<h2 class="text-4xl md:text-5xl font-bold mb-6">Gettic'e <span class="gradient-text">Katılın</span></h2>
+<p class="text-gray-400 text-xl mb-8">Ücretsiz hesap oluşturun ve hemen mesajlaşmaya başlayın.</p>
+<a href="auth.html" class="shimmer-button text-lg px-12 py-4 inline-block">Ücretsiz Kayıt Ol</a>
+</div>
+</section>
 
+<footer class="border-t border-border-dark py-12">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="flex flex-col md:flex-row justify-between items-center gap-6">
+<div class="flex items-center gap-3">
+<img src="logo.png" alt="Gettic Logo" class="w-8 h-8 rounded-lg">
+<span class="text-xl font-bold gradient-text">Gettic</span>
+</div>
+<div class="flex gap-8 text-gray-400 text-sm">
+<a href="https://github.com/darking053official/gettic" target="_blank" class="hover:text-white transition">GitHub</a>
+<a href="#" class="hover:text-white transition">Gizlilik</a>
+<a href="#" class="hover:text-white transition">Şartlar</a>
+</div>
+<p class="text-gray-500 text-sm">© 2026 Gettic. Gizlilik önce gelir.</p>
+</div>
+</div>
+</footer>
+
+<script>
+if('serviceWorker' in navigator){const s=`const C='gettic-v1';const A=['/','/index.html','/auth.html','/chat.html','/profile.html','/settings.html','/css/style.css','/js/config.js','/js/utils.js','/js/auth.js','/js/chat.js','/js/realtime.js','/js/ui.js','/js/message.js','/js/conversation.js','/js/notification.js','/js/storage.js','/logo.png','/manifest.json'];self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(A)).then(()=>self.skipWaiting()))});self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.map(x=>x!==C?caches.delete(x):null))).then(()=>self.clients.claim()))});self.addEventListener('fetch',e=>{if(e.request.url.includes('supabase.co'))return;e.respondWith(caches.match(e.request).then(c=>c||fetch(e.request).then(r=>{if(r.status===200){const cl=r.clone();caches.open(C).then(x=>x.put(e.request,cl))}return r})))});self.addEventListener('push',e=>{const o={body:e.data?e.data.text():'Yeni bildirim',icon:'/logo.png',badge:'/logo.png',vibrate:[200,100,200]};e.waitUntil(self.registration.showNotification('Gettic',o))});self.addEventListener('notificationclick',e=>{e.notification.close();e.waitUntil(clients.matchAll({type:'window'}).then(l=>{for(const c of l){if(c.url&&'focus' in c)return c.focus()}if(clients.openWindow)return clients.openWindow('/chat.html')}))});`;const b=new Blob([s],{type:'application/javascript'});window.addEventListener('load',()=>navigator.serviceWorker.register(URL.createObjectURL(b)).then(()=>console.log('SW OK')).catch(e=>console.log('SW ERR',e)))}
+const n=document.getElementById('navbar');window.addEventListener('scroll',()=>{if(window.scrollY>50){n.classList.add('glass-strong','border-border-dark','shadow-lg');n.classList.remove('border-transparent')}else{n.classList.remove('glass-strong','border-border-dark','shadow-lg');n.classList.add('border-transparent')}});
+document.querySelectorAll('a[href^="#"]').forEach(a=>a.addEventListener('click',function(e){e.preventDefault();const t=document.querySelector(this.getAttribute('href'));if(t)t.scrollIntoView({behavior:'smooth',block:'start'})}));
+const o=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('fade-in');o.unobserve(e.target)}})},{threshold:0.1});document.querySelectorAll('.card-premium, .hover-lift').forEach(el=>o.observe(el));
+let dp=null;const ib=document.getElementById('pwaInstallBanner'),ibtn=document.getElementById('installBtn'),db=document.getElementById('dismissBtn');
+window.addEventListener('beforeinstallprompt',(e)=>{e.preventDefault();dp=e;if(!localStorage.getItem('pwa_dismissed'))setTimeout(()=>ib.classList.remove('hidden'),3000)});
+if(ibtn)ibtn.addEventListener('click',async()=>{if(!dp)return;dp.prompt();const{outcome}=await dp.userChoice;if(outcome==='accepted')console.log('PWA OK');dp=null;ib.classList.add('hidden')});
+if(db)db.addEventListener('click',()=>{ib.classList.add('hidden');localStorage.setItem('pwa_dismissed','1')});
+window.addEventListener('appinstalled',()=>{ib.classList.add('hidden');console.log('Gettic kuruldu')});
+</script>
 </body>
 </html>
