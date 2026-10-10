@@ -1,22 +1,51 @@
 // ============================================
-// GETTIC - CHAT MANAGER
+// GETTIC - CHAT MANAGER (Premium)
 // ============================================
+
+// Sabitler (constants.js'ten gelir)
+const MAX_MESSAGE_LENGTH = 2000;
+const MAX_FILE_SIZE_MB = 8;
+const MESSAGES_PER_PAGE = 50;
 
 class ChatManager {
     constructor() {
         this.currentConversation = null;
+        this.currentConversationData = null;
         this.conversations = [];
         this.messages = [];
         this.messageSubscription = null;
-        this.typingSubscription = null;
-        this.presenceSubscription = null;
+        this.typingChannel = null;
+        this.presenceChannel = null;
+        this.currentProfile = null;
+        this.realtimeChannelName = null;
+        this._typingTimeout = null;
     }
 
-    // Sohbetleri yükle
-    async loadConversations() {
+    // ============ YARDIMCI ============
+    _getFileExtension(filename) {
+        return filename.split('.').pop().toLowerCase();
+    }
+
+    _generateId() {
+        return Date.now().toString(36) + Math.random().toString(36).substr(2);
+    }
+
+    _isImageFile(filename) {
+        return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(this._getFileExtension(filename));
+    }
+
+    _isVideoFile(filename) {
+        return ['mp4', 'webm', 'ogg', 'mov'].includes(this._getFileExtension(filename));
+    }
+
+    _isAudioFile(filename) {
+        return ['mp3', 'wav', 'ogg', 'm4a'].includes(this._getFileExtension(filename));
+    }
+
+    // ============ SOHBETLERİ YÜKLE ============
+    async loadConversations(userId) {
         try {
-            const user = await authManager.getCurrentUser();
-            if (!user) return [];
+            if (!userId) return [];
 
             const { data, error } = await supabase
                 .from('conversation_members')
@@ -42,12 +71,12 @@ class ChatManager {
                         )
                     )
                 `)
-                .eq('user_id', user.id)
+                .eq('user_id', userId)
                 .order('updated_at', { ascending: false });
 
             if (error) throw error;
 
-            this.conversations = data || [];
+            this.conversations = (data || []).filter(c => c.conversations);
             return this.conversations;
         } catch (error) {
             console.error('Sohbetler yüklenemedi:', error);
@@ -55,27 +84,22 @@ class ChatManager {
         }
     }
 
-    // Sohbet aç
-    async openConversation(conversationId) {
+    // ============ SOHBET AÇ ============
+    async openConversation(conversationId, conversationData = null) {
         try {
-            // Önceki subscription'ları temizle
             this.cleanupSubscriptions();
-
             this.currentConversation = conversationId;
 
-            // Sohbet bilgilerini bul
-            const conversationData = this.conversations.find(
-                c => c.conversations.id === conversationId
-            );
+            const convData = conversationData || 
+                this.conversations.find(c => c.conversations?.id === conversationId)?.conversations;
 
-            if (conversationData) {
-                this.currentConversationData = conversationData.conversations;
+            if (convData) {
+                this.currentConversationData = convData;
             }
 
-            // Mesajları yükle
             await this.loadMessages(conversationId);
-
-            // Realtime subscription'ları kur
+            
+            // Realtime kanallarını kur
             this.subscribeToMessages(conversationId);
             this.subscribeToTyping(conversationId);
             this.subscribeToPresence(conversationId);
@@ -87,13 +111,22 @@ class ChatManager {
         }
     }
 
-    // Mesajları yükle
-    async loadMessages(conversationId) {
+    // ============ MESAJLARI YÜKLE ============
+    async loadMessages(conversationId, limit = MESSAGES_PER_PAGE) {
         try {
             const { data, error } = await supabase
                 .from('messages')
                 .select(`
-                    *,
+                    id,
+                    conversation_id,
+                    sender_id,
+                    content,
+                    type,
+                    media_url,
+                    is_edited,
+                    is_deleted,
+                    created_at,
+                    edited_at,
                     sender:profiles (
                         id,
                         username,
@@ -101,11 +134,12 @@ class ChatManager {
                     )
                 `)
                 .eq('conversation_id', conversationId)
-                .order('created_at', { ascending: true });
+                .order('created_at', { ascending: false })
+                .limit(limit);
 
             if (error) throw error;
 
-            this.messages = data || [];
+            this.messages = (data || []).reverse();
             return this.messages;
         } catch (error) {
             console.error('Mesajlar yüklenemedi:', error);
@@ -113,46 +147,76 @@ class ChatManager {
         }
     }
 
-    // Mesaj gönder
-    async sendMessage(content, type = 'text', mediaUrl = null) {
+    // ============ ESKİ MESAJLARI YÜKLE ============
+    async loadOlderMessages(conversationId, beforeDate, limit = MESSAGES_PER_PAGE) {
         try {
-            if (!this.currentConversation) {
-                throw new Error('Sohbet seçilmedi');
-            }
+            const { data, error } = await supabase
+                .from('messages')
+                .select(`
+                    id,
+                    conversation_id,
+                    sender_id,
+                    content,
+                    type,
+                    media_url,
+                    is_edited,
+                    is_deleted,
+                    created_at,
+                    sender:profiles (id, username, avatar_url)
+                `)
+                .eq('conversation_id', conversationId)
+                .lt('created_at', beforeDate)
+                .order('created_at', { ascending: false })
+                .limit(limit);
 
-            if (!content && !mediaUrl) {
-                throw new Error('Mesaj içeriği boş');
-            }
+            if (error) throw error;
 
-            if (content.length > MAX_MESSAGE_LENGTH) {
+            const older = (data || []).reverse();
+            this.messages = [...older, ...this.messages];
+            return older;
+        } catch (error) {
+            console.error('Eski mesajlar yüklenemedi:', error);
+            return [];
+        }
+    }
+
+    // ============ MESAJ GÖNDER ============
+    async sendMessage(userId, content, type = 'text', mediaUrl = null) {
+        try {
+            if (!this.currentConversation) throw new Error('Sohbet seçilmedi');
+            if (!content && !mediaUrl) throw new Error('Mesaj içeriği boş');
+            if (content && content.length > MAX_MESSAGE_LENGTH) {
                 throw new Error(`Mesaj ${MAX_MESSAGE_LENGTH} karakterden uzun olamaz`);
             }
-
-            const user = await authManager.getCurrentUser();
-            if (!user) throw new Error('Oturum yok');
+            if (!userId) throw new Error('Oturum yok');
 
             const messageData = {
                 conversation_id: this.currentConversation,
-                sender_id: user.id,
-                content: content,
+                sender_id: userId,
+                content: content?.trim() || null,
                 type: type,
-                media_url: mediaUrl,
-                created_at: new Date()
+                media_url: mediaUrl
             };
 
             const { data, error } = await supabase
                 .from('messages')
                 .insert([messageData])
-                .select()
+                .select(`
+                    id, conversation_id, sender_id, content, type, media_url, 
+                    is_edited, is_deleted, created_at,
+                    sender:profiles (id, username, avatar_url)
+                `)
                 .single();
 
             if (error) throw error;
 
-            // Sohbet updated_at güncelle
-            await supabase
+            // Sohbet timestamp güncelle
+            supabase
                 .from('conversations')
-                .update({ updated_at: new Date() })
-                .eq('id', this.currentConversation);
+                .update({ updated_at: new Date().toISOString() })
+                .eq('id', this.currentConversation)
+                .then(() => {})
+                .catch(() => {});
 
             return { success: true, message: data };
         } catch (error) {
@@ -161,16 +225,23 @@ class ChatManager {
         }
     }
 
-    // Mesaj düzenle
-    async editMessage(messageId, newContent) {
+    // ============ MESAJ DÜZENLE ============
+    async editMessage(userId, messageId, newContent) {
         try {
+            if (!newContent?.trim()) throw new Error('Mesaj içeriği boş');
+            if (newContent.length > MAX_MESSAGE_LENGTH) {
+                throw new Error(`Mesaj çok uzun`);
+            }
+
             const { data, error } = await supabase
                 .from('messages')
                 .update({
-                    content: newContent,
-                    is_edited: true
+                    content: newContent.trim(),
+                    is_edited: true,
+                    edited_at: new Date().toISOString()
                 })
                 .eq('id', messageId)
+                .eq('sender_id', userId)
                 .select()
                 .single();
 
@@ -183,16 +254,18 @@ class ChatManager {
         }
     }
 
-    // Mesaj sil (soft delete)
-    async deleteMessage(messageId) {
+    // ============ MESAJ SİL (SOFT) ============
+    async deleteMessage(userId, messageId) {
         try {
             const { error } = await supabase
                 .from('messages')
                 .update({
                     is_deleted: true,
-                    content: 'Bu mesaj silindi'
+                    content: null,
+                    media_url: null
                 })
-                .eq('id', messageId);
+                .eq('id', messageId)
+                .eq('sender_id', userId);
 
             if (error) throw error;
 
@@ -203,39 +276,73 @@ class ChatManager {
         }
     }
 
-    // Mesaj okundu işaretle
-    async markAsRead(messageId) {
+    // ============ OKUNDU İŞARETLE ============
+    async markAsRead(userId, conversationId, messageIds = null) {
         try {
-            const user = await authManager.getCurrentUser();
-            if (!user) return;
+            if (!userId) return;
+
+            let query = supabase
+                .from('message_reads')
+                .select('message_id')
+                .eq('user_id', userId)
+                .eq('conversation_id', conversationId);
+
+            if (messageIds) {
+                query = query.in('message_id', messageIds);
+            }
+
+            const { data: existing } = await query;
+            const existingIds = (existing || []).map(r => r.message_id);
+
+            const records = (messageIds || []).filter(id => !existingIds.includes(id))
+                .map(messageId => ({
+                    message_id: messageId,
+                    conversation_id: conversationId,
+                    user_id: userId,
+                    read_at: new Date().toISOString()
+                }));
+
+            if (records.length === 0) return { success: true };
 
             const { error } = await supabase
                 .from('message_reads')
-                .upsert({
-                    message_id: messageId,
-                    user_id: user.id,
-                    read_at: new Date()
-                });
+                .insert(records);
 
             if (error) throw error;
+
+            return { success: true };
         } catch (error) {
             console.error('Okundu işaretlenemedi:', error);
+            return { success: false, error: error.message };
         }
     }
 
-    // Okunmamış mesaj sayısı
-    async getUnreadCount(conversationId) {
+    // ============ OKUNMAMIŞ SAYI ============
+    async getUnreadCount(userId, conversationId) {
         try {
-            const user = await authManager.getCurrentUser();
-            if (!user) return 0;
+            if (!userId) return 0;
 
-            const { count, error } = await supabase
+            // Okunmuş mesaj ID'lerini al
+            const { data: reads } = await supabase
+                .from('message_reads')
+                .select('message_id')
+                .eq('user_id', userId)
+                .eq('conversation_id', conversationId);
+
+            const readIds = (reads || []).map(r => r.message_id);
+
+            // Bu sohbetteki, kendi mesajların olmayan mesajları say
+            let query = supabase
                 .from('messages')
-                .select('id', { count: 'exact' })
+                .select('id', { count: 'exact', head: true })
                 .eq('conversation_id', conversationId)
-                .neq('sender_id', user.id)
-                .not('id', 'in', '(select message_id from message_reads where user_id = ' + user.id + ')');
+                .neq('sender_id', userId);
 
+            if (readIds.length > 0) {
+                query = query.not('id', 'in', `(${readIds.join(',')})`);
+            }
+
+            const { count, error } = await query;
             if (error) throw error;
 
             return count || 0;
@@ -245,52 +352,54 @@ class ChatManager {
         }
     }
 
-    // Yeni sohbet oluştur
-    async createDirectConversation(otherUserId) {
+    // ============ DİREKT SOHBET OLUŞTUR ============
+    async createDirectConversation(userId, otherUserId) {
         try {
-            const user = await authManager.getCurrentUser();
-            if (!user) throw new Error('Oturum yok');
+            if (!userId) throw new Error('Oturum yok');
+            if (userId === otherUserId) throw new Error('Kendinizle sohbet oluşturamazsınız');
 
-            // Mevcut sohbet var mı kontrol et
-            const { data: existingConv, error: existingError } = await supabase
-                .from('conversations')
+            // Mevcut sohbet kontrolü - daha basit yöntem
+            const { data: userConvs } = await supabase
+                .from('conversation_members')
                 .select(`
-                    id,
-                    conversation_members!inner(user_id)
+                    conversation_id,
+                    conversations!inner (id, type)
                 `)
-                .eq('type', 'direct')
-                .eq('conversation_members.user_id', user.id);
+                .eq('user_id', userId);
 
-            if (existingError) throw existingError;
+            const directConvIds = (userConvs || [])
+                .filter(c => c.conversations?.type === 'direct')
+                .map(c => c.conversation_id);
 
-            // Diğer kullanıcıyla ortak sohbet ara
-            for (const conv of existingConv || []) {
-                const memberIds = conv.conversation_members.map(m => m.user_id);
-                if (memberIds.includes(otherUserId)) {
-                    return { success: true, conversationId: conv.id, isNew: false };
+            if (directConvIds.length > 0) {
+                const { data: commonConvs } = await supabase
+                    .from('conversation_members')
+                    .select('conversation_id')
+                    .in('conversation_id', directConvIds)
+                    .eq('user_id', otherUserId);
+
+                if (commonConvs && commonConvs.length > 0) {
+                    return { success: true, conversationId: commonConvs[0].conversation_id, isNew: false };
                 }
             }
 
             // Yeni sohbet oluştur
             const { data: newConv, error: convError } = await supabase
                 .from('conversations')
-                .insert([{ type: 'direct' }])
+                .insert([{ type: 'direct', created_by: userId }])
                 .select()
                 .single();
 
             if (convError) throw convError;
 
-            // Üyeleri ekle
             const { error: memberError } = await supabase
                 .from('conversation_members')
                 .insert([
-                    { conversation_id: newConv.id, user_id: user.id },
-                    { conversation_id: newConv.id, user_id: otherUserId }
+                    { conversation_id: newConv.id, user_id: userId, role: 'member' },
+                    { conversation_id: newConv.id, user_id: otherUserId, role: 'member' }
                 ]);
 
             if (memberError) throw memberError;
-
-            await this.loadConversations();
 
             return { success: true, conversationId: newConv.id, isNew: true };
         } catch (error) {
@@ -299,26 +408,27 @@ class ChatManager {
         }
     }
 
-    // Grup sohbeti oluştur
-    async createGroupConversation(name, memberIds) {
+    // ============ GRUP SOHBETİ OLUŞTUR ============
+    async createGroupConversation(userId, name, memberIds) {
         try {
-            const user = await authManager.getCurrentUser();
-            if (!user) throw new Error('Oturum yok');
+            if (!userId) throw new Error('Oturum yok');
+            if (!name || name.trim().length < 3) throw new Error('Grup adı en az 3 karakter');
+            if (!memberIds || memberIds.length < 1) throw new Error('En az 1 üye seçin');
 
-            const allMembers = [user.id, ...memberIds];
+            const allMembers = [...new Set([userId, ...memberIds])];
 
             const { data: newConv, error: convError } = await supabase
                 .from('conversations')
-                .insert([{ type: 'group', name: name }])
+                .insert([{ type: 'group', name: name.trim(), created_by: userId }])
                 .select()
                 .single();
 
             if (convError) throw convError;
 
-            const members = allMembers.map(memberId => ({
+            const members = allMembers.map(id => ({
                 conversation_id: newConv.id,
-                user_id: memberId,
-                role: memberId === user.id ? 'admin' : 'member'
+                user_id: id,
+                role: id === userId ? 'admin' : 'member'
             }));
 
             const { error: memberError } = await supabase
@@ -327,8 +437,6 @@ class ChatManager {
 
             if (memberError) throw memberError;
 
-            await this.loadConversations();
-
             return { success: true, conversationId: newConv.id };
         } catch (error) {
             console.error('Grup oluşturulamadı:', error);
@@ -336,21 +444,19 @@ class ChatManager {
         }
     }
 
-    // Kullanıcıları ara
-    async searchUsers(searchTerm) {
+    // ============ KULLANICI ARA ============
+    async searchUsers(searchTerm, currentUserId, limit = 10) {
         try {
-            const user = await authManager.getCurrentUser();
-            if (!user) return [];
+            if (!searchTerm || searchTerm.length < 2) return [];
 
             const { data, error } = await supabase
                 .from('profiles')
-                .select('*')
+                .select('id, username, full_name, avatar_url, status, last_seen')
                 .ilike('username', `%${searchTerm}%`)
-                .neq('id', user.id)
-                .limit(10);
+                .neq('id', currentUserId)
+                .limit(limit);
 
             if (error) throw error;
-
             return data || [];
         } catch (error) {
             console.error('Kullanıcı arama hatası:', error);
@@ -358,10 +464,12 @@ class ChatManager {
         }
     }
 
-    // Realtime: Mesajlara abone ol
-    subscribeToMessages(conversationId) {
+    // ============ REALTIME: MESAJLAR ============
+    subscribeToMessages(conversationId, onNewMessage, onMessageUpdate) {
+        this.realtimeChannelName = `chat-${conversationId}-${Date.now()}`;
+
         this.messageSubscription = supabase
-            .channel(`messages-${conversationId}`)
+            .channel(this.realtimeChannelName)
             .on(
                 'postgres_changes',
                 {
@@ -370,11 +478,20 @@ class ChatManager {
                     table: 'messages',
                     filter: `conversation_id=eq.${conversationId}`
                 },
-                (payload) => {
-                    this.messages.push(payload.new);
-                    if (this.onNewMessage) {
-                        this.onNewMessage(payload.new);
+                async (payload) => {
+                    // Gönderen bilgisini çek
+                    if (payload.new.sender_id) {
+                        const { data: profile } = await supabase
+                            .from('profiles')
+                            .select('id, username, avatar_url')
+                            .eq('id', payload.new.sender_id)
+                            .single();
+                        
+                        if (profile) payload.new.sender = profile;
                     }
+                    
+                    this.messages.push(payload.new);
+                    if (onNewMessage) onNewMessage(payload.new);
                 }
             )
             .on(
@@ -388,135 +505,131 @@ class ChatManager {
                 (payload) => {
                     const index = this.messages.findIndex(m => m.id === payload.new.id);
                     if (index !== -1) {
-                        this.messages[index] = payload.new;
-                        if (this.onMessageUpdate) {
-                            this.onMessageUpdate(payload.new);
-                        }
+                        this.messages[index] = { ...this.messages[index], ...payload.new };
+                        if (onMessageUpdate) onMessageUpdate(payload.new);
                     }
                 }
             )
             .subscribe();
     }
 
-    // Realtime: Yazıyor göstergesi
-    subscribeToTyping(conversationId) {
-        this.typingSubscription = supabase
+    // ============ REALTIME: TYPING ============
+    subscribeToTyping(conversationId, onTyping) {
+        this.typingChannel = supabase
             .channel(`typing-${conversationId}`)
             .on('broadcast', { event: 'typing' }, (payload) => {
-                if (this.onTyping) {
-                    this.onTyping(payload.payload);
-                }
+                if (onTyping) onTyping(payload.payload);
             })
             .subscribe();
     }
 
-    // Yazıyor bilgisi gönder
-    async sendTypingIndicator() {
-        if (!this.currentConversation) return;
+    async sendTypingIndicator(userId, username) {
+        if (!this.currentConversation || !userId) return;
 
-        const user = await authManager.getCurrentUser();
-        if (!user) return;
+        // Throttle - son 2 saniyede gönderildiyse atla
+        if (this._typingTimeout) return;
+        
+        this._typingTimeout = setTimeout(() => {
+            this._typingTimeout = null;
+        }, 2000);
 
-        await supabase
-            .channel(`typing-${this.currentConversation}`)
-            .send({
-                type: 'broadcast',
-                event: 'typing',
-                payload: {
-                    user_id: user.id,
-                    username: this.currentProfile?.username || 'Kullanıcı',
-                    timestamp: new Date()
-                }
-            });
+        if (this.typingChannel) {
+            try {
+                await this.typingChannel.send({
+                    type: 'broadcast',
+                    event: 'typing',
+                    payload: {
+                        user_id: userId,
+                        username: username || 'Kullanıcı',
+                        timestamp: Date.now()
+                    }
+                });
+            } catch (e) {
+                // Sessizce geç
+            }
+        }
     }
 
-    // Realtime: Presence (çevrimiçi durum)
-    subscribeToPresence(conversationId) {
-        this.presenceSubscription = supabase
+    // ============ REALTIME: PRESENCE ============
+    subscribeToPresence(conversationId, userId, onPresence) {
+        this.presenceChannel = supabase
             .channel(`presence-${conversationId}`)
             .on('presence', { event: 'sync' }, () => {
-                const state = this.presenceSubscription.presenceState();
-                if (this.onPresence) {
-                    this.onPresence(state);
-                }
+                const state = this.presenceChannel.presenceState();
+                if (onPresence) onPresence(state);
             })
             .subscribe(async (status) => {
-                if (status === 'SUBSCRIBED') {
-                    const user = await authManager.getCurrentUser();
-                    if (user) {
-                        await this.presenceSubscription.track({
-                            user_id: user.id,
-                            online_at: new Date()
-                        });
-                    }
+                if (status === 'SUBSCRIBED' && userId) {
+                    await this.presenceChannel.track({
+                        user_id: userId,
+                        online_at: new Date().toISOString()
+                    });
                 }
             });
     }
 
-    // Subscription'ları temizle
-    cleanupSubscriptions() {
-        if (this.messageSubscription) {
-            this.messageSubscription.unsubscribe();
-            this.messageSubscription = null;
-        }
-        
-        if (this.typingSubscription) {
-            this.typingSubscription.unsubscribe();
-            this.typingSubscription = null;
-        }
-        
-        if (this.presenceSubscription) {
-            this.presenceSubscription.unsubscribe();
-            this.presenceSubscription = null;
-        }
-    }
-
-    // Dosya yükle
-    async uploadFile(file) {
+    // ============ DOSYA YÜKLE ============
+    async uploadFile(userId, file) {
         try {
-            if (!this.currentConversation) {
-                throw new Error('Sohbet seçilmedi');
-            }
-
+            if (!this.currentConversation) throw new Error('Sohbet seçilmedi');
+            if (!userId) throw new Error('Oturum yok');
             if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
                 throw new Error(`Dosya ${MAX_FILE_SIZE_MB}MB'dan büyük olamaz`);
             }
 
-            const user = await authManager.getCurrentUser();
-            if (!user) throw new Error('Oturum yok');
-
-            const fileExt = getFileExtension(file.name);
-            const fileName = `${this.currentConversation}-${Date.now()}-${generateId()}.${fileExt}`;
-            const filePath = `chat/${this.currentConversation}/${fileName}`;
+            const ext = this._getFileExtension(file.name);
+            const fileName = `${this.currentConversation}/${Date.now()}-${this._generateId()}.${ext}`;
 
             const { error: uploadError } = await supabase.storage
                 .from('chat-media')
-                .upload(filePath, file);
+                .upload(fileName, file, {
+                    cacheControl: '3600',
+                    upsert: false
+                });
 
             if (uploadError) throw uploadError;
 
             const { data: { publicUrl } } = supabase.storage
                 .from('chat-media')
-                .getPublicUrl(filePath);
+                .getPublicUrl(fileName);
 
-            // Dosya tipine göre mesaj gönder
             let messageType = 'file';
-            if (isImageFile(file.name)) messageType = 'image';
-            else if (isVideoFile(file.name)) messageType = 'video';
-            else if (isAudioFile(file.name)) messageType = 'voice';
+            if (this._isImageFile(file.name)) messageType = 'image';
+            else if (this._isVideoFile(file.name)) messageType = 'video';
+            else if (this._isAudioFile(file.name)) messageType = 'voice';
 
-            return await this.sendMessage(file.name, messageType, publicUrl);
+            return await this.sendMessage(userId, file.name, messageType, publicUrl);
         } catch (error) {
             console.error('Dosya yüklenemedi:', error);
             return { success: false, error: error.message };
         }
     }
+
+    // ============ TEMİZLİK ============
+    cleanupSubscriptions() {
+        if (this.messageSubscription) {
+            this.messageSubscription.unsubscribe();
+            this.messageSubscription = null;
+        }
+        if (this.typingChannel) {
+            this.typingChannel.unsubscribe();
+            this.typingChannel = null;
+        }
+        if (this.presenceChannel) {
+            this.presenceChannel.unsubscribe();
+            this.presenceChannel = null;
+        }
+        this.realtimeChannelName = null;
+    }
+
+    reset() {
+        this.cleanupSubscriptions();
+        this.currentConversation = null;
+        this.currentConversationData = null;
+        this.messages = [];
+        this.conversations = [];
+    }
 }
 
-// Global chat manager
+// Global
 const chatManager = new ChatManager();
-
-// Export et (Node.js için)
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = ChatManager;
-}
