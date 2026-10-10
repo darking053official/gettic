@@ -1,334 +1,338 @@
 // ============================================
-// GETTIC - REALTIME MANAGER
+// GETTIC - REALTIME MANAGER (Premium)
 // ============================================
 
 class RealtimeManager {
     constructor() {
-        this.channels = {};
+        this.channels = new Map();       // channelName → channel
+        this.channelCallbacks = new Map(); // channelName → [callbacks]
         this.presenceState = {};
-        this.typingUsers = {};
+        this.typingUsers = new Map();
         this.onlineUsers = new Map();
-        this.listeners = {};
+        this.typingTimers = new Map();
+        this._cleanupBound = false;
+        this._userId = null;
+        this._setupCleanup();
     }
 
-    // Kanal oluştur veya mevcut kanalı getir
-    getChannel(channelName) {
-        if (!this.channels[channelName]) {
-            this.channels[channelName] = supabase.channel(channelName);
+    // ============ TEMİZLİK ============
+    _setupCleanup() {
+        if (this._cleanupBound) return;
+        this._cleanupBound = true;
+
+        window.addEventListener('beforeunload', () => {
+            this.cleanup();
+        });
+    }
+
+    setUser(userId) {
+        this._userId = userId;
+    }
+
+    // ============ KANAL YÖNETİMİ ============
+    _getSupabase() {
+        return (window.CONFIG && window.CONFIG.supabase) || window.supabaseClient;
+    }
+
+    _getOrCreateChannel(name) {
+        const supabase = this._getSupabase();
+        if (!supabase) {
+            console.error('Supabase yok');
+            return null;
         }
-        return this.channels[channelName];
+
+        if (!this.channels.has(name)) {
+            const channel = supabase.channel(name, {
+                config: {
+                    broadcast: { self: false },
+                    presence: { key: this._userId || 'anon' }
+                }
+            });
+            this.channels.set(name, channel);
+            this.channelCallbacks.set(name, []);
+        }
+
+        return this.channels.get(name);
     }
 
-    // Mesaj dinle
+    // Kanalı güvenli şekilde temizle
+    cleanupChannel(name) {
+        const channel = this.channels.get(name);
+        if (channel) {
+            try {
+                channel.unsubscribe();
+            } catch (e) {
+                console.warn('Kanal kapatma hatası:', e);
+            }
+            this.channels.delete(name);
+            this.channelCallbacks.delete(name);
+        }
+    }
+
+    // ============ MESAJLAR ============
     subscribeToMessages(conversationId, callback) {
         const channelName = `messages-${conversationId}`;
-        const channel = this.getChannel(channelName);
+        const channel = this._getOrCreateChannel(channelName);
+        if (!channel) return null;
+
+        // Duplicate kontrolü
+        const callbacks = this.channelCallbacks.get(channelName);
+        if (callbacks.includes(callback)) return channel;
+        callbacks.push(callback);
 
         channel
-            .on(
-                'postgres_changes',
-                {
-                    event: 'INSERT',
-                    schema: 'public',
-                    table: 'messages',
-                    filter: `conversation_id=eq.${conversationId}`
-                },
+            .on('postgres_changes',
+                { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` },
                 (payload) => {
-                    callback('new', payload.new);
+                    callbacks.forEach(cb => cb('new', payload.new));
                 }
             )
-            .on(
-                'postgres_changes',
-                {
-                    event: 'UPDATE',
-                    schema: 'public',
-                    table: 'messages',
-                    filter: `conversation_id=eq.${conversationId}`
-                },
+            .on('postgres_changes',
+                { event: 'UPDATE', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` },
                 (payload) => {
-                    callback('update', payload.new);
+                    callbacks.forEach(cb => cb('update', payload.new));
                 }
             )
-            .on(
-                'postgres_changes',
-                {
-                    event: 'DELETE',
-                    schema: 'public',
-                    table: 'messages',
-                    filter: `conversation_id=eq.${conversationId}`
-                },
+            .on('postgres_changes',
+                { event: 'DELETE', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` },
                 (payload) => {
-                    callback('delete', payload.old);
+                    callbacks.forEach(cb => cb('delete', payload.old));
                 }
             )
-            .subscribe();
-
-        return channel;
-    }
-
-    // Sohbet listesi dinle
-    subscribeToConversations(userId, callback) {
-        const channelName = `conversations-${userId}`;
-        const channel = this.getChannel(channelName);
-
-        channel
-            .on(
-                'postgres_changes',
-                {
-                    event: '*',
-                    schema: 'public',
-                    table: 'conversation_members',
-                    filter: `user_id=eq.${userId}`
-                },
-                (payload) => {
-                    callback(payload);
-                }
-            )
-            .on(
-                'postgres_changes',
-                {
-                    event: 'UPDATE',
-                    schema: 'public',
-                    table: 'conversations'
-                },
-                (payload) => {
-                    callback(payload);
-                }
-            )
-            .subscribe();
-
-        return channel;
-    }
-
-    // Presence (çevrimiçi durum)
-    subscribeToPresence(userId, callback) {
-        const channelName = `presence`;
-        const channel = this.getChannel(channelName);
-
-        channel
-            .on('presence', { event: 'sync' }, () => {
-                this.presenceState = channel.presenceState();
-                this.updateOnlineUsers();
-                callback(this.onlineUsers);
-            })
-            .on('presence', { event: 'join' }, ({ key, newPresences }) => {
-                newPresences.forEach(presence => {
-                    this.onlineUsers.set(presence.user_id, {
-                        ...presence,
-                        status: 'online',
-                        lastSeen: new Date()
-                    });
-                });
-                callback(this.onlineUsers);
-            })
-            .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
-                leftPresences.forEach(presence => {
-                    this.onlineUsers.set(presence.user_id, {
-                        ...presence,
-                        status: 'offline',
-                        lastSeen: new Date()
-                    });
-                });
-                callback(this.onlineUsers);
-            })
-            .subscribe(async (status) => {
-                if (status === 'SUBSCRIBED') {
-                    await channel.track({
-                        user_id: userId,
-                        online_at: new Date()
-                    });
+            .subscribe((status, err) => {
+                if (status === 'CHANNEL_ERROR') {
+                    console.error(`Kanal hatası [${channelName}]:`, err);
                 }
             });
 
         return channel;
     }
 
-    // Yazıyor göstergesi
+    unsubscribeFromMessages(conversationId, callback) {
+        const channelName = `messages-${conversationId}`;
+        if (callback) {
+            const callbacks = this.channelCallbacks.get(channelName) || [];
+            this.channelCallbacks.set(channelName, callbacks.filter(cb => cb !== callback));
+        } else {
+            this.cleanupChannel(channelName);
+        }
+    }
+
+    // ============ SOHBET LİSTESİ ============
+    subscribeToConversations(userId, callback) {
+        const channelName = `conversations-${userId}`;
+        const channel = this._getOrCreateChannel(channelName);
+        if (!channel) return null;
+
+        channel
+            .on('postgres_changes',
+                { event: '*', schema: 'public', table: 'conversation_members', filter: `user_id=eq.${userId}` },
+                (payload) => callback(payload)
+            )
+            .on('postgres_changes',
+                { event: 'UPDATE', schema: 'public', table: 'conversations' },
+                (payload) => callback(payload)
+            )
+            .subscribe();
+
+        return channel;
+    }
+
+    // ============ PRESENCE (ÇEVRİMİÇİ) ============
+    subscribeToPresence(userId, callback) {
+        if (!userId) {
+            console.warn('Presence için userId gerekli');
+            return null;
+        }
+
+        const channelName = `presence-global`;
+        const channel = this._getOrCreateChannel(channelName);
+        if (!channel) return null;
+
+        const handleUpdate = () => {
+            const state = channel.presenceState();
+            this.presenceState = state;
+            this._rebuildOnlineUsers(state);
+            callback(this.onlineUsers);
+        };
+
+        channel
+            .on('presence', { event: 'sync' }, handleUpdate)
+            .on('presence', { event: 'join' }, handleUpdate)
+            .on('presence', { event: 'leave' }, handleUpdate)
+            .subscribe(async (status) => {
+                if (status === 'SUBSCRIBED') {
+                    try {
+                        await channel.track({
+                            user_id: userId,
+                            online_at: new Date().toISOString()
+                        });
+                    } catch (e) {
+                        console.warn('Presence track hatası:', e);
+                    }
+                }
+            });
+
+        return channel;
+    }
+
+    _rebuildOnlineUsers(state) {
+        this.onlineUsers.clear();
+        Object.values(state).forEach(presences => {
+            presences.forEach(p => {
+                if (p.user_id) {
+                    this.onlineUsers.set(p.user_id, {
+                        user_id: p.user_id,
+                        online_at: p.online_at,
+                        status: 'online',
+                        lastSeen: new Date()
+                    });
+                }
+            });
+        });
+    }
+
+    // ============ TYPING ============
     subscribeToTyping(conversationId, callback) {
         const channelName = `typing-${conversationId}`;
-        const channel = this.getChannel(channelName);
+        const channel = this._getOrCreateChannel(channelName);
+        if (!channel) return null;
 
         channel
             .on('broadcast', { event: 'typing' }, (payload) => {
-                const { user_id, username, timestamp } = payload.payload;
-                
-                this.typingUsers[user_id] = {
-                    username,
-                    timestamp: new Date(timestamp)
-                };
+                const { user_id, username } = payload.payload;
 
+                // Kendini gösterme
+                if (user_id === this._userId) return;
+
+                this.typingUsers.set(user_id, { username, timestamp: Date.now() });
                 callback(this.typingUsers);
 
-                // 3 saniye sonra otomatik temizle
-                setTimeout(() => {
-                    delete this.typingUsers[user_id];
+                // Önceki timer'ı temizle
+                if (this.typingTimers.has(user_id)) {
+                    clearTimeout(this.typingTimers.get(user_id));
+                }
+
+                // Yeni timer
+                const timer = setTimeout(() => {
+                    this.typingUsers.delete(user_id);
+                    this.typingTimers.delete(user_id);
                     callback(this.typingUsers);
                 }, 3000);
+
+                this.typingTimers.set(user_id, timer);
             })
             .subscribe();
 
         return channel;
     }
 
-    // Yazıyor bilgisi gönder
-    async sendTyping(conversationId, userId, username) {
+    // Yazıyor bilgisi gönder (throttled)
+    async sendTyping(conversationId) {
+        if (!this._userId || !conversationId) return;
+
         const channelName = `typing-${conversationId}`;
-        const channel = this.getChannel(channelName);
+        const channel = this.channels.get(channelName);
+        if (!channel) return;
 
-        await channel.send({
-            type: 'broadcast',
-            event: 'typing',
-            payload: {
-                user_id: userId,
-                username: username,
-                timestamp: new Date()
-            }
-        });
-    }
-
-    // Okundu bilgisi dinle
-    subscribeToReadReceipts(conversationId, callback) {
-        const channelName = `reads-${conversationId}`;
-        const channel = this.getChannel(channelName);
-
-        channel
-            .on(
-                'postgres_changes',
-                {
-                    event: 'INSERT',
-                    schema: 'public',
-                    table: 'message_reads',
-                    filter: `conversation_id=eq.${conversationId}`
-                },
-                (payload) => {
-                    callback(payload.new);
-                }
-            )
-            .subscribe();
-
-        return channel;
-    }
-
-    // Kullanıcı durumu dinle
-    subscribeToUserStatus(userId, callback) {
-        const channelName = `user-status-${userId}`;
-        const channel = this.getChannel(channelName);
-
-        channel
-            .on(
-                'postgres_changes',
-                {
-                    event: 'UPDATE',
-                    schema: 'public',
-                    table: 'profiles',
-                    filter: `id=eq.${userId}`
-                },
-                (payload) => {
-                    callback(payload.new);
-                }
-            )
-            .subscribe();
-
-        return channel;
-    }
-
-    // Online kullanıcıları güncelle
-    updateOnlineUsers() {
-        Object.values(this.presenceState).forEach(presences => {
-            presences.forEach(presence => {
-                if (presence.user_id) {
-                    this.onlineUsers.set(presence.user_id, {
-                        ...presence,
-                        status: 'online',
-                        lastSeen: new Date()
-                    });
+        try {
+            await channel.send({
+                type: 'broadcast',
+                event: 'typing',
+                payload: {
+                    user_id: this._userId,
+                    timestamp: Date.now()
                 }
             });
-        });
+        } catch (e) {
+            // Sessizce geç
+        }
     }
 
-    // Kullanıcı çevrimiçi mi kontrol
-    isUserOnline(userId) {
-        const user = this.onlineUsers.get(userId);
-        return user && user.status === 'online';
-    }
-
-    // Çevrimiçi kullanıcı sayısı
-    getOnlineCount() {
-        return Array.from(this.onlineUsers.values())
-            .filter(user => user.status === 'online')
-            .length;
-    }
-
-    // Bildirim dinle
-    subscribeToNotifications(userId, callback) {
-        const channelName = `notifications-${userId}`;
-        const channel = this.getChannel(channelName);
+    // ============ OKUNDU ============
+    subscribeToReadReceipts(conversationId, callback) {
+        const channelName = `reads-${conversationId}`;
+        const channel = this._getOrCreateChannel(channelName);
+        if (!channel) return null;
 
         channel
-            .on(
-                'postgres_changes',
-                {
-                    event: 'INSERT',
-                    schema: 'public',
-                    table: 'notifications',
-                    filter: `user_id=eq.${userId}`
-                },
-                (payload) => {
-                    callback(payload.new);
-                }
+            .on('postgres_changes',
+                { event: 'INSERT', schema: 'public', table: 'message_reads', filter: `conversation_id=eq.${conversationId}` },
+                (payload) => callback(payload.new)
             )
             .subscribe();
 
         return channel;
     }
 
-    // Tüm kanalları temizle
+    // ============ KULLANICI DURUMU ============
+    subscribeToUserStatus(userId, callback) {
+        const channelName = `user-status-${userId}`;
+        const channel = this._getOrCreateChannel(channelName);
+        if (!channel) return null;
+
+        channel
+            .on('postgres_changes',
+                { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${userId}` },
+                (payload) => callback(payload.new)
+            )
+            .subscribe();
+
+        return channel;
+    }
+
+    // ============ YARDIMCI ============
+    isUserOnline(userId) {
+        const user = this.onlineUsers.get(userId);
+        return user?.status === 'online';
+    }
+
+    getOnlineCount() {
+        return Array.from(this.onlineUsers.values())
+            .filter(u => u.status === 'online').length;
+    }
+
+    // ============ NOTIFICATIONS ============
+    subscribeToNotifications(userId, callback) {
+        const channelName = `notifications-${userId}`;
+        const channel = this._getOrCreateChannel(channelName);
+        if (!channel) return null;
+
+        channel
+            .on('postgres_changes',
+                { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` },
+                (payload) => callback(payload.new)
+            )
+            .subscribe();
+
+        return channel;
+    }
+
+    // ============ TEMİZLİK ============
     cleanup() {
-        Object.values(this.channels).forEach(channel => {
-            channel.unsubscribe();
+        // Tüm timer'ları temizle
+        this.typingTimers.forEach(timer => clearTimeout(timer));
+        this.typingTimers.clear();
+
+        // Tüm kanalları kapat
+        this.channels.forEach((channel, name) => {
+            try {
+                channel.unsubscribe();
+            } catch (e) {}
         });
-        this.channels = {};
+
+        this.channels.clear();
+        this.channelCallbacks.clear();
         this.presenceState = {};
-        this.typingUsers = {};
+        this.typingUsers.clear();
         this.onlineUsers.clear();
     }
 
-    // Belirli bir kanalı temizle
-    cleanupChannel(channelName) {
-        if (this.channels[channelName]) {
-            this.channels[channelName].unsubscribe();
-            delete this.channels[channelName];
-        }
-    }
-
-    // Event listener ekle
-    on(event, callback) {
-        if (!this.listeners[event]) {
-            this.listeners[event] = [];
-        }
-        this.listeners[event].push(callback);
-    }
-
-    // Event listener kaldır
-    off(event, callback) {
-        if (this.listeners[event]) {
-            this.listeners[event] = this.listeners[event].filter(cb => cb !== callback);
-        }
-    }
-
-    // Event tetikle
-    emit(event, data) {
-        if (this.listeners[event]) {
-            this.listeners[event].forEach(callback => callback(data));
-        }
+    reset() {
+        this.cleanup();
+        this._userId = null;
     }
 }
 
-// Global realtime manager
+// Global
 const realtimeManager = new RealtimeManager();
-
-// Export et (Node.js için)
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = RealtimeManager;
-}
