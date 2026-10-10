@@ -1,175 +1,128 @@
 <!DOCTYPE html>
 <html lang="tr" class="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Giriş / Kayıt - Gettic</title>
-    <meta name="description" content="Gettic'e giriş yapın veya ücretsiz kayıt olun">
-    
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0a0a0f">
-    <link rel="icon" type="image/png" href="logo.png">
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        'bg-primary': '#0a0a0f',
-                        'bg-secondary': '#12121a',
-                        'bg-tertiary': '#1a1a24',
-                        'bg-hover': '#22222e',
-                        'accent': '#7c3aed',
-                        'accent-hover': '#8b5cf6',
-                        'border-dark': '#1f1f2e',
-                    }
-                }
-            }
-        }
-    </script>
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/auth.css">
-    
-    <script>
-        // Supabase İstemcisini Güvenli Başlatma
-        const SUPABASE_URL = 'https://ayucfychcemsvzlgsdqq.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF5dWNmeWNoY2Vtc3Z6bGdzZHFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg4MDAwMDksImV4cCI6MjEwNDM3NjA4OX0.XhXZjzy58cWuAhejswK_44_Y8JJKdSzPI4QCUrS8ipg';
-        let supabaseClient = null;
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Giriş - Kayıt - Gettic</title>
+<meta name="description" content="Gettic'e giriş yapın veya ücretsiz kayıt olun">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0a0a0f">
+<link rel="icon" type="image/png" href="logo.png">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>tailwind.config={darkMode:'class',theme:{extend:{colors:{'bg-primary':'#0a0a0f','bg-secondary':'#12121a','bg-tertiary':'#1a1a24','bg-hover':'#22222e','accent':'#7c3aed','accent-hover':'#8b5cf6','border-dark':'#1f1f2e'},animation:{'float-slow':'float 8s ease-in-out infinite','float-medium':'float 6s ease-in-out infinite'},keyframes:{float:{'0%,100%':{transform:'translateY(0)'},'50%':{transform:'translateY(-20px)'}}}}}}</script>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/auth.css">
+<script>
+const SUPABASE_URL='https://ayucfychcemsvzlgsdqq.supabase.co';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF5dWNmeWNoY2Vtc3Z6bGdzZHFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg4MDAwODksImV4cCI6MjEwNDM3NjA4OX0.XhXZjzy58cWuAhejswK_44_Y8JJKdSzPI4QCUrS8ipg';
+let supabaseClient=null;
+function getClient(){if(!supabaseClient){if(window.supabase&&typeof window.supabase.createClient==='function'){supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY)}else{showError('Supabase yüklenemedi');return null}}return supabaseClient}
 
-        function getClient() {
-            if (!supabaseClient) {
-                if (window.supabase && typeof window.supabase.createClient === 'function') {
-                    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                } else {
-                    alert('Supabase SDK henüz yüklenemedi, lütfen sayfayı yenileyin.');
-                    return null;
-                }
-            }
-            return supabaseClient;
-        }
-        
-        window.doLogin = function() {
-            const client = getClient();
-            if (!client) return;
+window.showError=function(msg){const el=document.getElementById('errorMessage');if(el){el.innerHTML='<strong>HATA:</strong> '+msg;el.classList.remove('hidden');setTimeout(()=>el.classList.add('hidden'),6000)}console.error('Gettic:',msg)};
+window.showSuccess=function(msg){const el=document.getElementById('errorMessage');if(el){el.innerHTML='<strong>BAŞARILI:</strong> '+msg;el.classList.remove('hidden','bg-red-500/10','border-red-500/30','text-red-400');el.classList.add('bg-green-500/10','border-green-500/30','text-green-400');setTimeout(()=>{el.classList.add('hidden');el.classList.remove('bg-green-500/10','border-green-500/30','text-green-400');el.classList.add('bg-red-500/10','border-red-500/30','text-red-400')},5000)}};
+window.hideError=function(){const el=document.getElementById('errorMessage');if(el)el.classList.add('hidden')};
 
-            const email = document.getElementById('loginEmail').value.trim();
-            const password = document.getElementById('loginPassword').value;
-            
-            if (!email || !password) {
-                alert('Email ve şifre gerekli');
-                return;
-            }
-            
-            client.auth.signInWithPassword({ email, password })
-                .then(({ data, error }) => {
-                    if (error) {
-                        alert(error.message);
-                        return;
-                    }
-                    window.location.href = 'chat.html';
-                })
-                .catch(err => alert(err.message));
-        };
-        
-        window.doRegister = function() {
-            const client = getClient();
-            if (!client) return;
+window.doLogin=async function(){hideError();const c=getClient();if(!c)return;const email=document.getElementById('loginEmail').value.trim();const password=document.getElementById('loginPassword').value;if(!email||!password){showError('Email ve şifre gerekli');return}if(!email.includes('@')){showError('Geçersiz email adresi');return}try{const{data,error}=await c.auth.signInWithPassword({email,password});if(error){if(error.message.includes('Invalid login credentials')){showError('Email veya şifre hatalı. Hesabınız yoksa "Kayıt Ol" sekmesinden kayıt olun.')}else if(error.message.includes('Email not confirmed')){showError('Email adresiniz doğrulanmamış.')}else if(error.message.includes('Too many requests')){showError('Çok fazla deneme. Birkaç dakika bekleyin.')}else{showError(error.message)}return}window.location.href='chat.html'}catch(e){showError(e.message)}};
 
-            const username = document.getElementById('regUsername').value.trim();
-            const email = document.getElementById('regEmail').value.trim();
-            const password = document.getElementById('regPassword').value;
-            const confirmPassword = document.getElementById('regConfirmPassword').value;
-            
-            if (!username || !email || !password) {
-                alert('Tüm alanları doldurun');
-                return;
-            }
-            
-            if (password !== confirmPassword) {
-                alert('Şifreler eşleşmiyor');
-                return;
-            }
-            
-            if (password.length < 8) {
-                alert('Şifre en az 8 karakter olmalı');
-                return;
-            }
-            
-            client.auth.signUp({
-                email,
-                password,
-                options: { data: { username, full_name: username } }
-            })
-                .then(async ({ data, error }) => {
-                    if (error) {
-                        alert(error.message);
-                        return;
-                    }
-                    if (data.user) {
-                        await client.from('profiles').insert([{
-                            id: data.user.id,
-                            username,
-                            full_name: username,
-                            status: 'online'
-                        }]);
-                    }
-                    window.location.href = 'chat.html';
-                })
-                .catch(err => alert(err.message));
-        };
-        
-        window.doGoogleLogin = function() {
-            const client = getClient();
-            if (!client) return;
+window.doRegister=async function(){hideError();const c=getClient();if(!c)return;const username=document.getElementById('regUsername').value.trim();const email=document.getElementById('regEmail').value.trim();const password=document.getElementById('regPassword').value;const confirmPassword=document.getElementById('regConfirmPassword').value;if(!username||!email||!password){showError('Tüm alanları doldurun');return}if(!email.includes('@')){showError('Geçersiz email');return}if(username.length<3){showError('Kullanıcı adı en az 3 karakter');return}if(!/^[a-zA-Z0-9_]+$/.test(username)){showError('Sadece harf, rakam ve alt çizgi');return}if(password!==confirmPassword){showError('Şifreler eşleşmiyor');return}if(password.length<8){showError('Şifre en az 8 karakter');return}try{const{data:eu}=await c.from('profiles').select('username').eq('username',username).maybeSingle();if(eu){showError('Bu kullanıcı adı zaten alınmış');return}const{data,error}=await c.auth.signUp({email,password,options:{data:{username,full_name:username}}});if(error){if(error.message.includes('User already registered')||error.message.includes('already been registered')){showError('Bu email zaten kayıtlı. Giriş yapmayı deneyin.')}else{showError(error.message)}return}if(data.user&&data.user.identities&&data.user.identities.length===0){showError('Bu email zaten kayıtlı. Giriş yapmayı deneyin.');return}if(data.user&&data.session){showSuccess('Kayıt başarılı! Yönlendiriliyorsunuz...');setTimeout(()=>window.location.href='chat.html',1000)}else if(data.user){showSuccess('Kayıt başarılı! Email doğrulamanız gerekiyor.')}}catch(e){showError(e.message)}};
 
-            client.auth.signInWithOAuth({
-                provider: 'google',
-                options: { redirectTo: window.location.origin + '/chat.html' }
-            }).then(({ error }) => {
-                if (error) alert(error.message);
-            }).catch(err => alert(err.message));
-        };
-        
-        window.doGithubLogin = function() {
-            const client = getClient();
-            if (!client) return;
+window.doGoogleLogin=async function(){hideError();const c=getClient();if(!c)return;try{const{error}=await c.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.origin+'/chat.html'}});if(error)showError(error.message)}catch(e){showError(e.message)}};
+window.doGithubLogin=async function(){hideError();const c=getClient();if(!c)return;try{const{error}=await c.auth.signInWithOAuth({provider:'github',options:{redirectTo:window.location.origin+'/chat.html'}});if(error)showError(error.message)}catch(e){showError(e.message)}};
 
-            client.auth.signInWithOAuth({
-                provider: 'github',
-                options: { redirectTo: window.location.origin + '/chat.html' }
-            }).then(({ error }) => {
-                if (error) alert(error.message);
-            }).catch(err => alert(err.message));
-        };
-        
-        window.showLoginTab = function() {
-            document.getElementById('loginForm').classList.remove('hidden');
-            document.getElementById('registerForm').classList.add('hidden');
-            document.getElementById('loginTab').className = 'flex-1 py-2 rounded-lg bg-accent text-white font-semibold transition';
-            document.getElementById('registerTab').className = 'flex-1 py-2 rounded-lg bg-bg-tertiary text-gray-400 font-semibold transition';
-            document.getElementById('subtitle').textContent = 'Tekrar hoş geldiniz';
-        };
-        
-        window.showRegisterTab = function() {
-            document.getElementById('loginForm').classList.add('hidden');
-            document.getElementById('registerForm').classList.remove('hidden');
-            document.getElementById('loginTab').className = 'flex-1 py-2 rounded-lg bg-bg-tertiary text-gray-400 font-semibold transition';
-            document.getElementById('registerTab').className = 'flex-1 py-2 rounded-lg bg-accent text-white font-semibold transition';
-            document.getElementById('subtitle').textContent = 'Ücretsiz hesap oluşturun';
-        };
-        
-        window.toggleLoginPass = function() {
-            const input = document.getElementById('loginPassword');
-            input.type = input.type === 'password' ? 'text' : 'password';
-        };
-        
-        window.toggleRegPass = function() {
-            const input = document.getElementById('regPassword');
-            input.type = input.type === 'password' ? 'text' : 'password';
-        };
-    </script>
+window.showLoginTab=function(){hideError();document.getElementById('loginForm').classList.remove('hidden');document.getElementById('registerForm').classList.add('hidden');document.getElementById('loginTab').className='flex-1 py-2 rounded-lg bg-accent text-white font-semibold transition';document.getElementById('registerTab').className='flex-1 py-2 rounded-lg bg-bg-tertiary text-gray-400 font-semibold transition';document.getElementById('subtitle').textContent='Tekrar hoş geldiniz'};
+window.showRegisterTab=function(){hideError();document.getElementById('loginForm').classList.add('hidden');document.getElementById('registerForm').classList.remove('hidden');document.getElementById('loginTab').className='flex-1 py-2 rounded-lg bg-bg-tertiary text-gray-400 font-semibold transition';document.getElementById('registerTab').className='flex-1 py-2 rounded-lg bg-accent text-white font-semibold transition';document.getElementById('subtitle').textContent='Ücretsiz hesap oluşturun'};
+window.toggleLoginPass=function(){const i=document.getElementById('loginPassword');i.type=i.type==='password'?'text':'password'};
+window.toggleRegPass=function(){const i=document.getElementById('regPassword');i.type=i.type==='password'?'text':'password'};
+
+window.addEventListener('DOMContentLoaded',async()=>{const c=getClient();if(!c)return;const{data:{session}}=await c.auth.getSession();if(session)window.location.href='chat.html'});
+</script>
 </head>
+<body class="bg-bg-primary text-white min-h-screen font-sans antialiased flex items-center justify-center p-4 relative overflow-hidden">
+
+<div class="absolute top-20 left-20 w-72 h-72 bg-accent/20 rounded-full blur-3xl animate-float-slow"></div>
+<div class="absolute bottom-20 right-20 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-float-medium"></div>
+
+<div class="w-full max-w-md relative z-10">
+<div class="text-center mb-8">
+<a href="index.html" class="inline-flex items-center gap-3">
+<img src="logo.png" alt="Gettic Logo" class="w-12 h-12 rounded-xl">
+<span class="text-3xl font-bold tracking-tight gradient-text">Gettic</span>
+</a>
+<p class="text-gray-400 mt-2" id="subtitle">Tekrar hoş geldiniz</p>
+</div>
+
+<div class="auth-card">
+<div class="flex gap-4 mb-6">
+<button type="button" id="loginTab" onclick="showLoginTab()" class="flex-1 py-2 rounded-lg bg-accent text-white font-semibold transition">Giriş Yap</button>
+<button type="button" id="registerTab" onclick="showRegisterTab()" class="flex-1 py-2 rounded-lg bg-bg-tertiary text-gray-400 font-semibold transition">Kayıt Ol</button>
+</div>
+
+<div id="loginForm" class="space-y-5">
+<div>
+<label class="block text-sm font-medium text-gray-300 mb-2">Email</label>
+<input type="email" id="loginEmail" autocomplete="email" placeholder="ornek@email.com" class="input-premium">
+</div>
+<div>
+<label class="block text-sm font-medium text-gray-300 mb-2">Şifre</label>
+<div class="relative">
+<input type="password" id="loginPassword" autocomplete="current-password" placeholder="••••••••" class="input-premium">
+<button type="button" onclick="toggleLoginPass()" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+</button>
+</div>
+</div>
+<button type="button" onclick="doLogin()" class="shimmer-button w-full">Giriş Yap</button>
+</div>
+
+<div id="registerForm" class="space-y-5 hidden">
+<div>
+<label class="block text-sm font-medium text-gray-300 mb-2">Kullanıcı Adı</label>
+<input type="text" id="regUsername" minlength="3" maxlength="20" autocomplete="username" placeholder="kullanici_adi" class="input-premium">
+</div>
+<div>
+<label class="block text-sm font-medium text-gray-300 mb-2">Email</label>
+<input type="email" id="regEmail" autocomplete="email" placeholder="ornek@email.com" class="input-premium">
+</div>
+<div>
+<label class="block text-sm font-medium text-gray-300 mb-2">Şifre</label>
+<div class="relative">
+<input type="password" id="regPassword" minlength="8" autocomplete="new-password" placeholder="••••••••" class="input-premium">
+<button type="button" onclick="toggleRegPass()" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+</button>
+</div>
+</div>
+<div>
+<label class="block text-sm font-medium text-gray-300 mb-2">Şifre Tekrar</label>
+<input type="password" id="regConfirmPassword" autocomplete="new-password" placeholder="••••••••" class="input-premium">
+</div>
+<button type="button" onclick="doRegister()" class="shimmer-button w-full">Kayıt Ol</button>
+</div>
+
+<div id="errorMessage" class="hidden mt-4 bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-red-400 text-sm"></div>
+
+<div class="mt-6">
+<div class="relative">
+<div class="absolute inset-0 flex items-center"><div class="w-full border-t border-border-dark"></div></div>
+<div class="relative flex justify-center text-sm"><span class="px-4 bg-bg-secondary text-gray-500">veya</span></div>
+</div>
+<div class="grid grid-cols-2 gap-4 mt-6">
+<button type="button" onclick="doGoogleLogin()" class="flex items-center justify-center gap-2 bg-bg-tertiary hover:bg-bg-hover border border-border-dark rounded-lg py-3 transition hover-lift">
+<svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 5.04c1.62 0 3.06.56 4.2 1.64l3.12-3.12C17.46 1.8 14.96.84 12 .84 7.56.84 3.72 3.36 1.8 7.08l3.6 2.76C6.36 6.84 8.94 5.04 12 5.04z"/><path fill="#4285F4" d="M23.16 12.24c0-.84-.06-1.44-.18-2.16H12v4.08h6.36c-.12 1.08-.84 2.64-2.4 3.72l3.48 2.7c2.16-1.98 3.72-4.92 3.72-8.34z"/><path fill="#FBBC05" d="M5.4 14.16c-.24-.72-.36-1.44-.36-2.16s.12-1.44.36-2.16L1.8 7.08C.96 8.64.48 10.26.48 12s.48 3.36 1.32 4.92l3.6-2.76z"/><path fill="#34A853" d="M12 23.16c3.12 0 5.76-1.02 7.68-2.76l-3.48-2.7c-.96.66-2.28 1.14-4.2 1.14-3.06 0-5.64-1.8-6.6-4.44l-3.6 2.76c1.92 3.84 5.76 6.36 10.2 6.36z"/></svg>
+Google
+</button>
+<button type="button" onclick="doGithubLogin()" class="flex items-center justify-center gap-2 bg-bg-tertiary hover:bg-bg-hover border border-border-dark rounded-lg py-3 transition hover-lift">
+<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.26.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.385-1.333-1.754-1.333-1.754-1.09-.745.082-.73.082-.73 1.205.085 1.84 1.237 1.84 1.237 1.07 1.834 2.807 1.304 3.492.997.108-.776.418-1.305.762-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.468-2.38 1.235-3.22-.123-.3-.535-1.52.117-3.16 0 0 1.008-.322 3.3 1.23.96-.267 1.98-.4 3-.405 1.02.005 2.04.138 3 .405 2.29-1.552 3.297-1.23 3.297-1.23.653 1.64.24 2.86.118 3.16.768.84 1.233 1.91 1.233 3.22 0 4.61-2.804 5.625-5.476 5.92.43.37.824 1.102.824 2.22 0 1.602-.015 2.894-.015 3.287 0 .32.216.694.825.576C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12z"/></svg>
+GitHub
+</button>
+</div>
+</div>
+</div>
+
+<p class="text-center mt-4">
+<a href="index.html" class="text-gray-500 hover:text-white transition text-sm">← Ana Sayfaya Dön</a>
+</p>
+</div>
+</body>
+</html>
