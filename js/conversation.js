@@ -1,33 +1,42 @@
 // ============================================
-// GETTIC - CONVERSATION MANAGER
+// GETTIC - CONVERSATION MANAGER (Premium)
 // ============================================
 
 class ConversationManager {
     constructor() {
         this.conversations = [];
         this.currentConversation = null;
-        this.conversationCache = {};
+        this.currentUserId = null;
+        this.cache = new Map();
+        this.cacheTimeout = 5 * 60 * 1000; // 5 dakika
     }
 
-    // Tüm sohbetleri yükle
-    async loadConversations() {
-        try {
-            const user = await authManager.getCurrentUser();
-            if (!user) return [];
+    // Kullanıcı ID'sini ayarla
+    setUser(userId) {
+        this.currentUserId = userId;
+        this.clearCache();
+    }
 
-            const { data, error } = await supabase
+    // ============ SOHBETLERİ YÜKLE ============
+    async loadConversations(userId, options = {}) {
+        try {
+            const uid = userId || this.currentUserId;
+            if (!uid) return [];
+
+            const { limit = 50, offset = 0 } = options;
+
+            const { data, error } = await window.CONFIG.supabase
                 .from('conversation_members')
                 .select(`
                     conversation_id,
-                    role,
-                    joined_at,
-                    conversations (
+                    conversations!inner (
                         id,
                         type,
                         name,
                         avatar_url,
                         created_at,
                         updated_at,
+                        created_by,
                         conversation_members (
                             user_id,
                             role,
@@ -42,16 +51,22 @@ class ConversationManager {
                         )
                     )
                 `)
-                .eq('user_id', user.id)
-                .order('updated_at', { ascending: false });
+                .eq('user_id', uid)
+                .order('conversations(updated_at)', { ascending: false })
+                .range(offset, offset + limit - 1);
 
             if (error) throw error;
 
-            this.conversations = (data || []).map(item => item.conversations);
-            
+            this.conversations = (data || [])
+                .map(item => item.conversations)
+                .filter(Boolean);
+
             // Cache'e ekle
             this.conversations.forEach(conv => {
-                this.conversationCache[conv.id] = conv;
+                this.cache.set(conv.id, {
+                    data: conv,
+                    timestamp: Date.now()
+                });
             });
 
             return this.conversations;
@@ -61,21 +76,31 @@ class ConversationManager {
         }
     }
 
-    // Tek sohbet getir
-    async getConversation(conversationId) {
+    // ============ TEK SOHBET GETİR ============
+    async getConversation(conversationId, forceRefresh = false) {
         try {
-            // Cache'de var mı kontrol et
-            if (this.conversationCache[conversationId]) {
-                return this.conversationCache[conversationId];
+            // Cache kontrolü
+            if (!forceRefresh) {
+                const cached = this.cache.get(conversationId);
+                if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
+                    return cached.data;
+                }
             }
 
-            const { data, error } = await supabase
+            const { data, error } = await window.CONFIG.supabase
                 .from('conversations')
                 .select(`
-                    *,
+                    id,
+                    type,
+                    name,
+                    avatar_url,
+                    created_by,
+                    created_at,
+                    updated_at,
                     conversation_members (
                         user_id,
                         role,
+                        joined_at,
                         profiles (
                             id,
                             username,
@@ -91,7 +116,11 @@ class ConversationManager {
 
             if (error) throw error;
 
-            this.conversationCache[conversationId] = data;
+            this.cache.set(conversationId, {
+                data,
+                timestamp: Date.now()
+            });
+
             return data;
         } catch (error) {
             console.error('Sohbet getirilemedi:', error);
@@ -99,25 +128,24 @@ class ConversationManager {
         }
     }
 
-    // Direkt sohbet oluştur
-    async createDirectConversation(otherUserId) {
+    // ============ DİREKT SOHBET OLUŞTUR ============
+    async createDirectConversation(userId, otherUserId) {
         try {
-            const user = await authManager.getCurrentUser();
-            if (!user) throw new Error('Oturum yok');
+            if (!userId) throw new Error('Oturum yok');
+            if (userId === otherUserId) throw new Error('Kendinizle sohbet oluşturamazsınız');
 
             // Mevcut sohbet ara
-            const existingConversation = await this.findDirectConversation(user.id, otherUserId);
-            if (existingConversation) {
-                return { success: true, conversation: existingConversation, isNew: false };
+            const existing = await this.findDirectConversation(userId, otherUserId);
+            if (existing) {
+                return { success: true, conversation: existing, isNew: false };
             }
 
             // Yeni sohbet oluştur
-            const { data: newConv, error: convError } = await supabase
+            const { data: newConv, error: convError } = await window.CONFIG.supabase
                 .from('conversations')
                 .insert([{ 
                     type: 'direct',
-                    created_at: new Date(),
-                    updated_at: new Date()
+                    created_by: userId
                 }])
                 .select()
                 .single();
@@ -125,26 +153,18 @@ class ConversationManager {
             if (convError) throw convError;
 
             // Üyeleri ekle
-            const { error: memberError } = await supabase
+            const { error: memberError } = await window.CONFIG.supabase
                 .from('conversation_members')
                 .insert([
-                    { 
-                        conversation_id: newConv.id, 
-                        user_id: user.id, 
-                        role: 'member',
-                        joined_at: new Date()
-                    },
-                    { 
-                        conversation_id: newConv.id, 
-                        user_id: otherUserId, 
-                        role: 'member',
-                        joined_at: new Date()
-                    }
+                    { conversation_id: newConv.id, user_id: userId, role: 'member' },
+                    { conversation_id: newConv.id, user_id: otherUserId, role: 'member' }
                 ]);
 
             if (memberError) throw memberError;
 
-            await this.loadConversations();
+            // Cache temizle ve tekrar yükle
+            this.cache.delete(newConv.id);
+            await this.loadConversations(userId);
 
             return { success: true, conversation: newConv, isNew: true };
         } catch (error) {
@@ -153,84 +173,86 @@ class ConversationManager {
         }
     }
 
-    // Mevcut direkt sohbeti bul
+    // ============ MEVCUT DİREKT SOHBETİ BUL ============
     async findDirectConversation(userId1, userId2) {
         try {
-            const { data, error } = await supabase
+            // 1. Kullanıcı 1'in tüm direkt sohbetlerini al
+            const { data: user1Convs, error: err1 } = await window.CONFIG.supabase
                 .from('conversation_members')
                 .select(`
                     conversation_id,
-                    conversations (
+                    conversations!inner (
                         id,
-                        type,
-                        conversation_members (
-                            user_id
-                        )
+                        type
                     )
                 `)
                 .eq('user_id', userId1)
                 .eq('conversations.type', 'direct');
 
-            if (error) throw error;
+            if (err1) throw err1;
+            if (!user1Convs || user1Convs.length === 0) return null;
 
-            for (const item of data || []) {
-                const memberIds = item.conversations.conversation_members.map(m => m.user_id);
-                if (memberIds.includes(userId2)) {
-                    return await this.getConversation(item.conversation_id);
-                }
-            }
+            const convIds = user1Convs.map(c => c.conversation_id);
 
-            return null;
+            // 2. Bu sohbetlerde kullanıcı 2 var mı?
+            const { data: commonConv, error: err2 } = await window.CONFIG.supabase
+                .from('conversation_members')
+                .select('conversation_id')
+                .in('conversation_id', convIds)
+                .eq('user_id', userId2)
+                .limit(1)
+                .maybeSingle();
+
+            if (err2) throw err2;
+            if (!commonConv) return null;
+
+            return await this.getConversation(commonConv.conversation_id);
         } catch (error) {
             console.error('Sohbet arama hatası:', error);
             return null;
         }
     }
 
-    // Grup sohbeti oluştur
-    async createGroupConversation(name, memberIds, avatarUrl = null) {
+    // ============ GRUP SOHBETİ OLUŞTUR ============
+    async createGroupConversation(userId, name, memberIds, avatarUrl = null) {
         try {
-            const user = await authManager.getCurrentUser();
-            if (!user) throw new Error('Oturum yok');
-
+            if (!userId) throw new Error('Oturum yok');
             if (!name || name.trim().length < 3) {
                 throw new Error('Grup adı en az 3 karakter olmalı');
             }
-
             if (!memberIds || memberIds.length < 1) {
                 throw new Error('En az bir üye seçilmeli');
             }
 
-            const allMembers = [user.id, ...memberIds];
+            const allMembers = [...new Set([userId, ...memberIds])];
+            const trimmedName = name.trim();
 
-            const { data: newConv, error: convError } = await supabase
+            const { data: newConv, error: convError } = await window.CONFIG.supabase
                 .from('conversations')
                 .insert([{ 
                     type: 'group', 
-                    name: name.trim(),
+                    name: trimmedName,
                     avatar_url: avatarUrl,
-                    created_at: new Date(),
-                    updated_at: new Date()
+                    created_by: userId
                 }])
                 .select()
                 .single();
 
             if (convError) throw convError;
 
-            const members = allMembers.map(memberId => ({
+            const members = allMembers.map(id => ({
                 conversation_id: newConv.id,
-                user_id: memberId,
-                role: memberId === user.id ? 'admin' : 'member',
-                joined_at: new Date()
+                user_id: id,
+                role: id === userId ? 'admin' : 'member'
             }));
 
-            const { error: memberError } = await supabase
+            const { error: memberError } = await window.CONFIG.supabase
                 .from('conversation_members')
                 .insert(members);
 
             if (memberError) throw memberError;
 
-            await this.loadConversations();
+            await this.loadConversations(userId);
 
             return { success: true, conversation: newConv };
         } catch (error) {
@@ -239,12 +261,23 @@ class ConversationManager {
         }
     }
 
-    // Grup bilgilerini güncelle
-    async updateGroupInfo(conversationId, updates) {
+    // ============ GRUP BİLGİLERİNİ GÜNCELLE ============
+    async updateGroupInfo(conversationId, userId, updates) {
         try {
-            const { data, error } = await supabase
+            // Yetki kontrolü
+            const member = await this.getMember(conversationId, userId);
+            if (!member || member.role !== 'admin') {
+                throw new Error('Bu işlem için admin yetkisi gerekli');
+            }
+
+            const allowedUpdates = {};
+            if (updates.name) allowedUpdates.name = updates.name.trim();
+            if (updates.avatar_url) allowedUpdates.avatar_url = updates.avatar_url;
+            allowedUpdates.updated_at = new Date().toISOString();
+
+            const { data, error } = await window.CONFIG.supabase
                 .from('conversations')
-                .update(updates)
+                .update(allowedUpdates)
                 .eq('id', conversationId)
                 .eq('type', 'group')
                 .select()
@@ -252,7 +285,11 @@ class ConversationManager {
 
             if (error) throw error;
 
-            this.conversationCache[conversationId] = data;
+            this.cache.set(conversationId, {
+                data: { ...this.cache.get(conversationId)?.data, ...data },
+                timestamp: Date.now()
+            });
+
             return { success: true, conversation: data };
         } catch (error) {
             console.error('Grup güncellenemedi:', error);
@@ -260,16 +297,45 @@ class ConversationManager {
         }
     }
 
-    // Gruba üye ekle
-    async addGroupMember(conversationId, userId) {
+    // ============ ÜYE GETİR ============
+    async getMember(conversationId, userId) {
         try {
-            const { error } = await supabase
+            const { data, error } = await window.CONFIG.supabase
+                .from('conversation_members')
+                .select('user_id, role')
+                .eq('conversation_id', conversationId)
+                .eq('user_id', userId)
+                .maybeSingle();
+
+            if (error) throw error;
+            return data;
+        } catch (error) {
+            console.error('Üye getirilemedi:', error);
+            return null;
+        }
+    }
+
+    // ============ GRUBA ÜYE EKLE ============
+    async addGroupMember(conversationId, adminId, newUserId) {
+        try {
+            // Yetki kontrolü
+            const admin = await this.getMember(conversationId, adminId);
+            if (!admin || admin.role !== 'admin') {
+                throw new Error('Bu işlem için admin yetkisi gerekli');
+            }
+
+            // Zaten üye mi?
+            const existing = await this.getMember(conversationId, newUserId);
+            if (existing) {
+                throw new Error('Bu kullanıcı zaten grup üyesi');
+            }
+
+            const { error } = await window.CONFIG.supabase
                 .from('conversation_members')
                 .insert([{
                     conversation_id: conversationId,
-                    user_id: userId,
-                    role: 'member',
-                    joined_at: new Date()
+                    user_id: newUserId,
+                    role: 'member'
                 }]);
 
             if (error) throw error;
@@ -281,14 +347,25 @@ class ConversationManager {
         }
     }
 
-    // Gruptan üye çıkar
-    async removeGroupMember(conversationId, userId) {
+    // ============ GRUPTAN ÜYE ÇIKAR ============
+    async removeGroupMember(conversationId, adminId, targetUserId) {
         try {
-            const { error } = await supabase
+            // Yetki kontrolü
+            const admin = await this.getMember(conversationId, adminId);
+            if (!admin || admin.role !== 'admin') {
+                throw new Error('Bu işlem için admin yetkisi gerekli');
+            }
+
+            // Kendini çıkarma
+            if (adminId === targetUserId) {
+                return await this.leaveConversation(conversationId, adminId);
+            }
+
+            const { error } = await window.CONFIG.supabase
                 .from('conversation_members')
                 .delete()
                 .eq('conversation_id', conversationId)
-                .eq('user_id', userId);
+                .eq('user_id', targetUserId);
 
             if (error) throw error;
 
@@ -299,14 +376,24 @@ class ConversationManager {
         }
     }
 
-    // Grup üyesinin rolünü değiştir
-    async updateMemberRole(conversationId, userId, newRole) {
+    // ============ ÜYE ROLÜNÜ DEĞİŞTİR ============
+    async updateMemberRole(conversationId, adminId, targetUserId, newRole) {
         try {
-            const { error } = await supabase
+            if (!['admin', 'moderator', 'member'].includes(newRole)) {
+                throw new Error('Geçersiz rol');
+            }
+
+            // Yetki kontrolü
+            const admin = await this.getMember(conversationId, adminId);
+            if (!admin || admin.role !== 'admin') {
+                throw new Error('Bu işlem için admin yetkisi gerekli');
+            }
+
+            const { error } = await window.CONFIG.supabase
                 .from('conversation_members')
                 .update({ role: newRole })
                 .eq('conversation_id', conversationId)
-                .eq('user_id', userId);
+                .eq('user_id', targetUserId);
 
             if (error) throw error;
 
@@ -317,21 +404,21 @@ class ConversationManager {
         }
     }
 
-    // Sohbetten ayrıl
-    async leaveConversation(conversationId) {
+    // ============ SOHBETTEN AYRIL ============
+    async leaveConversation(conversationId, userId) {
         try {
-            const user = await authManager.getCurrentUser();
-            if (!user) throw new Error('Oturum yok');
+            if (!userId) throw new Error('Oturum yok');
 
-            const { error } = await supabase
+            const { error } = await window.CONFIG.supabase
                 .from('conversation_members')
                 .delete()
                 .eq('conversation_id', conversationId)
-                .eq('user_id', user.id);
+                .eq('user_id', userId);
 
             if (error) throw error;
 
-            delete this.conversationCache[conversationId];
+            this.cache.delete(conversationId);
+            this.conversations = this.conversations.filter(c => c.id !== conversationId);
             return { success: true };
         } catch (error) {
             console.error('Sohbetten ayrılınamadı:', error);
@@ -339,17 +426,34 @@ class ConversationManager {
         }
     }
 
-    // Sohbeti sil
-    async deleteConversation(conversationId) {
+    // ============ SOHBETİ SİL ============
+    async deleteConversation(conversationId, userId) {
         try {
-            const { error } = await supabase
+            // Yetki: sadece grup admini veya sohbet sahibi
+            const member = await this.getMember(conversationId, userId);
+            if (!member) throw new Error('Bu sohbete erişiminiz yok');
+
+            const { data: conv } = await window.CONFIG.supabase
+                .from('conversations')
+                .select('type, created_by')
+                .eq('id', conversationId)
+                .single();
+
+            const canDelete = conv?.type === 'direct' || 
+                              member.role === 'admin' || 
+                              conv?.created_by === userId;
+
+            if (!canDelete) throw new Error('Bu işlem için yetkiniz yok');
+
+            const { error } = await window.CONFIG.supabase
                 .from('conversations')
                 .delete()
                 .eq('id', conversationId);
 
             if (error) throw error;
 
-            delete this.conversationCache[conversationId];
+            this.cache.delete(conversationId);
+            this.conversations = this.conversations.filter(c => c.id !== conversationId);
             return { success: true };
         } catch (error) {
             console.error('Sohbet silinemedi:', error);
@@ -357,10 +461,10 @@ class ConversationManager {
         }
     }
 
-    // Sohbet üyelerini getir
+    // ============ SOHBET ÜYELERİNİ GETİR ============
     async getConversationMembers(conversationId) {
         try {
-            const { data, error } = await supabase
+            const { data, error } = await window.CONFIG.supabase
                 .from('conversation_members')
                 .select(`
                     user_id,
@@ -378,7 +482,6 @@ class ConversationManager {
                 .eq('conversation_id', conversationId);
 
             if (error) throw error;
-
             return data || [];
         } catch (error) {
             console.error('Üyeler getirilemedi:', error);
@@ -386,60 +489,115 @@ class ConversationManager {
         }
     }
 
-    // Diğer üyeyi getir (direkt sohbet için)
-    getOtherMember(conversation) {
+    // ============ DİĞER ÜYEYİ GETİR ============
+    getOtherMember(conversation, currentUserId = null) {
         if (!conversation || conversation.type !== 'direct') return null;
         
-        const currentUserId = authManager.currentUser?.id;
+        const uid = currentUserId || this.currentUserId;
+        if (!uid) return null;
+
         const members = conversation.conversation_members || [];
-        
-        return members.find(member => member.user_id !== currentUserId);
+        return members.find(m => m.user_id !== uid);
     }
 
-    // Sohbet başlığını getir
-    getConversationTitle(conversation) {
-        if (!conversation) return '';
+    // ============ SOHBET BAŞLIĞI ============
+    getConversationTitle(conversation, currentUserId = null) {
+        if (!conversation) return 'Sohbet';
         
         if (conversation.type === 'group') {
             return conversation.name || 'Grup';
         }
         
-        const otherMember = this.getOtherMember(conversation);
-        return otherMember?.profiles?.username || otherMember?.profiles?.full_name || 'Sohbet';
+        const other = this.getOtherMember(conversation, currentUserId);
+        return other?.profiles?.username || 
+               other?.profiles?.full_name || 
+               'Sohbet';
     }
 
-    // Sohbet avatarını getir
-    getConversationAvatar(conversation) {
+    // ============ SOHBET AVATARI ============
+    getConversationAvatar(conversation, currentUserId = null) {
         if (!conversation) return null;
         
         if (conversation.type === 'group') {
             return conversation.avatar_url || null;
         }
         
-        const otherMember = this.getOtherMember(conversation);
-        return otherMember?.profiles?.avatar_url || null;
+        const other = this.getOtherMember(conversation, currentUserId);
+        return other?.profiles?.avatar_url || null;
     }
 
-    // Son mesajı getir
+    // ============ SON MESAJ ============
     async getLastMessage(conversationId) {
-        return await messageManager.getLastMessage(conversationId);
+        try {
+            const { data, error } = await window.CONFIG.supabase
+                .from('messages')
+                .select(`
+                    id,
+                    content,
+                    type,
+                    created_at,
+                    sender_id,
+                    is_deleted,
+                    sender:profiles (id, username)
+                `)
+                .eq('conversation_id', conversationId)
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .maybeSingle();
+
+            if (error) throw error;
+            return data;
+        } catch (error) {
+            console.error('Son mesaj alınamadı:', error);
+            return null;
+        }
     }
 
-    // Okunmamış mesaj sayısı
-    async getUnreadCount(conversationId) {
-        return await messageManager.getUnreadCount(conversationId);
+    // ============ OKUNMAMIŞ SAYI ============
+    async getUnreadCount(conversationId, userId) {
+        try {
+            const uid = userId || this.currentUserId;
+            if (!uid) return 0;
+
+            // Okunmuş mesaj ID'lerini al
+            const { data: reads } = await window.CONFIG.supabase
+                .from('message_reads')
+                .select('message_id')
+                .eq('user_id', uid)
+                .eq('conversation_id', conversationId);
+
+            const readIds = (reads || []).map(r => r.message_id);
+
+            let query = window.CONFIG.supabase
+                .from('messages')
+                .select('id', { count: 'exact', head: true })
+                .eq('conversation_id', conversationId)
+                .neq('sender_id', uid)
+                .eq('is_deleted', false);
+
+            if (readIds.length > 0) {
+                query = query.not('id', 'in', `(${readIds.join(',')})`);
+            }
+
+            const { count, error } = await query;
+            if (error) throw error;
+
+            return count || 0;
+        } catch (error) {
+            console.error('Okunmamış sayı alınamadı:', error);
+            return 0;
+        }
     }
 
-    // Sohbeti güncelle (updated_at)
+    // ============ TIMESTAMP GÜNCELLE ============
     async updateConversationTimestamp(conversationId) {
         try {
-            const { error } = await supabase
+            const { error } = await window.CONFIG.supabase
                 .from('conversations')
-                .update({ updated_at: new Date() })
+                .update({ updated_at: new Date().toISOString() })
                 .eq('id', conversationId);
 
             if (error) throw error;
-
             return { success: true };
         } catch (error) {
             console.error('Zaman damgası güncellenemedi:', error);
@@ -447,18 +605,36 @@ class ConversationManager {
         }
     }
 
-    // Cache temizle
+    // ============ SOHBET ARA ============
+    async searchConversations(userId, searchTerm) {
+        try {
+            const all = await this.loadConversations(userId);
+            const term = searchTerm.toLowerCase().trim();
+            
+            if (!term) return all;
+
+            return all.filter(conv => {
+                const title = this.getConversationTitle(conv, userId).toLowerCase();
+                return title.includes(term);
+            });
+        } catch (error) {
+            console.error('Sohbet arama hatası:', error);
+            return [];
+        }
+    }
+
+    // ============ CACHE ============
     clearCache() {
-        this.conversationCache = {};
+        this.cache.clear();
         this.conversations = [];
         this.currentConversation = null;
     }
+
+    reset() {
+        this.clearCache();
+        this.currentUserId = null;
+    }
 }
 
-// Global conversation manager
+// Global
 const conversationManager = new ConversationManager();
-
-// Export et (Node.js için)
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = ConversationManager;
-}
