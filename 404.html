@@ -1,316 +1,100 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="tr" class="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>404 - Sayfa Bulunamadı | Gettic</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js">
-    </script>
-    <link href="https://api.fontshare.com/v2/css?f[]=satoshi@700,900&display=swap" rel="stylesheet">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: 'Satoshi', 'Segoe UI', system-ui, sans-serif;
-            background: #0a0a14;
-            color: #e8e8f8;
-            overflow: hidden;
-            height: 100vh;
-            width: 100vw;
-        }
-
-        canvas#bg {
-            position: fixed;
-            inset: 0;
-            z-index: 0;
-            display: block;
-        }
-
-        .overlay {
-            position: fixed;
-            inset: 0;
-            z-index: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 30px;
-            pointer-events: none;
-        }
-
-        .content {
-            pointer-events: auto;
-            max-width: 550px;
-            text-align: center;
-        }
-
-        .error-code {
-            font-family: 'Satoshi', 'Segoe UI', system-ui, sans-serif;
-            font-size: 110px;
-            font-weight: 900;
-            background: linear-gradient(135deg, #b57bee, #c99df2, #dbbff9);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            line-height: 1;
-            margin-bottom: 10px;
-            letter-spacing: -2px;
-            filter: drop-shadow(0 0 40px rgba(181, 123, 238, 0.6));
-        }
-
-        h1 {
-            font-family: 'Satoshi', 'Segoe UI', system-ui, sans-serif;
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 14px;
-            color: #ffffff;
-            text-shadow: 0 0 30px rgba(255, 255, 255, 0.4), 0 0 60px rgba(181, 123, 238, 0.3);
-            letter-spacing: 1px;
-        }
-
-        p {
-            font-family: 'Satoshi', 'Segoe UI', system-ui, sans-serif;
-            color: #c0c0e0;
-            font-size: 15px;
-            margin-bottom: 32px;
-            line-height: 1.7;
-            font-weight: 400;
-            text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
-        }
-
-        a.home-btn {
-            font-family: 'Satoshi', 'Segoe UI', system-ui, sans-serif;
-            display: inline-block;
-            padding: 14px 34px;
-            background: linear-gradient(135deg, #b57bee, #9b5de5);
-            color: #fff;
-            text-decoration: none;
-            border-radius: 50px;
-            font-weight: 700;
-            font-size: 15px;
-            transition: all .3s;
-            box-shadow: 0 6px 30px rgba(181, 123, 238, 0.5);
-            letter-spacing: 1px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        a.home-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 40px rgba(181, 123, 238, 0.7);
-            filter: brightness(1.15);
-        }
-
-        .links {
-            margin-top: 24px;
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        .links a {
-            font-family: 'Satoshi', 'Segoe UI', system-ui, sans-serif;
-            background: rgba(255, 255, 255, 0.06);
-            color: #9999cc;
-            text-decoration: none;
-            font-size: 12px;
-            padding: 8px 18px;
-            border-radius: 50px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            transition: all .2s;
-            font-weight: 500;
-        }
-        .links a:hover {
-            background: rgba(181, 123, 238, 0.2);
-            color: #dbbff9;
-            border-color: rgba(181, 123, 238, 0.5);
-        }
-
-        @media (max-width: 600px) {
-            .error-code { font-size: 70px; }
-            h1 { font-size: 22px; }
-            p { font-size: 13px; }
-            a.home-btn { padding: 12px 26px; font-size: 14px; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>404 - Sayfa Bulunamadı | Gettic</title>
+<meta name="description" content="Aradığınız sayfa bulunamadı">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0a0a0f">
+<link rel="icon" type="image/png" href="logo.png">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={darkMode:'class',theme:{extend:{colors:{'bg-primary':'#0a0a0f','bg-secondary':'#12121a','bg-tertiary':'#1a1a24','bg-hover':'#22222e','accent':'#7c3aed','accent-hover':'#8b5cf6','border-dark':'#1f1f2e'},animation:{'float-slow':'float 8s ease-in-out infinite','float-medium':'float 6s ease-in-out infinite','glitch':'glitch 2s infinite'},keyframes:{float:{'0%,100%':{transform:'translateY(0)'},'50%':{transform:'translateY(-20px)'}},glitch:{'0%,100%':{transform:'translate(0)'},'20%':{transform:'translate(-2px,2px)'},'40%':{transform:'translate(-2px,-2px)'},'60%':{transform:'translate(2px,2px)'},'80%':{transform:'translate(2px,-2px)'}}}}}}</script>
+<link rel="stylesheet" href="css/style.css">
 </head>
-<body>
-    <canvas id="bg"></canvas>
+<body class="bg-bg-primary text-white min-h-screen font-sans antialiased overflow-hidden">
 
-    <div class="overlay">
-        <div class="content">
-            <div class="error-code">404</div>
-            <h1>🔮 Sayfa Bulunamadı</h1>
-            <p>Aradığın sayfa taşınmış, silinmiş veya hiç var olmamış olabilir.<br>Doğru adresi yazdığından emin ol.</p>
-            <a href="/" class="home-btn">🏠 Ana Sayfaya Dön</a>
-            <div class="links">
-                <a href="/ai">🤖 Gettic AI</a>
-                <a href="/apis/list">📋 API Listesi</a>
-                <a href="/mc">🎮 Minecraft</a>
-            </div>
-        </div>
-    </div>
+<div class="absolute top-20 left-20 w-72 h-72 bg-accent/20 rounded-full blur-3xl animate-float-slow"></div>
+<div class="absolute bottom-20 right-20 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-float-medium"></div>
+<div class="absolute top-1/2 left-1/2 w-[600px] h-[600px] bg-accent/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
 
-    <script>
-        // ==================== THREE.JS SAHNE ====================
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(0, 1, 16);
-        camera.lookAt(0, 0, 0);
+<nav class="fixed top-0 w-full z-50 glass-strong border-b border-border-dark">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="flex items-center justify-between h-16">
+<div class="flex items-center gap-3">
+<a href="index.html"><img src="logo.png" class="w-10 h-10 rounded-xl"></a>
+<a href="index.html" class="text-2xl font-bold gradient-text">Gettic</a>
+</div>
+<div class="flex items-center gap-3">
+<a href="auth.html" class="px-4 py-2 text-gray-300 hover:text-white hover:bg-bg-hover rounded-lg transition">Giriş Yap</a>
+<a href="auth.html" class="shimmer-button text-sm">Kayıt Ol</a>
+</div>
+</div>
+</div>
+</nav>
 
-        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('bg'), alpha: true, antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        renderer.setClearColor(0x0a0a14, 1);
+<main class="min-h-screen flex items-center justify-center px-4 relative z-10">
+<div class="text-center max-w-2xl">
 
-        // ==================== TEXTURE ====================
-        const textureLoader = new THREE.TextureLoader();
-        const logoTexture = textureLoader.load(
-            'https://raw.githubusercontent.com/darking053official/gettic/main/1777062266055.png'
-        );
+<div class="mb-8 animate-float-slow">
+<h1 class="text-[120px] md:text-[180px] font-bold leading-none gradient-text select-none animate-glitch">404</h1>
+</div>
 
-        // ==================== PARTİKÜLLER ====================
-        const particlesGeom = new THREE.BufferGeometry();
-        const particlesCount = 800;
-        const posArray = new Float32Array(particlesCount * 3);
-        const colorArray = new Float32Array(particlesCount * 3);
+<div class="mb-8">
+<svg class="w-20 h-20 mx-auto text-accent/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+</svg>
+</div>
 
-        for (let i = 0; i < particlesCount * 3; i += 3) {
-            posArray[i] = (Math.random() - 0.5) * 50;
-            posArray[i + 1] = (Math.random() - 0.5) * 40;
-            posArray[i + 2] = (Math.random() - 0.5) * 30;
-            colorArray[i] = 0.5 + Math.random() * 0.5;
-            colorArray[i + 1] = 0.3 + Math.random() * 0.5;
-            colorArray[i + 2] = 0.6 + Math.random() * 0.4;
-        }
+<h2 class="text-3xl md:text-4xl font-bold mb-4">Sayfa Bulunamadı</h2>
+<p class="text-gray-400 text-lg mb-8 leading-relaxed">
+Aradığınız sayfa taşınmış, silinmiş veya hiç var olmamış olabilir.
+<br>
+Endişelenmeyin, sizi güvenli bir yere yönlendirebiliriz.
+</p>
 
-        particlesGeom.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
-        particlesGeom.setAttribute('color', new THREE.BufferAttribute(colorArray, 3));
+<div class="flex flex-col sm:flex-row gap-4 justify-center">
+<a href="index.html" class="shimmer-button">
+<svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+Ana Sayfaya Dön
+</a>
+<a href="chat.html" class="px-8 py-4 border border-border-dark hover:bg-bg-hover rounded-xl font-semibold transition hover:border-accent/50 hover-lift">
+<svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+Sohbete Git
+</a>
+</div>
 
-        const particles = new THREE.Points(particlesGeom, new THREE.PointsMaterial({
-            size: 0.08, vertexColors: true, blending: THREE.AdditiveBlending,
-            depthWrite: false, transparent: true, opacity: 0.8,
-        }));
-        scene.add(particles);
+<div class="mt-12 pt-8 border-t border-border-dark">
+<p class="text-gray-500 text-sm mb-4">Belki bunlardan birini arıyordunuz?</p>
+<div class="flex flex-wrap gap-3 justify-center">
+<a href="index.html" class="px-4 py-2 bg-bg-tertiary hover:bg-bg-hover rounded-lg text-sm transition hover-lift">Ana Sayfa</a>
+<a href="auth.html" class="px-4 py-2 bg-bg-tertiary hover:bg-bg-hover rounded-lg text-sm transition hover-lift">Giriş Yap</a>
+<a href="chat.html" class="px-4 py-2 bg-bg-tertiary hover:bg-bg-hover rounded-lg text-sm transition hover-lift">Sohbet</a>
+<a href="profile.html" class="px-4 py-2 bg-bg-tertiary hover:bg-bg-hover rounded-lg text-sm transition hover-lift">Profil</a>
+<a href="settings.html" class="px-4 py-2 bg-bg-tertiary hover:bg-bg-hover rounded-lg text-sm transition hover-lift">Ayarlar</a>
+</div>
+</div>
 
-        // ==================== GETTIC LOGO KÜRESİ ====================
-const logoGroup = new THREE.Group();
+<div class="mt-12 inline-flex items-center gap-2 px-4 py-2 bg-accent/10 border border-accent/30 rounded-full text-sm text-accent-light">
+<span class="w-2 h-2 bg-accent rounded-full animate-pulse"></span>
+Hata kodu: 404 Not Found
+</div>
 
-// Texture'ı küçült - logo tekrar etmesin diye
-logoTexture.wrapS = THREE.ClampToEdgeWrapping;
-logoTexture.wrapT = THREE.ClampToEdgeWrapping;
-logoTexture.repeat.set(1, 1);
-logoTexture.offset.set(0, 0);
+</div>
+</main>
 
-// Küre ESKİ BÜYÜK boyutta
-const sphere = new THREE.Mesh(
-    new THREE.SphereGeometry(3, 64, 64),  // ← 3'e geri döndü
-    new THREE.MeshPhongMaterial({ 
-        map: logoTexture, 
-        shininess: 60, 
-        transparent: true, 
-        opacity: 0.95 
-    })
-);
-logoGroup.add(sphere);
+<footer class="absolute bottom-0 w-full border-t border-border-dark py-6">
+<div class="max-w-7xl mx-auto px-4 text-center">
+<p class="text-gray-500 text-sm">© 2026 Gettic. Gizlilik önce gelir.</p>
+</div>
+</footer>
 
-// Halkalar da ESKİ BÜYÜK boyutta
-const ring1 = new THREE.Mesh(
-    new THREE.TorusGeometry(3.8, 0.2, 32, 120),  // ← 3.8'e geri döndü
-    new THREE.MeshPhongMaterial({ 
-        color: 0xb57bee, 
-        emissive: 0x4a1d8a, 
-        emissiveIntensity: 0.7, 
-        shininess: 100, 
-        transparent: true, 
-        opacity: 0.9 
-    })
-);
-ring1.rotation.x = Math.PI / 2;
-logoGroup.add(ring1);
-
-const ring2 = new THREE.Mesh(
-    new THREE.TorusGeometry(4.2, 0.12, 32, 100),  // ← 4.2'ye geri döndü
-    new THREE.MeshPhongMaterial({ 
-        color: 0xc99df2, 
-        emissive: 0x6b21a8, 
-        emissiveIntensity: 0.5, 
-        shininess: 100, 
-        transparent: true, 
-        opacity: 0.7 
-    })
-);
-ring2.rotation.x = Math.PI / 3;
-ring2.rotation.y = Math.PI / 4;
-logoGroup.add(ring2);
-
-logoGroup.position.set(5, 0, -6);
-scene.add(logoGroup);
-        // ==================== 3D "404" ====================
-        const textGroup = new THREE.Group();
-
-        function makeMesh(shape, x, color) {
-            const m = new THREE.Mesh(
-                new THREE.ShapeGeometry(shape),
-                new THREE.MeshPhongMaterial({ color, emissive: color, emissiveIntensity: 0.6, shininess: 100, transparent: true, opacity: 0.9, side: THREE.DoubleSide })
-            );
-            m.position.x = x;
-            return m;
-        }
-
-        function four(x) {
-            const s = new THREE.Shape();
-            s.moveTo(-1.2, 2.5); s.lineTo(0.6, 2.5); s.lineTo(0.6, 0.4); s.lineTo(-1.2, 0.4);
-            s.lineTo(-1.2, -0.8); s.lineTo(0.6, -0.8); s.lineTo(0.6, -2.5); s.lineTo(-1.2, -2.5);
-            return makeMesh(s, x, 0xb57bee);
-        }
-
-        function zero(x) {
-            const s = new THREE.Shape();
-            s.moveTo(-1.2, 2.5); s.lineTo(1.2, 2.5); s.lineTo(1.2, -2.5); s.lineTo(-1.2, -2.5);
-            const h = new THREE.Path();
-            h.moveTo(-0.5, 1.7); h.lineTo(0.5, 1.7); h.lineTo(0.5, -1.7); h.lineTo(-0.5, -1.7);
-            s.holes.push(h);
-            return makeMesh(s, x, 0xc99df2);
-        }
-
-        textGroup.add(four(-4.5)); textGroup.add(zero(0)); textGroup.add(four(4.5));
-        textGroup.position.set(-3, 2, -2);
-        scene.add(textGroup);
-
-        // ==================== IŞIKLAR ====================
-        scene.add(new THREE.AmbientLight(0x444466, 0.8));
-        const pl1 = new THREE.PointLight(0xb57bee, 2.0, 40); pl1.position.set(12, 8, 14); scene.add(pl1);
-        const pl2 = new THREE.PointLight(0xc99df2, 1.6, 30); pl2.position.set(-12, -5, 10); scene.add(pl2);
-        const pl3 = new THREE.PointLight(0xffffff, 0.8, 25); pl3.position.set(0, 5, 18); scene.add(pl3);
-
-        // ==================== MOUSE ====================
-        let mx = 0, my = 0, tx = 0, ty = 0;
-        document.addEventListener('mousemove', e => { tx = (e.clientX / innerWidth) * 2 - 1; ty = -(e.clientY / innerHeight) * 2 + 1; });
-        document.addEventListener('touchmove', e => { tx = (e.touches[0].clientX / innerWidth) * 2 - 1; ty = -(e.touches[0].clientY / innerHeight) * 2 + 1; });
-
-        // ==================== ANİMASYON ====================
-        function animate() {
-            requestAnimationFrame(animate);
-            mx += (tx - mx) * 0.04; my += (ty - my) * 0.04;
-            particles.rotation.y += 0.0005; particles.rotation.x += 0.0002;
-            textGroup.rotation.y = mx * 0.5; textGroup.rotation.x = my * 0.3;
-            textGroup.position.y = 2 + Math.sin(Date.now() * 0.0012) * 0.5;
-            logoGroup.rotation.y += 0.006;
-            logoGroup.rotation.x = Math.sin(Date.now() * 0.0008) * 0.3;
-            logoGroup.position.y = Math.sin(Date.now() * 0.0015) * 1.5;
-            ring1.rotation.z += 0.004; ring2.rotation.z -= 0.003; ring2.rotation.x += 0.002;
-            const t = Date.now() * 0.001;
-            pl1.intensity = 1.8 + Math.sin(t * 0.7) * 0.5;
-            pl2.intensity = 1.4 + Math.cos(t * 0.5) * 0.4;
-            renderer.render(scene, camera);
-        }
-
-        window.addEventListener('resize', () => {
-            camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
-            renderer.setSize(innerWidth, innerHeight);
-        });
-
-        animate();
-    </script>
+<script>
+setTimeout(()=>{
+document.querySelectorAll('.animate-glitch').forEach(el=>{
+el.style.animation='none';
+});
+},4000);
+</script>
 </body>
 </html>
