@@ -1,28 +1,43 @@
 // ============================================
-// GETTIC - MESSAGE MANAGER
+// GETTIC - MESSAGE MANAGER (Premium)
 // ============================================
 
 class MessageManager {
     constructor() {
         this.messages = [];
-        this.messageCache = {};
+        this.cache = new Map();
         this.editingMessage = null;
         this.replyingTo = null;
     }
 
-    // Mesajları yükle
+    // ============ YARDIMCI ============
+    _getExt(name) {
+        return name.split('.').pop().toLowerCase();
+    }
+
+    _generateId() {
+        return Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
+    }
+
+    _isImage(name) {
+        return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(this._getExt(name));
+    }
+    _isVideo(name) {
+        return ['mp4', 'webm', 'ogg', 'mov'].includes(this._getExt(name));
+    }
+    _isAudio(name) {
+        return ['mp3', 'wav', 'ogg', 'm4a'].includes(this._getExt(name));
+    }
+
+    // ============ MESAJLARI YÜKLE ============
     async loadMessages(conversationId, limit = 50, offset = 0) {
         try {
-            const { data, error } = await supabase
+            const { data, error } = await window.CONFIG.supabase
                 .from('messages')
                 .select(`
-                    *,
-                    sender:profiles (
-                        id,
-                        username,
-                        full_name,
-                        avatar_url
-                    )
+                    id, conversation_id, sender_id, content, type, media_url,
+                    reply_to, is_edited, is_deleted, created_at, edited_at,
+                    sender:profiles (id, username, full_name, avatar_url)
                 `)
                 .eq('conversation_id', conversationId)
                 .order('created_at', { ascending: false })
@@ -30,12 +45,13 @@ class MessageManager {
 
             if (error) throw error;
 
-            // Mesajları ters çevir (eskiden yeniye)
             const messages = (data || []).reverse();
-            
-            // Cache'e ekle
-            this.messageCache[conversationId] = messages;
             this.messages = messages;
+
+            this.cache.set(conversationId, {
+                data: messages,
+                timestamp: Date.now()
+            });
 
             return messages;
         } catch (error) {
@@ -44,57 +60,84 @@ class MessageManager {
         }
     }
 
-    // Eski mesajları yükle (pagination)
-    async loadOlderMessages(conversationId, beforeMessageId, limit = 50) {
+    // ============ ESKİ MESAJLARI YÜKLE ============
+    async loadOlderMessages(conversationId, beforeDate, limit = 50) {
         try {
-            const { data, error } = await supabase
+            if (!beforeDate) return [];
+
+            const { data, error } = await window.CONFIG.supabase
                 .from('messages')
                 .select(`
-                    *,
-                    sender:profiles (
-                        id,
-                        username,
-                        avatar_url
-                    )
+                    id, conversation_id, sender_id, content, type, media_url,
+                    reply_to, is_edited, is_deleted, created_at, edited_at,
+                    sender:profiles (id, username, full_name, avatar_url)
                 `)
                 .eq('conversation_id', conversationId)
-                .lt('created_at', beforeMessageId)
+                .lt('created_at', beforeDate)
                 .order('created_at', { ascending: false })
                 .limit(limit);
 
             if (error) throw error;
 
-            return (data || []).reverse();
+            const older = (data || []).reverse();
+            this.messages = [...older, ...this.messages];
+
+            const cached = this.cache.get(conversationId);
+            if (cached) {
+                cached.data = this.messages;
+                cached.timestamp = Date.now();
+            }
+
+            return older;
         } catch (error) {
             console.error('Eski mesajlar yüklenemedi:', error);
             return [];
         }
     }
 
-    // Mesaj gönder
-    async sendMessage(conversationId, content, type = 'text', mediaUrl = null) {
+    // ============ MESAJ GÖNDER ============
+    async sendMessage(userId, conversationId, content, type = 'text', mediaUrl = null) {
         try {
-            const user = await authManager.getCurrentUser();
-            if (!user) throw new Error('Oturum yok');
+            if (!userId) throw new Error('Oturum yok');
+            if (!conversationId) throw new Error('Sohbet seçilmedi');
+
+            const trimmed = content?.trim() || '';
+            if (!trimmed && !mediaUrl) throw new Error('Mesaj içeriği boş');
+
+            const { LIMITS } = window.CONST || {};
+            if (trimmed.length > (LIMITS?.MESSAGE_MAX_LENGTH || 2000)) {
+                throw new Error(`Mesaj ${LIMITS?.MESSAGE_MAX_LENGTH || 2000} karakterden uzun olamaz`);
+            }
 
             const messageData = {
                 conversation_id: conversationId,
-                sender_id: user.id,
-                content: content.trim(),
+                sender_id: userId,
+                content: trimmed || null,
                 type: type,
                 media_url: mediaUrl,
                 reply_to: this.replyingTo?.id || null
             };
 
-            const { data, error } = await supabase
+            const { data, error } = await window.CONFIG.supabase
                 .from('messages')
                 .insert([messageData])
-                .select()
+                .select(`
+                    id, conversation_id, sender_id, content, type, media_url,
+                    reply_to, is_edited, is_deleted, created_at,
+                    sender:profiles (id, username, full_name, avatar_url)
+                `)
                 .single();
 
             if (error) throw error;
 
-            // Reply durumunu temizle
+            // Sohbetin updated_at'ini güncelle (fire & forget)
+            window.CONFIG.supabase
+                .from('conversations')
+                .update({ updated_at: new Date().toISOString() })
+                .eq('id', conversationId)
+                .then(() => {})
+                .catch(() => {});
+
             this.replyingTo = null;
 
             return { success: true, message: data };
@@ -104,24 +147,27 @@ class MessageManager {
         }
     }
 
-    // Mesaj düzenle
-    async editMessage(messageId, newContent) {
+    // ============ MESAJ DÜZENLE ============
+    async editMessage(userId, messageId, newContent) {
         try {
-            const { data, error } = await supabase
+            const trimmed = newContent?.trim();
+            if (!trimmed) throw new Error('Mesaj içeriği boş olamaz');
+
+            const { data, error } = await window.CONFIG.supabase
                 .from('messages')
                 .update({
-                    content: newContent.trim(),
+                    content: trimmed,
                     is_edited: true,
-                    edited_at: new Date()
+                    edited_at: new Date().toISOString()
                 })
                 .eq('id', messageId)
+                .eq('sender_id', userId)  // Sadece kendi mesajını
                 .select()
                 .single();
 
             if (error) throw error;
 
             this.editingMessage = null;
-
             return { success: true, message: data };
         } catch (error) {
             console.error('Mesaj düzenlenemedi:', error);
@@ -129,13 +175,20 @@ class MessageManager {
         }
     }
 
-    // Mesaj sil
-    async deleteMessage(messageId) {
+    // ============ MESAJ SİL (HARD) ============
+    async deleteMessage(userId, messageId) {
         try {
-            const { error } = await supabase
+            // Önce message_reads temizle
+            await window.CONFIG.supabase
+                .from('message_reads')
+                .delete()
+                .eq('message_id', messageId);
+
+            const { error } = await window.CONFIG.supabase
                 .from('messages')
                 .delete()
-                .eq('id', messageId);
+                .eq('id', messageId)
+                .eq('sender_id', userId);
 
             if (error) throw error;
 
@@ -146,18 +199,19 @@ class MessageManager {
         }
     }
 
-    // Mesajı soft delete yap
-    async softDeleteMessage(messageId) {
+    // ============ MESAJ SİL (SOFT) ============
+    async softDeleteMessage(userId, messageId) {
         try {
-            const { error } = await supabase
+            const { error } = await window.CONFIG.supabase
                 .from('messages')
                 .update({
                     is_deleted: true,
-                    content: '',
+                    content: null,
                     media_url: null,
-                    deleted_at: new Date()
+                    deleted_at: new Date().toISOString()
                 })
-                .eq('id', messageId);
+                .eq('id', messageId)
+                .eq('sender_id', userId);
 
             if (error) throw error;
 
@@ -168,104 +222,146 @@ class MessageManager {
         }
     }
 
-    // Mesajı okundu işaretle
-    async markAsRead(messageId, conversationId) {
+    // ============ OKUNDU İŞARETLE ============
+    async markAsRead(userId, messageId, conversationId) {
         try {
-            const user = await authManager.getCurrentUser();
-            if (!user) return;
+            if (!userId || !messageId || !conversationId) return;
 
-            const { error } = await supabase
+            const { error } = await window.CONFIG.supabase
                 .from('message_reads')
-                .insert({
+                .upsert({
                     message_id: messageId,
                     conversation_id: conversationId,
-                    user_id: user.id,
-                    read_at: new Date()
-                });
+                    user_id: userId,
+                    read_at: new Date().toISOString()
+                }, { onConflict: 'message_id,user_id' });
 
-            if (error && !error.message.includes('duplicate')) {
-                console.error('Okundu işaretlenemedi:', error);
-            }
+            if (error) throw error;
         } catch (error) {
-            console.error('Okundu işaretleme hatası:', error);
+            // Sessizce geç (duplicate vs.)
         }
     }
 
-    // Tüm mesajları okundu işaretle
-    async markAllAsRead(conversationId) {
+    // ============ TÜM MESAJLARI OKUNDU İŞARETLE ============
+    async markAllAsRead(userId, conversationId) {
         try {
-            const user = await authManager.getCurrentUser();
-            if (!user) return;
+            if (!userId || !conversationId) return { success: false };
 
-            const { data: unreadMessages, error: fetchError } = await supabase
+            // Okunmamış mesajları al
+            const { data: reads } = await window.CONFIG.supabase
+                .from('message_reads')
+                .select('message_id')
+                .eq('user_id', userId)
+                .eq('conversation_id', conversationId);
+
+            const readIds = new Set((reads || []).map(r => r.message_id));
+
+            const { data: unreadMessages, error: fetchError } = await window.CONFIG.supabase
                 .from('messages')
                 .select('id')
                 .eq('conversation_id', conversationId)
-                .neq('sender_id', user.id);
+                .neq('sender_id', userId);
 
             if (fetchError) throw fetchError;
 
-            const readRecords = unreadMessages.map(msg => ({
-                message_id: msg.id,
+            // Filtrele: zaten okunmuş olanları çıkar
+            const unread = (unreadMessages || []).filter(m => !readIds.has(m.id));
+
+            if (unread.length === 0) return { success: true, count: 0 };
+
+            const records = unread.map(m => ({
+                message_id: m.id,
                 conversation_id: conversationId,
-                user_id: user.id,
-                read_at: new Date()
+                user_id: userId,
+                read_at: new Date().toISOString()
             }));
 
-            if (readRecords.length > 0) {
-                const { error } = await supabase
-                    .from('message_reads')
-                    .upsert(readRecords);
+            const { error } = await window.CONFIG.supabase
+                .from('message_reads')
+                .insert(records);
 
-                if (error) throw error;
-            }
+            if (error) throw error;
 
-            return { success: true };
+            return { success: true, count: unread.length };
         } catch (error) {
             console.error('Okundu işaretleme hatası:', error);
             return { success: false, error: error.message };
         }
     }
 
-    // Mesaja cevap ver
+    // ============ OKUNMAMIŞ SAYI ============
+    async getUnreadCount(userId, conversationId) {
+        try {
+            if (!userId || !conversationId) return 0;
+
+            // Okunmuş ID'leri al
+            const { data: reads } = await window.CONFIG.supabase
+                .from('message_reads')
+                .select('message_id')
+                .eq('user_id', userId)
+                .eq('conversation_id', conversationId);
+
+            const readIds = (reads || []).map(r => r.message_id);
+
+            let query = window.CONFIG.supabase
+                .from('messages')
+                .select('id', { count: 'exact', head: true })
+                .eq('conversation_id', conversationId)
+                .neq('sender_id', userId)
+                .eq('is_deleted', false);
+
+            if (readIds.length > 0) {
+                query = query.not('id', 'in', `(${readIds.join(',')})`);
+            }
+
+            const { count, error } = await query;
+            if (error) throw error;
+
+            return count || 0;
+        } catch (error) {
+            console.error('Okunmamış sayı alınamadı:', error);
+            return 0;
+        }
+    }
+
+    // ============ CEVAPLA ============
     setReplyTo(message) {
         this.replyingTo = message;
     }
 
-    // Cevabı temizle
     clearReply() {
         this.replyingTo = null;
     }
 
-    // Mesaj düzenlemeye başla
+    // ============ DÜZENLE ============
     startEditing(message) {
         this.editingMessage = message;
     }
 
-    // Düzenlemeyi iptal et
     cancelEditing() {
         this.editingMessage = null;
     }
 
-    // Mesaj ara
-    async searchMessages(conversationId, searchTerm) {
+    // ============ MESAJ ARA ============
+    async searchMessages(conversationId, searchTerm, limit = 50) {
         try {
-            const { data, error } = await supabase
+            const term = searchTerm?.trim();
+            if (!term || term.length < 2) return [];
+
+            const { data, error } = await window.CONFIG.supabase
                 .from('messages')
                 .select(`
-                    *,
-                    sender:profiles (
-                        id,
-                        username,
-                        avatar_url
-                    )
+                    id, conversation_id, sender_id, content, type, media_url,
+                    created_at, is_deleted,
+                    sender:profiles (id, username, avatar_url)
                 `)
                 .eq('conversation_id', conversationId)
-                .ilike('content', `%${searchTerm}%`)
-                .order('created_at', { ascending: false });
+                .eq('is_deleted', false)
+                .ilike('content', `%${term}%`)
+                .order('created_at', { ascending: false })
+                .limit(limit);
 
             if (error) throw error;
-
             return data || [];
         } catch (error) {
             console.error('Mesaj arama hatası:', error);
@@ -273,21 +369,25 @@ class MessageManager {
         }
     }
 
-    // Medya dosyası yükle
-    async uploadMedia(conversationId, file) {
+    // ============ MEDYA YÜKLE ============
+    async uploadMedia(userId, conversationId, file) {
         try {
-            const user = await authManager.getCurrentUser();
-            if (!user) throw new Error('Oturum yok');
+            if (!userId) throw new Error('Oturum yok');
+            if (!conversationId) throw new Error('Sohbet seçilmedi');
+            if (!file) throw new Error('Dosya seçilmedi');
 
-            if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-                throw new Error(`Dosya ${MAX_FILE_SIZE_MB}MB'dan büyük olamaz`);
+            const { LIMITS } = window.CONST || {};
+            const maxMB = LIMITS?.FILE_SIZE_MB || 20;
+
+            if (file.size > maxMB * 1024 * 1024) {
+                throw new Error(`Dosya ${maxMB}MB'dan büyük olamaz`);
             }
 
-            const fileExt = getFileExtension(file.name);
-            const fileName = `${conversationId}-${Date.now()}-${generateId()}.${fileExt}`;
-            const filePath = `chat/${conversationId}/${fileName}`;
+            const ext = this._getExt(file.name);
+            const fileName = `${Date.now()}-${this._generateId()}.${ext}`;
+            const filePath = `${conversationId}/${fileName}`;
 
-            const { error: uploadError } = await supabase.storage
+            const { error: uploadError } = await window.CONFIG.supabase.storage
                 .from('chat-media')
                 .upload(filePath, file, {
                     cacheControl: '3600',
@@ -296,74 +396,37 @@ class MessageManager {
 
             if (uploadError) throw uploadError;
 
-            const { data: { publicUrl } } = supabase.storage
+            const { data: { publicUrl } } = window.CONFIG.supabase.storage
                 .from('chat-media')
                 .getPublicUrl(filePath);
 
             let messageType = 'file';
-            if (isImageFile(file.name)) messageType = 'image';
-            else if (isVideoFile(file.name)) messageType = 'video';
-            else if (isAudioFile(file.name)) messageType = 'voice';
+            if (this._isImage(file.name)) messageType = 'image';
+            else if (this._isVideo(file.name)) messageType = 'video';
+            else if (this._isAudio(file.name)) messageType = 'voice';
 
-            return await this.sendMessage(conversationId, file.name, messageType, publicUrl);
+            return await this.sendMessage(userId, conversationId, file.name, messageType, publicUrl);
         } catch (error) {
             console.error('Dosya yüklenemedi:', error);
             return { success: false, error: error.message };
         }
     }
 
-    // Okunmamış mesaj sayısı
-    async getUnreadCount(conversationId) {
-        try {
-            const user = await authManager.getCurrentUser();
-            if (!user) return 0;
-
-            const { data: readMessages } = await supabase
-                .from('message_reads')
-                .select('message_id')
-                .eq('user_id', user.id);
-
-            const readIds = (readMessages || []).map(r => r.message_id);
-
-            const { count, error } = await supabase
-                .from('messages')
-                .select('id', { count: 'exact' })
-                .eq('conversation_id', conversationId)
-                .neq('sender_id', user.id)
-                .not('id', 'in', `(${readIds.join(',')})`);
-
-            if (error) throw error;
-
-            return count || 0;
-        } catch (error) {
-            console.error('Okunmamış sayısı alınamadı:', error);
-            return 0;
-        }
-    }
-
-    // Son mesajı getir
+    // ============ SON MESAJ ============
     async getLastMessage(conversationId) {
         try {
-            const { data, error } = await supabase
+            const { data, error } = await window.CONFIG.supabase
                 .from('messages')
                 .select(`
-                    *,
-                    sender:profiles (
-                        id,
-                        username,
-                        avatar_url
-                    )
+                    id, content, type, created_at, sender_id, is_deleted,
+                    sender:profiles (id, username)
                 `)
                 .eq('conversation_id', conversationId)
                 .order('created_at', { ascending: false })
                 .limit(1)
-                .single();
+                .maybeSingle();
 
-            if (error) {
-                if (error.code === 'PGRST116') return null; // Kayıt yok
-                throw error;
-            }
-
+            if (error) throw error;
             return data;
         } catch (error) {
             console.error('Son mesaj alınamadı:', error);
@@ -371,21 +434,22 @@ class MessageManager {
         }
     }
 
-    // Mesajı temizle (önbellekten)
-    clearCache(conversationId) {
+    // ============ CACHE ============
+    clearCache(conversationId = null) {
         if (conversationId) {
-            delete this.messageCache[conversationId];
+            this.cache.delete(conversationId);
         } else {
-            this.messageCache = {};
+            this.cache.clear();
             this.messages = [];
         }
     }
+
+    reset() {
+        this.clearCache();
+        this.editingMessage = null;
+        this.replyingTo = null;
+    }
 }
 
-// Global message manager
+// Global
 const messageManager = new MessageManager();
-
-// Export et (Node.js için)
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = MessageManager;
-}
