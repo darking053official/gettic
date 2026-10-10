@@ -4,15 +4,31 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Gettic - Sohbet</title>
+<meta name="description" content="Gettic sohbet uygulaması">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0a0a0f">
 <link rel="icon" type="image/png" href="logo.png">
 <script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>tailwind.config={darkMode:'class',theme:{extend:{colors:{'bg-primary':'#0a0a0f','bg-secondary':'#12121a','bg-tertiary':'#1a1a24','bg-hover':'#22222e','accent':'#7c3aed','accent-hover':'#8b5cf6','border-dark':'#1f1f2e'}}}}</script>
+<script>
+tailwind.config = {
+    darkMode: 'class',
+    theme: {
+        extend: {
+            colors: {
+                'bg-primary': '#0a0a0f',
+                'bg-secondary': '#12121a',
+                'bg-tertiary': '#1a1a24',
+                'bg-hover': '#22222e',
+                'accent': '#7c3aed',
+                'accent-hover': '#8b5cf6',
+                'border-dark': '#1f1f2e'
+            }
+        }
+    }
+}
+</script>
 <link rel="stylesheet" href="css/style.css">
 <style>
-/* Chat özel stiller */
 * { -webkit-tap-highlight-color: transparent; }
 
 .chat-sidebar {
@@ -45,22 +61,40 @@
         display: block;
     }
 }
+
+/* Input fix */
+input[type="text"],
+input[type="email"],
+input[type="search"] {
+    background-color: #1a1a24 !important;
+    color: #f4f4f6 !important;
+    border: 1.5px solid #1f1f2e !important;
+    border-radius: 12px !important;
+    outline: none !important;
+    font-family: inherit !important;
+}
+input::placeholder {
+    color: #6b6b7b !important;
+    opacity: 1 !important;
+}
+input:focus {
+    border-color: #7c3aed !important;
+    background-color: #12121a !important;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15) !important;
+}
 </style>
 </head>
 <body class="bg-bg-primary text-white h-screen overflow-hidden font-sans antialiased">
 
-<!-- OVERLAY (mobil) -->
 <div id="chatOverlay" class="chat-overlay" onclick="toggleSidebar()"></div>
 
 <div class="flex h-full">
 
-<!-- SIDEBAR -->
 <aside id="chatSidebar" class="chat-sidebar w-80 max-w-[85vw] bg-bg-secondary border-r border-border-dark flex flex-col flex-shrink-0">
 
-<!-- Kullanıcı Profili -->
 <div class="p-4 border-b border-border-dark flex items-center justify-between">
 <div class="flex items-center gap-3 min-w-0">
-<img id="userAvatar" src="logo.png" class="w-10 h-10 rounded-xl flex-shrink-0">
+<img id="userAvatar" src="logo.png" class="w-10 h-10 rounded-xl flex-shrink-0" alt="Avatar">
 <div class="min-w-0">
 <h2 id="userName" class="font-semibold truncate">Kullanıcı</h2>
 <span class="text-sm text-green-400">● Çevrimiçi</span>
@@ -70,47 +104,41 @@
 <a href="profile.html" class="p-2 text-gray-400 hover:text-white hover:bg-bg-hover rounded-lg transition" title="Profil">
 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
 </a>
-<button onclick="logout()" class="p-2 text-gray-400 hover:text-white hover:bg-bg-hover rounded-lg transition" title="Çıkış">
+<button type="button" onclick="logout()" class="p-2 text-gray-400 hover:text-white hover:bg-bg-hover rounded-lg transition" title="Çıkış">
 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
 </button>
 </div>
 </div>
 
-<!-- Arama -->
 <div class="p-4">
 <div class="relative">
-<input type="text" id="searchUser" placeholder="Kullanıcı ara..." class="w-full bg-bg-tertiary rounded-lg px-4 py-2 pl-10 focus:outline-none focus:ring-2 focus:ring-accent transition text-sm">
+<input type="text" id="searchUser" placeholder="Sohbet ara..." class="w-full bg-bg-tertiary rounded-lg px-4 py-2 pl-10 focus:outline-none focus:ring-2 focus:ring-accent transition text-sm">
 <svg class="w-5 h-5 text-gray-500 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
 </div>
 </div>
 
-<!-- Sohbet Listesi -->
 <div id="chatList" class="flex-1 overflow-y-auto">
 <div class="text-center text-gray-500 py-8"><p>Sohbet yok</p></div>
 </div>
 
-<!-- Yeni Sohbet -->
 <div class="p-4 border-t border-border-dark">
-<button onclick="showNewChatModal()" class="w-full bg-accent hover:bg-accent-hover text-white font-semibold py-2 rounded-lg transition text-sm">+ Yeni Sohbet</button>
+<button type="button" onclick="showNewChatModal()" class="w-full bg-accent hover:bg-accent-hover text-white font-semibold py-2 rounded-lg transition text-sm">+ Yeni Sohbet</button>
 </div>
 </aside>
 
-<!-- ANA ALAN -->
 <main class="flex-1 flex flex-col min-w-0">
 
-<!-- Header -->
 <header class="p-3 sm:p-4 border-b border-border-dark flex items-center gap-3 bg-bg-secondary">
-<button onclick="toggleSidebar()" class="md:hidden p-2 text-gray-400 hover:text-white hover:bg-bg-hover rounded-lg transition flex-shrink-0">
+<button type="button" onclick="toggleSidebar()" class="md:hidden p-2 text-gray-400 hover:text-white hover:bg-bg-hover rounded-lg transition flex-shrink-0">
 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
 </button>
-<img id="chatAvatar" src="logo.png" class="w-10 h-10 rounded-xl flex-shrink-0">
+<img id="chatAvatar" src="logo.png" class="w-10 h-10 rounded-xl flex-shrink-0" alt="Avatar">
 <div class="min-w-0 flex-1">
 <h2 id="chatName" class="font-semibold truncate">Sohbet Seçin</h2>
 <span id="chatStatus" class="text-sm text-gray-400 block truncate"></span>
 </div>
 </header>
 
-<!-- Mesajlar -->
 <div id="messagesContainer" class="flex-1 overflow-y-auto p-4 space-y-3">
 <div class="text-center text-gray-500 py-20">
 <svg class="w-16 h-16 mx-auto mb-4 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
@@ -118,11 +146,10 @@
 </div>
 </div>
 
-<!-- Mesaj Input -->
 <div class="p-3 sm:p-4 border-t border-border-dark bg-bg-secondary">
 <div class="flex items-center gap-2">
 <input type="text" id="messageInput" placeholder="Mesaj yazın..." class="flex-1 bg-bg-tertiary rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-accent transition text-sm min-w-0">
-<button onclick="sendMessage()" class="bg-accent hover:bg-accent-hover rounded-lg p-2.5 transition flex-shrink-0">
+<button type="button" onclick="sendMessage()" class="bg-accent hover:bg-accent-hover rounded-lg p-2.5 transition flex-shrink-0">
 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
 </button>
 </div>
@@ -130,12 +157,11 @@
 </main>
 </div>
 
-<!-- YENİ SOHBET MODAL -->
 <div id="newChatModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-[200] flex items-end sm:items-center justify-center p-0 sm:p-4">
 <div class="bg-bg-secondary rounded-t-2xl sm:rounded-2xl border border-border-dark w-full sm:max-w-md max-h-[90vh] flex flex-col">
 <div class="p-4 border-b border-border-dark flex items-center justify-between">
 <h3 class="text-lg font-bold gradient-text">Yeni Sohbet</h3>
-<button onclick="hideNewChatModal()" class="p-2 text-gray-400 hover:text-white hover:bg-bg-hover rounded-lg transition">
+<button type="button" onclick="hideNewChatModal()" class="p-2 text-gray-400 hover:text-white hover:bg-bg-hover rounded-lg transition">
 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
 </button>
 </div>
@@ -146,245 +172,413 @@
 </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const SUPABASE_URL='https://ayucfychcemsvzlgsdqq.supabase.co';
-const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF5dWNmeWNoY2Vtc3Z6bGdzZHFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg4MDAwODksImV4cCI6MjEwNDM3NjA4OX0.XhXZjzy58cWuAhejswK_44_Y8JJKdSzPI4QCUrS8ipg';
-const supabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
-let currentUser=null,currentConversation=null,realtimeChannel=null;
-
-// Sidebar toggle (mobil)
-window.toggleSidebar=function(){
-const sidebar=document.getElementById('chatSidebar');
-const overlay=document.getElementById('chatOverlay');
-sidebar.classList.toggle('open');
-overlay.classList.toggle('open');
-};
-
-// Logout
-window.logout=async function(){
-try{
-if(currentUser)await supabase.from('profiles').update({status:'offline',last_seen:new Date().toISOString()}).eq('id',currentUser.id);
-await supabase.auth.signOut();
-window.location.href='auth.html';
-}catch(e){window.location.href='auth.html'}
-};
-
-// Modal
-window.showNewChatModal=function(){
-document.getElementById('newChatModal').classList.remove('hidden');
-setTimeout(()=>document.getElementById('newChatSearch').focus(),100);
-};
-window.hideNewChatModal=function(){
-document.getElementById('newChatModal').classList.add('hidden');
-document.getElementById('newChatSearch').value='';
-document.getElementById('userSearchResults').innerHTML='';
-};
-
-// Mesaj gönder
-window.sendMessage=async function(){
-const input=document.getElementById('messageInput');
-const content=input.value.trim();
-if(!content||!currentConversation||!currentUser)return;
-input.value='';
-const{error}=await supabase.from('messages').insert([{conversation_id:currentConversation,sender_id:currentUser.id,content,type:'text'}]);
-if(error){alert('Mesaj gönderilemedi: '+error.message);input.value=content;}
-};
-
-// Sayfa yükleme
-document.addEventListener('DOMContentLoaded',async()=>{
-await checkAuth();
-if(!currentUser)return;
-await loadUserProfile();
-await loadConversations();
-setupRealtime();
-setupEventListeners();
-});
-
-async function checkAuth(){
-const{data:{user}}=await supabase.auth.getUser();
-if(!user){window.location.href='auth.html';return;}
-currentUser=user;
-}
-
-async function loadUserProfile(){
-const{data:profile}=await supabase.from('profiles').select('*').eq('id',currentUser.id).single();
-if(profile){
-document.getElementById('userName').textContent=profile.username||'Kullanıcı';
-document.getElementById('userAvatar').src=profile.avatar_url||'logo.png';
-}
-await supabase.from('profiles').update({status:'online',last_seen:new Date().toISOString()}).eq('id',currentUser.id);
-}
-
-async function loadConversations(){
-const{data:conversations,error}=await supabase
-.from('conversation_members')
-.select('conversation_id,conversations(id,type,name,updated_at,conversation_members(user_id,profiles(id,username,avatar_url,status)))')
-.eq('user_id',currentUser.id)
-.order('updated_at',{ascending:false});
-if(error){console.error(error);return;}
-displayConversations(conversations);
-}
-
-function displayConversations(conversations){
-const chatList=document.getElementById('chatList');
-chatList.innerHTML='';
-if(!conversations||conversations.length===0){
-chatList.innerHTML='<div class="text-center text-gray-500 py-8"><p>Sohbet yok</p></div>';
-return;
-}
-conversations.forEach(({conversations:conv})=>{
-if(!conv)return;
-const otherMember=conv.conversation_members?.find(m=>m.user_id!==currentUser.id);
-if(!otherMember||!otherMember.profiles)return;
-const div=document.createElement('div');
-div.className='p-3 hover:bg-bg-hover cursor-pointer transition flex items-center gap-3 border-b border-border-dark/50';
-div.onclick=()=>{openConversation(conv.id,otherMember);if(window.innerWidth<768)toggleSidebar();};
-const initials=(otherMember.profiles.username||'?').charAt(0).toUpperCase();
-div.innerHTML=`
-<div class="relative flex-shrink-0">
-${otherMember.profiles.avatar_url
-?`<img src="${otherMember.profiles.avatar_url}" class="w-12 h-12 rounded-xl object-cover">`
-:`<div class="w-12 h-12 rounded-xl bg-accent flex items-center justify-center font-bold text-white">${initials}</div>`}
-${otherMember.profiles.status==='online'?'<span class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-bg-secondary"></span>':''}
-</div>
-<div class="flex-1 min-w-0">
-<h3 class="font-semibold truncate">${otherMember.profiles.username||'Kullanıcı'}</h3>
-<p class="text-sm text-gray-400">${otherMember.profiles.status==='online'?'Çevrimiçi':'Çevrimdışı'}</p>
-</div>`;
-chatList.appendChild(div);
-});
-}
-
-async function openConversation(id,member){
-currentConversation=id;
-document.getElementById('chatName').textContent=member.profiles.username||'Kullanıcı';
-document.getElementById('chatStatus').textContent=member.profiles.status==='online'?'Çevrimiçi':'Çevrimdışı';
-if(member.profiles.avatar_url){
-document.getElementById('chatAvatar').src=member.profiles.avatar_url;
-}else{
-document.getElementById('chatAvatar').src='logo.png';
-}
-await loadMessages(id);
-}
-
-async function loadMessages(id){
-const{data:messages}=await supabase.from('messages').select('*').eq('conversation_id',id).order('created_at',{ascending:true});
-displayMessages(messages||[]);
-}
-
-function displayMessages(messages){
-const c=document.getElementById('messagesContainer');
-c.innerHTML='';
-if(messages.length===0){
-c.innerHTML='<div class="text-center text-gray-500 py-12"><p>Henüz mesaj yok. İlk mesajı sen gönder!</p></div>';
-return;
-}
-messages.forEach(m=>appendMessage(m));
-c.scrollTop=c.scrollHeight;
-}
-
-function appendMessage(message){
-if(!message||!message.content)return;
-const c=document.getElementById('messagesContainer');
-const isSent=message.sender_id===currentUser.id;
-const div=document.createElement('div');
-div.className=`flex ${isSent?'justify-end':'justify-start'}`;
-const time=new Date(message.created_at).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});
-div.innerHTML=`<div class="message-bubble-premium ${isSent?'sent':'received'} max-w-[85%]"><p class="break-words">${escapeHtml(message.content)}</p><p class="text-xs ${isSent?'text-gray-300':'text-gray-500'} text-right mt-1">${time}</p></div>`;
-c.appendChild(div);
-c.scrollTop=c.scrollHeight;
-}
-
-function escapeHtml(text){
-const div=document.createElement('div');
-div.textContent=text;
-return div.innerHTML;
-}
-
-async function searchUsers(term){
-if(term.length<2){
-document.getElementById('userSearchResults').innerHTML='<p class="text-gray-500 text-center py-4 text-sm">En az 2 karakter yazın</p>';
-return;
-}
-const{data:users}=await supabase.from('profiles').select('*').ilike('username',`%${term}%`).neq('id',currentUser.id).limit(10);
-displaySearchResults(users||[]);
-}
-
-function displaySearchResults(users){
-const c=document.getElementById('userSearchResults');
-c.innerHTML='';
-if(!users||users.length===0){
-c.innerHTML='<p class="text-gray-500 text-center py-4 text-sm">Kullanıcı bulunamadı</p>';
-return;
-}
-users.forEach(user=>{
-const div=document.createElement('div');
-div.className='flex items-center gap-3 p-3 hover:bg-bg-hover rounded-lg cursor-pointer transition';
-div.onclick=()=>startNewConversation(user);
-const initials=(user.username||'?').charAt(0).toUpperCase();
-div.innerHTML=`
-${user.avatar_url
-?`<img src="${user.avatar_url}" class="w-10 h-10 rounded-xl object-cover flex-shrink-0">`
-:`<div class="w-10 h-10 rounded-xl bg-accent flex items-center justify-center font-bold text-white flex-shrink-0">${initials}</div>`}
-<div class="min-w-0">
-<p class="font-semibold truncate">${user.username||'Kullanıcı'}</p>
-<p class="text-sm text-gray-400">${user.status==='online'?'Çevrimiçi':'Çevrimdışı'}</p>
-</div>`;
-c.appendChild(div);
-});
-}
-
-async function startNewConversation(user){
-const{data:existingConvs}=await supabase.from('conversation_members').select('conversation_id').eq('user_id',currentUser.id);
-if(existingConvs){
-for(const conv of existingConvs){
-const{data:members}=await supabase.from('conversation_members').select('user_id').eq('conversation_id',conv.conversation_id);
-const memberIds=(members||[]).map(m=>m.user_id);
-if(memberIds.includes(user.id)&&memberIds.length===2){
-hideNewChatModal();
-await loadConversations();
-openConversation(conv.conversation_id,{profiles:user});
-return;
-}
-}
-}
-const{data:newConv,error}=await supabase.from('conversations').insert([{type:'direct',created_by:currentUser.id}]).select().single();
-if(error){alert('Sohbet oluşturulamadı: '+error.message);return;}
-const{error:memberError}=await supabase.from('conversation_members').insert([
-{conversation_id:newConv.id,user_id:currentUser.id},
-{conversation_id:newConv.id,user_id:user.id}
-]);
-if(memberError){alert('Üyeler eklenemedi: '+memberError.message);return;}
-hideNewChatModal();
-await loadConversations();
-openConversation(newConv.id,{profiles:user});
-}
-
-function setupRealtime(){
-realtimeChannel=supabase
-.channel('messages-realtime')
-.on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'},payload=>{
-if(payload.new.conversation_id===currentConversation)appendMessage(payload.new);
-})
-.subscribe();
-}
-
-function setupEventListeners(){
-const s=document.getElementById('newChatSearch');
-if(s)s.addEventListener('input',e=>searchUsers(e.target.value.trim()));
-const su=document.getElementById('searchUser');
-if(su)su.addEventListener('input',e=>{
-const term=e.target.value.trim().toLowerCase();
-document.querySelectorAll('#chatList > div').forEach(item=>{
-const name=item.querySelector('h3')?.textContent.toLowerCase()||'';
-item.style.display=name.includes(term)?'':'none';
-});
-});
-const m=document.getElementById('messageInput');
-if(m)m.addEventListener('keypress',e=>{if(e.key==='Enter')window.sendMessage();});
-const modal=document.getElementById('newChatModal');
-if(modal)modal.addEventListener('click',e=>{if(e.target===modal)window.hideNewChatModal();});
-}
+(function() {
+    'use strict';
+    
+    // ============ SUPABASE ============
+    const SUPABASE_URL = 'https://ayucfychcemsvzlgsdqq.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF5dWNmeWNoY2Vtc3Z6bGdzZHFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg4MDAwODksImV4cCI6MjEwNDM3NjA4OX0.XhXZjzy58cWuAhejswK_44_Y8JJKdSzPI4QCUrS8ipg';
+    
+    if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
+        alert('HATA: Supabase yüklenemedi. Sayfayı yenileyin.');
+        return;
+    }
+    
+    // Global supabase client (tek seferlik)
+    if (!window.supabaseClient) {
+        window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            auth: {
+                persistSession: true,
+                autoRefreshToken: true,
+                detectSessionInUrl: true,
+                storageKey: 'gettic-auth-token'
+            },
+            realtime: {
+                params: { eventsPerSecond: 10 }
+            }
+        });
+    }
+    const supabase = window.supabaseClient;
+    
+    // ============ STATE ============
+    let currentUser = null;
+    let currentConversation = null;
+    let realtimeChannel = null;
+    
+    // ============ YARDIMCI ============
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    // ============ SIDEBAR ============
+    window.toggleSidebar = function() {
+        const sidebar = document.getElementById('chatSidebar');
+        const overlay = document.getElementById('chatOverlay');
+        if (!sidebar || !overlay) return;
+        sidebar.classList.toggle('open');
+        overlay.classList.toggle('open');
+    };
+    
+    // ============ MODAL ============
+    window.showNewChatModal = function() {
+        const modal = document.getElementById('newChatModal');
+        const input = document.getElementById('newChatSearch');
+        if (!modal) return;
+        modal.classList.remove('hidden');
+        if (input) setTimeout(() => input.focus(), 100);
+    };
+    
+    window.hideNewChatModal = function() {
+        const modal = document.getElementById('newChatModal');
+        const input = document.getElementById('newChatSearch');
+        const results = document.getElementById('userSearchResults');
+        if (modal) modal.classList.add('hidden');
+        if (input) input.value = '';
+        if (results) results.innerHTML = '';
+    };
+    
+    // ============ LOGOUT ============
+    window.logout = async function() {
+        try {
+            if (currentUser) {
+                await supabase.from('profiles').update({
+                    status: 'offline',
+                    last_seen: new Date().toISOString()
+                }).eq('id', currentUser.id);
+            }
+            await supabase.auth.signOut();
+        } catch (e) {
+            console.warn('Çıkış hatası:', e);
+        }
+        window.location.href = 'auth.html';
+    };
+    
+    // ============ MESAJ GÖNDER ============
+    window.sendMessage = async function() {
+        const input = document.getElementById('messageInput');
+        if (!input) return;
+        
+        const content = input.value.trim();
+        if (!content || !currentConversation || !currentUser) return;
+        
+        input.value = '';
+        
+        const { error } = await supabase.from('messages').insert([{
+            conversation_id: currentConversation,
+            sender_id: currentUser.id,
+            content: content,
+            type: 'text'
+        }]);
+        
+        if (error) {
+            alert('Mesaj gönderilemedi: ' + error.message);
+            input.value = content;
+        }
+    };
+    
+    // ============ INIT ============
+    document.addEventListener('DOMContentLoaded', async function() {
+        await checkAuth();
+        if (!currentUser) return;
+        await loadUserProfile();
+        await loadConversations();
+        setupRealtime();
+        setupEventListeners();
+    });
+    
+    async function checkAuth() {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+            window.location.href = 'auth.html';
+            return;
+        }
+        currentUser = user;
+    }
+    
+    async function loadUserProfile() {
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', currentUser.id)
+            .single();
+        
+        if (profile) {
+            document.getElementById('userName').textContent = profile.username || 'Kullanıcı';
+            document.getElementById('userAvatar').src = profile.avatar_url || 'logo.png';
+        }
+        
+        await supabase.from('profiles').update({
+            status: 'online',
+            last_seen: new Date().toISOString()
+        }).eq('id', currentUser.id);
+    }
+    
+    async function loadConversations() {
+        const { data: conversations, error } = await supabase
+            .from('conversation_members')
+            .select('conversation_id, conversations(id, type, name, updated_at, conversation_members(user_id, profiles(id, username, avatar_url, status)))')
+            .eq('user_id', currentUser.id)
+            .order('updated_at', { ascending: false });
+        
+        if (error) {
+            console.error('Sohbetler yüklenemedi:', error);
+            return;
+        }
+        
+        displayConversations(conversations);
+    }
+    
+    function displayConversations(conversations) {
+        const chatList = document.getElementById('chatList');
+        chatList.innerHTML = '';
+        
+        if (!conversations || conversations.length === 0) {
+            chatList.innerHTML = '<div class="text-center text-gray-500 py-8"><p>Sohbet yok</p></div>';
+            return;
+        }
+        
+        conversations.forEach(function(item) {
+            const conv = item.conversations;
+            if (!conv) return;
+            
+            const otherMember = (conv.conversation_members || []).find(m => m.user_id !== currentUser.id);
+            if (!otherMember || !otherMember.profiles) return;
+            
+            const profile = otherMember.profiles;
+            const div = document.createElement('div');
+            div.className = 'p-3 hover:bg-bg-hover cursor-pointer transition flex items-center gap-3 border-b border-border-dark/50';
+            div.onclick = function() {
+                openConversation(conv.id, profile);
+                if (window.innerWidth < 768) toggleSidebar();
+            };
+            
+            const initials = (profile.username || '?').charAt(0).toUpperCase();
+            const avatarHtml = profile.avatar_url
+                ? `<img src="${profile.avatar_url}" class="w-12 h-12 rounded-xl object-cover">`
+                : `<div class="w-12 h-12 rounded-xl bg-accent flex items-center justify-center font-bold text-white">${initials}</div>`;
+            
+            div.innerHTML = `
+                <div class="relative flex-shrink-0">
+                    ${avatarHtml}
+                    ${profile.status === 'online' ? '<span class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-bg-secondary"></span>' : ''}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h3 class="font-semibold truncate">${escapeHtml(profile.username || 'Kullanıcı')}</h3>
+                    <p class="text-sm text-gray-400">${profile.status === 'online' ? 'Çevrimiçi' : 'Çevrimdışı'}</p>
+                </div>
+            `;
+            chatList.appendChild(div);
+        });
+    }
+    
+    async function openConversation(id, profile) {
+        currentConversation = id;
+        document.getElementById('chatName').textContent = profile.username || 'Kullanıcı';
+        document.getElementById('chatStatus').textContent = profile.status === 'online' ? 'Çevrimiçi' : 'Çevrimdışı';
+        document.getElementById('chatAvatar').src = profile.avatar_url || 'logo.png';
+        await loadMessages(id);
+    }
+    
+    async function loadMessages(id) {
+        const { data: messages } = await supabase
+            .from('messages')
+            .select('*')
+            .eq('conversation_id', id)
+            .order('created_at', { ascending: true });
+        
+        displayMessages(messages || []);
+    }
+    
+    function displayMessages(messages) {
+        const container = document.getElementById('messagesContainer');
+        container.innerHTML = '';
+        
+        if (messages.length === 0) {
+            container.innerHTML = '<div class="text-center text-gray-500 py-12"><p>Henüz mesaj yok. İlk mesajı sen gönder!</p></div>';
+            return;
+        }
+        
+        messages.forEach(function(m) { appendMessage(m); });
+        container.scrollTop = container.scrollHeight;
+    }
+    
+    function appendMessage(message) {
+        if (!message || !message.content) return;
+        
+        const container = document.getElementById('messagesContainer');
+        const isSent = message.sender_id === currentUser.id;
+        const div = document.createElement('div');
+        div.className = 'flex ' + (isSent ? 'justify-end' : 'justify-start');
+        
+        const time = new Date(message.created_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+        
+        div.innerHTML = `
+            <div class="message-bubble-premium ${isSent ? 'sent' : 'received'} max-w-[85%]">
+                <p class="break-words">${escapeHtml(message.content)}</p>
+                <p class="text-xs ${isSent ? 'text-gray-300' : 'text-gray-500'} text-right mt-1">${time}</p>
+            </div>
+        `;
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+    }
+    
+    async function searchUsers(term) {
+        const results = document.getElementById('userSearchResults');
+        
+        if (term.length < 2) {
+            results.innerHTML = '<p class="text-gray-500 text-center py-4 text-sm">En az 2 karakter yazın</p>';
+            return;
+        }
+        
+        const { data: users } = await supabase
+            .from('profiles')
+            .select('*')
+            .ilike('username', '%' + term + '%')
+            .neq('id', currentUser.id)
+            .limit(10);
+        
+        displaySearchResults(users || []);
+    }
+    
+    function displaySearchResults(users) {
+        const container = document.getElementById('userSearchResults');
+        container.innerHTML = '';
+        
+        if (!users || users.length === 0) {
+            container.innerHTML = '<p class="text-gray-500 text-center py-4 text-sm">Kullanıcı bulunamadı</p>';
+            return;
+        }
+        
+        users.forEach(function(user) {
+            const div = document.createElement('div');
+            div.className = 'flex items-center gap-3 p-3 hover:bg-bg-hover rounded-lg cursor-pointer transition';
+            div.onclick = function() { startNewConversation(user); };
+            
+            const initials = (user.username || '?').charAt(0).toUpperCase();
+            const avatarHtml = user.avatar_url
+                ? `<img src="${user.avatar_url}" class="w-10 h-10 rounded-xl object-cover flex-shrink-0">`
+                : `<div class="w-10 h-10 rounded-xl bg-accent flex items-center justify-center font-bold text-white flex-shrink-0">${initials}</div>`;
+            
+            div.innerHTML = `
+                ${avatarHtml}
+                <div class="min-w-0">
+                    <p class="font-semibold truncate">${escapeHtml(user.username || 'Kullanıcı')}</p>
+                    <p class="text-sm text-gray-400">${user.status === 'online' ? 'Çevrimiçi' : 'Çevrimdışı'}</p>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+    }
+    
+    async function startNewConversation(user) {
+        const { data: existingConvs } = await supabase
+            .from('conversation_members')
+            .select('conversation_id')
+            .eq('user_id', currentUser.id);
+        
+        if (existingConvs) {
+            for (const conv of existingConvs) {
+                const { data: members } = await supabase
+                    .from('conversation_members')
+                    .select('user_id')
+                    .eq('conversation_id', conv.conversation_id);
+                
+                const memberIds = (members || []).map(m => m.user_id);
+                if (memberIds.includes(user.id) && memberIds.length === 2) {
+                    hideNewChatModal();
+                    await loadConversations();
+                    openConversation(conv.conversation_id, user);
+                    return;
+                }
+            }
+        }
+        
+        const { data: newConv, error } = await supabase
+            .from('conversations')
+            .insert([{ type: 'direct', created_by: currentUser.id }])
+            .select()
+            .single();
+        
+        if (error) {
+            alert('Sohbet oluşturulamadı: ' + error.message);
+            return;
+        }
+        
+        const { error: memberError } = await supabase
+            .from('conversation_members')
+            .insert([
+                { conversation_id: newConv.id, user_id: currentUser.id },
+                { conversation_id: newConv.id, user_id: user.id }
+            ]);
+        
+        if (memberError) {
+            alert('Üyeler eklenemedi: ' + memberError.message);
+            return;
+        }
+        
+        hideNewChatModal();
+        await loadConversations();
+        openConversation(newConv.id, user);
+    }
+    
+    function setupRealtime() {
+        realtimeChannel = supabase
+            .channel('messages-realtime-' + Date.now())
+            .on('postgres_changes',
+                { event: 'INSERT', schema: 'public', table: 'messages' },
+                function(payload) {
+                    if (payload.new && payload.new.conversation_id === currentConversation) {
+                        appendMessage(payload.new);
+                    }
+                }
+            )
+            .subscribe();
+    }
+    
+    function setupEventListeners() {
+        const newChatSearch = document.getElementById('newChatSearch');
+        if (newChatSearch) {
+            newChatSearch.addEventListener('input', function(e) {
+                searchUsers(e.target.value.trim());
+            });
+        }
+        
+        const searchUser = document.getElementById('searchUser');
+        if (searchUser) {
+            searchUser.addEventListener('input', function(e) {
+                const term = e.target.value.trim().toLowerCase();
+                document.querySelectorAll('#chatList > div').forEach(function(item) {
+                    const h3 = item.querySelector('h3');
+                    const name = h3 ? h3.textContent.toLowerCase() : '';
+                    item.style.display = name.includes(term) ? '' : 'none';
+                });
+            });
+        }
+        
+        const messageInput = document.getElementById('messageInput');
+        if (messageInput) {
+            messageInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    window.sendMessage();
+                }
+            });
+        }
+        
+        const modal = document.getElementById('newChatModal');
+        if (modal) {
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) window.hideNewChatModal();
+            });
+        }
+    }
+    
+    console.log('✅ Chat hazır');
+})();
 </script>
 </body>
 </html>
