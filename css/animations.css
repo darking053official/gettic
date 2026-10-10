@@ -1,572 +1,553 @@
 /* ============================================
-   GETTIC - ANIMATIONS
-   Özel animasyonlar ve geçiş efektleri
+   GETTIC - ANIMATIONS (Premium)
    ============================================ */
 
 /* ============================================
    TEMEL ANİMASYONLAR
    ============================================ */
 
-/* Fade In */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
+@keyframes g-fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
-.fade-in {
-    animation: fadeIn 0.3s ease-out;
+@keyframes g-fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
 }
 
-.fade-in-slow {
-    animation: fadeIn 0.6s ease-out;
+@keyframes g-slideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
 }
 
-.fade-in-fast {
-    animation: fadeIn 0.15s ease-out;
+@keyframes g-slideDown {
+    from { transform: translateY(-30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
 }
 
-/* Fade Out */
-@keyframes fadeOut {
-    from {
-        opacity: 1;
-    }
-    to {
-        opacity: 0;
-    }
+@keyframes g-slideLeft {
+    from { transform: translateX(-50px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
 }
 
-.fade-out {
-    animation: fadeOut 0.3s ease-in;
+@keyframes g-slideRight {
+    from { transform: translateX(50px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
 }
 
-/* Slide Up */
-@keyframes slideUp {
-    from {
-        transform: translateY(30px);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
+@keyframes g-scaleIn {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
 }
 
-.slide-up {
-    animation: slideUp 0.4s ease-out;
+@keyframes g-scaleOut {
+    from { transform: scale(1); opacity: 1; }
+    to { transform: scale(0.8); opacity: 0; }
 }
 
-/* Slide Down */
-@keyframes slideDown {
-    from {
-        transform: translateY(-30px);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
+@keyframes g-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 
-.slide-down {
-    animation: slideDown 0.4s ease-out;
+@keyframes g-bounce {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-20px); }
+    60% { transform: translateY(-10px); }
 }
 
-/* Slide Left */
-@keyframes slideLeft {
-    from {
-        transform: translateX(-50px);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
+@keyframes g-pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.05); opacity: 0.85; }
 }
 
-.slide-left {
-    animation: slideLeft 0.4s ease-out;
+@keyframes g-shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
 }
 
-/* Slide Right */
-@keyframes slideRight {
-    from {
-        transform: translateX(50px);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
+@keyframes g-glow {
+    0%, 100% { box-shadow: 0 0 20px rgba(124, 58, 237, 0.3); }
+    50% { box-shadow: 0 0 40px rgba(124, 58, 237, 0.6); }
 }
 
-.slide-right {
-    animation: slideRight 0.4s ease-out;
+@keyframes g-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+}
+
+@keyframes g-wiggle {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-3deg); }
+    75% { transform: rotate(3deg); }
+}
+
+@keyframes g-heartbeat {
+    0%, 100% { transform: scale(1); }
+    14% { transform: scale(1.1); }
+    28% { transform: scale(1); }
+    42% { transform: scale(1.1); }
+    70% { transform: scale(1); }
 }
 
 /* ============================================
-   SCALE ANİMASYONLARI
+   SINIFLAR
    ============================================ */
 
-/* Scale In */
-@keyframes scaleIn {
-    from {
-        transform: scale(0.8);
-        opacity: 0;
-    }
-    to {
-        transform: scale(1);
-        opacity: 1;
-    }
-}
+.g-fade-in { animation: g-fadeIn 0.3s ease-out; }
+.g-fade-in-slow { animation: g-fadeIn 0.6s ease-out; }
+.g-fade-in-fast { animation: g-fadeIn 0.15s ease-out; }
+.g-fade-out { animation: g-fadeOut 0.3s ease-in; }
 
-.scale-in {
-    animation: scaleIn 0.3s ease-out;
-}
+.g-slide-up { animation: g-slideUp 0.4s ease-out; }
+.g-slide-down { animation: g-slideDown 0.4s ease-out; }
+.g-slide-left { animation: g-slideLeft 0.4s ease-out; }
+.g-slide-right { animation: g-slideRight 0.4s ease-out; }
 
-/* Scale Out */
-@keyframes scaleOut {
-    from {
-        transform: scale(1);
-        opacity: 1;
-    }
-    to {
-        transform: scale(0.8);
-        opacity: 0;
-    }
-}
+.g-scale-in { animation: g-scaleIn 0.3s ease-out; }
+.g-scale-out { animation: g-scaleOut 0.3s ease-in; }
 
-.scale-out {
-    animation: scaleOut 0.3s ease-in;
-}
+.g-spin { animation: g-spin 1s linear infinite; }
+.g-spin-slow { animation: g-spin 2s linear infinite; }
+.g-spin-fast { animation: g-spin 0.5s linear infinite; }
+
+.g-bounce { animation: g-bounce 2s infinite; }
+.g-pulse { animation: g-pulse 2s infinite; }
+.g-shake { animation: g-shake 0.6s ease-in-out; }
+.g-glow { animation: g-glow 2s infinite; }
+.g-float { animation: g-float 3s ease-in-out infinite; }
+.g-wiggle { animation: g-wiggle 0.5s ease-in-out; }
+.g-heartbeat { animation: g-heartbeat 1.5s ease-in-out infinite; }
 
 /* ============================================
-   ROTATE ANİMASYONLARI
+   TYPING
    ============================================ */
 
-/* Spin */
-@keyframes spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+@keyframes g-typingBounce {
+    0%, 60%, 100% { transform: translateY(0); }
+    30% { transform: translateY(-10px); }
 }
 
-.spin {
-    animation: spin 1s linear infinite;
+.g-typing-dot {
+    animation: g-typingBounce 1.4s infinite;
 }
-
-.spin-slow {
-    animation: spin 2s linear infinite;
-}
-
-.spin-fast {
-    animation: spin 0.5s linear infinite;
-}
-
-/* ============================================
-   BOUNCE ANİMASYONLARI
-   ============================================ */
-
-/* Bounce */
-@keyframes bounce {
-    0%, 20%, 50%, 80%, 100% {
-        transform: translateY(0);
-    }
-    40% {
-        transform: translateY(-20px);
-    }
-    60% {
-        transform: translateY(-10px);
-    }
-}
-
-.bounce {
-    animation: bounce 2s infinite;
-}
-
-/* ============================================
-   PULSE ANİMASYONLARI
-   ============================================ */
-
-/* Pulse */
-@keyframes pulse {
-    0%, 100% {
-        transform: scale(1);
-        opacity: 1;
-    }
-    50% {
-        transform: scale(1.05);
-        opacity: 0.8;
-    }
-}
-
-.pulse {
-    animation: pulse 2s infinite;
-}
-
-/* ============================================
-   SHAKE ANİMASYONLARI
-   ============================================ */
-
-/* Shake */
-@keyframes shake {
-    0%, 100% {
-        transform: translateX(0);
-    }
-    10%, 30%, 50%, 70%, 90% {
-        transform: translateX(-5px);
-    }
-    20%, 40%, 60%, 80% {
-        transform: translateX(5px);
-    }
-}
-
-.shake {
-    animation: shake 0.6s ease-in-out;
-}
-
-/* ============================================
-   GLOW ANİMASYONLARI
-   ============================================ */
-
-/* Glow */
-@keyframes glow {
-    0%, 100% {
-        box-shadow: 0 0 20px rgba(124, 58, 237, 0.3);
-    }
-    50% {
-        box-shadow: 0 0 40px rgba(124, 58, 237, 0.6);
-    }
-}
-
-.glow {
-    animation: glow 2s infinite;
-}
-
-/* ============================================
-   TYPING ANİMASYONLARI
-   ============================================ */
-
-@keyframes typingBounce {
-    0%, 60%, 100% {
-        transform: translateY(0);
-    }
-    30% {
-        transform: translateY(-10px);
-    }
-}
-
-.typing-dot {
-    animation: typingBounce 1.4s infinite;
-}
-
-.typing-dot:nth-child(2) {
-    animation-delay: 0.2s;
-}
-
-.typing-dot:nth-child(3) {
-    animation-delay: 0.4s;
-}
+.g-typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.g-typing-dot:nth-child(3) { animation-delay: 0.4s; }
 
 /* ============================================
    HOVER EFEKTLERİ
    ============================================ */
 
-/* Hover Lift */
-.hover-lift {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+.g-hover-lift {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform;
 }
-
-.hover-lift:hover {
+.g-hover-lift:hover {
     transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
 }
 
-/* Hover Scale */
-.hover-scale {
-    transition: transform 0.3s ease;
+.g-hover-scale {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform;
 }
+.g-hover-scale:hover { transform: scale(1.05); }
 
-.hover-scale:hover {
-    transform: scale(1.05);
-}
-
-/* Hover Glow */
-.hover-glow {
+.g-hover-glow {
     transition: box-shadow 0.3s ease;
 }
-
-.hover-glow:hover {
-    box-shadow: var(--shadow-glow);
+.g-hover-glow:hover {
+    box-shadow: 0 0 20px rgba(124, 58, 237, 0.4);
 }
 
-/* Hover Opacity */
-.hover-opacity {
+.g-hover-opacity {
     transition: opacity 0.3s ease;
 }
-
-.hover-opacity:hover {
-    opacity: 0.8;
-}
+.g-hover-opacity:hover { opacity: 0.85; }
 
 /* ============================================
    TRANSITION YARDIMCILARI
    ============================================ */
 
-.transition-fast {
-    transition: all 0.15s ease;
-}
-
-.transition-normal {
-    transition: all 0.3s ease;
-}
-
-.transition-slow {
-    transition: all 0.6s ease;
-}
-
-.transition-smooth {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
+.g-transition-fast { transition: all 0.15s ease; }
+.g-transition-normal { transition: all 0.3s ease; }
+.g-transition-slow { transition: all 0.6s ease; }
+.g-transition-smooth { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
 
 /* ============================================
-   LOADING ANİMASYONLARI
+   LOADING
    ============================================ */
 
-/* Loading Dots */
-@keyframes loadingDots {
-    0%, 80%, 100% {
-        transform: scale(0);
-    }
-    40% {
-        transform: scale(1);
-    }
+@keyframes g-loadingDots {
+    0%, 80%, 100% { transform: scale(0); }
+    40% { transform: scale(1); }
 }
 
-.loading-dots {
-    display: flex;
+.g-loading-dots {
+    display: inline-flex;
     gap: 4px;
+    align-items: center;
 }
 
-.loading-dot {
+.g-loading-dot {
     width: 8px;
     height: 8px;
-    background: var(--accent);
+    background: #7c3aed;
     border-radius: 50%;
-    animation: loadingDots 1.4s infinite;
+    animation: g-loadingDots 1.4s infinite ease-in-out;
+}
+.g-loading-dot:nth-child(2) { animation-delay: 0.2s; }
+.g-loading-dot:nth-child(3) { animation-delay: 0.4s; }
+
+/* Skeleton */
+@keyframes g-skeleton {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
 }
 
-.loading-dot:nth-child(2) {
-    animation-delay: 0.2s;
-}
-
-.loading-dot:nth-child(3) {
-    animation-delay: 0.4s;
-}
-
-/* Skeleton Loading */
-@keyframes skeleton {
-    0% {
-        background-position: -200px 0;
-    }
-    100% {
-        background-position: calc(200px + 100%) 0;
-    }
-}
-
-.skeleton {
-    background: linear-gradient(90deg, var(--bg-tertiary) 25%, var(--bg-hover) 50%, var(--bg-tertiary) 75%);
-    background-size: 200px 100%;
-    animation: skeleton 1.5s infinite;
+.g-skeleton {
+    background: linear-gradient(
+        90deg,
+        #1a1a24 25%,
+        #22222e 50%,
+        #1a1a24 75%
+    );
+    background-size: 200% 100%;
+    animation: g-skeleton 1.5s infinite linear;
     border-radius: 8px;
 }
 
 /* ============================================
-   MODAL ANİMASYONLARI
+   MODAL
    ============================================ */
 
-@keyframes modalIn {
-    from {
-        transform: scale(0.9) translateY(20px);
-        opacity: 0;
-    }
-    to {
-        transform: scale(1) translateY(0);
-        opacity: 1;
-    }
+@keyframes g-modalIn {
+    from { transform: scale(0.9) translateY(20px); opacity: 0; }
+    to { transform: scale(1) translateY(0); opacity: 1; }
 }
 
-.modal-in {
-    animation: modalIn 0.3s ease-out;
+@keyframes g-modalOut {
+    from { transform: scale(1) translateY(0); opacity: 1; }
+    to { transform: scale(0.9) translateY(20px); opacity: 0; }
 }
 
-@keyframes modalOut {
-    from {
-        transform: scale(1) translateY(0);
-        opacity: 1;
-    }
-    to {
-        transform: scale(0.9) translateY(20px);
-        opacity: 0;
-    }
-}
-
-.modal-out {
-    animation: modalOut 0.3s ease-in;
-}
+.g-modal-in { animation: g-modalIn 0.3s ease-out; }
+.g-modal-out { animation: g-modalOut 0.3s ease-in; }
 
 /* ============================================
-   NOTIFICATION ANİMASYONLARI
+   NOTIFICATION
    ============================================ */
 
-@keyframes notificationIn {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
+@keyframes g-notificationIn {
+    from { transform: translateX(120%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
 }
 
-.notification-in {
-    animation: notificationIn 0.4s ease-out;
+@keyframes g-notificationOut {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(120%); opacity: 0; }
 }
 
-@keyframes notificationOut {
-    from {
-        transform: translateX(0);
-        opacity: 1;
-    }
-    to {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-}
-
-.notification-out {
-    animation: notificationOut 0.4s ease-in;
-}
+.g-notification-in { animation: g-notificationIn 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+.g-notification-out { animation: g-notificationOut 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
 
 /* ============================================
-   MESAJ ANİMASYONLARI
+   MESAJ
    ============================================ */
 
-@keyframes messageIn {
-    from {
-        transform: translateY(10px) scale(0.95);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0) scale(1);
-        opacity: 1;
-    }
+@keyframes g-messageIn {
+    from { transform: translateY(10px) scale(0.95); opacity: 0; }
+    to { transform: translateY(0) scale(1); opacity: 1; }
 }
 
-.message-in {
-    animation: messageIn 0.3s ease-out;
+@keyframes g-messageSent {
+    from { transform: translateX(20px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
 }
 
-@keyframes messageSent {
-    from {
-        transform: translateX(20px);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
+@keyframes g-messageReceived {
+    from { transform: translateX(-20px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
 }
 
-.message-sent-animation {
-    animation: messageSent 0.3s ease-out;
-}
-
-@keyframes messageReceived {
-    from {
-        transform: translateX(-20px);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
-}
-
-.message-received-animation {
-    animation: messageReceived 0.3s ease-out;
-}
+.g-message-in { animation: g-messageIn 0.3s ease-out; }
+.g-message-sent { animation: g-messageSent 0.3s ease-out; }
+.g-message-received { animation: g-messageReceived 0.3s ease-out; }
 
 /* ============================================
    SAYFA GEÇİŞLERİ
    ============================================ */
 
-@keyframes pageIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+@keyframes g-pageIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-.page-in {
-    animation: pageIn 0.5s ease-out;
+@keyframes g-pageOut {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(-20px); }
 }
 
-@keyframes pageOut {
-    from {
-        opacity: 1;
-        transform: translateY(0);
-    }
-    to {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
+.g-page-in { animation: g-pageIn 0.5s ease-out; }
+.g-page-out { animation: g-pageOut 0.5s ease-in; }
+
+/* ============================================
+   SCROLL
+   ============================================ */
+
+@keyframes g-scrollIndicator {
+    0% { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(20px); opacity: 0; }
 }
 
-.page-out {
-    animation: pageOut 0.5s ease-in;
+.g-scroll-indicator {
+    animation: g-scrollIndicator 1.5s infinite ease-in-out;
 }
 
 /* ============================================
-   SCROLL ANİMASYONLARI
+   RIPPLE (Buton tıklama efekti)
    ============================================ */
 
-@keyframes scrollIndicator {
+@keyframes g-ripple {
+    to { transform: scale(4); opacity: 0; }
+}
+
+.g-ripple {
+    position: relative;
+    overflow: hidden;
+}
+
+.g-ripple::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 5px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    transform: scale(0);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.g-ripple:active::after {
+    animation: g-ripple 0.6s ease-out;
+}
+
+/* ============================================
+   PROGRESS BAR
+   ============================================ */
+
+@keyframes g-progressStripe {
+    0% { background-position: 0 0; }
+    100% { background-position: 40px 0; }
+}
+
+.g-progress {
+    position: relative;
+    width: 100%;
+    height: 8px;
+    background: rgba(124, 58, 237, 0.15);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.g-progress-bar {
+    height: 100%;
+    background: linear-gradient(
+        45deg,
+        #7c3aed 25%,
+        #8b5cf6 25%,
+        #8b5cf6 50%,
+        #7c3aed 50%,
+        #7c3aed 75%,
+        #8b5cf6 75%,
+        #8b5cf6
+    );
+    background-size: 40px 40px;
+    animation: g-progressStripe 1s linear infinite;
+    transition: width 0.3s ease;
+}
+
+/* ============================================
+   TOOLTIP
+   ============================================ */
+
+@keyframes g-tooltipIn {
+    from { opacity: 0; transform: translate(-50%, 5px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.g-tooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 6px 10px;
+    background: #1a1a24;
+    color: #fff;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    animation: g-tooltipIn 0.2s ease-out;
+}
+
+.g-tooltip-parent:hover .g-tooltip {
+    opacity: 1;
+}
+
+/* ============================================
+   ACCORDION
+   ============================================ */
+
+@keyframes g-accordionDown {
+    from { max-height: 0; opacity: 0; }
+    to { max-height: 1000px; opacity: 1; }
+}
+
+@keyframes g-accordionUp {
+    from { max-height: 1000px; opacity: 1; }
+    to { max-height: 0; opacity: 0; }
+}
+
+.g-accordion-open {
+    animation: g-accordionDown 0.4s ease-out forwards;
+    overflow: hidden;
+}
+
+.g-accordion-close {
+    animation: g-accordionUp 0.3s ease-in forwards;
+    overflow: hidden;
+}
+
+/* ============================================
+   HEART (Beğeni) ANİMASYONU
+   ============================================ */
+
+@keyframes g-heartPop {
+    0% { transform: scale(0) rotate(-45deg); opacity: 0; }
+    50% { transform: scale(1.3) rotate(-45deg); opacity: 1; }
+    100% { transform: scale(1) rotate(-45deg); opacity: 1; }
+}
+
+.g-heart-pop {
+    animation: g-heartPop 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ============================================
+   WAVE (El sallama)
+   ============================================ */
+
+@keyframes g-wave {
+    0%, 100% { transform: rotate(0deg); }
+    10% { transform: rotate(14deg); }
+    20% { transform: rotate(-8deg); }
+    30% { transform: rotate(14deg); }
+    40% { transform: rotate(-4deg); }
+    50% { transform: rotate(10deg); }
+    60% { transform: rotate(0deg); }
+}
+
+.g-wave {
+    display: inline-block;
+    animation: g-wave 2s ease-in-out infinite;
+    transform-origin: 70% 70%;
+}
+
+/* ============================================
+   CONFETTI (Başarı kutlaması)
+   ============================================ */
+
+@keyframes g-confettiFall {
     0% {
-        transform: translateY(0);
+        transform: translateY(-100vh) rotate(0deg);
         opacity: 1;
     }
     100% {
-        transform: translateY(20px);
+        transform: translateY(100vh) rotate(720deg);
         opacity: 0;
     }
 }
 
-.scroll-indicator {
-    animation: scrollIndicator 1.5s infinite;
+.g-confetti {
+    position: fixed;
+    top: 0;
+    width: 10px;
+    height: 10px;
+    pointer-events: none;
+    z-index: 9999;
+    animation: g-confettiFall 3s linear forwards;
 }
 
 /* ============================================
-   REDUCED MOTION
+   SHAKE (Hata durumu)
+   ============================================ */
+
+@keyframes g-shakeHard {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-8px); }
+    20%, 40%, 60%, 80% { transform: translateX(8px); }
+}
+
+.g-shake-hard { animation: g-shakeHard 0.6s cubic-bezier(0.36, 0.07, 0.19, 0.97); }
+
+/* ============================================
+   DELAY YARDIMCILARI
+   ============================================ */
+
+.g-delay-100 { animation-delay: 0.1s; }
+.g-delay-200 { animation-delay: 0.2s; }
+.g-delay-300 { animation-delay: 0.3s; }
+.g-delay-500 { animation-delay: 0.5s; }
+.g-delay-700 { animation-delay: 0.7s; }
+.g-delay-1000 { animation-delay: 1s; }
+
+/* ============================================
+   DURATION YARDIMCILARI
+   ============================================ */
+
+.g-duration-fast { animation-duration: 0.2s; }
+.g-duration-normal { animation-duration: 0.4s; }
+.g-duration-slow { animation-duration: 0.8s; }
+
+/* ============================================
+   REDUCED MOTION (Akıllı)
    ============================================ */
 
 @media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
+    /* Sonsuz animasyonları durdur */
+    .g-float,
+    .g-glow,
+    .g-pulse,
+    .g-bounce,
+    .g-heartbeat,
+    .g-wave,
+    .g-scroll-indicator,
+    .g-progress-bar {
+        animation: none !important;
+    }
+
+    /* Giriş animasyonlarını kısalt (sıfır değil, anlık) */
+    .g-fade-in,
+    .g-slide-up,
+    .g-slide-down,
+    .g-slide-left,
+    .g-slide-right,
+    .g-scale-in,
+    .g-message-in,
+    .g-message-sent,
+    .g-message-received,
+    .g-modal-in,
+    .g-notification-in,
+    .g-page-in {
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
     }
-  }
+}
